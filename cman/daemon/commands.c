@@ -2189,6 +2189,7 @@ void del_ais_node(int nodeid)
 
 	case NODESTATE_LEAVING:
 		node->state = NODESTATE_DEAD;
+		memset(&node->port_bits, 0, sizeof(node->port_bits));
 		cluster_members--;
 
 		P_MEMB("del_ais_node %s, leave_reason=%x\n", node->name, node->leave_reason);
