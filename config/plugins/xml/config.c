@@ -7,8 +7,6 @@
 #include <corosync/engine/objdb.h>
 #include <corosync/engine/config.h>
 
-#include "logging.h"
-
 static int xml_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
 static int xml_reloadconfig(struct objdb_iface_ver0 *objdb, int flush,
 			    const char **error_string);
