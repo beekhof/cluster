@@ -13,50 +13,17 @@
 # Description:		Starts and stops Red Hat Service (resource group) Manager
 ### END INIT INFO
 
-# rpm based distros
-if [ -d /etc/sysconfig ]; then
-	[ -f @INITDDIR@/functions ] && . @INITDDIR@/functions
-	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
-	[ -f /etc/sysconfig/rgmanager ] && . /etc/sysconfig/rgmanager
-	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/subsys/rgmanager"
-	success=success
-	failure=failure
-	status=status
-fi
-
-# deb based distros
-if [ -d /etc/default ]; then
-	[ -f /etc/default/cluster ] && . /etc/default/cluster
-	[ -f /etc/default/rgmanager ] && . /etc/default/rgmanager
-	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/rgmanager"
-	success=local_success
-	failure=local_failure
-	status=local_status
-fi
-
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-
-export PATH
-
-ID="Cluster Service Manager"
-RGMGRD="rgmanager"
-
-LOG_ERR=3
-LOG_WARNING=4
-LOG_NOTICE=5
-LOG_INFO=6
-
-local_success()
+success()
 {
     echo -ne "[  OK  ]\r"
 }
 
-local_failure()
+failure()
 {
     echo -ne "[FAILED]\r"
 }
 
-local_status()
+status()
 {
     pid=$(pidof $1 2>/dev/null)
     rtrn=$?
@@ -67,6 +34,33 @@ local_status()
     fi
     return $rtrn
 }
+
+# rpm based distros
+if [ -d /etc/sysconfig ]; then
+	[ -f @INITDDIR@/functions ] && . @INITDDIR@/functions
+	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
+	[ -f /etc/sysconfig/rgmanager ] && . /etc/sysconfig/rgmanager
+	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/subsys/rgmanager"
+fi
+
+# deb based distros
+if [ -d /etc/default ]; then
+	[ -f /etc/default/cluster ] && . /etc/default/cluster
+	[ -f /etc/default/rgmanager ] && . /etc/default/rgmanager
+	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/rgmanager"
+fi
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:@SBINDIR@
+
+export PATH
+
+ID="Cluster Service Manager"
+RGMGRD="rgmanager"
+
+LOG_ERR=3
+LOG_WARNING=4
+LOG_NOTICE=5
+LOG_INFO=6
 
 #
 # log_and_print <level> <message>
@@ -98,7 +92,7 @@ stop_cluster()
 			while [ -n "`pidof $RGMGRD`" ]; do
 				sleep 1
 			done
-			$success
+			success
 			echo
 		else
 			echo "Services are stopped."
@@ -128,9 +122,9 @@ case $1 in
 		rtrn=$?
 		if [ $rtrn = 0 ]; then
 			touch $LOCK_FILE
-			$success
+			success
 		else
-			$failure
+			failure
 		fi
 		echo
 
@@ -158,9 +152,9 @@ case $1 in
 		kill -HUP $(pidof $RGMGRD) 2>&1
 		rtrn=$?
 		if [ $rtrn = 0 ]; then
-			$success
+			success
 		else
-			$failure
+			failure
 		fi
 		echo
 
@@ -168,7 +162,7 @@ case $1 in
 		;;
 
 	status)
-		$status $RGMGRD
+		status $RGMGRD
 		exit $?
 		;;
 
