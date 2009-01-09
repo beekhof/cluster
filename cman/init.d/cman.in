@@ -16,16 +16,43 @@
 # Description:		Starts and stops the Cluster Manager set of daemons
 ### END INIT INFO
 
+# set secure PATH
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:@SBINDIR@"
+
+local_chkconfig()
+{
+    ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
+    return $?
+}
+
+success()
+{
+    echo -ne "[  OK  ]\r"
+}
+
+failure()
+{
+    echo -ne "[FAILED]\r"
+}
+
+status()
+{
+    pid=$(pidof $1 2>/dev/null)
+    rtrn=$?
+    if [ $rtrn -ne 0 ]; then
+	echo "$1 is stopped"
+    else
+	echo "$1 (pid $pid) is running..."
+    fi
+    return $rtrn
+}
+
 # rpm based distros
 if [ -d /etc/sysconfig ]; then
 	[ -f @INITDDIR@/functions ] && . @INITDDIR@/functions
 	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
 	[ -f /etc/sysconfig/cman ] && . /etc/sysconfig/cman
 	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/subsys/cman"
-	chkconfig=/sbin/chkconfig
-	success=success
-	failure=failure
-	status=status
 fi
 
 # deb based distros
@@ -33,15 +60,7 @@ if [ -d /etc/default ]; then
 	[ -f /etc/default/cluster ] && . /etc/default/cluster
 	[ -f /etc/default/cman ] && . /etc/default/cman
 	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/cman"
-	# deb based distros can have chkconfig installed. Use it if installed
-	# otherwire use our local wrapper.
-	[ -n "$(which chkconfig)" ] && chkconfig="$(which chkconfig)"
-	[ -z "$chkconfig" ] && chkconfig=local_chkconfig
-	success=local_success
-	failure=local_failure
-	# functions in rpm based distro implements a very complete version
-	# of pidof. For now we can live with this.
-	status=local_status
+	[ -z "$(which chkconfig)" ] && alias chkconfig=local_chkconfig
 fi
 
 [ -z "$CCSD_OPTS" ] && CCSD_OPTS=
@@ -116,34 +135,6 @@ fi
 #                   and available only if building the code with --enable_legacy_code.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
 
-local_chkconfig()
-{
-    ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
-    return $?
-}
-
-local_success()
-{
-    echo -ne "[  OK  ]\r"
-}
-
-local_failure()
-{
-    echo -ne "[FAILED]\r"
-}
-
-local_status()
-{
-    pid=$(pidof $1 2>/dev/null)
-    rtrn=$?
-    if [ $rtrn -ne 0 ]; then
-	echo "$1 is stopped"
-    else
-	echo "$1 (pid $pid) is running..."
-    fi
-    return $rtrn
-}
-
 load_modules()
 {
     errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
@@ -168,7 +159,7 @@ start_configfs()
 start_ccsd()
 {
     # ccsd
-    $status ccsd > /dev/null
+    status ccsd > /dev/null
     if [ $? -ne 0 ]
     then
 	errmsg=$(@SBINDIR@/ccsd $CCSD_OPTS 2>&1)
@@ -247,7 +238,7 @@ start_qdiskd()
     # Start qdiskd before fenced to resolve bug #436381.  This only
     # happens if qdiskd is configured to run in the runlevel we are in
     #
-    $chkconfig --levels "$current_runlevel" qdiskd 2>/dev/null
+    chkconfig --levels "$current_runlevel" qdiskd 2>/dev/null
     if [ $? -ne 0 ]; then
         # qdiskd doesn't start at this runlevel.
         return 0
@@ -268,23 +259,23 @@ start_qdiskd()
 
 start_daemons()
 {
-    $status groupd > /dev/null 2>&1
+    status groupd > /dev/null 2>&1
     if [ $? -ne 0 ]; then
 	errmsg=$( @SBINDIR@/groupd 2>&1 ) || return 1
     fi
-    $status fenced > /dev/null 2>&1
+    status fenced > /dev/null 2>&1
     if [ $? -ne 0 ]; then
 	errmsg=$( @SBINDIR@/fenced 2>&1 ) || return 1
     fi
-    $status dlm_controld > /dev/null 2>&1
+    status dlm_controld > /dev/null 2>&1
     if [ $? -ne 0 ]; then
 	errmsg=$( @SBINDIR@/dlm_controld 2>&1 ) || return 1
     fi
-    $status gfs_controld > /dev/null 2>&1
+    status gfs_controld > /dev/null 2>&1
     if [ $? -ne 0 ]; then
 	errmsg=$( @SBINDIR@/gfs_controld 2>&1 ) || return 1
     fi
-    $status cmannotifyd > /dev/null 2>&1
+    status cmannotifyd > /dev/null 2>&1
     if [ $? -ne 0 ]; then
 	errmsg=$( @SBINDIR@/cmannotifyd 2>&1 ) || return 1
     fi
@@ -308,7 +299,7 @@ start_fence()
 
 start_fence_xvmd()
 {
-    $status fence_xvmd > /dev/null 2>&1
+    status fence_xvmd > /dev/null 2>&1
     if [ $? -ne 0 ]; then
 	errmsg=$( @SBINDIR@/fence_xvmd $FENCE_XVMD_OPTS 2>&1 ) || return 1
     fi
@@ -325,7 +316,7 @@ xend_bridged_net_enabled() {
         return 1
     fi
 
-    $chkconfig --levels "$current_runlevel" xend 2>/dev/null
+    chkconfig --levels "$current_runlevel" xend 2>/dev/null
     if [ $? -ne 0 ]; then
         # xend doesn't start at this runlevel.
         return 1
@@ -703,17 +694,17 @@ stop()
 cmanstatus()
 {
 	if [ -n "$CONFIG_LOADER" ] && [ "$CONFIG_LOADER" = ccsconfig ]; then
-		errmsg=$( $status ccsd 2>&1) || return 1
+		errmsg=$( status ccsd 2>&1) || return 1
 	fi
 
-	errmsg=$( $status groupd 2>&1) || return 1
-	errmsg=$( $status fenced 2>&1) || return 1
-	errmsg=$( $status dlm_controld 2>&1) || return 1
-	errmsg=$( $status gfs_controld 2>&1) || return 1
-	errmsg=$( $status cmannotifyd 2>&1) || return 1
+	errmsg=$( status groupd 2>&1) || return 1
+	errmsg=$( status fenced 2>&1) || return 1
+	errmsg=$( status dlm_controld 2>&1) || return 1
+	errmsg=$( status gfs_controld 2>&1) || return 1
+	errmsg=$( status cmannotifyd 2>&1) || return 1
 
 	fence_xvmd_enabled || return 0
-	errmsg=$( $status fence_xvmd 2>&1) || return 1
+	errmsg=$( status fence_xvmd 2>&1) || return 1
 
 	return 0
 }
@@ -729,10 +720,10 @@ case "$1" in
 	if [ $rtrn -ne 0 ] 
 	then
 	    echo $errmsg
-	    $failure "failed to start cman"
+	    failure "failed to start cman"
 	    echo
 	else
-	    $success "start"
+	    success "start"
 	    echo
 	fi
 	;;
@@ -747,10 +738,10 @@ case "$1" in
 	if [ $rtrn -ne 0 ] 
 	then
 	    echo $errmsg
-	    $failure "failed to stop cman"
+	    failure "failed to stop cman"
 	    echo
 	else
-	    $success "shutdown"
+	    success "shutdown"
 	    echo
 	fi
 	;;
