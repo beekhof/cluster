@@ -328,6 +328,12 @@ static int get_format_opt(const char *opt)
 		return FMT_TYPE;
 	if (!strcmp(opt, "addr"))
 		return FMT_ADDR;
+	if (!strcmp(opt, "votes"))
+		return FMT_VOTES;
+	if (!strcmp(opt, "exp"))
+		return FMT_EXP;
+	if (!strcmp(opt, "state"))
+		return FMT_STATE;
 
 	return FMT_NONE;
 }
@@ -340,6 +346,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 	struct tm *jtime;
 	char jstring[1024];
 	int i,j,k;
+	cman_node_extra_t enode;
 
 	if (comline->num_nodenames > 0) {
 		if (node_filter(comline, node->cn_name) == 0) {
@@ -411,7 +418,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 		}
 	}
 
-	if (comline->format_opts) {
+	if (comline->format_opts && (cman_get_node_extra(h, node->cn_nodeid, &enode) == 0)) {
 		for (j = 0; j < MAX_FORMAT_OPTS; j++) {
 			switch (format[j]) {
 			case FMT_NONE:
@@ -424,6 +431,35 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 				break;
 			case FMT_TYPE:
 				printf("%c ", member_type);
+				break;
+			case FMT_VOTES:
+				printf("%d ", enode.cnx_votes);
+				break;
+			case FMT_EXP:
+				printf("%d ", enode.cnx_expected_votes);
+				break;
+			case FMT_STATE:
+				switch (enode.cnx_state)
+				{
+				case CLUSTER_NODESTATE_JOINING:
+					printf("Joining ");
+					break;
+				case CLUSTER_NODESTATE_MEMBER:
+					printf("Member ");
+					break;
+				case CLUSTER_NODESTATE_DEAD:
+					printf("Dead ");
+					break;
+				case CLUSTER_NODESTATE_LEAVING:
+					printf("Leaving ");
+					break;
+				case CLUSTER_NODESTATE_DISALLOWED:
+					printf("Disallowed ");
+					break;
+				default:
+					printf("Unknown ");
+					break;
+				}
 				break;
 			case FMT_ADDR:
 				for (k = 0; k < numaddrs; k++) {

@@ -42,6 +42,7 @@
 #define CMAN_CMD_SET_DIRTY          0x800000c2
 #define CMAN_CMD_SET_DEBUGLOG       0x800000c3
 #define CMAN_CMD_DUMP_OBJDB         0x800000c4
+#define CMAN_CMD_GETNODE_EXTRA      0x000000c5
 
 #define CMAN_CMD_DATA               0x00000100
 #define CMAN_CMD_BIND               0x00000101
@@ -192,6 +193,16 @@ struct cl_cluster_node {
 	struct timeval jointime;
 	unsigned char votes;
 };
+
+struct cl_node_extra
+{
+	int nodeid;
+	int state;
+	int votes;
+	int expected_votes;
+	int leave_reason;
+};
+
 
 /* Structure passed to CMAN_CMD_ISLISTENING */
 struct cl_listen_request {

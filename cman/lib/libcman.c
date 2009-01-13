@@ -687,6 +687,20 @@ int cman_get_node(cman_handle_t handle, int nodeid, cman_node_t *node)
 	return 0;
 }
 
+int cman_get_node_extra(cman_handle_t handle, int nodeid, cman_node_extra_t *node)
+{
+	struct cman_handle *h = (struct cman_handle *)handle;
+	int status;
+	VALIDATE_HANDLE(h);
+
+	status = info_call(h, CMAN_CMD_GETNODE_EXTRA, &nodeid, sizeof(int),
+			   node, sizeof(cman_node_extra_t));
+	if (status < 0)
+		return -1;
+
+	return 0;
+}
+
 int cman_get_subsys_count(cman_handle_t handle)
 {
 	struct cman_handle *h = (struct cman_handle *)handle;

@@ -114,6 +114,34 @@ typedef struct cman_node
 } cman_node_t;
 
 /*
+ * Return from cman_get_node_extra()
+ */
+typedef struct cman_node_extra
+{
+	int cnx_nodeid;
+	int cnx_state;
+	int cnx_votes;
+	int cnx_expected_votes;
+	int cnx_leave_reason;
+} cman_node_extra_t;
+
+#define CLUSTER_LEAVEREASON_DOWN         0   /* Normal shutdown */
+#define CLUSTER_LEAVEREASON_KILLED       1   /* probably buy cman_tool */
+#define CLUSTER_LEAVEREASON_PANIC        2   /* Just disappeared */
+#define CLUSTER_LEAVEREASON_REMOVED      3   /* This one can reduce quorum */
+#define CLUSTER_LEAVEREASON_REJECTED     4   /* Not allowed into the cluster in the first place */
+#define CLUSTER_LEAVEREASON_INCONSISTENT 5   /* Our view of the cluster is in a minority */
+#define CLUSTER_LEAVEREASON_DEAD         6   /* Discovered to be dead */
+#define CLUSTER_LEAVEREASON_NORESPONSE   7   /* Didn't ACK message */
+
+#define CLUSTER_NODESTATE_JOINING    1
+#define CLUSTER_NODESTATE_MEMBER     2
+#define CLUSTER_NODESTATE_DEAD       3
+#define CLUSTER_NODESTATE_LEAVING    4
+#define CLUSTER_NODESTATE_DISALLOWED 5
+
+
+/*
  * Returned from cman_get_version(),
  * input to cman_set_version(), though only cv_config can be changed
  */
@@ -278,6 +306,11 @@ int cman_get_disallowed_nodes(cman_handle_t handle, int maxnodes, int *retnodes,
  * into cman_get_node(). nodeid can be CMAN_NODEID_US.
  */
 int cman_get_node(cman_handle_t handle, int nodeid, cman_node_t *node);
+
+/*
+ * This always gets info by nodeid.
+ */
+int cman_get_node_extra(cman_handle_t handle, int nodeid, cman_node_extra_t *node);
 
 /* cman_get_node() only returns the first address of a node (whatever /that/
  * may mean). If you want to know all of them you need to call this.

@@ -52,6 +52,9 @@ enum format_opt
 	FMT_NAME,
 	FMT_TYPE,
 	FMT_ADDR,
+	FMT_VOTES,
+	FMT_EXP,
+	FMT_STATE,
 };
 
 struct commandline

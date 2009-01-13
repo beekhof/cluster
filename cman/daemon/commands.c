@@ -693,6 +693,37 @@ static int do_cmd_get_node(char *cmdbuf, char *retbuf, int *retlen)
 	return 0;
 }
 
+static int do_cmd_get_node_extra(char *cmdbuf, char *retbuf, int *retlen)
+{
+	struct cluster_node *node;
+	struct cl_node_extra *r_node = (struct cl_node_extra *)retbuf;
+	int nodeid;
+
+	if (!we_are_a_cluster_member)
+		return -ENOENT;
+
+	memcpy(&nodeid, cmdbuf, sizeof(int));
+
+	if (nodeid == CLUSTER_GETNODE_QUORUMDEV) {
+		return -EINVAL;
+	}
+	node = find_node_by_nodeid(nodeid);
+	if (nodeid == 0)
+		node = us;
+	if (!node)
+		return -EINVAL;
+
+	r_node->votes = node->votes;
+	r_node->expected_votes = node->expected_votes;
+	r_node->state = node->state;
+	r_node->leave_reason = node->leave_reason;
+	r_node->nodeid = nodeid;
+
+	*retlen = sizeof(struct cl_node_extra);
+
+	return 0;
+}
+
 static int do_cmd_set_expected(char *cmdbuf, int *retlen)
 {
 	unsigned int total_votes;
@@ -1369,6 +1400,10 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 
 	case CMAN_CMD_GETNODE:
 		err = do_cmd_get_node(cmdbuf, outbuf+offset, retlen);
+		break;
+
+	case CMAN_CMD_GETNODE_EXTRA:
+		err = do_cmd_get_node_extra(cmdbuf, outbuf+offset, retlen);
 		break;
 
 	case CMAN_CMD_GETCLUSTER:
