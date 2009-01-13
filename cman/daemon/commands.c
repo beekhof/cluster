@@ -1297,9 +1297,6 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 	struct cl_version cnxman_version;
 	char *outbuf = *retbuf;
 	int value;
-#ifdef DEBUG
-	FILE *dumpfile;
-#endif
 
 	P_MEMB("command to process is %x\n", cmd);
 
@@ -1330,19 +1327,6 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 		set_debuglog(value);
 		err = 0;
 		break;
-#ifdef DEBUG
-	case CMAN_CMD_DUMP_OBJDB:
-		dumpfile = fopen(cmdbuf, "w+");
-		if (dumpfile)  {
-			corosync->object_dump(OBJECT_PARENT_HANDLE, dumpfile);
-			fclose(dumpfile);
-			err = 0;
-		}
-		else {
-			err = -errno;
-		}
-		break;
-#endif
 	case CMAN_CMD_START_CONFCHG:
 		con->confchg = 1;
 		err = 0;
