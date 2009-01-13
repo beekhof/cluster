@@ -32,13 +32,10 @@ log_name(void)
 
 	snprintf(lnk, sizeof(lnk), "/proc/%d/exe", getppid());
 
-	printf("%s\n", lnk);
-
 	if (readlink(lnk, file, sizeof(file)) < 0) {
 		perror("readlink");
 		return NULL;
 	}
-	printf("%s\n", basename(file));
 
 	return basename(file);
 }
