@@ -240,7 +240,7 @@ static void show_status(void)
 	if (einfo->ei_flags & CMAN_EXTRA_FLAG_DISALLOWED)
 		printf(" DisallowedNodes");
 	if (einfo->ei_flags & CMAN_EXTRA_FLAG_DIRTY)
-		printf(" Dirty");
+		printf(" HaveState");
 	printf(" \n");
 
 	printf("Ports Bound: ");
