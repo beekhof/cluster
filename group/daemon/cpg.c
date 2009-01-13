@@ -40,6 +40,7 @@ struct group_node {
 	uint32_t nodeid;
 	uint32_t got_from;
 	int got_version;
+	int sent_version;
 	uint64_t add_time;
 	struct group_version ver;
 	struct list_head list;
@@ -247,7 +248,7 @@ static void receive_version(int from, msg_t *msg, int len)
 void group_mode_check_timeout(void)
 {
 	struct group_node *node;
-	int need_version, pending_count;
+	int need_version, pending_count, sent_count;
 	uint64_t now;
 
 	if (group_mode != GROUP_PENDING)
@@ -263,6 +264,7 @@ void group_mode_check_timeout(void)
 
 	need_version = 0;
 	pending_count = 0;
+	sent_count = 0;
 	now = time(NULL);
 
 	list_for_each_entry(node, &group_nodes, list) {
@@ -270,7 +272,13 @@ void group_mode_check_timeout(void)
 			pending_count++;
 			continue;
 		}
+
 		need_version++;
+
+		if (node->sent_version) {
+			sent_count++;
+			continue;
+		}
 
 		if (now - node->add_time >= cfgd_groupd_wait) {
 			log_print("send version for nodeid %d times %llu %llu",
@@ -278,12 +286,14 @@ void group_mode_check_timeout(void)
 				  (unsigned long long)node->add_time,
 				  (unsigned long long)now);
 			_send_version(node->nodeid, CLUSTER2, GROUP_LIBGROUP,1);
+			node->sent_version = 1;
+			sent_count++;
 		}
 	}
 
 	if (need_version) {
-		log_debug("group_mode_check_timeout need %d pending %d",
-			  need_version, pending_count);
+		log_debug("group_mode_check_timeout need %d pending %d sent %d",
+			  need_version, pending_count, sent_count);
 		return;
 	}
 
