@@ -1646,14 +1646,15 @@ static int valid_transition_msg(int nodeid, struct cl_transmsg *msg)
 	/* New config version - try to read new file */
 	if (msg->config_version > config_version) {
 
-		reread_config(msg->config_version);
+		if (!reread_config(msg->config_version)) {
 
-		if (config_version > msg->config_version) {
-			/* Tell everyone else to update */
-			send_reconfigure(us->node_id, RECONFIG_PARAM_CONFIG_VERSION, config_version);
+			if (config_version > msg->config_version) {
+				/* Tell everyone else to update */
+				send_reconfigure(us->node_id, RECONFIG_PARAM_CONFIG_VERSION, config_version);
+			}
+			recalculate_quorum(0, 0);
+			notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
 		}
-		recalculate_quorum(0, 0);
-		notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
 	}
 
 
@@ -1800,9 +1801,9 @@ static void do_reconfigure_msg(void *data)
 
 	case RECONFIG_PARAM_CONFIG_VERSION:
 		if (config_version != msg->value) {
-			reread_config(msg->value);
+			if (!reread_config(msg->value))
+				notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
 		}
-		notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
 		break;
 	}
 }
