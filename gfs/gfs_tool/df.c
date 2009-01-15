@@ -20,6 +20,54 @@
 #define SIZE (4096)
 
 /**
+ * anthropomorphize - make a uint64_t number more human
+ */
+static const char *anthropomorphize(uint64_t inhuman_value)
+{
+	const char *symbols = " KMGTPE";
+	int i;
+	uint64_t val = inhuman_value;
+	static char out_val[32];
+
+	memset(out_val, 0, sizeof(out_val));
+	for (i = 0; i < 6 && val > 1024; i++)
+		val /= 1024;
+	sprintf(out_val, "%"PRIu64"%c", val, symbols[i]);
+	return out_val;
+}
+
+/**
+ * printit - parse out and print values according to the output type
+ */
+static void printit(char *stat_gfs, const char *label, uint64_t used,
+		    uint64_t free, unsigned int percentage)
+{
+	uint64_t block_size = name2u64(stat_gfs, "bsize");
+
+	switch (output_type) {
+	case OUTPUT_BLOCKS:
+		printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
+		       label, used + free, used, free, percentage);
+		break;
+	case OUTPUT_K:
+		printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
+		       label, ((used + free) * block_size) / 1024,
+		       (used * block_size) / 1024, (free * block_size) / 1024,
+		       percentage);
+		break;
+	case OUTPUT_HUMAN:
+		/* Need to do three separate printfs here because function
+		   anthropomorphize re-uses the same static space. */
+		printf("  %-15s%-15s", label,
+		       anthropomorphize((used + free) * block_size));
+		printf("%-15s", anthropomorphize(used * block_size));
+		printf("%-15s%u%%\n", anthropomorphize(free * block_size),
+		       percentage);
+		break;
+	}
+}
+
+/**
  * do_df_one - print out information about one filesystem
  * @path: the path to the filesystem
  *
@@ -172,37 +220,38 @@ do_df_one(char *path)
 	printf("  Local caching = %s\n", (name2u32(args, "localcaching")) ? "TRUE" : "FALSE");
 	printf("  Oopses OK = %s\n", (name2u32(args, "oopses_ok")) ? "TRUE" : "FALSE");
 	printf("\n");
-	printf("  %-15s%-15s%-15s%-15s%-15s\n", "Type", "Total", "Used", "Free", "use%");
+	switch (output_type) {
+	case OUTPUT_BLOCKS:
+		printf("  %-15s%-15s%-15s%-15s%-15s\n", "Type", "Total Blocks",
+		       "Used Blocks", "Free Blocks", "use%");
+		break;
+	case OUTPUT_K:
+		printf("  %-15s%-15s%-15s%-15s%-15s\n", "Type", "Total K",
+		       "Used K", "Free K", "use%");
+		break;
+	case OUTPUT_HUMAN:
+		printf("  %-15s%-15s%-15s%-15s%-15s\n", "Type", "Total",
+		       "Used", "Free", "use%");
+		break;
+	}
 	printf("  ------------------------------------------------------------------------\n");
 
 	percentage = (name2u64(stat_gfs, "used_dinode") + name2u64(stat_gfs, "free_dinode")) ?
 		(100.0 * name2u64(stat_gfs, "used_dinode") / (name2u64(stat_gfs, "used_dinode") +
 							      name2u64(stat_gfs, "free_dinode")) + 0.5) : 0;
-	printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
-	       "inodes",
-	       name2u64(stat_gfs, "used_dinode") + name2u64(stat_gfs, "free_dinode"),
-	       name2u64(stat_gfs, "used_dinode"),
-	       name2u64(stat_gfs, "free_dinode"),
-	       percentage);
+	printit(stat_gfs, "inodes", name2u64(stat_gfs, "used_dinode"),
+		name2u64(stat_gfs, "free_dinode"), percentage);
 
 	percentage = (name2u64(stat_gfs, "used_meta") + name2u64(stat_gfs, "free_meta")) ?
 		(100.0 * name2u64(stat_gfs, "used_meta") / (name2u64(stat_gfs, "used_meta") +
 							    name2u64(stat_gfs, "free_meta")) + 0.5) : 0;
-	printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
-	       "metadata",
-	       name2u64(stat_gfs, "used_meta") + name2u64(stat_gfs, "free_meta"),
-	       name2u64(stat_gfs, "used_meta"),
-	       name2u64(stat_gfs, "free_meta"),
-	       percentage);
+	printit(stat_gfs, "metadata", name2u64(stat_gfs, "used_meta"),
+		name2u64(stat_gfs, "free_meta"), percentage);
 
 	percentage = (used_data + name2u64(stat_gfs, "free")) ?
 		(100.0 * used_data / (used_data + name2u64(stat_gfs, "free")) + 0.5) : 0;
-	printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
-	       "data",
-	       used_data + name2u64(stat_gfs, "free"),
-	       used_data,
-	       name2u64(stat_gfs, "free"),
-	       percentage);
+	printit(stat_gfs, "data", used_data, name2u64(stat_gfs, "free"),
+		percentage);
 }
 
 

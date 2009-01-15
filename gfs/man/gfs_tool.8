@@ -5,23 +5,31 @@ gfs_tool - interface to gfs ioctl calls
 
 .SH SYNOPSIS
 .B gfs_tool
-\fICOMMAND\fR [\fIOPTION\fR]...
+\fICOMMAND\fR [\fIOPTION\fR] [\fIPARAMETERS ...\fR]
 
 .SH DESCRIPTION
 gfs_tool is an interface to a variety of the GFS ioctl calls.
-
+.TP
+Specifying gfs_tool -h prints gfs_tool command line usage (help).
+.TP
+Specifying gfs_tool -V prints the gfs_tool version information.
 .SH COMMANDS
 .TP
 \fBclearflag\fP \fIFlag\fR \fIFile1\fR \fIFile2\fR \fI...\fR 
 Clear an attribute flag on a file.
 .TP
-\fBcounters\fP \fIMountPoint\fR [-c]
-Print out statistics about a filesystem.  If -c is used, gfs_tool continues
-to run printing out the stats once a second.
+\fBcounters\fP \fIMountPoint\fR [-c] [-i \fIinterval\fR]
+Print out statistics about a filesystem.  If -c is specified, gfs_tool
+keeps running printing out the statistics once per second or, if
+specified, the interval given with the -i option, in seconds.
 .TP
-\fBdf\fP \fIMountPoint\fR 
+\fBdf\fP \fIMountPoint\fR [-k]|[-H]
 Print out a space usage summary of a given filesystem.  The information
-printed is more detailed than a standard "df".
+printed is more detailed than a standard "df".  If -k is specified, the
+output is given in kilobytes (KB).  If -H is specified, the output is
+given in human readable format (similar to df -h).  If neither -k nor -H
+are specified, the output is given in file system blocks.
+
 .TP
 \fBfreeze\fP \fIMountPoint\fR
 Freeze (quiesce) a GFS cluster.
