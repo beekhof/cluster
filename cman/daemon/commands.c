@@ -91,7 +91,7 @@ static void recalculate_quorum(int allow_decrease, int by_current_nodes);
 static void send_kill(int nodeid, uint16_t reason);
 static char *killmsg_reason(int reason);
 static void ccsd_timer_fn(void *arg);
-
+static int reread_config(int new_version);
 
 static void set_port_bit(struct cluster_node *node, uint8_t port)
 {
@@ -476,6 +476,18 @@ static int do_cmd_set_version(char *cmdbuf, int *retlen)
 
 	if (config_version == version->config)
 		return 0;
+
+	/* If the passed-in version number is 0 then read the file now, then
+	 * tell the other nodes to look for that version number.
+	 * That means we also have to send the notification here, because it will
+	 * beskipped when we get our own RECONFIGURE message back as the version
+	 * number will match.
+	 */
+	if (!version->config) {
+		if (!reread_config(0))
+			notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
+		version->config = config_version;
+	}
 
 	/* We will re-read CCS when we get our own message back */
 	send_reconfigure(us->node_id, RECONFIG_PARAM_CONFIG_VERSION, version->config);

@@ -65,7 +65,16 @@ you need to get it running again in a hurry.
 .I version
 Used alone this will report the major, minor, patch and config versions
 used by CMAN (also displayed in 'cman_tool status'). It can also be used
-with -r to tell cluster members to update.
+with -r to tell cluster members to update. 
+.br
+The argument to -r is the version number that cman should look for. If 
+that version is not currently available then cman will poll for it. If
+a version of 0 is specified then cman will simply re-read the configuration
+and use the version number it finds there. 
+.br
+NOTE: this happens cluster-wide and the highest version number in the
+cluster will be the one everyone looks for. version -r0 is not a way
+to have different config versions across nodes in the cluster!
 
 .TP
 .I wait 
