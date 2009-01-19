@@ -662,7 +662,7 @@ static void version(commandline_t *comline)
 	if ((result = cman_get_version(h, &ver)))
 		die("can't get version: %s", cman_error(errno));
 
-	if (!comline->config_version) {
+	if (!comline->config_version_opt) {
 		printf("%d.%d.%d config %d\n", ver.cv_major, ver.cv_minor, ver.cv_patch,
 		       ver.cv_config);
 		goto out;

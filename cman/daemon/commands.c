@@ -1147,7 +1147,7 @@ static int reread_config(int new_version)
 	}
 
 	/* Still too old?? */
-	if (config_version < wanted_config_version) {
+	if (new_version && config_version < wanted_config_version) {
 		log_printf(LOG_ERR, "Can't get updated config version %d, config file is version %d.\n",
 			   wanted_config_version, config_version);
 	}
