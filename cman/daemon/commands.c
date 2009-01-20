@@ -1848,6 +1848,8 @@ static void do_process_transition(int nodeid, char *data)
 {
 	struct cl_transmsg *msg = (struct cl_transmsg *)data;
 	struct cluster_node *node;
+	unsigned int old_expected;
+	nodestate_t old_state;
 
 	if (valid_transition_msg(nodeid, msg) != 0) {
 		P_MEMB("Transition message from %d does not match current config - should quit ?\n", nodeid);
@@ -1870,6 +1872,8 @@ static void do_process_transition(int nodeid, char *data)
 		node = find_node_by_nodeid(nodeid);
 	}
 	assert(node);
+	old_expected = node->expected_votes;
+	old_state = node->state;
 
 	P_MEMB("Got TRANSITION message. msg->flags=%x, node->flags=%x, first_trans=%d\n",
 	       msg->flags, node->flags, msg->first_trans);
@@ -1930,7 +1934,9 @@ static void do_process_transition(int nodeid, char *data)
 
 	/* Take into account any new expected_votes value that the new node has */
 	node->expected_votes = msg->expected_votes;
-	recalculate_quorum(0, 0);
+
+	if (old_state != node->state || old_expected != node->expected_votes)
+		recalculate_quorum(0, 0);
 
 	if (node->fence_agent && msg->fence_agent[0] && strcmp(node->fence_agent, msg->fence_agent))
 	{
