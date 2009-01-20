@@ -169,7 +169,7 @@ static int get_localhost(int family, struct sockaddr_storage *localhost)
 }
 
 /* Return the address family of an IP[46] name */
-static int address_family(char *addr, struct sockaddr_storage *ssaddr)
+static int address_family(char *addr, struct sockaddr_storage *ssaddr, int family_hint)
 {
 	struct addrinfo *ainfo;
 	struct addrinfo ahints;
@@ -179,6 +179,7 @@ static int address_family(char *addr, struct sockaddr_storage *ssaddr)
 	memset(&ahints, 0, sizeof(ahints));
 	ahints.ai_socktype = SOCK_DGRAM;
 	ahints.ai_protocol = IPPROTO_UDP;
+	ahints.ai_family = family_hint;
 
 	/* Lookup the nodename address */
 	ret = getaddrinfo(addr, NULL, &ahints, &ainfo);
@@ -237,8 +238,8 @@ static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr,
 	int ret = 0;
 
 	/* Check the families match */
-	if (address_family(mcast, &mcast_addr) !=
-	    address_family(ifaddr, &if_addr)) {
+	if (address_family(mcast, &mcast_addr, 0) !=
+	    address_family(ifaddr, &if_addr, mcast_addr.ss_family)) {
 		sprintf(error_reason, "Node address family does not match multicast address family");
 		return -1;
 	}
@@ -260,13 +261,21 @@ static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr,
 
 	if (objdb->object_create(totem_object_handle, &interface_object_handle,
 				 "interface", strlen("interface")) == 0) {
+		struct sockaddr_in *in = (struct sockaddr_in *)&if_addr;
+		struct sockaddr_in6 *in6= (struct sockaddr_in6 *)&if_addr;
+		void *addrptr;
 
 		sprintf(tmp, "%d", num_interfaces);
 		objdb->object_key_create(interface_object_handle, "ringnumber", strlen("ringnumber"),
 					 tmp, strlen(tmp)+1);
 
+		if (if_addr.ss_family == AF_INET)
+			addrptr = &in->sin_addr;
+		else
+			addrptr = &in6->sin6_addr;
+		inet_ntop(if_addr.ss_family, addrptr, tmp, sizeof(tmp));
 		objdb->object_key_create(interface_object_handle, "bindnetaddr", strlen("bindnetaddr"),
-					 ifaddr, strlen(ifaddr)+1);
+					 tmp, strlen(tmp)+1);
 
 		objdb->object_key_create(interface_object_handle, "mcastaddr", strlen("mcastaddr"),
 					 mcast, strlen(mcast)+1);
