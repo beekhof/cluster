@@ -1,4 +1,8 @@
 include ../../make/defines.mk
 include $(OBJDIR)/make/passthrough.mk
 
-SUBDIRS=resources clulib daemons utils
+SUBDIRS= clulib daemons utils
+
+ifndef without_resource_agents
+SUBDIRS += resources
+endif

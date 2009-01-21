@@ -88,6 +88,7 @@ without_fence ?= @DISABLE_FENCE@
 without_gfs ?= @DISABLE_GFS@
 without_gfs2 ?= @DISABLE_GFS2@
 without_rgmanager ?= @DISABLE_RGMANAGER@
+without_resource_agents ?= @DISABLE_RESOURCE_AGENTS@
 without_bindings ?= @DISABLE_BINDINGS@
 
 THISDIR = $(shell echo $(CURDIR) | sed -e 's|$(OBJDIR)/||g')
