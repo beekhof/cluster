@@ -6,6 +6,7 @@
 #include <linux/completion.h>
 #include <linux/buffer_head.h>
 #include <linux/posix_acl.h>
+#include <linux/cred.h>
 
 #include "gfs.h"
 #include "acl.h"
@@ -1233,18 +1234,17 @@ inode_init_and_link(struct gfs_inode *dip, struct qstr *name,
 	    dip->i_di.di_uid) {
 		if (type == GFS_FILE_DIR)
 			mode |= S_ISUID;
-		else if (dip->i_di.di_uid != current->fsuid)
+		else if (dip->i_di.di_uid != current_fsuid())
 			mode &= ~07111;
 		uid = dip->i_di.di_uid;
 	} else
-		uid = current->fsuid;
-
+		uid = current_fsuid();
 	if (dip->i_di.di_mode & S_ISGID) {
 		if (type == GFS_FILE_DIR)
 			mode |= S_ISGID;
 		gid = dip->i_di.di_gid;
 	} else
-		gid = current->fsgid;
+		gid = current_fsgid();
 
 	error = gfs_acl_new_prep(dip, type, &mode,
 				 &acl_a_data, &acl_d_data,
@@ -1580,8 +1580,8 @@ gfs_unlink_ok(struct gfs_inode *dip, struct qstr *name, struct gfs_inode *ip)
 		return -EPERM;
 
 	if ((dip->i_di.di_mode & S_ISVTX) &&
-	    dip->i_di.di_uid != current->fsuid &&
-	    ip->i_di.di_uid != current->fsuid &&
+	    dip->i_di.di_uid != current_fsuid() &&
+	    ip->i_di.di_uid != current_fsuid() &&
 	    !capable(CAP_FOWNER))
 		return -EPERM;
 

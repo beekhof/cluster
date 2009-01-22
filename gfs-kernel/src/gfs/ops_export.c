@@ -208,13 +208,9 @@ gfs_get_parent(struct dentry *child)
 	if (!inode)
 		return ERR_PTR(-ENOMEM);
 
-	dentry = d_alloc_anon(inode);
-	if (!dentry) {
-		iput(inode);
-		return ERR_PTR(-ENOMEM);
-	}
-
-	dentry->d_op = &gfs_dops;
+	dentry = d_obtain_alias(inode);
+	if (!IS_ERR(dentry))
+		dentry->d_op = &gfs_dops;
 	return dentry;
 
  fail:
@@ -326,13 +322,9 @@ gfs_get_dentry(struct super_block *sb, struct inode_cookie *cookie)
 		return ERR_PTR(-ESTALE);
 	}
 
-	dentry = d_alloc_anon(inode);
-	if (!dentry) {
-		iput(inode);
-		return ERR_PTR(-ENOMEM);
-	}
-
-	dentry->d_op = &gfs_dops;
+	dentry = d_obtain_alias(inode);
+	if (!IS_ERR(dentry))
+		dentry->d_op = &gfs_dops;
 	return dentry;
 
  fail_relse:
