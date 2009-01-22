@@ -183,19 +183,19 @@ gfs_write_super(struct super_block *sb)
 }
 
 /**
- * gfs_write_super_lockfs - prevent further writes to the filesystem
+ * gfs_freeze - prevent further writes to the filesystem
  * @sb: the VFS structure for the filesystem
  *
  */
 
-static void
-gfs_write_super_lockfs(struct super_block *sb)
+static int
+gfs_freeze(struct super_block *sb)
 {
 	struct gfs_sbd *sdp = get_v2sdp(sb);
 	int error;
 
 	if (test_bit(SDF_SHUTDOWN, &sdp->sd_flags))
-		return;
+		return -EINVAL;
 
 	atomic_inc(&sdp->sd_ops_super);
 
@@ -221,22 +221,24 @@ gfs_write_super_lockfs(struct super_block *sb)
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		schedule_timeout(HZ);
 	}
+	return 0;
 }
 
 /**
- * gfs_unlockfs - reallow writes to the filesystem
+ * gfs_unfreeze - reallow writes to the filesystem
  * @sb: the VFS structure for the filesystem
  *
  */
 
-static void
-gfs_unlockfs(struct super_block *sb)
+static int
+gfs_unfreeze(struct super_block *sb)
 {
 	struct gfs_sbd *sdp = get_v2sdp(sb);
 
 	atomic_inc(&sdp->sd_ops_super);
 
 	gfs_unfreeze_fs(sdp);
+	return 0;
 }
 
 /**
@@ -446,8 +448,8 @@ struct super_operations gfs_super_ops = {
 	.drop_inode = gfs_drop_inode,
 	.put_super = gfs_put_super,
 	.write_super = gfs_write_super,
-	.write_super_lockfs = gfs_write_super_lockfs,
-	.unlockfs = gfs_unlockfs,
+	.freeze_fs = gfs_freeze,
+	.unfreeze_fs = gfs_unfreeze,
 	.statfs = gfs_statfs,
 	.remount_fs = gfs_remount_fs,
 	.clear_inode = gfs_clear_inode,
