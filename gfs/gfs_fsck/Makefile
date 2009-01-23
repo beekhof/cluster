@@ -1,10 +1,8 @@
-TARGET1= gfs_fsck
-TARGET2= fsck.gfs
+TARGET1= fsck.gfs
 
 SBINDIRT=$(TARGET1)
-SBINSYMT=$(TARGET2)
 
-all: ${TARGET1} ${TARGET2}
+all: ${TARGET1}
 
 include ../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -51,9 +49,6 @@ LDFLAGS += -L${libdir}
 
 ${TARGET1}: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
-
-${TARGET2}: ${TARGET1}
-	ln -s ${TARGET1} ${TARGET2}
 
 test_block_list: block_list.o bitmap.o log.o test_block_list.o
 	$(CC) -o $@ $^ $(LDFLAGS)

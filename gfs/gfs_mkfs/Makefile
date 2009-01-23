@@ -1,10 +1,8 @@
-TARGET1= gfs_mkfs
-TARGET2= mkfs.gfs
+TARGET1= mkfs.gfs
 
 SBINDIRT=$(TARGET1)
-SBINSYMT=$(TARGET2)
 
-all: depends ${TARGET1} ${TARGET2}
+all: depends ${TARGET1}
 
 include ../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -32,9 +30,6 @@ LDDEPS += ../libgfs/libgfs.a
 
 ${TARGET1}: ${OBJS} ${LDDEPS}
 	$(CC) -o $@ $^ $(LDFLAGS)
-
-${TARGET2}: ${TARGET1}
-	ln -sf ${TARGET1} ${TARGET2}
 
 depends:
 	$(MAKE) -C ../libgfs all
