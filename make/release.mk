@@ -41,7 +41,7 @@ release: tag tarballs
 tag:
 	git tag -a -m "$(PV) release" $(PV) HEAD
 
-tarballs: master-tarball
+tarballs: master-tarball fence-agents-tarball resource-agents-tarball
 
 master-tarball:
 	git archive \
@@ -58,6 +58,32 @@ master-tarball:
 		gzip -9 \
 		> ../$(TGZ)
 	rm -rf $(PV)
+
+fence-agents-tarball:
+	tar zxpf ../$(TGZ)
+	mv $(PV) fence-agents-$(VERSION)
+	cd fence-agents-$(VERSION) && \
+		rm -rf bindings cman common config contrib dlm doc gfs* group rgmanager && \
+		rm -rf fence/fenced fence/fence_node fence/fence_tool fence/include fence/libfence fence/libfenced && \
+		rm -rf fence/man/fence.8 fence/man/fenced.8 fence/man/fence_node.8 fence/man/fence_tool.8
+	tar cp fence-agents-$(VERSION) | \
+		gzip -9 \
+		> ../fence-agents-$(VERSION).tar.gz
+	rm -rf fence-agents-$(VERSION)
+
+resource-agents-tarball:
+	tar zxpf ../$(TGZ)
+	mv $(PV) resource-agents-$(VERSION)
+	cd resource-agents-$(VERSION) && \
+		rm -rf bindings cman common config contrib dlm doc fence gfs* group && \
+		rm -rf rgmanager/ChangeLog rgmanager/errors.txt rgmanager/event-script.txt \
+			rgmanager/examples rgmanager/include rgmanager/init.d rgmanager/man \
+			rgmanager/README && \
+		rm -rf rgmanager/src/clulib rgmanager/src/daemons rgmanager/src/utils
+	tar cp resource-agents-$(VERSION) | \
+		gzip -9 \
+		> ../resource-agents-$(VERSION).tar.gz
+	rm -rf resource-agents-$(VERSION)
 
 publish: master-publish
 
