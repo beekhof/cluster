@@ -33,6 +33,8 @@ def get_power_status(conn, options):
 
 	##
 	## Transformation to standard ON/OFF status if possible
+	if status in ["Running", "Open Firmware", "Shutting Down"]:
+
 	if status == "Running":
 		status = "on"
 	else:
