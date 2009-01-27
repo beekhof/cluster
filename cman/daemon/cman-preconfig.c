@@ -810,6 +810,14 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	}
 	objdb->object_find_destroy(find_handle);
 
+	/* Load the quorum service */
+	objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
+			     "service", strlen("service"));
+	objdb->object_key_create(object_handle, "name", strlen("name"),
+				 "corosync_quorum", strlen("corosync_quorum") + 1);
+	objdb->object_key_create(object_handle, "ver", strlen("ver"),
+				 "0", 2);
+
 	/* Make sure we load our alter-ego - the main cman module */
 	objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
 			     "service", strlen("service"));
