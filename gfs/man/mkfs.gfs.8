@@ -1,14 +1,14 @@
-.TH gfs_mkfs 8
+.TH mkfs.gfs 8
 
 .SH NAME
-gfs_mkfs - Make a GFS filesystem
+mkfs.gfs - Make a GFS filesystem
 
 .SH SYNOPSIS
-.B gfs_mkfs
+.B mkfs.gfs
 [\fIOPTION\fR]... \fIDEVICE\fR
 
 .SH DESCRIPTION
-gfs_mkfs is used to create a Global File System.
+mkfs.gfs is used to create a Global File System.
 
 .SH OPTIONS
 .TP
@@ -32,11 +32,11 @@ The size of the journals in Megabytes. The default journal size is
 128 megabytes.  The minimum size is 32 megabytes.
 .TP
 \fB-j\fP \fINumber\fR 
-The number of journals for gfs_mkfs to create.  You need at least one
+The number of journals for mkfs.gfs to create.  You need at least one
 journal per machine that will mount the filesystem.
 .TP
 \fB-O\fP
-This option prevents gfs_mkfs from asking for confirmation before writing
+This option prevents mkfs.gfs from asking for confirmation before writing
 the filesystem.
 .TP
 \fB-p\fP \fILockProtoName\fR 
@@ -49,10 +49,10 @@ are using GFS as a local filesystem (\fB1 node only\fP), you can specify the
 Be quiet.  Don't print anything.
 .TP
 \fB-r\fP \fIMegaBytes\fR
-gfs_mkfs will try to make Resource Groups (RGs) about this big.
+mkfs.gfs will try to make Resource Groups (RGs) about this big.
 Minimum RG size is 32 MB.  Maximum RG size is 2048 MB.
 A large RG size may increase performance on very large file systems.
-If not specified, gfs_mkfs will choose the RG size based on the size
+If not specified, mkfs.gfs will choose the RG size based on the size
 of the file system: average size file systems will have 256 MB RGs, and
 bigger file systems will have bigger RGs for better performance.
 .TP
@@ -75,7 +75,7 @@ Print program version information, then exit.
 
 .SH EXAMPLE
 .TP
-gfs_mkfs -t mycluster:mygfs -p lock_dlm -j 2 /dev/vg0/mygfs
+mkfs.gfs -t mycluster:mygfs -p lock_dlm -j 2 /dev/vg0/mygfs
 This will make a Global File System on the block device
 "/dev/vg0/mygfs".  It will belong to "mycluster" and register itself
 as wanting locking for "mygfs".  It will use DLM for locking and make

@@ -170,12 +170,19 @@ static void _conf(char *name, int mode, int syslog_facility,
 		strncpy(logt_logfile, logfile, PATH_MAX);
 
 	if (logt_mode & LOG_MODE_OUTPUT_FILE && logt_logfile[0]) {
-		if (logt_logfile_fp)
+		if (logt_logfile_fp) {
 			fclose(logt_logfile_fp);
+			logt_logfile_fp = NULL;
+		}
 		logt_logfile_fp = fopen(logt_logfile, "a+");
 		if (logt_logfile_fp != NULL) {
 			fd = fileno(logt_logfile_fp);
 			fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
+		}
+	} else {
+		if (logt_logfile_fp) {
+			fclose(logt_logfile_fp);
+			logt_logfile_fp = NULL;
 		}
 	}
 
@@ -265,9 +272,10 @@ void logt_exit(void)
 	pthread_mutex_lock(&mutex);
 	/* close syslog + log file */
 	closelog();
-	if (logt_logfile_fp)
+	if (logt_logfile_fp) {
 		fclose(logt_logfile_fp);
-	logt_logfile_fp = NULL;
+		logt_logfile_fp = NULL;
+	}
 
 	/* clean up any pending log messages */
 	dropped = 0;

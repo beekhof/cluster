@@ -6,6 +6,7 @@
 #include <linux/completion.h>
 #include <linux/buffer_head.h>
 #include <linux/tty.h>
+#include <linux/cred.h>
 
 #include "gfs.h"
 #include "bmap.h"
@@ -1109,7 +1110,7 @@ gfs_quota_read(struct gfs_sbd *sdp, int user, uint32_t id,
 	struct gfs_holder q_gh;
 	int error;
 
-	if (((user) ? (id != current->fsuid) : (!in_group_p(id))) &&
+	if (((user) ? (id != current_fsuid()) : (!in_group_p(id))) &&
 	    !capable(CAP_SYS_ADMIN))
 		return -EACCES;
 

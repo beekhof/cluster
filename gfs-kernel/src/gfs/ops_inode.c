@@ -12,6 +12,7 @@
 #include <linux/xattr.h>
 #include <linux/posix_acl.h>
 #include <linux/security.h>
+#include <linux/cred.h>
 
 #include "gfs.h"
 #include "acl.h"
@@ -191,11 +192,11 @@ lookup_cdpn_sub_at(struct gfs_sbd *sdp, struct dentry *dentry)
 	else if (gfs_filecmp(&dentry->d_name, "@uid", 4))
 		new = lookup_one_len(buf,
 				     parent,
-				     sprintf(buf, "%u", current->fsuid));
+				     sprintf(buf, "%u", current_fsuid()));
 	else if (gfs_filecmp(&dentry->d_name, "@gid", 4))
 		new = lookup_one_len(buf,
 				     parent,
-				     sprintf(buf, "%u", current->fsgid));
+				     sprintf(buf, "%u", current_fsgid()));
 	else if (gfs_filecmp(&dentry->d_name, "@sys", 4))
 		new = lookup_one_len(buf,
 				     parent,
@@ -250,11 +251,11 @@ lookup_cdpn_sub_brace(struct gfs_sbd *sdp, struct dentry *dentry)
 	else if (gfs_filecmp(&dentry->d_name, "{uid}", 5))
 		new = lookup_one_len(buf,
 				     parent,
-				     sprintf(buf, "%u", current->fsuid));
+				     sprintf(buf, "%u", current_fsuid()));
 	else if (gfs_filecmp(&dentry->d_name, "{gid}", 5))
 		new = lookup_one_len(buf,
 				     parent,
-				     sprintf(buf, "%u", current->fsgid));
+				     sprintf(buf, "%u", current_fsgid()));
 	else if (gfs_filecmp(&dentry->d_name, "{sys}", 5))
 		new = lookup_one_len(buf,
 				     parent,

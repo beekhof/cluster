@@ -19,8 +19,11 @@
 #include "quota.h"
 #include "trans.h"
 
-static int gfs_commit_write(struct file *file, struct page *page,
-							unsigned from, unsigned to);
+static int
+gfs_write_end(struct file *file, struct address_space *mapping,
+	      loff_t pos, unsigned len, unsigned copied,
+	      struct page *page, void *fsdata);
+
 /**
  * get_block - Fills in a buffer head with details about a block
  * @inode: The inode
@@ -284,11 +287,14 @@ gfs_readpage(struct file *file, struct page *page)
 }
 
 /**
- * gfs_prepare_write - Prepare to write a page to a file
+ * gfs_write_begin - Begin to write to a file
  * @file: The file to write to
- * @page: The page which is to be prepared for writing
- * @from: From (byte range within page)
- * @to: To (byte range within page)
+ * @mapping: The mapping in which to write
+ * @pos: The file offset at which to start writing
+ * @len: Length of the write
+ * @flags: Various flags
+ * @pagep: Pointer to return the page
+ * @fsdata: Pointer to return fs data (unused by GFS)
  *
  * Returns: errno
  *
@@ -300,29 +306,38 @@ gfs_readpage(struct file *file, struct page *page)
  */
 
 static int
-gfs_prepare_write(struct file *file, struct page *page,
-		  unsigned from, unsigned to)
+gfs_write_begin(struct file *file, struct address_space *mapping,
+		loff_t pos, unsigned len, unsigned flags,
+		struct page **pagep, void **fsdata)
 {
-	struct gfs_inode *ip = get_v2ip(page->mapping->host);
+	struct gfs_inode *ip = get_v2ip(mapping->host);
 	struct gfs_sbd *sdp = ip->i_sbd;
 	int error = 0;
+	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
+	unsigned to = from + len;
+	struct page *page;
 
 	atomic_inc(&sdp->sd_ops_address);
 
-	/* We can't set commit_write in the structure in the declare         */
+	/* We can't set write_end in the structure in the declare         */
 	/* because if we do, loopback (loop.c) will interpret that to mean   */
 	/* it's okay to do buffered writes without locking through sendfile. */
 	/* This is a kludge to get around the problem with loop.c because    */
 	/* the upstream community rejected my changes to loop.c.             */
-	ip->gfs_file_aops.commit_write = gfs_commit_write;
+	ip->gfs_file_aops.write_end = gfs_write_end;
 
 	if (gfs_assert_warn(sdp, gfs_glock_is_locked_by_me(ip->i_gl)))
 		return -ENOSYS;
 
-	if (gfs_is_stuffed(ip)) {
-		uint64_t file_size = ((uint64_t)page->index << PAGE_CACHE_SHIFT) + to;
+	error = -ENOMEM;
+	page = __grab_cache_page(mapping, index);
+	*pagep = page;
+	if (!page)
+		goto out;
 
-		if (file_size > sdp->sd_sb.sb_bsize - sizeof(struct gfs_dinode)) {
+	if (gfs_is_stuffed(ip)) {
+		if (pos + len > sdp->sd_sb.sb_bsize - sizeof(struct gfs_dinode)) {
 			error = gfs_unstuff_dinode(ip, gfs_unstuffer_page, page);
 			if (!error)
 				error = block_prepare_write(page, from, to, get_block);
@@ -331,71 +346,81 @@ gfs_prepare_write(struct file *file, struct page *page,
 	} else
 		error = block_prepare_write(page, from, to, get_block);
 
+	if (error)
+		page_cache_release(page);
+
+out:
 	return error;
 }
 
 /**
- * gfs_commit_write - Commit write to a file
+ * gfs_write_end
  * @file: The file to write to
- * @page: The page containing the data
- * @from: From (byte range within page)
- * @to: To (byte range within page)
+ * @mapping: The address space to write to
+ * @pos: The file position
+ * @len: The length of the data
+ * @copied:
+ * @page: The page that has been written
+ * @fsdata: The fsdata (unused in GFS)
+ * 
+ * The main write_end function for GFS. We have a separate one for
+ * stuffed files as they are slightly different, otherwise we just
+ * put our locking around the VFS provided functions
  *
  * Returns: errno
  */
 
 static int
-gfs_commit_write(struct file *file, struct page *page,
-		 unsigned from, unsigned to)
+gfs_write_end(struct file *file, struct address_space *mapping,
+	      loff_t pos, unsigned len, unsigned copied,
+	      struct page *page, void *fsdata)
 {
 	struct inode *inode = page->mapping->host;
 	struct gfs_inode *ip = get_v2ip(inode);
 	struct gfs_sbd *sdp = ip->i_sbd;
-	int error;
+	int ret;
 
 	atomic_inc(&sdp->sd_ops_address);
+	BUG_ON(gfs_glock_is_locked_by_me(ip->i_gl) == 0);
 
 	if (gfs_is_stuffed(ip)) {
 		struct buffer_head *dibh;
-		uint64_t file_size = ((uint64_t)page->index << PAGE_CACHE_SHIFT) + to;
+		u64 to = pos + copied;
 		void *kaddr;
+		unsigned char *buf;
 
-		error = gfs_get_inode_buffer(ip, &dibh);
-		if (error)
+		ret = gfs_get_inode_buffer(ip, &dibh);
+		if (ret)
 			goto fail;
-
-		gfs_trans_add_bh(ip->i_gl, dibh);
+		buf = dibh->b_data + sizeof(struct gfs_dinode);
+		BUG_ON((pos + len) > (dibh->b_size - sizeof(struct gfs_dinode)));
 
 		kaddr = kmap(page);
-		memcpy(dibh->b_data + sizeof(struct gfs_dinode) + from,
-		       (char *)kaddr + from,
-		       to - from);
+		memcpy(buf + pos, kaddr + pos, copied);
+		memset(kaddr + pos + copied, 0, len - copied);
+		flush_dcache_page(page);
 		kunmap(page);
 
 		brelse(dibh);
+		if (!PageUptodate(page))
+			SetPageUptodate(page);
+		unlock_page(page);
+		page_cache_release(page);
 
-		SetPageUptodate(page);
-
-		if (inode->i_size < file_size)
-			i_size_write(inode, file_size);
+		if (inode->i_size < to)
+			i_size_write(inode, to);
 	} else {
-		loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
-		error = block_commit_write(page, from, to);
-		if (error)
-			goto fail;
-		if (pos > inode->i_size) {
-			i_size_write(inode, pos);
-			mark_inode_dirty(inode);
-		}
+		ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
 	}
 
-	ip->gfs_file_aops.commit_write = NULL;
-	return 0;
+	ip->gfs_file_aops.write_end = NULL;
+	return ret;
 
- fail:
+fail:
 	ClearPageUptodate(page);
-
-	return error;
+	unlock_page(page);
+	page_cache_release(page);
+	return ret;
 }
 
 /**
@@ -473,7 +498,7 @@ struct address_space_operations gfs_file_aops = {
 	.writepage = gfs_writepage,
 	.readpage = gfs_readpage,
 	.sync_page = block_sync_page,
-	.prepare_write = gfs_prepare_write,
+	.write_begin = gfs_write_begin,
 	.bmap = gfs_bmap,
 	.direct_IO = gfs_direct_IO,
 };

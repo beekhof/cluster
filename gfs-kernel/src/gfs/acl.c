@@ -7,6 +7,7 @@
 #include <linux/buffer_head.h>
 #include <linux/posix_acl.h>
 #include <linux/posix_acl_xattr.h>
+#include <linux/cred.h>
 
 #include "gfs.h"
 #include "acl.h"
@@ -78,7 +79,7 @@ gfs_acl_validate_remove(struct gfs_inode *ip, int access)
 {
 	if (!ip->i_sbd->sd_args.ar_posix_acls)
 		return -EOPNOTSUPP;
-	if (current->fsuid != ip->i_di.di_uid && !capable(CAP_FOWNER))
+	if (current_fsuid() != ip->i_di.di_uid && !capable(CAP_FOWNER))
 		return -EPERM;
 	if (ip->i_di.di_type == GFS_FILE_LNK)
 		return -EOPNOTSUPP;

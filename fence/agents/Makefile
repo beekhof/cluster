@@ -1,6 +1,8 @@
 include ../../make/defines.mk
 
+ifdef fence_agents
 SUBDIRS = ${fence_agents} lib
+endif
 
 all: ${SUBDIRS}
 

@@ -1,7 +1,6 @@
 #ifndef __FS_BITS_H__
 #define __FS_BITS_H__
 
-/*#include "global.h" */
 #include "libgfs2.h"
 #include "fsck.h"
 
@@ -25,10 +24,5 @@ uint32_t gfs2_bitfit(unsigned char *buffer, unsigned int buflen,
 uint32_t gfs2_blkalloc_internal(struct rgrp_list *rgd, uint32_t goal,
 								unsigned char old_state,
 								unsigned char new_state, int do_it);
-
-/* functions with blk #'s that are file system relative */
-int gfs2_get_bitmap(struct gfs2_sbd *sdp, uint64_t blkno,
-					struct rgrp_list *rgd);
-int gfs2_set_bitmap(struct gfs2_sbd *sdp, uint64_t blkno, int state);
 
 #endif /* __FS_BITS_H__ */

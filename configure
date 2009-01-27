@@ -16,7 +16,7 @@ my $ret = 0;
 
 # this should be only the major version without the extra version 
 # eg. only the first 3 digits
-my $required_kernelversion = '2.6.27';
+my $required_kernelversion = '2.6.28';
 
 my %options = (
 	help => \$help,
@@ -101,9 +101,11 @@ my %options = (
 	without_dlm => \$without_dlm,
 	without_group => \$without_group,
 	without_fence => \$without_fence,
+	without_fence_agents => \$without_fence_agents,
 	without_gfs => \$without_gfs,
 	without_gfs2 => \$without_gfs2,
 	without_rgmanager => \$without_rgmanager,
+	without_resource_agents => \$without_resource_agents,
 	without_bindings => \$without_bindings,
 	without_kernel_modules => \$without_kernel_modules,
 	disable_kernel_check => \$disable_kernel_check,
@@ -192,9 +194,11 @@ my $err = &GetOptions (\%options,
 		    'without_dlm',
 		    'without_group',
 		    'without_fence',
+		    'without_fence_agents',
 		    'without_gfs',
 		    'without_gfs2',
 		    'without_rgmanager',
+		    'without_resource_agents',
 		    'without_bindings',
 		    'without_kernel_modules',
 		    'disable_kernel_check');
@@ -290,9 +294,11 @@ if ($help || !$err) {
   print "--without_dlm\tDisable dlm building  (Default: enabled)\n";
   print "--without_group\tDisable group building  (Default: enabled)\n";
   print "--without_fence\tDisable fence building  (Default: enabled)\n";
+  print "--without_fence_agents\tDisable fence_agents building  (Default: enabled)\n";
   print "--without_gfs\tDisable gfs building  (Default: enabled)\n";
   print "--without_gfs2\tDisable gfs2 building  (Default: enabled)\n";
   print "--without_rgmanager\tDisable rgmanager building  (Default: enabled)\n";
+  print "--without_resource_agents\tDisable resource agents building  (Default: enabled)\n";
   print "--without_bindings\tDisable perl/python bindings building  (Default: enabled)\n";
   print "--without_kernel_modules\tDisable kernel modules building  (Default: enabled)\n";
   print "--disable_kernel_check\tDisable kernel version check  (Default: enabled)\n";
@@ -654,6 +660,11 @@ if (!$without_group) {
 if (!$without_fence) {
   $without_fence="";
 }
+if (!$without_fence_agents) {
+  $without_fence_agents="";
+} else {
+  $fence_agents="none";
+}
 if (!$without_gfs) {
   $without_gfs="";
 }
@@ -662,6 +673,9 @@ if (!$without_gfs2) {
 }
 if (!$without_rgmanager) {
   $without_rgmanager="";
+}
+if (!$without_resource_agents) {
+  $without_resource_agents="";
 }
 if (!$without_bindings) {
   $without_bindings="";
@@ -684,15 +698,17 @@ if (defined($release_version) && not length $release_version) {
   $release_version="";
 }
 
-@args = "find fence/agents -mindepth 2 -maxdepth 2 -name Makefile -printf '%h'";
-open (IFILE, "@args |");
-while (<IFILE>) {
-  chomp;
-  s|fence\/agents\/| |g;
-  s|lib ||g;
-  $all_fence = $_;
+if ((!$fence_agents) || ($fence_agents eq "all") || ($fence_agents eq "help")) {
+  @args = "find fence/agents -mindepth 2 -maxdepth 2 -name Makefile -printf '%h'";
+  open (IFILE, "@args |");
+  while (<IFILE>) {
+    chomp;
+    s|fence\/agents\/| |g;
+    s|lib ||g;
+    $all_fence = $_;
+  }
+  close IFILE;
 }
-close IFILE;
 
 if ($fence_agents eq "help") {
   print "Available fence agents:\n$all_fence\n";
@@ -703,6 +719,10 @@ if ((!$fence_agents) || ($fence_agents eq "all")) {
   print "\nThe following fence agents will be build on this system:\n$all_fence\n";
   print "\nNOTE: xvm will build only if --enable_virt has been specified\n\n";
   $fence_agents = $all_fence
+}
+
+if ($fence_agents eq "none") {
+  $fence_agents = "";
 }
 
 open IFILE, "<make/defines.mk.input" or die "Can't redirect stdin";
@@ -791,6 +811,7 @@ while (<IFILE>) {
   $_ =~ s/\@DISABLE_GFSKERNEL\@/$without_gfskernel/;
   $_ =~ s/\@DISABLE_GFS2\@/$without_gfs2/;
   $_ =~ s/\@DISABLE_RGMANAGER\@/$without_rgmanager/;
+  $_ =~ s/\@DISABLE_RESOURCE_AGENTS\@/$without_resource_agents/;
   $_ =~ s/\@DISABLE_BINDINGS\@/$without_bindings/;
 
   print OFILE "$_\n";

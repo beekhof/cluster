@@ -7,6 +7,7 @@
 #include <linux/buffer_head.h>
 #include <asm/uaccess.h>
 #include <linux/compat.h>
+#include <linux/cred.h>
 
 #include "gfs_ioctl.h"
 #include "gfs.h"
@@ -921,7 +922,7 @@ gi_set_file_flag(struct gfs_inode *ip, struct gfs_ioctl *gi, int from_user)
 		return error;
 
 	error = -EACCES;
-	if (ip->i_di.di_uid != current->fsuid && !capable(CAP_FOWNER))
+	if (ip->i_di.di_uid != current_fsuid() && !capable(CAP_FOWNER))
 		goto out;
 
 	error = -EINVAL;
@@ -1015,7 +1016,7 @@ gi_get_file_meta(struct gfs_inode *ip, struct gfs_ioctl *gi)
 		return error;
 
         error = -EACCES;
-        if (ip->i_di.di_uid != current->fsuid && !capable(CAP_FOWNER))
+        if (ip->i_di.di_uid != current_fsuid() && !capable(CAP_FOWNER))
                 goto out;
 
 	error = gfs_get_file_meta(ip, &ub);
