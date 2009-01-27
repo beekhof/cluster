@@ -21,17 +21,27 @@ else
 
 ## setup stuff
 
-PROJECT=cluster
-PV=$(PROJECT)-$(VERSION)
-TGZ=$(PV).tar.gz
-TESTTGZ=TEST-$(TGZ)
+MASTERPROJECT=cluster
+MASTERPV=$(MASTERPROJECT)-$(VERSION)
+MASTERTGZ=$(MASTERPV).tar.gz
+TESTTGZ=TEST-$(MASTERTGZ)
+
+# fence-agents
+FENCEPROJECT=fence-agents
+FENCEPV=$(FENCEPROJECT)-$(VERSION)
+FENCETGZ=$(FENCEPV).tar.gz
+
+# resource-agents
+RASPROJECT=resource-agents
+RASPV=$(RASPROJECT)-$(VERSION)
+RASTGZ=$(RASPV).tar.gz
 
 all: test-tarball
 
 test-tarball:
 	git archive \
 		--format=tar \
-		--prefix=$(PV)/ \
+		--prefix=$(MASTERPV)/ \
 		HEAD | \
 		gzip -9 \
 		> ../$(TESTTGZ)
@@ -39,67 +49,69 @@ test-tarball:
 release: tag tarballs
 
 tag:
-	git tag -a -m "$(PV) release" $(PV) HEAD
+	git tag -a -m "$(MASTERPV) release" $(MASTERPV) HEAD
 
 tarballs: master-tarball fence-agents-tarball resource-agents-tarball
 
 master-tarball:
 	git archive \
 		--format=tar \
-		--prefix=$(PV)/ \
-		$(PV) | \
+		--prefix=$(MASTERPV)/ \
+		$(MASTERPV) | \
 		tar xp
 	sed -i -e \
 		's#<CVS>#$(VERSION)#g' \
-		$(PV)/gfs-kernel/src/gfs/gfs.h
+		$(MASTERPV)/gfs-kernel/src/gfs/gfs.h
 	echo "VERSION \"$(VERSION)\"" \
-		>> $(PV)/make/official_release_version
-	tar cp $(PV) | \
+		>> $(MASTERPV)/make/official_release_version
+	tar cp $(MASTERPV) | \
 		gzip -9 \
-		> ../$(TGZ)
-	rm -rf $(PV)
+		> ../$(MASTERTGZ)
+	rm -rf $(MASTERPV)
 
 fence-agents-tarball:
-	tar zxpf ../$(TGZ)
-	mv $(PV) fence-agents-$(VERSION)
-	cd fence-agents-$(VERSION) && \
+	tar zxpf ../$(MASTERTGZ)
+	mv $(MASTERPV) $(FENCEPV)
+	cd $(FENCEPV) && \
 		rm -rf bindings cman common config contrib dlm doc gfs* group rgmanager && \
 		rm -rf fence/fenced fence/fence_node fence/fence_tool fence/include fence/libfence fence/libfenced && \
 		rm -rf fence/man/fence.8 fence/man/fenced.8 fence/man/fence_node.8 fence/man/fence_tool.8
-	tar cp fence-agents-$(VERSION) | \
+	tar cp $(FENCEPV) | \
 		gzip -9 \
-		> ../fence-agents-$(VERSION).tar.gz
-	rm -rf fence-agents-$(VERSION)
+		> ../$(FENCETGZ)
+	rm -rf $(FENCEPV)
 
 resource-agents-tarball:
-	tar zxpf ../$(TGZ)
-	mv $(PV) resource-agents-$(VERSION)
-	cd resource-agents-$(VERSION) && \
+	tar zxpf ../$(MASTERTGZ)
+	mv $(MASTERPV) $(RASPV)
+	cd $(RASPV) && \
 		rm -rf bindings cman common config contrib dlm doc fence gfs* group && \
 		rm -rf rgmanager/ChangeLog rgmanager/errors.txt rgmanager/event-script.txt \
 			rgmanager/examples rgmanager/include rgmanager/init.d rgmanager/man \
 			rgmanager/README && \
 		rm -rf rgmanager/src/clulib rgmanager/src/daemons rgmanager/src/utils
-	tar cp resource-agents-$(VERSION) | \
+	tar cp $(RASPV) | \
 		gzip -9 \
-		> ../resource-agents-$(VERSION).tar.gz
-	rm -rf resource-agents-$(VERSION)
+		> ../$(RASTGZ)
+	rm -rf $(RASPV)
 
-publish: master-publish
-
-master-publish:
+publish:
 	git push --tags origin
-	scp ../$(TGZ) \
-		fedorahosted.org:$(PROJECT)
-	cp ../$(TGZ) \
-		../ftp/$(TGZ)
+	scp ../$(MASTERTGZ) \
+		fedorahosted.org:$(MASTERPROJECT)
+	scp ../$(FENCETGZ) \
+		fedorahosted.org:$(MASTERPROJECT)
+	scp ../$(RASTGZ) \
+		fedorahosted.org:$(MASTERPROJECT)
+	cp ../$(MASTERTGZ) ../$(FENCETGZ) ../$(RASTGZ) \
+		../ftp/
 	cd ../ftp && \
-		cvs add $(TGZ) && \
-		cvs commit -m "$(PV) release" $(TGZ)
-	git log $(PROJECT)-$(OLDVER)..$(PV) | \
-		git shortlog > ../$(PV).emaildata
-	git diff --stat $(PROJECT)-$(OLDVER)..$(PV) \
-		>> ../$(PV).emaildata
+		cvs add $(MASTERTGZ) $(FENCETGZ) $(RASTGZ) && \
+		cvs commit -m "$(MASTERPV) release" $(MASTERTGZ) $(FENCETGZ) $(RASTGZ)
+	git log $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) | \
+		git shortlog > ../$(MASTERPV).emaildata
+	git diff --stat $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) \
+		>> ../$(MASTERPV).emaildata
 	@echo Hey you!.. yeah you looking somewhere else!
 	@echo remember to update the wiki and send the email to cluster-devel and linux-cluster
 
