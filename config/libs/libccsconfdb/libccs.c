@@ -122,7 +122,7 @@ static int destroy_ccs_handle(confdb_handle_t handle,
 	return 0;
 }
 
-static int get_running_config_version(confdb_handle_t handle)
+static int get_running_config_version(confdb_handle_t handle, int *config_version)
 {
 	unsigned int cluster_handle;
 	char data[128];
@@ -141,7 +141,8 @@ static int get_running_config_version(confdb_handle_t handle)
 		if (confdb_key_get
 		    (handle, cluster_handle, "config_version",
 		     strlen("config_version"), data, &datalen) == CS_OK) {
-			ret = atoi(data);
+			*config_version = atoi(data);
+			ret = 0;
 		}
 	}
 
@@ -154,7 +155,7 @@ static int get_running_config_version(confdb_handle_t handle)
 }
 
 static int get_stored_config_version(confdb_handle_t handle,
-				     unsigned int connection_handle)
+				     unsigned int connection_handle, int *config_version)
 {
 	char data[128];
 	int datalen = 0;
@@ -163,7 +164,8 @@ static int get_stored_config_version(confdb_handle_t handle,
 	if (confdb_key_get
 	    (handle, connection_handle, "config_version",
 	     strlen("config_version"), data, &datalen) == CS_OK) {
-		ret = atoi(data);
+		*config_version = atoi(data);
+		ret = 0;
 	}
 
 	if (ret < 0)
@@ -202,12 +204,10 @@ static int config_reload(confdb_handle_t handle,
 	int running_version;
 	int stored_version;
 
-	running_version = get_running_config_version(handle);
-	if (running_version < 0)
+	if(get_running_config_version(handle, &running_version) < 0)
 		return -1;
 
-	stored_version = get_stored_config_version(handle, connection_handle);
-	if (stored_version < 0)
+	if (get_stored_config_version(handle, connection_handle, &stored_version) < 0)
 		return -1;
 
 	if (running_version == stored_version)
@@ -244,8 +244,7 @@ static unsigned int create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 	if (libccs_handle == -1)
 		return -1;
 
-	config_version = get_running_config_version(handle);
-	if (config_version < 0)
+	if (get_running_config_version(handle, &config_version) < 0)
 		return -1;
 
 	if (confdb_object_create
