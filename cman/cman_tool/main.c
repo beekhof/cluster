@@ -344,8 +344,11 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 	char member_type;
 	struct tm *ftime;
 	struct tm *jtime;
+	int numaddrs;
+	struct cman_node_address addrs[MAX_INTERFACES];
 	char jstring[1024];
 	int i,j,k;
+	int tmpid;
 	cman_node_extra_t enode;
 
 	if (comline->num_nodenames > 0) {
@@ -367,6 +370,15 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 	default:
 		member_type = '?';
 		break;
+	}
+
+	/* Make the name more friendly if cman can't find it in cluster.conf
+	 *  (we really don't want corosync to look up names in DNS so it invents them)
+	 */
+	if (sscanf(node->cn_name, "Node%d", &tmpid) == 1 && tmpid == node->cn_nodeid) {
+		if (!cman_get_node_addrs(h, node->cn_nodeid, MAX_INTERFACES, &numaddrs, addrs)) {
+			getnameinfo((struct sockaddr *)addrs[0].cna_address, addrs[0].cna_addrlen, node->cn_name, sizeof(node->cn_name), NULL, 0, NI_NAMEREQD);
+		}
 	}
 
 	jtime = localtime(&node->cn_jointime.tv_sec);
@@ -398,9 +410,6 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 			}
 		}
 	}
-
-	int numaddrs;
-	struct cman_node_address addrs[MAX_INTERFACES];
 
 	if (comline->addresses_opt || comline->format_opts) {
 		if (!cman_get_node_addrs(h, node->cn_nodeid, MAX_INTERFACES, &numaddrs, addrs) &&
