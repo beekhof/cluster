@@ -14,6 +14,7 @@ incdir ?= ${DESTDIR}@INCDIR@
 mibdir ?= ${DESTDIR}@MIBDIR@
 snmpbin ?= @SNMPBIN@
 notifyddir ?= ${DESTDIR}@CONFDIR@/cman-notify.d
+pkgconfigdir ?= ${DESTDIR}@LIBDIR@/pkgconfig
 
 # Build information
 
