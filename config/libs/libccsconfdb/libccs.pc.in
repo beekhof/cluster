@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCDIR@
+
+Name: libccs
+Version: @VERSION@
+Description: Cluster Config library
+Requires:
+Libs: -L${libdir} -lccs
+Cflags: -I${includedir}
