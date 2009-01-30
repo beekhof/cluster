@@ -44,3 +44,6 @@ endif
 ifdef NOTIFYD
 	${UNINSTALL} ${NOTIFYD} ${notifyddir}
 endif
+ifdef PKGCONF
+	${UNINSTALL} ${PKGCONF} ${pkgconfigdir}
+endif

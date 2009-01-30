@@ -69,3 +69,7 @@ ifdef NOTIFYD
 	install -d ${notifyddir}
 	install -m755 ${NOTIFYD} ${notifyddir}
 endif
+ifdef PKGCONF
+	install -d ${pkgconfigdir}
+	install -m644 ${PKGCONF} ${pkgconfigdir}
+endif
