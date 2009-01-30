@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCDIR@
+
+Name: liblogthread
+Version: @VERSION@
+Description: Cluster threaded logging library
+Requires:
+Libs: -L${libdir} -llogthread
+Cflags: -I${includedir}
