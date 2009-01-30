@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCDIR@
+
+Name: libfence
+Version: @VERSION@
+Description: Cluster Fencing library
+Requires:
+Libs: -L${libdir} -lfence
+Cflags: -I${includedir}
