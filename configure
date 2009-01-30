@@ -783,6 +783,7 @@ while (<IFILE>) {
   $_ =~ s/\@LIBEXECDIR\@/$libexecdir/;
   $_ =~ s/\@MANDIR\@/$mandir/;
   $_ =~ s/\@SBINDIR\@/$sbindir/;
+  $_ =~ s/\@PREFIX\@/$prefix/;
   $_ =~ s/\@INITDDIR\@/$initddir/;
   $_ =~ s/\@SHAREDIR\@/$sharedir/;
   $_ =~ s/\@DOCDIR\@/$docdir/;

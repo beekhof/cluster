@@ -1,4 +1,5 @@
 # Install Locations
+prefix ?= ${DESTDIR}@PREFIX@
 sbindir ?= ${DESTDIR}@SBINDIR@
 initddir ?= ${DESTDIR}@INITDDIR@
 libdir ?= ${DESTDIR}@LIBDIR@
