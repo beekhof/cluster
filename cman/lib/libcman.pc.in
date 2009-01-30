@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCDIR@
+
+Name: libcman
+Version: @VERSION@
+Description: Cluster Manager library
+Requires:
+Libs: -L${libdir} -lcman
+Cflags: -I${includedir}
