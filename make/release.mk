@@ -103,11 +103,6 @@ publish:
 		fedorahosted.org:$(MASTERPROJECT)
 	scp ../$(RASTGZ) \
 		fedorahosted.org:$(MASTERPROJECT)
-	cp ../$(MASTERTGZ) ../$(FENCETGZ) ../$(RASTGZ) \
-		../ftp/
-	cd ../ftp && \
-		cvs add $(MASTERTGZ) $(FENCETGZ) $(RASTGZ) && \
-		cvs commit -m "$(MASTERPV) release" $(MASTERTGZ) $(FENCETGZ) $(RASTGZ)
 	git log $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) | \
 		git shortlog > ../$(MASTERPV).emaildata
 	git diff --stat $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) \
