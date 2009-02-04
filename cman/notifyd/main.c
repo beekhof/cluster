@@ -10,6 +10,7 @@
 #include <sched.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 
 #include <libcman.h>
 #include <ccs.h>
@@ -334,25 +335,37 @@ out:
 
 static void loop()
 {
-	int rv;
+	int cd_result, se_result;
+	fd_set read_fds;
+	int cman_fd;
 
-	for (;;) {
-		rv = cman_dispatch(cman_handle, CMAN_DISPATCH_ONE);
-		if (rv == -1 && errno == EHOSTDOWN) {
+	do {
+		FD_ZERO (&read_fds);
+		cman_fd = cman_get_fd(cman_handle);
+		FD_SET (cman_fd, &read_fds);
+		se_result = select((cman_fd + 1), &read_fds, 0, 0, 0);
+		if (se_result == -1) {
+			logt_print(LOG_CRIT, "Unable to select on cman_fd: %s\n", strerror(errno));
 			byebye_cman();
-			logt_print(LOG_DEBUG, "waiting for cman to reappear..\n");
-			setup_cman(1);
-			logt_print(LOG_DEBUG, "cman is back..\n");
+			exit(EXIT_FAILURE);
 		}
 
-		if (daemon_quit) {
-			logt_print(LOG_DEBUG, "shutting down...\n");
-			byebye_cman();
-			exit(EXIT_SUCCESS);
+		if (FD_ISSET(cman_fd, &read_fds)) {
+			cd_result = 1;
+			while (cd_result > 0) {
+				cd_result = cman_dispatch(cman_handle, CMAN_DISPATCH_ONE);
+				if (cd_result == -1 && errno == EHOSTDOWN) {
+					byebye_cman();
+					logt_print(LOG_DEBUG, "waiting for cman to reappear..\n");
+					setup_cman(1);
+					logt_print(LOG_DEBUG, "cman is back..\n");
+				}
+			}
 		}
+	} while (se_result && !daemon_quit);
 
-		sleep(1);
-	}
+	logt_print(LOG_DEBUG, "shutting down...\n");
+	byebye_cman();
 }
 
 int main(int argc, char **argv)
