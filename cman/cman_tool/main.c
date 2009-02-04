@@ -376,7 +376,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 	 *  (we really don't want corosync to look up names in DNS so it invents them)
 	 */
 	if (sscanf(node->cn_name, "Node%d", &tmpid) == 1 && tmpid == node->cn_nodeid) {
-		if (!cman_get_node_addrs(h, node->cn_nodeid, MAX_INTERFACES, &numaddrs, addrs)) {
+		if (!cman_get_node_addrs(h, node->cn_nodeid, MAX_INTERFACES, &numaddrs, addrs) && numaddrs) {
 			getnameinfo((struct sockaddr *)addrs[0].cna_address, addrs[0].cna_addrlen, node->cn_name, sizeof(node->cn_name), NULL, 0, NI_NAMEREQD);
 		}
 	}
