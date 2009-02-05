@@ -256,7 +256,7 @@ static void show_status(void)
 	node.cn_name[0] = 0;
 	if (cman_get_node(h, CMAN_NODEID_US, &node) == 0) {
 		printf("Node name: %s\n", node.cn_name);
-		printf("Node ID: %d\n", node.cn_nodeid);
+		printf("Node ID: %u\n", node.cn_nodeid);
 	}
 
 	printf("Multicast addresses: ");
@@ -348,7 +348,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 	struct cman_node_address addrs[MAX_INTERFACES];
 	char jstring[1024];
 	int i,j,k;
-	int tmpid;
+	unsigned int tmpid;
 	cman_node_extra_t enode;
 
 	if (comline->num_nodenames > 0) {
@@ -375,7 +375,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 	/* Make the name more friendly if cman can't find it in cluster.conf
 	 *  (we really don't want corosync to look up names in DNS so it invents them)
 	 */
-	if (sscanf(node->cn_name, "Node%d", &tmpid) == 1 && tmpid == node->cn_nodeid) {
+	if (sscanf(node->cn_name, "Node%u", &tmpid) == 1 && tmpid == node->cn_nodeid) {
 		if (!cman_get_node_addrs(h, node->cn_nodeid, MAX_INTERFACES, &numaddrs, addrs) && numaddrs) {
 			getnameinfo((struct sockaddr *)addrs[0].cna_address, addrs[0].cna_addrlen, node->cn_name, sizeof(node->cn_name), NULL, 0, NI_NAMEREQD);
 		}
@@ -388,7 +388,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 		strcpy(jstring, "                   ");
 
 	if (!comline->format_opts) {
-		printf("%4d   %c  %5d   %s  %s\n",
+		printf("%4u   %c  %5d   %s  %s\n",
 		       node->cn_nodeid, member_type,
 		       node->cn_incarnation, jstring, node->cn_name);
 	}
@@ -433,7 +433,7 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 			case FMT_NONE:
 				break;
 			case FMT_ID:
-				printf("%d ", node->cn_nodeid);
+				printf("%u ", node->cn_nodeid);
 				break;
 			case FMT_NAME:
 				printf("%s ", node->cn_name);
