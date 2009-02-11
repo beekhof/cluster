@@ -643,18 +643,9 @@ static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
 			snprintf(newpath, sizeof(newpath),
 				 "%s/%s", path, namelist[n]->d_name);
 
-			if (!stat(newpath, &sb) && !level) {
-				if (S_ISDIR(sb.st_mode))
-					if (scansysfs(devlisthead, newpath, 1) < 0)
-						return -1;
-			} else if (!lstat(newpath, &sb)) {
-				if (S_ISDIR(sb.st_mode))
-					if (scansysfs(devlisthead, newpath, 1) < 0)
-						return -1;
-
+			if (!lstat(newpath, &sb) && level)
 				if (S_ISLNK(sb.st_mode))
 					continue;
-			}
 
 			if (sysfs_is_dev(newpath, &maj, &min) > 0) {
 				startnode =
@@ -674,7 +665,20 @@ static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
 							      "slaves");
 				startnode->sysfsattrs.disk =
 				    sysfs_is_disk(newpath);
+
+				printf("Allocated: %s holders: %d\n", newpath, startnode->sysfsattrs.holders);
 			}
+
+			if (!stat(newpath, &sb) && !level)
+				if (S_ISDIR(sb.st_mode))
+					if (scansysfs(devlisthead, newpath, 1) < 0)
+						return -1;
+
+			if (!lstat(newpath, &sb))
+				if (S_ISDIR(sb.st_mode))
+					if (scansysfs(devlisthead, newpath, 1) < 0)
+						return -1;
+
 		}
 		free(namelist[n]);
 	}
