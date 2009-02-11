@@ -643,38 +643,37 @@ static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
 			snprintf(newpath, sizeof(newpath),
 				 "%s/%s", path, namelist[n]->d_name);
 
-			if (!stat(newpath, &sb) && !level)
+			if (!stat(newpath, &sb) && !level) {
 				if (S_ISDIR(sb.st_mode))
 					if (scansysfs(devlisthead, newpath, 1) < 0)
 						return -1;
-
-			if (!lstat(newpath, &sb)) {
+			} else if (!lstat(newpath, &sb)) {
 				if (S_ISDIR(sb.st_mode))
 					if (scansysfs(devlisthead, newpath, 1) < 0)
 						return -1;
 
 				if (S_ISLNK(sb.st_mode))
 					continue;
+			}
 
-				if (sysfs_is_dev(newpath, &maj, &min) > 0) {
-					startnode =
-					    alloc_list_obj(devlisthead, maj,
-							   min);
-					if (!startnode)
-						return -2;
+			if (sysfs_is_dev(newpath, &maj, &min) > 0) {
+				startnode =
+				    alloc_list_obj(devlisthead, maj,
+						   min);
+				if (!startnode)
+					return -2;
 
-					startnode->sysfsattrs.sysfs = 1;
-					startnode->sysfsattrs.removable =
-					    sysfs_is_removable(newpath);
-					startnode->sysfsattrs.holders =
-					    sysfs_has_subdirs_entries(newpath,
-								      "holders");
-					startnode->sysfsattrs.slaves =
-					    sysfs_has_subdirs_entries(newpath,
-								      "slaves");
-					startnode->sysfsattrs.disk =
-					    sysfs_is_disk(newpath);
-				}
+				startnode->sysfsattrs.sysfs = 1;
+				startnode->sysfsattrs.removable =
+				    sysfs_is_removable(newpath);
+				startnode->sysfsattrs.holders =
+				    sysfs_has_subdirs_entries(newpath,
+							      "holders");
+				startnode->sysfsattrs.slaves =
+				    sysfs_has_subdirs_entries(newpath,
+							      "slaves");
+				startnode->sysfsattrs.disk =
+				    sysfs_is_disk(newpath);
 			}
 		}
 		free(namelist[n]);
