@@ -665,8 +665,6 @@ static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
 							      "slaves");
 				startnode->sysfsattrs.disk =
 				    sysfs_is_disk(newpath);
-
-				printf("Allocated: %s holders: %d\n", newpath, startnode->sysfsattrs.holders);
 			}
 
 			if (!stat(newpath, &sb) && !level)
