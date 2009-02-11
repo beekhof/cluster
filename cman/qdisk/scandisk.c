@@ -317,14 +317,14 @@ static int scanmdstat(struct devlisthead *devlisthead)
 	while (fgets(line, sizeof(line), fp) != NULL) {
 
 		/* i like things to be absolutely clean */
-		memset(device, 0, 16);
-		memset(separator, 0, 4);
-		memset(status, 0, 16);
-		memset(personality, 0, 16);
-		memset(firstdevice, 0, 16);
-		memset(devices, 0, 4096);
+		memset(device, 0, sizeof(device));
+		memset(separator, 0, sizeof(separator));
+		memset(status, 0, sizeof(status));
+		memset(personality, 0, sizeof(personality));
+		memset(firstdevice, 0, sizeof(firstdevice));
+		memset(devices, 0, sizeof(devices));
 
-		if (strlen(line) > 4096)
+		if (strlen(line) > sizeof(line))
 			continue;
 
 		/* we only parse stuff that starts with ^md
@@ -399,10 +399,10 @@ static int scanmapper(struct devlisthead *devlisthead)
 		return 0;
 
 	while (fgets(line, sizeof(line), fp) != NULL) {
-		memset(major, 0, 4);
-		memset(device, 0, 64);
+		memset(major, 0, sizeof(major));
+		memset(device, 0, sizeof(device));
 
-		if (strlen(line) > 4096)
+		if (strlen(line) > sizeof(line))
 			continue;
 
 		if (!strncmp(line, "Block devices:", 13)) {
