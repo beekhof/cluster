@@ -626,10 +626,10 @@ static int sysfs_is_disk(char *path)
  * -1 on generic error
  * -2 -ENOMEM
  */
-static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
+static int scansysfs(struct devlisthead *devlisthead, char *path, int level, int parent_holder)
 {
 	struct devnode *startnode;
-	int i, n, maj, min;
+	int i, n, maj, min, has_holder = 0;
 	struct dirent **namelist;
 	struct stat sb;
 	char newpath[MAXPATHLEN];
@@ -657,9 +657,16 @@ static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
 				startnode->sysfsattrs.sysfs = 1;
 				startnode->sysfsattrs.removable =
 				    sysfs_is_removable(newpath);
-				startnode->sysfsattrs.holders =
-				    sysfs_has_subdirs_entries(newpath,
-							      "holders");
+
+				if (!parent_holder)
+					has_holder =
+					startnode->sysfsattrs.holders =
+					    sysfs_has_subdirs_entries(newpath,
+								      "holders");
+				else
+					has_holder =
+					startnode->sysfsattrs.holders = parent_holder;
+
 				startnode->sysfsattrs.slaves =
 				    sysfs_has_subdirs_entries(newpath,
 							      "slaves");
@@ -669,12 +676,12 @@ static int scansysfs(struct devlisthead *devlisthead, char *path, int level)
 
 			if (!stat(newpath, &sb) && !level)
 				if (S_ISDIR(sb.st_mode))
-					if (scansysfs(devlisthead, newpath, 1) < 0)
+					if (scansysfs(devlisthead, newpath, 1, has_holder) < 0)
 						return -1;
 
 			if (!lstat(newpath, &sb))
 				if (S_ISDIR(sb.st_mode))
-					if (scansysfs(devlisthead, newpath, 1) < 0)
+					if (scansysfs(devlisthead, newpath, 1, has_holder) < 0)
 						return -1;
 
 		}
@@ -725,7 +732,7 @@ struct devlisthead *scan_for_dev(struct devlisthead *devlisthead,
 	/* it's important we check those 3 errors and abort in case
 	 * as it means that we are running out of mem,
 	 */
-	devlisthead->sysfs = res = scansysfs(devlisthead, SYSBLOCKPATH, 0);
+	devlisthead->sysfs = res = scansysfs(devlisthead, SYSBLOCKPATH, 0, 0);
 	if (res < -1)
 		goto emergencyout;
 
