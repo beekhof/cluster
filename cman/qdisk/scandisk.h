@@ -63,6 +63,8 @@ struct devnode {
 /* each entry can be 0 if we can't scan or < 0 if there are errors */
 
 struct devlisthead {
+	struct devnode *devnode;	/* points to the first entry */
+	struct devnode *tail;	/* last entry (for fast append) */
 	time_t cache_timestamp;	/* this cache timestamp */
 	int cache_timeout;	/* for how long this cache is valid */
 	int sysfs;		/* set to 1 if we were able to scan
@@ -74,7 +76,6 @@ struct devlisthead {
 				 * /proc/mdstat */
 	int mapper;		/* set to 1 if we were able to run
 				 * something against mapper */
-	struct devnode *devnode;	/* points to the first entry */
 };
 
 typedef void (*devfilter) (struct devnode * cur, void *arg);

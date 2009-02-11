@@ -97,7 +97,7 @@ static void flush_dev_cache(struct devlisthead *devlisthead)
 static struct devnode *alloc_list_obj(struct devlisthead *devlisthead, int maj,
 				      int min)
 {
-	struct devnode *nextnode, *startnode;
+	struct devnode *nextnode;
 
 	nextnode = malloc(sizeof(struct devnode));
 	if (!nextnode)
@@ -105,22 +105,17 @@ static struct devnode *alloc_list_obj(struct devlisthead *devlisthead, int maj,
 
 	memset(nextnode, 0, sizeof(struct devnode));
 
-	if (!devlisthead->devnode) {
-		devlisthead->devnode = startnode = nextnode;
-	} else {
-		startnode = devlisthead->devnode;
-		while (startnode->next)
-			startnode = startnode->next;
+	if (!devlisthead->devnode)
+		devlisthead->devnode = nextnode;
+	else
+		devlisthead->tail->next = nextnode;
 
-		/* always append what we find */
-		startnode->next = nextnode;
-		startnode = nextnode;
-	}
+	devlisthead->tail = nextnode;
 
-	startnode->maj = maj;
-	startnode->min = min;
+	nextnode->maj = maj;
+	nextnode->min = min;
 
-	return startnode;
+	return nextnode;
 }
 
 /* really annoying but we have no way to know upfront how
