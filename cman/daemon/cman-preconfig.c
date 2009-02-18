@@ -774,18 +774,17 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	}
 
 
-	/* Don't run under user "ais" */
+	/* Make sure we allow connections from user/group "ais" */
 	objdb->object_find_create(OBJECT_PARENT_HANDLE, "aisexec", strlen("aisexec"), &find_handle);
 	if (objdb->object_find_next(find_handle, &object_handle) != 0) {
 		objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
 					"aisexec", strlen("aisexec"));
-
 	}
 	objdb->object_find_destroy(find_handle);
 	objdb->object_key_create(object_handle, "user", strlen("user"),
-				    "root", strlen("root") + 1);
+				    "ais", strlen("ais") + 1);
 	objdb->object_key_create(object_handle, "group", strlen("group"),
-				    "root", strlen("root") + 1);
+				    "ais", strlen("ais") + 1);
 
 	objdb->object_find_create(cluster_parent_handle, "cman", strlen("cman"), &find_handle);
 	if (objdb->object_find_next(find_handle, &object_handle) == 0)
