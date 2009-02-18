@@ -44,7 +44,6 @@ static int stress_lock_only = 0;
 static int openclose_ls = 0;
 static uint64_t our_xid;
 static char cmd[32];
-static int opt_cmd = 0;
 
 static unsigned int sts_eunlock, sts_ecancel, sts_etimedout, sts_edeadlk, sts_eagain, sts_other, sts_zero;
 static unsigned int bast_unlock, bast_skip;
@@ -1020,10 +1019,8 @@ static void process_command(int *quit)
 	char inbuf[132];
 	int x = 0, y = 0;
 
-	if (!opt_cmd) {
-		fgets(inbuf, sizeof(inbuf), stdin);
-		sscanf(inbuf, "%s %d %d", cmd, &x, &y);
-	}
+	fgets(inbuf, sizeof(inbuf), stdin);
+	sscanf(inbuf, "%s %d %d", cmd, &x, &y);
 
 	if (!strncmp(cmd, "EXIT", 4)) {
 		*quit = 1;
@@ -1260,7 +1257,7 @@ static void decode_arguments(int argc, char **argv)
 	int optchar;
 
 	while (cont) {
-		optchar = getopt(argc, argv, "n:r:c:i:thVoq:v:");
+		optchar = getopt(argc, argv, "n:r:i:thVoq:v:");
 
 		switch (optchar) {
 
@@ -1270,11 +1267,6 @@ static void decode_arguments(int argc, char **argv)
 
 		case 'r':
 			maxr = atoi(optarg);
-			break;
-
-		case 'c':
-			strcpy(cmd, optarg);
-			opt_cmd = 1;
 			break;
 
 		case 'i':
@@ -1412,11 +1404,6 @@ int main(int argc, char *argv[])
 	libdlm_fd = rv;
 
 	client_add(libdlm_fd, &maxi);
-
-	if (cmd) {
-		process_command(&quit);
-		goto out;
-	}
 
 	client_add(STDIN_FILENO, &maxi);
 
