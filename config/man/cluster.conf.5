@@ -150,6 +150,9 @@ An explicit configuration for the default settings would be:
 <logging to_syslog="yes" to_logfile="yes" syslog_facility="daemon"
          syslog_priority="info" logfile_priority="info">
 .br
+    <logging_subsys["qdiskd"]
+             logfile="/var/log/cluster/qdisk.log"/>
+.br
     <logging_subsys["groupd"]
              logfile="/var/log/cluster/groupd.log"/>
 .br
