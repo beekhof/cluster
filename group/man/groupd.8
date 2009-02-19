@@ -11,22 +11,68 @@ groupd
 .SH DESCRIPTION
 
 The group daemon, groupd, provides a compatibility layer between the
-openais closed process group (CPG) service and the fenced, dlm_controld
-and gfs_controld daemons.  groupd and its associated libgroup interface
-will go away in the future as the fencing, dlm and gfs daemons are ported
-to use the libcpg interfaces directly.  groupd translates and buffers cpg
-events between openais's cpg service and the fence/dlm/gfs systems that
-use it.  CPG's are used to represent the membership of the fence domain,
-dlm lockspaces and gfs mount groups.
+corosync closed process group (CPG) service and the fenced, dlm_controld
+and gfs_controld daemons.  New versions of fenced/dlm_controld/gfs_controld
+no longer require this compat layer, and can run without groupd.  They use
+libcpg directly, making them much more robust.  This makes them incompatible
+with old (cluster2) versions.  Enable this new mode with:
 
-groupd is also a convenient place to query the status of the fence, dlm
-and gfs groups.  This is done by the group_tool program.
+	<groupd groupd_compat="0"/>
 
+This should be added to the configuration (cluster.conf) before a cluster is
+restarted following an upgrade of all nodes.
+
+If compatibility with old (cluster2) nodes is necessary (mixing cluster2 and
+cluster3 nodes should be avoided), the daemons can be run in the old mode,
+using groupd as before.  Enable this mode with:
+
+	<groupd groupd_compat="1"/>
+
+.B Rolling Upgrades
+
+In the absence of any groupd_compat setting,
+groupd/fenced/dlm_controld/gfs_controld default to a third option,
+groupd_compat="2", which supports rolling upgrades.  In this mode, groupd
+initially tries to detect nodes running an old cluster2 version of groupd.  If
+any are found, it will run in the compat mode (groupd_compat="1"), otherwise
+it will run in the new mode (groupd_compat="0").  The other daemons will take
+the final groupd_compat result (0 or 1) from groupd.
+
+This groupd_compat="2" mode only supports rolling upgrades, and will not
+support mixing cluster2 and cluster3 nodes in general.  Once all nodes are
+upgraded, the first full cluster restart should be used to specify the new
+mode <groupd groupd_compat="0"/> in the configuration (cluster.conf).
+
+.B Logging
+
+By default, log messages at INFO level and above are sent to both
+\fBsyslog\fP(3) and /var/log/cluster/groupd.log.  For complete logging
+configuration options see \fBcluster.conf\fP(5).
 
 .SH OPTIONS
 .TP
 \fB-D\fP
-Run the daemon in the foreground and print debug statements to stdout.
+Enable debugging to stderr and don't fork
+.TP
+\fB-L\fP
+Enable debugging to log file (see above)
+.TP
+\fB-g <num>\fP
+group compatibility mode, 0 off, 1 on, 2 detect
+.br
+0: use libcpg, no backward compat, best performance
+.br
+1: use libgroup for compat with cluster2/rhel5
+.br
+2: detect old, or mode 1, nodes that require compat
+.TP
+\fB-w <secs>\fP
+seconds to wait for a node's version message before
+assuming an old version requiring compat mode
+.TP
+\fB-d <secs>\fP
+seconds to delay the mode selection to give time
+for an old version to join and force compat mode
 .TP
 \fB-V\fP
 Print the version information and exit.
