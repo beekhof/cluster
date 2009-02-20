@@ -280,11 +280,11 @@ static void read_onoff(int fd, char *path, int *on, int *off)
 }
 
 /* requires path buffer to be PATH_MAX */
-static void create_subsys_path(char *name, char *field, char *path)
+static void create_daemon_path(char *name, char *field, char *path)
 {
 	memset(path, 0, PATH_MAX);
 	snprintf(path, PATH_MAX,
-		 "/cluster/logging/logging_subsys[@subsys=\"%s\"]/%s",
+		 "/cluster/logging/logging_daemon[@name=\"%s\"]/%s",
 		 name, field);
 }
 
@@ -305,7 +305,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	/*
 	 * to_syslog 
 	 */
-	create_subsys_path(name, "to_syslog", path);
+	create_daemon_path(name, "to_syslog", path);
 
 	read_yesno(fd, "/cluster/logging/@to_syslog", &y, &n);
 	if (y)
@@ -322,7 +322,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	/*
 	 * to_logfile
 	 */
-	create_subsys_path(name, "to_logfile", path);
+	create_daemon_path(name, "to_logfile", path);
 
 	read_yesno(fd, "/cluster/logging/@to_logfile", &y, &n);
 	if (y)
@@ -339,7 +339,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	/*
 	 * syslog_facility
 	 */
-	create_subsys_path(name, "syslog_facility", path);
+	create_daemon_path(name, "syslog_facility", path);
 
 	read_string(fd, "/cluster/logging/@syslog_facility", string);
 
@@ -360,7 +360,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	/*
 	 * syslog_priority
 	 */
-	create_subsys_path(name, "syslog_priority", path);
+	create_daemon_path(name, "syslog_priority", path);
 
 	read_string(fd, "/cluster/logging/@syslog_priority", string);
 
@@ -381,7 +381,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	/*
 	 * logfile
 	 */
-	create_subsys_path(name, "logfile", path);
+	create_daemon_path(name, "logfile", path);
 
 	read_string(fd, "/cluster/logging/@logfile", string);
 
@@ -406,7 +406,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	 * debug
 	 * debug=on is a shortcut for logfile_priority=LOG_DEBUG
 	 */
-	create_subsys_path(name, "debug", path);
+	create_daemon_path(name, "debug", path);
 
 	read_onoff(fd, "/cluster/logging/@debug", &on, &off);
 	if (on)
@@ -426,7 +426,7 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
 	/*
 	 * logfile_priority
 	 */
-	create_subsys_path(name, "logfile_priority", path);
+	create_daemon_path(name, "logfile_priority", path);
 
 	read_string(fd, "/cluster/logging/@logfile_priority", string);
 
