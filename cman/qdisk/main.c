@@ -52,7 +52,7 @@ inline int get_time(struct timeval *tv, int use_uptime);
 inline void _diff_tv(struct timeval *dest, struct timeval *start,
 		     struct timeval *end);
 
-static int _running = 1, _reconfig = 0;
+static int _running = 1, _reconfig = 0, _cman_shutdown = 0;
 static int _debug = 0, _foreground = 0;
 
 /* */
@@ -62,6 +62,7 @@ static int _debug = 0, _foreground = 0;
 static void update_local_status(qd_ctx *ctx, node_info_t *ni, int max, int score,
 		    	 int score_req, int score_max);
 static int get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh);
+static int cman_wait(cman_handle_t ch, struct timeval *_tv);
 
 
 static void
@@ -467,6 +468,7 @@ static int
 quorum_init(qd_ctx *ctx, node_info_t *ni, int max, struct h_data *h, int maxh)
 {
 	int x = 0, score, maxscore, score_req = 0;
+	struct timeval tv;
 
 	logt_print(LOG_INFO, "Quorum Daemon Initializing\n");
 	
@@ -517,7 +519,13 @@ quorum_init(qd_ctx *ctx, node_info_t *ni, int max, struct h_data *h, int maxh)
 			score_req = (maxscore/2 + 1);
 		update_local_status(ctx, ni, max, score, score_req, maxscore);
 
-		sleep(ctx->qc_interval);
+		tv.tv_sec = ctx->qc_interval;
+		tv.tv_usec = 0;
+		cman_wait(ctx->qc_cman_user, &tv);
+	}
+
+	if (!_running) {
+		return 1;
 	}
 
 	get_my_score(&score, &maxscore);
@@ -843,6 +851,7 @@ process_cman_event(cman_handle_t handle, void *private, int reason, int arg)
 		break;
 	case CMAN_REASON_TRY_SHUTDOWN:
 		_running = 0;
+		_cman_shutdown = 1;
 		break;
 	case CMAN_REASON_CONFIG_UPDATE:
 		get_config_data(ctx, NULL, 0, NULL);
@@ -1712,9 +1721,16 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (quorum_init(&ctx, ni, MAX_NODES_DISK, h, cfh) < 0) {
+	ret = quorum_init(&ctx, ni, MAX_NODES_DISK, h, cfh);
+	if (ret < 0) {
 		logt_print(LOG_CRIT, "Initialization failed\n");
 		check_stop_cman(&ctx);
+		goto out;
+	} else if (ret > 0) {
+		/* ret > 0 means we received a shutdown during initialization */
+		/* Write our 'clean down' state to disk and get out of here */
+		logt_print(LOG_INFO, "Shutdown request received during initialization\n");
+		quorum_logout(&ctx);
 		goto out;
 	}
 
@@ -1744,10 +1760,13 @@ main(int argc, char **argv)
 		cman_unregister_quorum_device(ctx.qc_cman_admin);
 
 	quorum_logout(&ctx);
-	/* free cman handle to avoid leak in cman */
 out:
+	/* free cman handle to avoid leak in cman */
 	cman_finish(ch_admin);
-	cman_finish(ch_user);
+	if (_cman_shutdown) {
+		cman_replyto_shutdown(ch_user, 1);
+		cman_finish(ch_user);
+	}
 	qd_destroy(&ctx);
 	logt_exit();
 	return ret;
