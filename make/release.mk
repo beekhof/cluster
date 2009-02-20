@@ -73,9 +73,10 @@ fence-agents-tarball:
 	tar zxpf ../$(MASTERTGZ)
 	mv $(MASTERPV) $(FENCEPV)
 	cd $(FENCEPV) && \
-		rm -rf bindings cman common config contrib dlm doc gfs* group rgmanager && \
+		rm -rf bindings cman common config contrib dlm gfs* group rgmanager && \
 		rm -rf fence/fenced fence/fence_node fence/fence_tool fence/include fence/libfence fence/libfenced && \
-		rm -rf fence/man/fence.8 fence/man/fenced.8 fence/man/fence_node.8 fence/man/fence_tool.8
+		rm -rf fence/man/fence.8 fence/man/fenced.8 fence/man/fence_node.8 fence/man/fence_tool.8 && \
+		sed -i -e 's/fence.8//g' -e 's/fenced.8//g' -e 's/fence_node.8//g' -e 's/fence_tool.8//g' fence/man/Makefile
 	tar cp $(FENCEPV) | \
 		gzip -9 \
 		> ../$(FENCETGZ)
@@ -85,7 +86,7 @@ resource-agents-tarball:
 	tar zxpf ../$(MASTERTGZ)
 	mv $(MASTERPV) $(RASPV)
 	cd $(RASPV) && \
-		rm -rf bindings cman common config contrib dlm doc fence gfs* group && \
+		rm -rf bindings cman common config contrib dlm fence gfs* group && \
 		rm -rf rgmanager/ChangeLog rgmanager/errors.txt rgmanager/event-script.txt \
 			rgmanager/examples rgmanager/include rgmanager/init.d rgmanager/man \
 			rgmanager/README && \
