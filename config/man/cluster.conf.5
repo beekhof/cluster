@@ -85,8 +85,8 @@ Global settings apply to all:
 Per-daemon/subsys settings override the corresponding global setting:
 .br
   <logging>
-      <logging_subsys["foo"] debug="on"/>
-      <logging_subsys["bar"] debug="on"/>
+      <logging_subsys="foo" debug="on"/>
+      <logging_subsys="bar" debug="on"/>
   </logging>
 
 .B Subsystems
@@ -150,46 +150,46 @@ An explicit configuration for the default settings would be:
 <logging to_syslog="yes" to_logfile="yes" syslog_facility="daemon"
          syslog_priority="info" logfile_priority="info">
 .br
-    <logging_subsys["qdiskd"]
+    <logging_subsys="qdiskd"
              logfile="/var/log/cluster/qdisk.log"/>
 .br
-    <logging_subsys["groupd"]
+    <logging_subsys="groupd"
              logfile="/var/log/cluster/groupd.log"/>
 .br
-    <logging_subsys["fenced"]
+    <logging_subsys="fenced"
              logfile="/var/log/cluster/fenced.log"/>
 .br
-    <logging_subsys["dlm_controld"]
+    <logging_subsys="dlm_controld"
              logfile="/var/log/cluster/dlm_controld.log"/>
 .br
-    <logging_subsys["gfs_controld"]
+    <logging_subsys="gfs_controld"
              logfile="/var/log/cluster/gfs_controld.log"/>
 .br
-    <logging_subsys["rgmanager"]
+    <logging_subsys="rgmanager"
              logfile="/var/log/cluster/rgmanager.log"/>
 .br
-    <logging_subsys["CLM"]
+    <logging_subsys="CLM"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["CPG"]
+    <logging_subsys="CPG"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["MAIN"]
+    <logging_subsys="MAIN"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["SERV"]
+    <logging_subsys="SERV"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["CMAN"]
+    <logging_subsys="CMAN"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["TOTEM"]
+    <logging_subsys="TOTEM"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["QUORUM"]
+    <logging_subsys="QUORUM"
              logfile="/var/log/cluster/cman.log"/>
 .br
-    <logging_subsys["CONFDB"]
+    <logging_subsys="CONFDB"
              logfile="/var/log/cluster/cman.log"/>
 .br
 </logging>
