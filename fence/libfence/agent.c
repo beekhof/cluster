@@ -7,12 +7,13 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <limits.h>
 
+#include "libfence.h"
 #include "ccs.h"
 
 #define MAX_METHODS		8
 #define MAX_DEVICES		8
-#define MAX_AGENT_ARGS_LEN	512
 
 #define METHOD_NAME_PATH		"/cluster/clusternodes/clusternode[@name=\"%s\"]/fence/method[%d]/@name"
 #define DEVICE_NAME_PATH		"/cluster/clusternodes/clusternode[@name=\"%s\"]/fence/method[@name=\"%s\"]/device[%d]/@name"
@@ -22,27 +23,7 @@
 
 
 
-static void display_agent_output(const char *agent, int fd)
-{
-	char buf[384];
-	int ret;
-
-	do {
-		ret = read(fd, buf, sizeof(buf) - 1);
-		if (ret < 0) {
-			if (errno == EINTR)
-				continue;
-			break;
-		} else if (ret > 0) {
-			buf[ret] = '\0';
-			/*
-			syslog(LOG_ERR, "agent \"%s\" reports: %s", agent, buf);
-			*/
-		}
-	} while (ret > 0);
-}
-
-static int run_agent(char *agent, char *args)
+static int run_agent(char *agent, char *args, int *agent_result)
 {
 	int pid, status, len;
 	int pr_fd, pw_fd;  /* parent read/write file descriptors */
@@ -67,8 +48,10 @@ static int run_agent(char *agent, char *args)
 	pw_fd = fd2[1];
 
 	pid = fork();
-	if (pid < 0)
+	if (pid < 0) {
+		*agent_result = FE_AGENT_FORK;
 		goto fail;
+	}
 
 	if (pid) {
 		/* parent */
@@ -87,8 +70,10 @@ static int run_agent(char *agent, char *args)
 		waitpid(pid, &status, 0);
 
 		if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-			display_agent_output(agent, pr_fd);
+			*agent_result = FE_AGENT_ERROR;
 			goto fail;
+		} else {
+			*agent_result = FE_AGENT_SUCCESS;
 		}
 	} else {
 		/* child */
@@ -126,19 +111,19 @@ static int run_agent(char *agent, char *args)
 }
 
 static int make_args(int cd, char *victim, char *method, int d,
-				char *device, char **args_out)
+		     char *device, char **args_out)
 {
-	char path[256], *args, *str;
+	char path[PATH_MAX], *args, *str;
 	int error, cnt = 0;
 
-	args = malloc(MAX_AGENT_ARGS_LEN);
+	args = malloc(FENCE_AGENT_ARGS_MAX);
 	if (!args)
 		return -ENOMEM;
-	memset(args, 0, MAX_AGENT_ARGS_LEN);
+	memset(args, 0, FENCE_AGENT_ARGS_MAX);
 
 	/* node-specific args for victim */
 
-	memset(path, 0, 256);
+	memset(path, 0, PATH_MAX);
 	sprintf(path, NODE_FENCE_ARGS_PATH, victim, method, d+1);
 
 	for (;;) {
@@ -159,7 +144,7 @@ static int make_args(int cd, char *victim, char *method, int d,
 
 	/* device-specific args */
 
-	memset(path, 0, 256);
+	memset(path, 0, PATH_MAX);
 	sprintf(path, FENCE_DEVICE_ARGS_PATH, device);
 
 	for (;;) {
@@ -193,10 +178,10 @@ static int make_args(int cd, char *victim, char *method, int d,
 
 static int get_method(int cd, char *victim, int m, char **method)
 {
-	char path[256], *str = NULL;
+	char path[PATH_MAX], *str = NULL;
 	int error;
 
-	memset(path, 0, 256);
+	memset(path, 0, PATH_MAX);
 	sprintf(path, METHOD_NAME_PATH, victim, m+1);
 
 	error = ccs_get(cd, path, &str);
@@ -208,10 +193,10 @@ static int get_method(int cd, char *victim, int m, char **method)
 
 static int get_device(int cd, char *victim, char *method, int d, char **device)
 {
-	char path[256], *str = NULL;
+	char path[PATH_MAX], *str = NULL;
 	int error;
 
-	memset(path, 0, 256);
+	memset(path, 0, PATH_MAX);
 	sprintf(path, DEVICE_NAME_PATH, victim, method, d+1);
 
 	error = ccs_get(cd, path, &str);
@@ -221,11 +206,11 @@ static int get_device(int cd, char *victim, char *method, int d, char **device)
 
 static int count_methods(int cd, char *victim)
 {
-	char path[256], *name;
+	char path[PATH_MAX], *name;
 	int error, i;
 
 	for (i = 0; i < MAX_METHODS; i++) {
-		memset(path, 0, 256);
+		memset(path, 0, PATH_MAX);
 		sprintf(path, METHOD_NAME_PATH, victim, i+1);
 
 		error = ccs_get(cd, path, &name);
@@ -238,11 +223,11 @@ static int count_methods(int cd, char *victim)
 
 static int count_devices(int cd, char *victim, char *method)
 {
-	char path[256], *name;
+	char path[PATH_MAX], *name;
 	int error, i;
 
 	for (i = 0; i < MAX_DEVICES; i++) {
-		memset(path, 0, 256);
+		memset(path, 0, PATH_MAX);
 		sprintf(path, DEVICE_NAME_PATH, victim, method, i+1);
 
 		error = ccs_get(cd, path, &name);
@@ -254,23 +239,31 @@ static int count_devices(int cd, char *victim, char *method)
 }
 
 static int use_device(int cd, char *victim, char *method, int d,
-				char *device)
+		      char *device, struct fence_log *lp)
 {
-	char path[256], *agent, *args = NULL;
+	char path[PATH_MAX], *agent, *args = NULL;
 	int error;
 
-	memset(path, 0, 256);
+	memset(path, 0, PATH_MAX);
 	sprintf(path, AGENT_NAME_PATH, device);
 
 	error = ccs_get(cd, path, &agent);
-	if (error)
+	if (error) {
+		lp->error = FE_READ_AGENT;
 		goto out;
+	}
+
+	strncpy(lp->agent_name, agent, FENCE_AGENT_NAME_MAX);
 
 	error = make_args(cd, victim, method, d, device, &args);
-	if (error)
+	if (error) {
+		lp->error = FE_READ_ARGS;
 		goto out_agent;
+	}
 
-	error = run_agent(agent, args);
+	strncpy(lp->agent_args, args, FENCE_AGENT_ARGS_MAX);
+
+	error = run_agent(agent, args, &lp->error);
 
 	free(args);
  out_agent:
@@ -279,38 +272,102 @@ static int use_device(int cd, char *victim, char *method, int d,
 	return error;
 }
 
-int fence_node(char *victim)
+int fence_node(char *victim, struct fence_log *log, int log_size,
+	       int *log_count)
 {
+	struct fence_log stub;
+	struct fence_log *lp = log;
 	char *method = NULL, *device = NULL;
 	char *victim_nodename = NULL;
-	int num_methods, num_devices, m, d, error = -1, cd;
+	int num_methods, num_devices, m, d, cd, rv;
+	int left = log_size;
+	int error = -1;
+	int count = 0;
 
 	cd = ccs_connect();
-	if (cd < 0)
-		return -1;
+	if (cd < 0) {
+		if (lp && left) {
+			lp->error = FE_NO_CONFIG;
+			lp++;
+			left--;
+		}
+		count++;
+		error = -1;
+		goto ret;
+	}
 
 	if (ccs_lookup_nodename(cd, victim, &victim_nodename) == 0)
 		victim = victim_nodename;
 
 	num_methods = count_methods(cd, victim);
+	if (!num_methods) {
+		if (lp && left) {
+			lp->error = FE_NO_METHOD;
+			lp++;
+			left--;
+		}
+		count++;
+		error = -1;
+		goto out;
+	}
 
 	for (m = 0; m < num_methods; m++) {
 
-		error = get_method(cd, victim, m, &method);
-		if (error)
+		rv = get_method(cd, victim, m, &method);
+		if (rv) {
+			if (lp && left) {
+				lp->error = FE_READ_METHOD;
+				lp->method_num = m;
+				lp++;
+				left--;
+			}
+			count++;
+			error = -1;
 			continue;
-
-		/* if num_devices is zero we should return an error */
-		error = -1;
+		}
 
 		num_devices = count_devices(cd, victim, method);
+		if (!num_devices) {
+			if (lp && left) {
+				lp->error = FE_NO_DEVICE;
+				lp->method_num = m;
+				lp++;
+				left--;
+			}
+			count++;
+			error = -1;
+			continue;
+		}
 
 		for (d = 0; d < num_devices; d++) {
-			error = get_device(cd, victim, method, d, &device);
-			if (error)
+			rv = get_device(cd, victim, method, d, &device);
+			if (rv) {
+				if (lp && left) {
+					lp->error = FE_READ_DEVICE;
+					lp->method_num = m;
+					lp->device_num = d;
+					lp++;
+					left--;
+				}
+				count++;
+				error = -1;
 				break;
+			}
 
-			error = use_device(cd, victim, method, d, device);
+			/* every call to use_device generates a log entry,
+			   whether success or fail */
+
+			error = use_device(cd, victim, method, d, device,
+					   (lp && left) ? lp : &stub);
+			count++;
+			if (lp && left) {
+				/* error, name, args already set */
+				lp->method_num = m;
+				lp->device_num = d;
+				lp++;
+				left--;
+			}
+
 			if (error)
 				break;
 
@@ -324,11 +381,16 @@ int fence_node(char *victim)
 			free(victim_nodename);
 		free(method);
 
+		/* we return 0 for fencing success when use_device has
+		   returned zero for each device in this method */
+
 		if (!error)
 			break;
 	}
-
+ out:
 	ccs_disconnect(cd);
-
+ ret:
+	if (log_count)
+		*log_count = count;
 	return error;
 }

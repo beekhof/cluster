@@ -242,10 +242,41 @@ void defer_fencing(struct fd *fd)
 	log_level(LOG_INFO, "fencing deferred to %s", master_name);
 }
 
+static char *fe_str(int r)
+{
+	switch (r) {
+	case FE_AGENT_SUCCESS:
+		return "success";
+	case FE_AGENT_ERROR:
+		return "error from agent";
+	case FE_AGENT_FORK:
+		return "error from fork";
+	case FE_NO_CONFIG:
+		return "error from ccs";
+	case FE_NO_METHOD:
+		return "error no method";
+	case FE_NO_DEVICE:
+		return "error no device";
+	case FE_READ_AGENT:
+		return "error config agent"; 
+	case FE_READ_ARGS:
+		return "error config args"; 
+	case FE_READ_METHOD:
+		return "error config method"; 
+	case FE_READ_DEVICE:
+		return "error config device"; 
+	default:
+		return "error unknown";
+	}
+}
+
+#define FL_SIZE 32
+static struct fence_log log[FL_SIZE];
+
 void fence_victims(struct fd *fd)
 {
 	struct node *node;
-	int error;
+	int error, i, ll, log_count;
 	int override = -1;
 	int cman_member, cpg_member, ext;
 
@@ -273,13 +304,32 @@ void fence_victims(struct fd *fd)
 			continue;
 		}
 
-		log_level(LOG_INFO, "fencing node \"%s\"", node->name);
+		memset(&log, 0, sizeof(log));
+		log_count = 0;
+
+		log_level(LOG_INFO, "fencing node %s", node->name);
 
 		query_unlock();
-		error = fence_node(node->name);
+		error = fence_node(node->name, log, FL_SIZE, &log_count);
 		query_lock();
 
-		log_level(LOG_INFO, "fence \"%s\" %s", node->name,
+		if (log_count > FL_SIZE) {
+			log_error("fence_node log overflow %d", log_count);
+			log_count = FL_SIZE;
+		}
+
+		for (i = 0; i < log_count; i++) {
+			ll = (log[i].error == FE_AGENT_SUCCESS) ? LOG_DEBUG:
+								  LOG_ERR;
+			log_level(ll, "fence %s dev %d.%d agent %s result: %s",
+				  node->name,
+				  log[i].method_num, log[i].device_num,
+				  log[i].agent_name[0] ?
+				  	log[i].agent_name : "none",
+				  fe_str(log[i].error));
+		}
+
+		log_error("fence %s %s", node->name,
 			  error ? "failed" : "success");
 
 		if (!error) {
@@ -300,7 +350,7 @@ void fence_victims(struct fd *fd)
 		override = open_override(cfgd_override_path);
 		if (check_override(override, node->name,
 				   cfgd_override_time) > 0) {
-			log_level(LOG_WARNING, "fence \"%s\" overridden by "
+			log_level(LOG_WARNING, "fence %s overridden by "
 				  "administrator intervention", node->name);
 			victim_done(fd, node->nodeid, VIC_DONE_OVERRIDE);
 			list_del(&node->list);

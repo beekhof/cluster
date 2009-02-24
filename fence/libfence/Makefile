@@ -1,5 +1,8 @@
 TARGET= libfence
 
+SOMAJOR=4
+SOMINOR=0
+
 OBJS=	agent.o
 
 include ../../make/defines.mk
