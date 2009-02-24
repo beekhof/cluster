@@ -14,6 +14,7 @@ $(TARGET1): $(S)/$(TARGET1).in
 	cat $(S)/$(TARGET1).in | sed \
 		-e 's#@SBINDIR@#${sbindir}#g' \
 		-e 's#@INITDDIR@#${initddir}#g' \
+		-e 's#@NOTIFYDDIR@#${notifyddir}#g' \
 	> $(TARGET1)
 
 $(TARGET2): $(S)/$(TARGET2).in

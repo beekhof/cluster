@@ -84,6 +84,14 @@ fi
 #     The default is 60 seconds
 [ -z "$CMAN_SHUTDOWN_TIMEOUT" ] && CMAN_SHUTDOWN_TIMEOUT=60
 
+# CMAN_NOTIFYD_START - control the startup behaviour for cmannotifyd
+# the variable can take 3 values:
+# yes                   | will always start cmannotifyd
+# no                    | will never start cmannotifyd
+# conditional (default) | will start cmannotifyd only if scriptlets
+#                         are found in @NOTIFYDDIR@
+[ -z "$CMAN_NOTIFYD_START" ] && CMAN_NOTIFYD_START=conditional
+
 # FENCED_START_TIMEOUT -- amount of time to wait for starting fenced
 #     before giving up.  If FENCED_START_TIMEOUT is positive, then we will
 #     wait FENCED_START_TIMEOUT seconds before giving up and failing when
@@ -277,7 +285,23 @@ start_daemons()
     fi
     status cmannotifyd > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-	errmsg=$( @SBINDIR@/cmannotifyd 2>&1 ) || return 1
+	case "$CMAN_NOTIFYD_START" in
+	    yes)
+		errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
+	    ;;
+	    no)
+		# nothing to do
+	    ;;
+	    conditional)
+		if [ -n "$(ls -1 @NOTIFYDDIR@)" ]; then
+		    errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
+		fi
+	    ;;
+	    *)
+		errmsg="unknown CMAN_NOTIFYD_START option"
+		exit 1
+	    ;;
+	esac
     fi
     return 0
 }
