@@ -1,5 +1,9 @@
-TARGET= fence.8 \
-	fenced.8  \
+include ../../make/defines.mk
+
+TARGET = fence.8 fenced.8 fence_node.8 fence_tool.8
+
+ifdef fence_agents
+TARGET += \
 	fence_ack_manual.8 \
 	fence_alom.8 \
 	fence_apc.8 \
@@ -18,14 +22,12 @@ TARGET= fence.8 \
 	fence_ldom.8 \
 	fence_manual.8 \
 	fence_mcdata.8 \
-	fence_node.8 \
 	fence_rackswitch.8 \
 	fence_rib.8 \
 	fence_rsa.8 \
 	fence_rsb.8 \
 	fence_sanbox2.8 \
 	fence_scsi.8 \
-	fence_tool.8 \
 	fence_vixel.8 \
 	fence_virsh.8 \
 	fence_vmware.8 \
@@ -34,6 +36,6 @@ TARGET= fence.8 \
 	fence_xvm.8 \
 	fence_xvmd.8 \
 	fence_zvm.8
+endif
 
-include ../../make/defines.mk
 include $(OBJDIR)/make/man.mk
