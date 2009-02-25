@@ -377,8 +377,7 @@ int fence_node(char *victim, struct fence_log *log, int log_size,
 
 		if (device)
 			free(device);
-		if (victim_nodename)
-			free(victim_nodename);
+
 		free(method);
 
 		/* we return 0 for fencing success when use_device has
@@ -387,6 +386,9 @@ int fence_node(char *victim, struct fence_log *log, int log_size,
 		if (!error)
 			break;
 	}
+
+	if (victim_nodename)
+		free(victim_nodename);
  out:
 	ccs_disconnect(cd);
  ret:
