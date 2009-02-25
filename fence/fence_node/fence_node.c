@@ -11,12 +11,14 @@
 
 static char *prog_name;
 static int verbose;
+static int unfence;
 
 #define FL_SIZE 32
 static struct fence_log log[FL_SIZE];
 static int log_count;
+static char *action = "fence";
 
-#define OPTION_STRING "hvV"
+#define OPTION_STRING "UvhV"
 
 #define die(fmt, args...) \
 do \
@@ -35,6 +37,7 @@ static void print_usage(void)
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
+	printf("  -U    Unfence the node\n");
 	printf("  -v    Show fence agent results, -vv for agent args\n");
 	printf("  -h    Print this help, then exit\n");
 	printf("  -V    Print program version information, then exit\n");
@@ -72,7 +75,7 @@ static char *fe_str(int r)
 int main(int argc, char *argv[])
 {
 	char *victim = NULL, *p;
-	int cont = 1, optchar, error, rv, i;
+	int cont = 1, optchar, error, rv, i, c;
 
 	prog_name = argv[0];
 
@@ -80,6 +83,11 @@ int main(int argc, char *argv[])
 		optchar = getopt(argc, argv, OPTION_STRING);
 
 		switch (optchar) {
+
+		case 'U':
+			unfence = 1;
+			action = "unfence";
+			break;
 
 		case 'v':
 			verbose++;
@@ -126,7 +134,10 @@ int main(int argc, char *argv[])
 	memset(&log, 0, sizeof(log));
 	log_count = 0;
 
-	error = fence_node(victim, log, FL_SIZE, &log_count);
+	if (unfence)
+		error = unfence_node(victim, log, FL_SIZE, &log_count);
+	else
+		error = fence_node(victim, log, FL_SIZE, &log_count);
 
 	logt_init("fence_node", LOG_MODE_OUTPUT_SYSLOG, SYSLOGFACILITY,
 		  SYSLOGLEVEL, 0, NULL);
@@ -135,35 +146,34 @@ int main(int argc, char *argv[])
 		goto skip;
 
 	if (log_count > FL_SIZE) {
-		fprintf(stderr, "fence_node log overflow %d", log_count);
+		fprintf(stderr, "%s_node log overflow %d", action, log_count);
 		log_count = FL_SIZE;
 	}
 
 	for (i = 0; i < log_count; i++) {
-		fprintf(stderr, "fence %s dev %d.%d agent %s result: %s\n",
-			victim, log[i].method_num, log[i].device_num,
+		fprintf(stderr, "%s %s dev %d.%d agent %s result: %s\n",
+			action, victim, log[i].method_num, log[i].device_num,
 			log[i].agent_name[0] ?  log[i].agent_name : "none",
 			fe_str(log[i].error));
 
 		if (verbose < 2)
 			continue;
 
-		p = strchr(log[i].agent_args, '\n');
-		if (p)
-			*p = '\0';
+		for (c = 0; c < strlen(log[i].agent_args); c++) {
+			if (log[i].agent_args[c] == '\n')
+				log[i].agent_args[c] = ' ';
+		}
 		fprintf(stderr, "agent args: %s\n", log[i].agent_args);
 	}
 
  skip:
 	if (error) {
-		fprintf(stderr, "Fence of \"%s\" was unsuccessful\n", victim);
-		logt_print(LOG_ERR, "Fence of \"%s\" was unsuccessful\n",
-			   victim);
+		fprintf(stderr, "%s %s failed\n", action, victim);
+		logt_print(LOG_ERR, "%s %s failed\n", action, victim);
 		rv = EXIT_FAILURE;
 	} else {
-		fprintf(stderr, "Fence of \"%s\" was successful\n", victim);
-		logt_print(LOG_NOTICE, "Fence of \"%s\" was successful\n",
-			   victim);
+		fprintf(stderr, "%s %s success\n", action, victim);
+		logt_print(LOG_ERR, "%s %s success\n", action, victim);
 		rv = EXIT_SUCCESS;
 
 		/* Tell fenced what we've done so that it can avoid fencing

@@ -29,6 +29,9 @@ struct fence_log {
 
 int fence_node(char *name, struct fence_log *log, int log_size, int *log_count);
 
+int unfence_node(char *name, struct fence_log *log, int log_size,
+		 int *log_count);
+
 #ifdef __cplusplus
 }
 #endif

@@ -396,3 +396,223 @@ int fence_node(char *victim, struct fence_log *log, int log_size,
 		*log_count = count;
 	return error;
 }
+
+#define UN_DEVICE_NAME_PATH "/cluster/clusternodes/clusternode[@name=\"%s\"]/unfence/device[%d]/@name"
+#define UN_NODE_FENCE_ARGS_PATH "/cluster/clusternodes/clusternode[@name=\"%s\"]/unfence/device[%d]/@*"
+
+static int make_args_unfence(int cd, char *victim, int d,
+			     char *device, char **args_out)
+{
+	char path[PATH_MAX], *args, *str;
+	int error, cnt = 0;
+
+	args = malloc(FENCE_AGENT_ARGS_MAX);
+	if (!args)
+		return -ENOMEM;
+	memset(args, 0, FENCE_AGENT_ARGS_MAX);
+
+	/* node-specific args for victim */
+
+	memset(path, 0, PATH_MAX);
+	sprintf(path, UN_NODE_FENCE_ARGS_PATH, victim, d+1);
+
+	for (;;) {
+		error = ccs_get_list(cd, path, &str);
+		if (error || !str)
+			break;
+		++cnt;
+
+		if (!strncmp(str, "name=", 5)) {
+			free(str);
+			continue;
+		}
+
+		strcat(args, str);
+		strcat(args, "\n");
+		free(str);
+	}
+
+	/* device-specific args */
+
+	memset(path, 0, PATH_MAX);
+	sprintf(path, FENCE_DEVICE_ARGS_PATH, device);
+
+	for (;;) {
+		error = ccs_get_list(cd, path, &str);
+		if (error || !str)
+			break;
+		++cnt;
+
+		if (!strncmp(str, "name=", 5)) {
+			free(str);
+			continue;
+		}
+
+		strcat(args, str);
+		strcat(args, "\n");
+		free(str);
+	}
+
+	if (cnt)
+		error = 0;
+	if (error) {
+		free(args);
+		args = NULL;
+	}
+
+	*args_out = args;
+	return error;
+}
+
+/* return name of d'th device under nodes/<victim>/unfence/ */
+
+static int get_device_unfence(int cd, char *victim, int d, char **device)
+{
+	char path[PATH_MAX], *str = NULL;
+	int error;
+
+	memset(path, 0, PATH_MAX);
+	sprintf(path, UN_DEVICE_NAME_PATH, victim, d+1);
+
+	error = ccs_get(cd, path, &str);
+	*device = str;
+	return error;
+}
+
+static int count_devices_unfence(int cd, char *victim)
+{
+	char path[PATH_MAX], *name;
+	int error, i;
+
+	for (i = 0; i < MAX_DEVICES; i++) {
+		memset(path, 0, PATH_MAX);
+		sprintf(path, UN_DEVICE_NAME_PATH, victim, i+1);
+
+		error = ccs_get(cd, path, &name);
+		if (error)
+			break;
+		free(name);
+	}
+	return i;
+}
+
+static int use_device_unfence(int cd, char *victim, int d,
+			      char *device, struct fence_log *lp)
+{
+	char path[PATH_MAX], *agent, *args = NULL;
+	int error;
+
+	memset(path, 0, PATH_MAX);
+	sprintf(path, AGENT_NAME_PATH, device);
+
+	error = ccs_get(cd, path, &agent);
+	if (error) {
+		lp->error = FE_READ_AGENT;
+		goto out;
+	}
+
+	strncpy(lp->agent_name, agent, FENCE_AGENT_NAME_MAX);
+
+	error = make_args_unfence(cd, victim, d, device, &args);
+	if (error) {
+		lp->error = FE_READ_ARGS;
+		goto out_agent;
+	}
+
+	strncpy(lp->agent_args, args, FENCE_AGENT_ARGS_MAX);
+
+	error = run_agent(agent, args, &lp->error);
+
+	free(args);
+ out_agent:
+	free(agent);
+ out:
+	return error;
+}
+
+int unfence_node(char *victim, struct fence_log *log, int log_size,
+		 int *log_count)
+{
+	struct fence_log stub;
+	struct fence_log *lp = log;
+	char *device = NULL;
+	char *victim_nodename = NULL;
+	int num_devices, d, cd, rv;
+	int left = log_size;
+	int error = -1;
+	int count = 0;
+
+	cd = ccs_connect();
+	if (cd < 0) {
+		if (lp && left) {
+			lp->error = FE_NO_CONFIG;
+			lp++;
+			left--;
+		}
+		count++;
+		error = -1;
+		goto ret;
+	}
+
+	if (ccs_lookup_nodename(cd, victim, &victim_nodename) == 0)
+		victim = victim_nodename;
+
+	num_devices = count_devices_unfence(cd, victim);
+	if (!num_devices) {
+		if (lp && left) {
+			lp->error = FE_NO_DEVICE;
+			lp++;
+			left--;
+		}
+		count++;
+		error = -1;
+		goto out;
+	}
+
+	/* try to unfence all devices even if some of them fail,
+	   but the final return value is 0 only if all succeed */
+
+	for (d = 0; d < num_devices; d++) {
+		rv = get_device_unfence(cd, victim, d, &device);
+		if (rv) {
+			if (lp && left) {
+				lp->error = FE_READ_DEVICE;
+				lp->device_num = d;
+				lp++;
+				left--;
+			}
+			count++;
+			error = -1;
+			continue;
+		}
+
+		/* every call to use_device generates a log entry,
+		   whether success or fail */
+
+		rv = use_device_unfence(cd, victim, d, device,
+					(lp && left) ? lp : &stub);
+		count++;
+		if (lp && left) {
+			/* error, name, args already set */
+			lp->device_num = d;
+			lp++;
+			left--;
+		}
+
+		if (rv)
+			error = -1;
+
+		free(device);
+		device = NULL;
+	}
+
+	if (victim_nodename)
+		free(victim_nodename);
+ out:
+	ccs_disconnect(cd);
+ ret:
+	if (log_count)
+		*log_count = count;
+	return error;
+}
+
