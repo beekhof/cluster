@@ -50,14 +50,14 @@ int num_ais_nodes;
 quorum_set_quorate_fn_t corosync_set_quorum;
 struct memb_ring_id cman_ring_id;
 extern unsigned int config_version;
-static unsigned int cluster_parent_handle;
+static hdb_handle_t cluster_parent_handle;
 
 static int startup_pipe;
 static unsigned int debug_mask;
 static int first_trans = 1;
 struct corosync_api_v1 *corosync;
 
-static cs_tpg_handle group_handle;
+static hdb_handle_t group_handle;
 static struct corosync_tpg_group cman_group[1] = {
         { .group          = "CMAN", .group_len      = 4},
 };
@@ -161,8 +161,8 @@ static void cman_quorum_init(struct corosync_api_v1 *api, quorum_set_quorate_fn_
 
 static int cman_exec_init_fn(struct corosync_api_v1 *api)
 {
-	unsigned int object_handle;
-	unsigned int find_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
 	char pipe_msg[256];
 
 	corosync = api;

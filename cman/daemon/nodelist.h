@@ -34,17 +34,17 @@ static inline void objdb_get_int(OBJDB_API *corosync, unsigned int object_servic
 
 /* Helper functions for navigating the nodes list */
 static inline unsigned int nodeslist_init(OBJDB_API *corosync,
-					  unsigned int cluster_parent_handle,
-					  unsigned int *find_handle)
+					  hdb_handle_t cluster_parent_handle,
+					  hdb_handle_t *find_handle)
 {
-	unsigned int object_handle;
-	unsigned int find_handle1;
-	unsigned int find_handle2;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle1;
+	hdb_handle_t find_handle2;
 
 	corosync->object_find_create(cluster_parent_handle,"clusternodes", strlen("clusternodes"), &find_handle1);
 	if (corosync->object_find_next(find_handle1, &object_handle) == 0)
 	{
-		unsigned int nodes_handle;
+		hdb_handle_t nodes_handle;
 		corosync->object_find_destroy(find_handle1);
 
 		corosync->object_find_create(object_handle,"clusternode", strlen("clusternode"), &find_handle2);
@@ -58,9 +58,9 @@ static inline unsigned int nodeslist_init(OBJDB_API *corosync,
 	return 0;
 }
 
-static inline unsigned int nodeslist_next(OBJDB_API *corosync, unsigned int find_handle)
+static inline unsigned int nodeslist_next(OBJDB_API *corosync, hdb_handle_t find_handle)
 {
-	unsigned int nodes_handle;
+        hdb_handle_t nodes_handle;
 
 	if (corosync->object_find_next(find_handle, &nodes_handle) == 0)
 		return nodes_handle;
@@ -69,12 +69,12 @@ static inline unsigned int nodeslist_next(OBJDB_API *corosync, unsigned int find
 }
 
 static inline unsigned int nodelist_byname(OBJDB_API *corosync,
-					   unsigned int cluster_parent_handle,
+					   hdb_handle_t cluster_parent_handle,
 					   char *name)
 {
 	char *nodename;
-	unsigned int nodes_handle;
-	unsigned int find_handle = 0;
+	hdb_handle_t nodes_handle;
+	hdb_handle_t find_handle = 0;
 
 	nodes_handle = nodeslist_init(corosync, cluster_parent_handle, &find_handle);
 	while (nodes_handle) {

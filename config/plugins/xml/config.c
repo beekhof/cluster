@@ -54,7 +54,7 @@ static void xml_comp_register(void)
 };
 
 static void addkeys(xmlAttrPtr tmpattr, struct objdb_iface_ver0 *objdb,
-		    unsigned int object_handle)
+		    hdb_handle_t object_handle)
 {
 	for (tmpattr = tmpattr; tmpattr; tmpattr = tmpattr->next) {
 		if (tmpattr->type == XML_ATTRIBUTE_NODE)
@@ -69,9 +69,9 @@ static void addkeys(xmlAttrPtr tmpattr, struct objdb_iface_ver0 *objdb,
 }
 
 static void xml2objdb(xmlNodePtr tmpnode, struct objdb_iface_ver0 *objdb,
-		      unsigned int parent)
+		      hdb_handle_t parent)
 {
-	unsigned int object_handle = 0;
+	hdb_handle_t object_handle = 0;
 
 	for (tmpnode = tmpnode; tmpnode; tmpnode = tmpnode->next) {
 		if (tmpnode->type == XML_ELEMENT_NODE) {

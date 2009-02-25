@@ -99,14 +99,14 @@ static void convert_dn_underscores(LDAPDN dn)
  * Return the parent object of a DN.
  * Actually, this returns the LAST parent with that name. which should (!) be correct.
  */
-static unsigned int find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int startdn, char *parent)
+static hdb_handle_t find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int startdn, char *parent)
 {
 	int i=startdn;
 	int gotstart=0;
 	int start=0, end=startdn;
-	unsigned int parent_handle = OBJECT_PARENT_HANDLE;
-	unsigned int object_handle=0;
-	unsigned int find_handle;
+	hdb_handle_t parent_handle = OBJECT_PARENT_HANDLE;
+	hdb_handle_t object_handle=0;
+	hdb_handle_t find_handle;
 
 	/*
 	 * Find the start and end positions first.
@@ -138,15 +138,15 @@ static unsigned int find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int s
 
 
 
-static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, unsigned int parent,
+static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, hdb_handle_t parent,
 			   char *object, char *sub_dn, int always_create)
 {
 	char search_dn[4096];
 	int rc;
 	char *dn;
 	LDAPMessage *result, *e;
-	unsigned int parent_handle = OBJECT_PARENT_HANDLE;
-	unsigned int object_handle;
+	hdb_handle_t parent_handle = OBJECT_PARENT_HANDLE;
+	hdb_handle_t object_handle;
 
 	sprintf(search_dn, "%s,%s", sub_dn, ldap_basedn);
 

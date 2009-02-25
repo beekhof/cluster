@@ -504,10 +504,10 @@ static int do_cmd_get_extrainfo(char *cmdbuf, char **retbuf, int retsize, int *r
 	int addrlen;
 	int uncounted = 0;
 	unsigned int num_interfaces;
-	unsigned int totem_object_handle;
-	unsigned int object_handle;
-	unsigned int totem_find_handle;
-	unsigned int iface_find_handle;
+	hdb_handle_t totem_object_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t totem_find_handle;
+	hdb_handle_t iface_find_handle;
 	char **status;
 	struct cluster_node *node;
 	struct sockaddr_storage *ss;

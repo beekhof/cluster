@@ -43,11 +43,11 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
     unsigned int expected = 0;
     unsigned int votes = 0;
     int nodeid;
-    unsigned int object_handle;
-    unsigned int nodes_handle;
-    unsigned int find_handle;
+    hdb_handle_t object_handle;
+    hdb_handle_t nodes_handle;
+    hdb_handle_t find_handle;
     char *nodename;
-    unsigned int cluster_parent_handle;
+    hdb_handle_t cluster_parent_handle;
 
     corosync->object_find_create(OBJECT_PARENT_HANDLE,
 				 "cluster", strlen("cluster"), &find_handle);
@@ -140,11 +140,11 @@ static int get_cman_join_info(struct corosync_api_v1 *corosync)
 	char *cname = NULL;
 	int  error, vote_sum = 0, node_count = 0;
 	int votes=0;
-	unsigned int object_handle;
-	unsigned int node_object;
-	unsigned int nodes_handle;
-	unsigned int find_handle;
-	unsigned int cluster_parent_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t node_object;
+	hdb_handle_t nodes_handle;
+	hdb_handle_t find_handle;
+	hdb_handle_t cluster_parent_handle;
 
 	corosync->object_find_create(OBJECT_PARENT_HANDLE,
 				     "cluster", strlen("cluster"), &find_handle);

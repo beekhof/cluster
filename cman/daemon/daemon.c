@@ -49,11 +49,11 @@ static LIST_INIT(client_list);
 volatile sig_atomic_t quit_threads=0;
 
 int num_connections = 0;
-poll_handle ais_poll_handle;
+hdb_handle_t cs_poll_handle;
 uint32_t max_outstanding_messages = DEFAULT_MAX_QUEUED;
 
-static int process_client(poll_handle handle, int fd, int revent, void *data);
-static void remove_client(poll_handle handle, struct connection *con);
+static int process_client(hdb_handle_t handle, int fd, int revent, void *data);
+static void remove_client(hdb_handle_t handle, struct connection *con);
 
 /* Send it, or queue it for later if the socket is busy */
 static int send_reply_message(struct connection *con, struct sock_header *msg)
@@ -79,7 +79,7 @@ static int send_reply_message(struct connection *con, struct sock_header *msg)
 		/* Have we exceeded the allowed number of queued messages ? */
 		if (con->num_write_msgs > max_outstanding_messages) {
 			P_DAEMON("Disconnecting. client has more that %d replies outstanding (%d)\n", max_outstanding_messages, con->num_write_msgs);
-			remove_client(ais_poll_handle, con);
+			remove_client(cs_poll_handle, con);
 			return -1;
 		}
 
@@ -98,12 +98,12 @@ static int send_reply_message(struct connection *con, struct sock_header *msg)
 		list_add(&con->write_msgs, &qm->list);
 		con->num_write_msgs++;
 		P_DAEMON("queued last message, count is %d\n", con->num_write_msgs);
-		poll_dispatch_modify(ais_poll_handle, con->fd, POLLIN | POLLOUT, process_client);
+		poll_dispatch_modify(cs_poll_handle, con->fd, POLLIN | POLLOUT, process_client);
 	}
 	return 0;
 }
 
-static void remove_client(poll_handle handle, struct connection *con)
+static void remove_client(hdb_handle_t handle, struct connection *con)
 {
 	struct list *tmp, *qmh;
 	struct queued_reply *qm;
@@ -158,12 +158,12 @@ static void send_queued_reply(struct connection *con)
 	if (list_empty(&con->write_msgs)) {
 		/* Remove POLLOUT callback */
 		P_DAEMON("Removing POLLOUT from fd %d\n", con->fd);
-		poll_dispatch_modify(ais_poll_handle, con->fd, POLLIN, process_client);
+		poll_dispatch_modify(cs_poll_handle, con->fd, POLLIN, process_client);
 	}
 }
 
 /* Dispatch a request from a CLIENT or ADMIN socket */
-static int process_client(poll_handle handle, int fd, int revent, void *data)
+static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 {
 	struct connection *con = data;
 
@@ -319,7 +319,7 @@ static int process_client(poll_handle handle, int fd, int revent, void *data)
 
 
 /* Both client and admin rendezvous sockets use this */
-static int process_rendezvous(poll_handle handle, int fd, int revent, void *data)
+static int process_rendezvous(hdb_handle_t handle, int fd, int revent, void *data)
 {
 	struct sockaddr_un socka;
 	struct connection *con = data;
@@ -350,7 +350,7 @@ static int process_rendezvous(poll_handle handle, int fd, int revent, void *data
 	return 0;
 }
 
-static int open_local_sock(const char *name, int name_len, mode_t mode, poll_handle handle, int type)
+static int open_local_sock(const char *name, int name_len, mode_t mode, hdb_handle_t handle, int type)
 {
 	int local_socket;
 	struct sockaddr_un sockaddr;
@@ -497,23 +497,23 @@ static void sigint_handler(int ignored)
 	quit_threads = 1;
 }
 
-extern poll_handle aisexec_poll_handle;
+extern hdb_handle_t corosync_poll_handle;
 int cman_init()
 {
 	int fd;
 	struct sigaction sa;
 
-	ais_poll_handle = aisexec_poll_handle;
+	cs_poll_handle = corosync_poll_handle;
 	barrier_init();
 
 	log_printf(LOG_INFO, "CMAN %s (built %s %s) started\n",
 		   RELEASE_VERSION, __DATE__, __TIME__);
 
-	fd = open_local_sock(CLIENT_SOCKNAME, sizeof(CLIENT_SOCKNAME), 0660, ais_poll_handle, CON_CLIENT);
+	fd = open_local_sock(CLIENT_SOCKNAME, sizeof(CLIENT_SOCKNAME), 0660, cs_poll_handle, CON_CLIENT);
 	if (fd < 0)
 		return -2;
 
-	fd = open_local_sock(ADMIN_SOCKNAME, sizeof(ADMIN_SOCKNAME), 0600, ais_poll_handle, CON_ADMIN);
+	fd = open_local_sock(ADMIN_SOCKNAME, sizeof(ADMIN_SOCKNAME), 0600, cs_poll_handle, CON_ADMIN);
 	if (fd < 0)
 		return -2;
 

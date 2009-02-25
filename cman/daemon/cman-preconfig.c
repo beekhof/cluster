@@ -48,7 +48,7 @@ static char *key_filename=NULL;
 static char *mcast_name;
 static char *cluster_name;
 static char error_reason[1024] = { '\0' };
-static unsigned int cluster_parent_handle;
+static hdb_handle_t cluster_parent_handle;
 
 /*
  * Exports the interface for the service
@@ -200,8 +200,8 @@ static int address_family(char *addr, struct sockaddr_storage *ssaddr, int famil
 */
 static unsigned int find_cman_logger(struct objdb_iface_ver0 *objdb, unsigned int object_handle)
 {
-	unsigned int subsys_handle;
-	unsigned int find_handle;
+	hdb_handle_t subsys_handle;
+	hdb_handle_t find_handle;
 	char *str;
 
 	objdb->object_find_create(object_handle, "logger_subsys", strlen("logger_subsys"), &find_handle);
@@ -230,9 +230,9 @@ static unsigned int find_cman_logger(struct objdb_iface_ver0 *objdb, unsigned in
 
 static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr, int portnum)
 {
-	unsigned int totem_object_handle;
-	unsigned int find_handle;
-	unsigned int interface_object_handle;
+	hdb_handle_t totem_object_handle;
+	hdb_handle_t find_handle;
+	hdb_handle_t interface_object_handle;
 	struct sockaddr_storage if_addr, localhost, mcast_addr;
 	char tmp[132];
 	int ret = 0;
@@ -343,8 +343,8 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 	char *str, *dot = NULL;
 	struct ifaddrs *ifa, *ifa_list;
 	struct sockaddr *sa;
-	unsigned int nodes_handle;
-	unsigned int find_handle = 0;
+	hdb_handle_t nodes_handle;
+	hdb_handle_t find_handle = 0;
 	int error;
 
 	/* nodename is either from commandline or from uname */
@@ -507,10 +507,10 @@ static int get_env_overrides()
 static int get_nodename(struct objdb_iface_ver0 *objdb)
 {
 	char *nodeid_str = NULL;
-	unsigned int object_handle;
-	unsigned int find_handle;
-	unsigned int node_object_handle;
-	unsigned int alt_object;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
+	hdb_handle_t node_object_handle;
+	hdb_handle_t alt_object;
 	int error;
 
 	if (!getenv("CMAN_NOCONFIG")) {
@@ -570,8 +570,8 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 
 	if (objdb->object_find_next(find_handle, &object_handle) == 0) {
 
-		unsigned int mcast_handle;
-		unsigned int find_handle2;
+		hdb_handle_t mcast_handle;
+		hdb_handle_t find_handle2;
 
 		if (!mcast_name) {
 
@@ -638,11 +638,11 @@ out:
 /* These are basically cman overrides to the totem config bits */
 static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 {
-	unsigned int logger_object_handle;
+	hdb_handle_t logger_object_handle;
 	char *logstr;
 	char *logfacility;
-	unsigned int object_handle;
-	unsigned int find_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
 	char tmp[256];
 
 	/* "totem" key already exists, because we have added the interfaces by now */
@@ -841,8 +841,8 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 static int set_noccs_defaults(struct objdb_iface_ver0 *objdb)
 {
 	char tmp[255];
-	unsigned int object_handle;
-	unsigned int find_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
 
 	/* Enforce key */
 	key_filename = NOCCS_KEY_FILENAME;
@@ -949,9 +949,9 @@ static int set_noccs_defaults(struct objdb_iface_ver0 *objdb)
 /* Move an object/key tree */
 static int copy_config_tree(struct objdb_iface_ver0 *objdb, unsigned int source_object, unsigned int target_parent_object, int always_create)
 {
-	unsigned int object_handle;
-	unsigned int new_object;
-	unsigned int find_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t new_object;
+	hdb_handle_t find_handle;
 	char object_name[1024];
 	int object_name_len;
 	void *key_name;
@@ -1001,8 +1001,8 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, unsigned int source_
  */
 static int copy_tree_to_root(struct objdb_iface_ver0 *objdb, char *name, int always_create)
 {
-	unsigned int find_handle;
-	unsigned int object_handle;
+	hdb_handle_t find_handle;
+	hdb_handle_t object_handle;
 	int res=0;
 
 	objdb->object_find_create(cluster_parent_handle, name, strlen(name), &find_handle);
@@ -1016,8 +1016,8 @@ static int copy_tree_to_root(struct objdb_iface_ver0 *objdb, char *name, int alw
 
 static int get_cman_globals(struct objdb_iface_ver0 *objdb)
 {
-	unsigned int object_handle;
-	unsigned int find_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
 
 	objdb_get_string(objdb, cluster_parent_handle, "name", &cluster_name);
 
@@ -1043,9 +1043,9 @@ static int get_cman_globals(struct objdb_iface_ver0 *objdb)
 static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, char **error_string)
 {
 	int ret = -1;
-	unsigned int object_handle;
-	unsigned int find_handle;
-	unsigned int cluster_parent_handle_new;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
+	hdb_handle_t cluster_parent_handle_new;
 
 	/* don't reload if we've been told to run configless */
 	if (getenv("CMAN_NOCONFIG")) {
@@ -1101,8 +1101,8 @@ err:
 static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, char **error_string)
 {
 	int ret = 0;
-	unsigned int object_handle;
-	unsigned int find_handle;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
 
 	if (getenv("CMAN_PIPE"))
                 startup_pipe = atoi(getenv("CMAN_PIPE"));
