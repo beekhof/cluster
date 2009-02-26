@@ -2152,13 +2152,16 @@ handle_fd_start_req(char *svcName, int request, int *new_owner)
 		target = best_target_node(allowed_nodes, 0,
 	 				  svcName, 1);
 	  	if (target == me) {
-	   		ret = handle_start_remote_req(svcName, request);
+ 		      	ret = handle_start_remote_req(svcName,
+				(request==RG_ENABLE?RG_START_RECOVER:request));
 			if (ret == RG_EAGAIN)
 				goto out;
-	    	} else if (target < 0) {
+		} else if (!(target > 0)) {
 			goto out;
 	       	} else {
-			ret = svc_start_remote(svcName, RG_START_REMOTE,
+			ret = svc_start_remote(svcName,
+					       (request==RG_ENABLE?
+					    RG_START_RECOVER:RG_START_REMOTE),
 					       target);
 		}
 
