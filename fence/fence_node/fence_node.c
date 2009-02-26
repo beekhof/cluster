@@ -4,12 +4,14 @@
 #include <stdint.h>
 #include <string.h>
 #include <liblogthread.h>
+#include <libcman.h>
 
 #include "libfence.h"
 #include "libfenced.h"
 #include "copyright.cf"
 
 static char *prog_name;
+static char our_name[CMAN_MAX_NODENAME_LEN+1];
 static int verbose;
 static int unfence;
 
@@ -37,11 +39,45 @@ static void print_usage(void)
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
-	printf("  -U    Unfence the node\n");
+	printf("  -U    Unfence the node, default local node name\n");
 	printf("  -v    Show fence agent results, -vv for agent args\n");
 	printf("  -h    Print this help, then exit\n");
 	printf("  -V    Print program version information, then exit\n");
 	printf("\n");
+}
+
+static int setup_cman(void)
+{
+	cman_handle_t ch;
+	cman_node_t node;
+	int active = 0;
+	int rv;
+
+	ch = cman_init(NULL);
+	if (!ch)
+		return -1;
+
+ retry_active:
+	rv = cman_is_active(ch);
+	if (!rv) {
+		if (active++ < 2) {
+			sleep(1);
+			goto retry_active;
+		}
+		cman_finish(ch);
+		return -1;
+	}
+
+	rv = cman_get_node(ch, CMAN_NODEID_US, &node);
+	if (rv < 0) {
+		cman_finish(ch);
+		return -1;
+	}
+
+	memset(our_name, 0, sizeof(our_name));
+	strncpy(our_name, node.cn_name, CMAN_MAX_NODENAME_LEN);
+	cman_finish(ch);
+	return 0;
 }
 
 static char *fe_str(int r)
@@ -74,7 +110,7 @@ static char *fe_str(int r)
 
 int main(int argc, char *argv[])
 {
-	char *victim = NULL, *p;
+	char *victim = NULL;
 	int cont = 1, optchar, error, rv, i, c;
 
 	prog_name = argv[0];
@@ -128,8 +164,15 @@ int main(int argc, char *argv[])
 		optind++;
 	}
 
-	if (!victim)
+	if (!victim && !unfence)
 		die("no node name specified");
+
+	error = setup_cman();
+	if (error)
+		die("cannot connect to cman");
+
+	if (!victim && unfence)
+		victim = our_name;
 
 	memset(&log, 0, sizeof(log));
 	log_count = 0;
@@ -138,9 +181,6 @@ int main(int argc, char *argv[])
 		error = unfence_node(victim, log, FL_SIZE, &log_count);
 	else
 		error = fence_node(victim, log, FL_SIZE, &log_count);
-
-	logt_init("fence_node", LOG_MODE_OUTPUT_SYSLOG, SYSLOGFACILITY,
-		  SYSLOGLEVEL, 0, NULL);
 
 	if (!verbose)
 		goto skip;
@@ -167,6 +207,9 @@ int main(int argc, char *argv[])
 	}
 
  skip:
+	logt_init("fence_node", LOG_MODE_OUTPUT_SYSLOG, SYSLOGFACILITY,
+		  SYSLOGLEVEL, 0, NULL);
+
 	if (error) {
 		fprintf(stderr, "%s %s failed\n", action, victim);
 		logt_print(LOG_ERR, "%s %s failed\n", action, victim);
