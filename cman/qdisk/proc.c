@@ -228,7 +228,7 @@ find_partitions(const char *label, char *devname, size_t devlen, int print)
 		}
 	}
 
-	if (dargs.count == 1 && label) {
+	if (dargs.count >= 1 && label) {
 		snprintf(devname, devlen, "%s", dargs.devnode->devpath->path);
 	}
 
@@ -245,7 +245,7 @@ find_partitions(const char *label, char *devname, size_t devlen, int print)
 		return 0;
 
 	/* more than one match */
-	return 1;
+	return dargs.count;
 
    not_found:
         if (dh) {

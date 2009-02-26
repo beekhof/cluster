@@ -1691,7 +1691,11 @@ main(int argc, char **argv)
 					 ctx.qc_label);
 			check_stop_cman(&ctx);
 			goto out;
-		}
+		} else if (ret > 0) {
+ 			clulog_and_print(LOG_WARNING, "%d matches found for "
+ 					 "label '%s'; please use 'device=' "
+ 					 "instead!\n", ret, ctx.qc_label);
+  		}
 
 		if (ctx.qc_device)
 			free(ctx.qc_device);
