@@ -210,18 +210,34 @@ int main(int argc, char *argv[])
 	logt_init("fence_node", LOG_MODE_OUTPUT_SYSLOG, SYSLOGFACILITY,
 		  SYSLOGLEVEL, 0, NULL);
 
-	if (error) {
-		fprintf(stderr, "%s %s failed\n", action, victim);
-		logt_print(LOG_ERR, "%s %s failed\n", action, victim);
-		rv = EXIT_FAILURE;
+	if (unfence) {
+		if (error == -2) {
+			fprintf(stderr, "unfence %s undefined\n", victim);
+			rv = 2;
+		} else if (error) {
+			fprintf(stderr, "unfence %s failed\n", victim);
+			logt_print(LOG_ERR, "unfence %s failed\n", victim);
+			rv = EXIT_FAILURE;
+		} else {
+			fprintf(stderr, "unfence %s success\n", victim);
+			logt_print(LOG_ERR, "unfence %s success\n", victim);
+			rv = EXIT_SUCCESS;
+		}
 	} else {
-		fprintf(stderr, "%s %s success\n", action, victim);
-		logt_print(LOG_ERR, "%s %s success\n", action, victim);
-		rv = EXIT_SUCCESS;
+		if (error) {
+			fprintf(stderr, "fence %s failed\n", victim);
+			logt_print(LOG_ERR, "fence %s failed\n", victim);
+			rv = EXIT_FAILURE;
+		} else {
+			fprintf(stderr, "fence %s success\n", victim);
+			logt_print(LOG_ERR, "fence %s success\n", victim);
+			rv = EXIT_SUCCESS;
 
-		/* Tell fenced what we've done so that it can avoid fencing
-		   this node again if the fence_node() rebooted it. */
-		fenced_external(victim);
+			/* Tell fenced what we've done so that it can avoid
+			   fencing this node again if the fence_node() rebooted
+			   it. */
+			fenced_external(victim);
+		}
 	}
 
 	logt_exit();

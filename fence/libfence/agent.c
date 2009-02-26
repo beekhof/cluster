@@ -557,6 +557,9 @@ int unfence_node(char *victim, struct fence_log *log, int log_size,
 	if (ccs_lookup_nodename(cd, victim, &victim_nodename) == 0)
 		victim = victim_nodename;
 
+	/* return -2 if unfencing fails because there's no unfencing
+	   defined for the node */
+
 	num_devices = count_devices_unfence(cd, victim);
 	if (!num_devices) {
 		if (lp && left) {
@@ -565,7 +568,7 @@ int unfence_node(char *victim, struct fence_log *log, int log_size,
 			left--;
 		}
 		count++;
-		error = -1;
+		error = -2;
 		goto out;
 	}
 
