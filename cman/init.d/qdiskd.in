@@ -88,9 +88,9 @@ case "$1" in
 	pid="$(pidof qdiskd)"
 	while [ -n "$pid" ] && [ $retries -lt 5 ]; do
 		kill $pid 2>&1
-		pid="$(pidof qdiskd)"
 		sleep 1
 		((retries++))
+		pid="$(pidof qdiskd)"
 	done
 	if [ -z "$(pidof qdiskd)" ]; then
 		success
