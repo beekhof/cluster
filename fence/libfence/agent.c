@@ -575,6 +575,8 @@ int unfence_node(char *victim, struct fence_log *log, int log_size,
 	/* try to unfence all devices even if some of them fail,
 	   but the final return value is 0 only if all succeed */
 
+	error = 0;
+
 	for (d = 0; d < num_devices; d++) {
 		rv = get_device_unfence(cd, victim, d, &device);
 		if (rv) {
