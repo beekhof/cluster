@@ -1692,7 +1692,7 @@ main(int argc, char **argv)
 			check_stop_cman(&ctx);
 			goto out;
 		} else if (ret > 0) {
- 			clulog_and_print(LOG_WARNING, "%d matches found for "
+ 			logt_print(LOG_WARNING, "%d matches found for "
  					 "label '%s'; please use 'device=' "
  					 "instead!\n", ret, ctx.qc_label);
   		}
