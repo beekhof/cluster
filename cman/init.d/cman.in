@@ -236,6 +236,25 @@ start_cman()
     return 0
 }
 
+unfence_self()
+{
+    fence_node -U > /dev/null 2>&1
+    error=$?
+
+    if [ $error -eq 0 ]
+    then
+        echo "   Unfencing self... done"
+        return 0
+    else
+        if [ $error -eq 1 ]
+        then
+            echo "   Unfencing self... failed"
+            return 1
+        else
+            return 0
+        fi
+    fi
+}
 
 start_qdiskd()
 {
@@ -500,6 +519,12 @@ start()
     else
 	echo "failed"
 	return 1
+    fi
+
+    unfence_self
+    if [ $? -eq 1 ]
+    then
+        return 1
     fi
 
     start_qdiskd
