@@ -65,6 +65,7 @@ int setup_cman(void)
 	ch = cman_init(NULL);
 	if (!ch) {
 		log_error("cman_init error %d", errno);
+		cman_finish(ch_admin);
 		return -ENOTCONN;
 	}
 
@@ -77,6 +78,7 @@ int setup_cman(void)
 		}
 		log_error("cman_is_active error %d", errno);
 		cman_finish(ch);
+		cman_finish(ch_admin);
 		return -ENOTCONN;
 	}
 
@@ -84,6 +86,7 @@ int setup_cman(void)
 	if (rv < 0) {
 		log_error("cman_start_notification error %d %d", rv, errno);
 		cman_finish(ch);
+		cman_finish(ch_admin);
 		return rv;
 	}
 
@@ -96,6 +99,7 @@ int setup_cman(void)
 		log_error("cman_get_cluster error %d %d", rv, errno);
 		cman_stop_notification(ch);
 		cman_finish(ch);
+		cman_finish(ch_admin);
 		return rv;
 	}
 	clustername = cluster.ci_name;
@@ -106,6 +110,7 @@ int setup_cman(void)
 		log_error("cman_get_node error %d %d", rv, errno);
 		cman_stop_notification(ch);
 		cman_finish(ch);
+		cman_finish(ch_admin);
 		fd = rv;
 		goto out;
 	}
@@ -117,5 +122,6 @@ int setup_cman(void)
 void close_cman(void)
 {
 	cman_finish(ch);
+	cman_finish(ch_admin);
 }
 
