@@ -2421,8 +2421,10 @@ void close_cpg_old(void)
 	cpg_error_t error;
 	int i = 0;
 
-	if (!cpg_handle_daemon || cluster_down)
+	if (!cpg_handle_daemon)
 		return;
+	if (cluster_down)
+		goto fin;
 
 	memset(&name, 0, sizeof(name));
 	strcpy(name.value, "gfs_controld");
@@ -2438,5 +2440,7 @@ void close_cpg_old(void)
 	}
 	if (error != CPG_OK)
 		log_error("daemon cpg_leave error %d", error);
+ fin:
+	cpg_finalize(cpg_handle_daemon);
 }
 
