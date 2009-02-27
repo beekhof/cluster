@@ -734,8 +734,10 @@ static int setup_listener(char *sock_path)
 
 void cluster_dead(int ci)
 {
-	log_print("cluster is down, exiting");
+	if (!cluster_down)
+		log_print("cluster is down, exiting");
 	daemon_quit = 1;
+	cluster_down = 1;
 }
 
 #define min(x, y) ({                            \
@@ -828,6 +830,7 @@ static void loop(void)
 		}
 	}
  out:
+	close_cpg();
 	close_ccs();
 	close_cman();
 
@@ -1058,6 +1061,7 @@ void daemon_dump_save(void)
 int daemon_debug_opt;
 int daemon_debug_verbose;
 int daemon_quit;
+int cluster_down;
 int cman_quorate;
 int our_nodeid;
 char *our_name;

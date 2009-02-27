@@ -36,6 +36,7 @@
 extern int daemon_debug_opt;
 extern int daemon_debug_verbose;
 extern int daemon_quit;
+extern int cluster_down;
 extern int cman_quorate;
 extern int our_nodeid;
 extern char *our_name;
@@ -296,6 +297,7 @@ int kill_cman(int nodeid);
 
 /* cpg.c */
 int setup_cpg(void);
+void close_cpg(void);
 int do_cpg_join(group_t *g);
 int do_cpg_leave(group_t *g);
 int send_message(group_t *g, void *buf, int len);

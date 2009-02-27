@@ -898,6 +898,34 @@ int setup_cpg(void)
 	return 0;
 }
 
+void close_cpg(void)
+{
+	group_t *g;
+	cpg_error_t error;
+	int i = 0;
+
+	if (!groupd_handle)
+		return;
+	if (cluster_down)
+		goto fin;
+ retry:
+	error = cpg_leave(groupd_handle, &groupd_name);
+	if (error == CPG_ERR_TRY_AGAIN) {
+		sleep(1);
+		if (!(++i % 10))
+			log_print("daemon cpg_leave error retrying");
+		goto retry;
+	}
+	if (error != CPG_OK)
+		log_print("daemon cpg_leave error %d", error);
+ fin:
+	list_for_each_entry(g, &gd_groups, list) {
+		if (g->cpg_handle)
+			cpg_finalize(g->cpg_handle);
+        }
+	cpg_finalize(groupd_handle);
+}
+
 int do_cpg_join(group_t *g)
 {
 	cpg_error_t error;
