@@ -17,7 +17,7 @@ no longer require this compat layer, and can run without groupd.  They use
 libcpg directly, making them much more robust.  This makes them incompatible
 with old (cluster2) versions.  Enable this new mode with:
 
-	<groupd groupd_compat="0"/>
+	<group groupd_compat="0"/>
 
 This should be added to the configuration (cluster.conf) before a cluster is
 restarted following an upgrade of all nodes.
@@ -26,7 +26,7 @@ If compatibility with old (cluster2) nodes is necessary (mixing cluster2 and
 cluster3 nodes should be avoided), the daemons can be run in the old mode,
 using groupd as before.  Enable this mode with:
 
-	<groupd groupd_compat="1"/>
+	<group groupd_compat="1"/>
 
 .B Rolling Upgrades
 
@@ -41,7 +41,7 @@ the final groupd_compat result (0 or 1) from groupd.
 This groupd_compat="2" mode only supports rolling upgrades, and will not
 support mixing cluster2 and cluster3 nodes in general.  Once all nodes are
 upgraded, the first full cluster restart should be used to specify the new
-mode <groupd groupd_compat="0"/> in the configuration (cluster.conf).
+mode <group groupd_compat="0"/> in the configuration (cluster.conf).
 
 .B Logging
 

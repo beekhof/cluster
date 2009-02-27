@@ -26,25 +26,6 @@ int cfgd_post_fail_delay = DEFAULT_POST_FAIL_DELAY;
 int cfgd_override_time   = DEFAULT_OVERRIDE_TIME;
 char *cfgd_override_path = DEFAULT_OVERRIDE_PATH;
 
-int setup_ccs(void)
-{
-	int cd;
-
-	cd = ccs_connect();
-	if (cd < 0) {
-		log_error("ccs_connect error %d %d", cd, errno);
-		return -1;
-	}
-	ccs_handle = cd;
-
-	return 0;
-}
-
-void close_ccs(void)
-{
-	ccs_disconnect(ccs_handle);
-}
-
 void read_ccs_name(char *path, char *name)
 {
 	char *str;
@@ -102,7 +83,6 @@ void read_ccs_int(char *path, int *config_val)
 	free(str);
 }
 
-#define OUR_NAME_PATH "/cluster/clusternodes/clusternode[@name=\"%s\"]/@name"
 #define GROUPD_COMPAT_PATH "/cluster/group/@groupd_compat"
 #define CLEAN_START_PATH "/cluster/fence_daemon/@clean_start"
 #define POST_JOIN_DELAY_PATH "/cluster/fence_daemon/@post_join_delay"
@@ -140,6 +120,8 @@ void reread_ccs(void)
 		read_ccs_int(OVERRIDE_TIME_PATH, &cfgd_override_time);
 }
 
+/* called when the domain is joined, not when the daemon starts */
+
 int read_ccs(struct fd *fd)
 {
 	char path[PATH_MAX];
@@ -147,25 +129,6 @@ int read_ccs(struct fd *fd)
 	int error, i = 0, count = 0;
 	int num_methods;
 
-	/* Our own nodename must be in cluster.conf before we're allowed to
-	   join the fence domain and then mount gfs; other nodes need this to
-	   fence us. */
-
-	str = NULL;
-	memset(path, 0, sizeof(path));
-	snprintf(path, sizeof(path), OUR_NAME_PATH, our_name);
-
-	error = ccs_get(ccs_handle, path, &str);
-	if (error || !str) {
-		log_error("local cman node name \"%s\" not found in the "
-			  "configuration", our_name);
-		return error;
-	}
-	if (str)
-		free(str);
-
-	if (!optd_groupd_compat)
-		read_ccs_int(GROUPD_COMPAT_PATH, &cfgd_groupd_compat);
 	if (!optd_clean_start)
 		read_ccs_int(CLEAN_START_PATH, &cfgd_clean_start);
 
@@ -227,5 +190,27 @@ int read_ccs(struct fd *fd)
 	log_debug("added %d nodes from ccs", count);
  out:
 	return 0;
+}
+
+int setup_ccs(void)
+{
+	int cd;
+
+	cd = ccs_connect();
+	if (cd < 0) {
+		log_error("ccs_connect error %d %d", cd, errno);
+		return -1;
+	}
+	ccs_handle = cd;
+
+	if (!optd_groupd_compat)
+		read_ccs_int(GROUPD_COMPAT_PATH, &cfgd_groupd_compat);
+
+	return 0;
+}
+
+void close_ccs(void)
+{
+	ccs_disconnect(ccs_handle);
 }
 
