@@ -50,9 +50,9 @@ static int confdb_disconnect(confdb_handle_t handle)
 	return 0;
 }
 
-static unsigned int find_libccs_handle(confdb_handle_t handle)
+static hdb_handle_t find_libccs_handle(confdb_handle_t handle)
 {
-	unsigned int libccs_handle = 0;
+	hdb_handle_t libccs_handle = 0;
 
 	if (confdb_object_find_start(handle, OBJECT_PARENT_HANDLE) != CS_OK) {
 		errno = ENOMEM;
@@ -71,10 +71,10 @@ static unsigned int find_libccs_handle(confdb_handle_t handle)
 	return libccs_handle;
 }
 
-static unsigned int find_ccs_handle(confdb_handle_t handle, int ccs_handle)
+static hdb_handle_t find_ccs_handle(confdb_handle_t handle, int ccs_handle)
 {
 	int res, datalen = 0, found = 0;
-	unsigned int libccs_handle = 0, connection_handle = 0;
+	hdb_handle_t libccs_handle = 0, connection_handle = 0;
 	char data[128];
 
 	libccs_handle = find_libccs_handle(handle);
@@ -112,7 +112,7 @@ static unsigned int find_ccs_handle(confdb_handle_t handle, int ccs_handle)
 }
 
 static int destroy_ccs_handle(confdb_handle_t handle,
-			      unsigned int connection_handle)
+			      hdb_handle_t connection_handle)
 {
 	if (confdb_object_destroy(handle, connection_handle) != CS_OK) {
 		errno = EINVAL;
@@ -124,7 +124,7 @@ static int destroy_ccs_handle(confdb_handle_t handle,
 
 static int get_running_config_version(confdb_handle_t handle, int *config_version)
 {
-	unsigned int cluster_handle;
+	hdb_handle_t cluster_handle;
 	char data[128];
 	int datalen = 0;
 	int ret = -1;
@@ -155,7 +155,7 @@ static int get_running_config_version(confdb_handle_t handle, int *config_versio
 }
 
 static int get_stored_config_version(confdb_handle_t handle,
-				     unsigned int connection_handle, int *config_version)
+				     hdb_handle_t connection_handle, int *config_version)
 {
 	char data[128];
 	int datalen = 0;
@@ -175,7 +175,7 @@ static int get_stored_config_version(confdb_handle_t handle,
 }
 
 static int set_stored_config_version(confdb_handle_t handle,
-			      unsigned int connection_handle, int new_version)
+			      hdb_handle_t connection_handle, int new_version)
 {
 	char temp[PATH_MAX];
 	int templen = 0;
@@ -199,12 +199,12 @@ static int set_stored_config_version(confdb_handle_t handle,
 }
 
 static int config_reload(confdb_handle_t handle,
-				   unsigned int connection_handle, int fullxpathint)
+				   hdb_handle_t connection_handle, int fullxpathint)
 {
 	int running_version;
 	int stored_version;
 
-	if(get_running_config_version(handle, &running_version) < 0)
+	if (get_running_config_version(handle, &running_version) < 0)
 		return -1;
 
 	if (get_stored_config_version(handle, connection_handle, &stored_version) < 0)
@@ -230,10 +230,10 @@ static int config_reload(confdb_handle_t handle,
 	return 0;
 }
 
-static unsigned int create_ccs_handle(confdb_handle_t handle, int ccs_handle,
+static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 				      int fullxpath)
 {
-	unsigned int libccs_handle = 0, connection_handle = 0;
+	hdb_handle_t libccs_handle = 0, connection_handle = 0;
 	char buf[128];
 	int config_version = 0;
 #ifdef EXPERIMENTAL_BUILD
@@ -302,12 +302,12 @@ static unsigned int create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 	return connection_handle;
 }
 
-static unsigned int get_ccs_handle(confdb_handle_t handle, int *ccs_handle,
+static hdb_handle_t get_ccs_handle(confdb_handle_t handle, int *ccs_handle,
 				   int fullxpath)
 {
 	unsigned int next_handle;
-	unsigned int libccs_handle = 0;
-	unsigned int ret = 0;
+	hdb_handle_t libccs_handle = 0;
+	hdb_handle_t ret = 0;
 
 	libccs_handle = find_libccs_handle(handle);
 	if (libccs_handle == -1)
@@ -331,8 +331,8 @@ static unsigned int get_ccs_handle(confdb_handle_t handle, int *ccs_handle,
 	return -1;
 }
 
-int get_previous_query(confdb_handle_t handle, unsigned int connection_handle,
-		       char *previous_query, unsigned int *query_handle)
+int get_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
+		       char *previous_query, hdb_handle_t *query_handle)
 {
 	int datalen;
 
@@ -350,12 +350,12 @@ int get_previous_query(confdb_handle_t handle, unsigned int connection_handle,
 	return -1;
 }
 
-int set_previous_query(confdb_handle_t handle, unsigned int connection_handle,
-		       char *previous_query, unsigned int query_handle)
+int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
+		       char *previous_query, hdb_handle_t query_handle)
 {
 	char temp[PATH_MAX];
 	int templen;
-	unsigned int temphandle;
+	hdb_handle_t temphandle;
 
 	if (confdb_key_get
 	    (handle, connection_handle, "previous_query",
@@ -387,8 +387,8 @@ int set_previous_query(confdb_handle_t handle, unsigned int connection_handle,
 			if (confdb_key_replace
 			    (handle, connection_handle, "query_handle",
 			     strlen("query_handle"), &temphandle,
-			     sizeof(unsigned int), &query_handle,
-			     sizeof(unsigned int)) != CS_OK) {
+			     sizeof(hdb_handle_t), &query_handle,
+			     sizeof(hdb_handle_t)) != CS_OK) {
 				errno = ENOMEM;
 				return -1;
 			}
@@ -397,7 +397,7 @@ int set_previous_query(confdb_handle_t handle, unsigned int connection_handle,
 		if (confdb_key_create
 		    (handle, connection_handle, "query_handle",
 		     strlen("query_handle"), &query_handle,
-		     sizeof(unsigned int)) != CS_OK) {
+		     sizeof(hdb_handle_t)) != CS_OK) {
 			errno = ENOMEM;
 			return -1;
 		}
@@ -410,7 +410,7 @@ int set_previous_query(confdb_handle_t handle, unsigned int connection_handle,
 		if (confdb_key_create
 		    (handle, connection_handle, "iterator_tracker",
 		     strlen("iterator_tracker"), &temphandle,
-		     sizeof(unsigned int)) != CS_OK) {
+		     sizeof(hdb_handle_t)) != CS_OK) {
 			errno = ENOMEM;
 			return -1;
 		}
@@ -419,7 +419,7 @@ int set_previous_query(confdb_handle_t handle, unsigned int connection_handle,
 	return 0;
 }
 
-void reset_iterator(confdb_handle_t handle, unsigned int connection_handle)
+void reset_iterator(confdb_handle_t handle, hdb_handle_t connection_handle)
 {
 	unsigned int value = 0;
 
@@ -439,7 +439,7 @@ void reset_iterator(confdb_handle_t handle, unsigned int connection_handle)
 static int clean_stalled_ccs_handles(confdb_handle_t handle)
 {
 	int datalen = 0;
-	unsigned int libccs_handle = 0, connection_handle = 0;
+	hdb_handle_t libccs_handle = 0, connection_handle = 0;
 	time_t current_time, stored_time;
 
 	libccs_handle = find_libccs_handle(handle);
@@ -474,7 +474,7 @@ static int clean_stalled_ccs_handles(confdb_handle_t handle)
 static int check_cluster_name(int ccs_handle, const char *cluster_name)
 {
 	confdb_handle_t handle = 0;
-	unsigned int cluster_handle;
+	hdb_handle_t cluster_handle;
 	char data[128];
 	int found = 0, datalen = 0;
 
@@ -529,10 +529,12 @@ static int check_cluster_name(int ccs_handle, const char *cluster_name)
 static int _ccs_get(int desc, const char *query, char **rtn, int list)
 {
 	confdb_handle_t handle = 0;
-	unsigned int connection_handle = 0;
+	hdb_handle_t connection_handle = 0;
 	char data[128];
 	int datalen = 0;
 	int fullxpathint = 0;
+
+	*rtn = NULL;
 
 	handle = confdb_connect();
 	if (handle < 0)
@@ -540,19 +542,19 @@ static int _ccs_get(int desc, const char *query, char **rtn, int list)
 
 	connection_handle = find_ccs_handle(handle, desc);
 	if (connection_handle == -1)
-		return -1;
+		goto fail;
 
 	memset(data, 0, sizeof(data));
 	if (confdb_key_get
 	    (handle, connection_handle, "fullxpath", strlen("fullxpath"), &data,
 	     &datalen) != CS_OK) {
 		errno = EINVAL;
-		return -1;
+		goto fail;
 	} else
 		fullxpathint = atoi(data);
 
 	if (config_reload(handle, connection_handle, fullxpathint) < 0)
-		return -1;
+		goto fail;
 
 	if (!fullxpathint)
 		*rtn =
@@ -561,6 +563,7 @@ static int _ccs_get(int desc, const char *query, char **rtn, int list)
 		*rtn =
 		    _ccs_get_fullxpath(handle, connection_handle, query, list);
 
+fail:
 	confdb_disconnect(handle);
 
 	if (!*rtn)
@@ -645,7 +648,7 @@ int ccs_force_connect(const char *cluster_name, int blocking)
 int ccs_disconnect(int desc)
 {
 	confdb_handle_t handle = 0;
-	unsigned int connection_handle = 0;
+	hdb_handle_t connection_handle = 0;
 	int ret;
 	char data[128];
 	int datalen = 0;
@@ -656,15 +659,18 @@ int ccs_disconnect(int desc)
 		return handle;
 
 	connection_handle = find_ccs_handle(handle, desc);
-	if (connection_handle == -1)
-		return -1;
+	if (connection_handle == -1) {
+		ret = -1;
+		goto fail;
+	}
 
 	memset(data, 0, sizeof(data));
 	if (confdb_key_get
 	    (handle, connection_handle, "fullxpath", strlen("fullxpath"), &data,
 	     &datalen) != CS_OK) {
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto fail;
 	} else
 		fullxpathint = atoi(data);
 
@@ -672,6 +678,8 @@ int ccs_disconnect(int desc)
 		xpathfull_finish();
 
 	ret = destroy_ccs_handle(handle, connection_handle);
+
+fail:
 	confdb_disconnect(handle);
 	return ret;
 }

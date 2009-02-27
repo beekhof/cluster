@@ -45,10 +45,10 @@ static int add_to_buffer(char *data, char **buffer, int *bufsize)
 }
 
 static int dump_objdb_buff(confdb_handle_t dump_handle,
-			   unsigned int parent_object_handle, char **buffer,
+			   hdb_handle_t parent_object_handle, char **buffer,
 			   int *bufsize)
 {
-	unsigned int object_handle;
+	hdb_handle_t object_handle;
 	char temp[PATH_MAX];
 	char object_name[PATH_MAX];
 	int object_name_len;
@@ -106,7 +106,7 @@ static int dump_objdb_buff(confdb_handle_t dump_handle,
 		confdb_object_iter(dump_handle, parent_object_handle,
 				   &object_handle, object_name,
 				   &object_name_len)) == CS_OK) {
-		unsigned int parent;
+		hdb_handle_t parent;
 
 		res =
 		    confdb_object_parent_get(dump_handle, object_handle,
@@ -218,13 +218,13 @@ void xpathfull_finish()
  *
  * Returns: char * to result or NULL in case of failure.
  */
-char *_ccs_get_fullxpath(confdb_handle_t handle, unsigned int connection_handle,
+char *_ccs_get_fullxpath(confdb_handle_t handle, hdb_handle_t connection_handle,
 			 const char *query, int list)
 {
 	xmlXPathObjectPtr obj = NULL;
 	char realquery[PATH_MAX + 16];
 	char previous_query[PATH_MAX];
-	unsigned int list_handle = 0;
+	hdb_handle_t list_handle = 0;
 	unsigned int xmllistindex = 0;
 	int prev = 0;
 	char *rtn = NULL;

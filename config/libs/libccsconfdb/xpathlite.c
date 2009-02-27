@@ -53,12 +53,12 @@ static int tokenizer(char *current_query)
  * return 0 on success
  * return -1 on errors
  */
-static int path_dive(confdb_handle_t handle, unsigned int *query_handle,
+static int path_dive(confdb_handle_t handle, hdb_handle_t *query_handle,
 		     char *current_query, int tokens)
 {
 	char *pos = NULL, *next = NULL;
 	int i;
-	unsigned int new_obj_handle;
+	hdb_handle_t new_obj_handle;
 
 	pos = current_query + 1;
 
@@ -218,8 +218,8 @@ fail:
 	return -1;
 }
 
-static int get_data(confdb_handle_t handle, unsigned int connection_handle,
-		    unsigned int query_handle, unsigned int *list_handle,
+static int get_data(confdb_handle_t handle, hdb_handle_t connection_handle,
+		    hdb_handle_t query_handle, hdb_handle_t *list_handle,
 		    char **rtn, char *curpos, int list, int is_oldlist)
 {
 	int datalen, cmp;
@@ -227,7 +227,7 @@ static int get_data(confdb_handle_t handle, unsigned int connection_handle,
 	char resval[PATH_MAX];
 	char keyval[PATH_MAX];
 	int keyvallen = PATH_MAX;
-	unsigned int new_obj_handle;
+	hdb_handle_t new_obj_handle;
 	unsigned int value = 0;
 
 	memset(data, 0, PATH_MAX);
@@ -361,14 +361,14 @@ fail:
  *
  * Returns: char * to result or NULL in case of failure.
  */
-char *_ccs_get_xpathlite(confdb_handle_t handle, unsigned int connection_handle,
+char *_ccs_get_xpathlite(confdb_handle_t handle, hdb_handle_t connection_handle,
 			 const char *query, int list)
 {
 	char current_query[PATH_MAX];
 	char *datapos, *rtn = NULL;
 	char previous_query[PATH_MAX];
-	unsigned int list_handle = 0;
-	unsigned int query_handle = 0;
+	hdb_handle_t list_handle = 0;
+	hdb_handle_t query_handle = 0;
 	int prev = 0, is_oldlist = 0;
 	int tokens, i;
 
