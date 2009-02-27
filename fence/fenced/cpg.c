@@ -1826,7 +1826,7 @@ int setup_cpg(void)
 	error = cpg_initialize(&cpg_handle_daemon, &cpg_callbacks_daemon);
 	if (error != CPG_OK) {
 		log_error("daemon cpg_initialize error %d", error);
-		goto fail;
+		goto ret;
 	}
 
 	cpg_fd_get(cpg_handle_daemon, &daemon_cpg_fd);
@@ -1853,17 +1853,21 @@ int setup_cpg(void)
 
  fail:
 	cpg_finalize(cpg_handle_daemon);
+ ret:
 	return -1;
 }
 
 void close_cpg(void)
 {
+	struct fd *fd;
 	cpg_error_t error;
 	struct cpg_name name;
 	int i = 0;
 
-	if (!cpg_handle_daemon || cluster_down)
+	if (!cpg_handle_daemon)
 		return;
+	if (cluster_down)
+		goto fin;
 
 	memset(&name, 0, sizeof(name));
 	sprintf(name.value, "fenced:daemon");
@@ -1879,6 +1883,12 @@ void close_cpg(void)
 	}
 	if (error != CPG_OK)
 		log_error("daemon cpg_leave error %d", error);
+ fin:
+	list_for_each_entry(fd, &domains, list) {
+		if (fd->cpg_handle)
+			cpg_finalize(fd->cpg_handle);
+	}
+	cpg_finalize(cpg_handle_daemon);
 }
 
 int set_node_info(struct fd *fd, int nodeid, struct fenced_node *nodeinfo)
