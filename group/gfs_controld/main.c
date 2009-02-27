@@ -1294,8 +1294,10 @@ static void loop(void)
  out:
 	if (group_mode == GROUP_LIBCPG)
 		close_cpg();
-	else if (group_mode == GROUP_LIBGROUP)
+	else if (group_mode == GROUP_LIBGROUP) {
+		close_plocks();
 		close_cpg_old();
+	}
 	if (cfgd_groupd_compat)
 		close_groupd();
 	close_logging();

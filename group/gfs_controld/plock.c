@@ -180,6 +180,14 @@ int setup_plocks(void)
 	return plock_device_fd;
 }
 
+void close_plocks(void)
+{
+	if (ckpt_handle)
+		saCkptFinalize(ckpt_handle);
+	if (plock_device_fd > 0)
+		close(plock_device_fd);
+}
+
 /* FIXME: unify these two */
 
 static unsigned long time_diff_ms(struct timeval *begin, struct timeval *end)

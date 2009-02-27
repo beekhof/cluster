@@ -299,6 +299,7 @@ void kick_node_from_cluster(int nodeid);
 
 /* plock.c */
 int setup_plocks(void);
+void close_plocks(void);
 void process_plocks(int ci);
 int limit_plocks(void);
 void receive_plock(struct mountgroup *mg, char *buf, int len, int from);
