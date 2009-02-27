@@ -1016,8 +1016,10 @@ static void loop(void)
  out:
 	if (cfgd_groupd_compat)
 		close_groupd();
-	if (group_mode == GROUP_LIBCPG)
+	if (group_mode == GROUP_LIBCPG) {
 		close_cpg();
+		close_plocks();
+	}
 	clear_configfs();
 	close_logging();
 	close_ccs();
