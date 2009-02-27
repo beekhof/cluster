@@ -176,12 +176,23 @@ static int xpath_query(int argc, char **argv)
 		fprintf(stderr,
 			"Usage:\n"
 			"\n"
-			"ccs_tool query <xpath query>\n");
+			"ccs_tool query [-n] <xpath query>\n"
+			"\n"
+		        "options\n"
+			"  -n     disable full XPath parsing\n");
 		return 1;
 	}
 
 	/* Tell the library we want full XPath parsing */
 	fullxpath = 1;
+
+	if (strcmp(argv[1], "-n") == 0) {
+		argv++;
+		argc--;
+
+		/* Actually ... no we don't */
+		fullxpath = 0;
+	}
 
 	handle = ccs_connect();
 
