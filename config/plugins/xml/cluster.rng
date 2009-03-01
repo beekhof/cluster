@@ -1,0 +1,2376 @@
+<grammar  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+xmlns="http://relaxng.org/ns/structure/1.0">
+
+<!-- The cluster.conf schema follows this outline:
+
+cluster
+- cman 
+- clusternodes
+- dlm
+- gfs_controld
+- group
+- fencedevices
+- fence_xvmd
+- logging
+- totem
+- rm
+- fence_daemon
+- quorumd
+
+Element defnitions:
+- Resource
+- Fence	
+
+To validate your cluster.conf against this schema, run:
+
+  xmllint \-\-relaxng cluster.rng /path/to/cluster.conf
+
+-->
+
+<start>
+<element name="cluster">
+ <attribute name="name"/>
+ <attribute name="config_version"/>
+ <optional>
+  <attribute name="alias"/>
+ </optional>
+ <interleave>
+
+
+ <!--cman block-->
+
+ <element name="cman">
+  <optional>
+   <attribute name="two_node"/>
+  </optional>
+  <optional>
+   <attribute name="expected_votes">
+    <data type="positiveInteger"/>
+   </attribute>
+  </optional>
+  <optional>
+   <attribute name="quorum_dev_poll"/>
+  </optional>
+  <optional>
+   <attribute name="shutdown_timeout"/>
+  </optional>
+  <optional>
+   <attribute name="ccsd_poll"/>
+  </optional>
+  <optional>
+   <attribute name="debug_mask"/>
+  </optional>
+  <optional>
+   <attribute name="disable_openais"/>
+  </optional>
+  <optional>
+   <element name="multicast">
+    <attribute name="addr"/>
+   </element>
+  </optional> 
+ </element>
+
+ <!--clusternode block-->
+ <element name="clusternodes">
+   <zeroOrMore>
+     <element name="clusternode">
+       <attribute name="name">
+	 <data type="ID"/>
+       </attribute>
+       <optional>
+	 <attribute name="votes">
+	   <data type="positiveInteger"/>
+	 </attribute>
+       </optional>
+       <optional>
+	 <attribute name="nodeid">
+	   <data type="positiveInteger"/>
+	 </attribute>
+       </optional>
+       <optional>
+	 <attribute name="weight"/> <!-- DLM weight -->
+       </optional>
+       <optional>
+         <element name="altname">
+           <optional>
+             <attribute name="name"/>
+           </optional>
+           <optional>
+             <attribute name="port"/>
+           </optional>
+           <optional>
+             <attribute name="mcast"/>
+           </optional>
+         </element>
+       </optional>
+       <interleave>
+	 <optional>
+	   <ref name="FENCE"/>
+	 </optional>
+	 <optional>
+	   <ref name="UNFENCE"/>
+	 </optional>
+       </interleave>
+     </element>
+   </zeroOrMore>
+ </element>
+
+
+<!-- dlm block -->
+ <optional>
+ <element name="dlm">
+  <optional>
+   <attribute name="log_debug"/>
+  </optional>
+  <optional>
+   <attribute name="timewarn"/>
+  </optional>
+  <optional>
+   <attribute name="protocol"/>
+  </optional>
+  <optional>
+   <attribute name="enable_fencing"/>
+  </optional>
+  <optional>
+   <attribute name="enable_quorum"/>
+  </optional>
+  <optional>
+   <attribute name="enable_deadlk"/>
+  </optional>
+  <optional>
+   <attribute name="enable_plock"/>
+  </optional>
+  <optional>
+   <attribute name="plock_debug"/>
+  </optional>
+  <optional>
+   <attribute name="plock_rate_limit"/>
+  </optional>
+  <optional>
+   <attribute name="plock_ownership"/>
+  </optional>
+  <optional>
+   <attribute name="drop_resources_time"/>
+  </optional>
+  <optional>
+   <attribute name="drop_resources_count"/>
+  </optional>
+  <optional>
+   <attribute name="drop_resources_age"/>
+  </optional>
+ </element>
+ </optional>
+<!-- end dlm block --> 
+
+<!-- gfs_controld block -->
+ <optional>
+ <element name="gfs_controld">
+  <optional>
+   <attribute name="enable_withdraw"/>
+  </optional>
+  <optional>
+   <attribute name="enable_plock"/>
+  </optional>
+  <optional>
+   <attribute name="plock_debug"/>
+  </optional>
+  <optional>
+   <attribute name="plock_rate_limit"/>
+  </optional>
+  <optional>
+   <attribute name="plock_ownership"/>
+  </optional>
+  <optional>
+   <attribute name="drop_resources_time"/>
+  </optional>
+  <optional>
+   <attribute name="drop_resources_count"/>
+  </optional>
+  <optional>
+   <attribute name="drop_resources_age"/>
+  </optional>
+  <optional>
+   <zeroOrMore>
+    <element name="lockspace">
+     <attribute name="name"/>
+     <optional>
+      <attribute name="nodir"/>
+     </optional>
+     <optional>
+      <zeroOrMore>
+       <element name="master">
+        <attribute name="name"/>
+        <attribute name="weight"/>
+       </element>
+      </zeroOrMore>
+     </optional>
+    </element>
+   </zeroOrMore>
+  </optional>
+ </element>
+ </optional>
+<!-- end dlm block --> 
+
+<!-- group block --> 
+ <optional>
+ <element name="group">
+  <optional>
+   <attribute name="groupd_compat"/>
+  </optional>
+ </element>
+ </optional>
+<!-- end group block --> 
+
+<!--fencedevices block-->
+ 
+ <optional>
+ <element name="fencedevices">
+  <zeroOrMore>
+   <element name="fencedevice">
+     <attribute name="name">
+      <data type="ID"/>
+     </attribute>
+     <attribute name="agent"/>
+     <optional>
+      <choice>
+       <!-- RPS10 -->
+       <group>
+        <attribute name="device" />
+        <attribute name="port" />
+       </group>
+       <!-- Brocade, McData, SANBox2, Bladecenter, bullpap, ipmilan -->
+       <group>
+        <attribute name="ipaddr"/>
+        <optional>
+        <attribute name="login"/>
+        </optional>
+        <optional>
+        <attribute name="passwd"/>
+        </optional>
+        <optional>
+        <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+         <attribute name="auth"/>
+        </optional>
+        <optional>
+         <attribute name="lanplus"/>
+        </optional>
+       </group>
+       <!-- Vixel -->
+       <group>
+        <optional>
+         <attribute name="ipaddr"/>
+        </optional>
+        <optional>
+        <attribute name="passwd"/>
+        </optional>
+        <optional>
+         <attribute name="passwd_script"/>
+        </optional>
+       </group>
+       <!-- scsi reservations -->
+       <group>
+        <attribute name="nodename"/>
+        <attribute name="self"/>
+       </group>
+       <!-- GNBD -->
+       <group>
+        <attribute name="servers"/>
+       </group>
+       <!-- Egenera -->
+       <group>
+        <attribute name="cserver"/>
+       </group>
+       <!-- xCAT -->
+       <group>
+        <attribute name="rpowerpath"/>
+       </group>
+
+<!-- autogenerated ones -->
+      <!-- fence_alom -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_apc -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="switch"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_bladecenter -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="identity_file"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_drac5 -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_eps -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <optional>
+          <attribute name="login"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_ilo -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="ssl"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_ldom -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="identity_file"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_lpar -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="partition"/>
+        </optional>
+        <optional>
+          <attribute name="managed"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_virsh -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="identity_file"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_vmware -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="exec"/>
+        </optional>
+        <optional>
+          <attribute name="vmware_type"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="vmware_datacenter"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_wti -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="ipaddr"/>
+        <optional>
+          <attribute name="login"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_xvm -->
+      <group>
+        <optional>
+          <attribute name="debug"/>
+        </optional>
+        <optional>
+          <attribute name="ip_family"/>
+        </optional>
+        <optional>
+          <attribute name="multicast_address"/>
+        </optional>
+        <optional>
+          <attribute name="port"/>
+        </optional>
+        <optional>
+          <attribute name="multicast_ttl"/>
+        </optional>
+        <optional>
+          <attribute name="retrans"/>
+        </optional>
+        <optional>
+          <attribute name="auth"/>
+        </optional>
+        <optional>
+          <attribute name="hash"/>
+        </optional>
+        <optional>
+          <attribute name="key_file"/>
+        </optional>
+        <optional>
+          <attribute name="domain"/>
+        </optional>
+        <optional>
+          <attribute name="use_uuid"/>
+        </optional>
+        <optional>
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="timeout"/>
+        </optional>
+      </group>
+
+<!-- end autogenerated -->
+
+       <!-- manual -->
+       <group>
+        <optional>
+         <empty/>
+        </optional>
+       </group>
+      </choice>
+     </optional>
+    </element>
+  </zeroOrMore>
+ </element>
+ </optional>
+
+ <optional>
+  <element name="fence_xvmd">
+   <empty/>
+  </element>
+ </optional>
+
+ <!-- stable3 and master logging block -->
+ <optional>
+  <element name="logging">
+   <optional>
+    <attribute name="to_syslog"/>
+   </optional>
+   <optional>
+    <attribute name="to_logfile"/>
+   </optional>
+   <optional>
+    <attribute name="syslog_facility"/>
+   </optional>
+   <optional>
+    <attribute name="syslog_priority"/>
+   </optional>
+   <optional>
+    <attribute name="logfile"/>
+   </optional>
+   <optional>
+    <attribute name="debug"/>
+   </optional>
+   <optional>
+    <attribute name="logfile_priority"/>
+   </optional>
+   <optional>
+    <element name="logging_subsys">
+     <attribute name="subsys"/>
+     <optional>
+      <attribute name="to_syslog"/>
+     </optional>
+     <optional>
+      <attribute name="to_logfile"/>
+     </optional>
+     <optional>
+      <attribute name="syslog_facility"/>
+     </optional>
+     <optional>
+      <attribute name="syslog_priority"/>
+     </optional>
+     <optional>
+      <attribute name="logfile"/>
+     </optional>
+     <optional>
+      <attribute name="debug"/>
+     </optional>
+     <optional>
+      <attribute name="logfile_priority"/>
+     </optional>
+    </element>
+   </optional>
+  </element>
+ </optional>
+
+ <optional>
+  <element name="totem">
+   <optional>
+    <attribute name="consensus"/>
+   </optional>
+   <optional>
+    <attribute name="join"/>
+   </optional>
+   <optional>
+    <attribute name="token"/>
+   </optional>
+   <optional>
+    <attribute name="token_retransmits_before_loss_const"/>
+   </optional>
+   <optional>
+    <attribute name="rrp_mode"/>
+   </optional>
+   <optional>
+    <attribute name="secauth"/>
+   </optional>
+   <optional>
+    <attribute name="keyfile"/>
+   </optional>
+  </element>
+ </optional>
+
+ <optional>
+  <element name="rm">
+   <optional>
+    <attribute name="log_level"/>
+   </optional>
+   <optional>
+    <attribute name="statusmax"/>
+   </optional>
+   <optional>
+    <attribute name="central_processing"/>
+   </optional>
+   <optional>
+    <attribute name="log_facility"/>
+   </optional>
+   <interleave>
+   <optional>
+    <element name="failoverdomains">
+     <zeroOrMore>
+      <element name="failoverdomain">
+       <attribute name="name"/>
+       <optional>
+        <attribute name="ordered"/>
+       </optional>
+       <optional>
+        <attribute name="restricted"/>
+       </optional>
+       <optional>
+        <attribute name="nofailback"/>
+       </optional>
+       <zeroOrMore>
+        <element name="failoverdomainnode">
+         <optional>
+          <attribute name="priority"/>
+         </optional>
+         <attribute name="name"/>
+        </element>
+       </zeroOrMore>
+      </element>
+     </zeroOrMore>
+    </element>
+   </optional>  <!-- End of failoverdomains block -->
+   <optional>
+    <element name="events">
+     <zeroOrMore>
+      <element name="event">
+       <attribute name="name"/>
+       <optional>
+        <text/>
+       </optional>
+       <optional>
+        <attribute name="file"/>
+       </optional>
+       <optional>
+        <attribute name="priority"/>
+       </optional>
+       <optional>
+        <attribute name="class"/>
+       </optional>
+       <!-- Service event class attributes -->
+       <optional>
+        <attribute name="service"/>
+       </optional>
+       <optional>
+        <attribute name="service_state"/>
+       </optional>
+       <optional>
+        <attribute name="service_owner"/>
+       </optional>
+       <!-- Node event -->
+       <optional>
+        <attribute name="node"/>
+       </optional>
+       <optional>
+        <attribute name="node_id"/>
+       </optional>
+       <optional>
+        <attribute name="node_state"/>
+       </optional>
+       <optional>
+        <attribute name="node_clean"/>
+       </optional>
+       <optional>
+        <attribute name="node_local"/>
+       </optional>
+       <!-- Config event attributes -->
+       <!-- NOT USED -->
+      </element>
+     </zeroOrMore>
+    </element>
+   </optional>  <!-- End of events block -->
+   <optional> 
+    <element name="resources">
+     <zeroOrMore>
+      <ref name="CHILDREN"/>
+     </zeroOrMore>
+    </element>
+   </optional>
+   <zeroOrMore>
+    <ref name="SERVICE"/>
+   </zeroOrMore>
+   <zeroOrMore>
+    <ref name="VM"/>
+   </zeroOrMore>
+  </interleave>
+  </element>
+ </optional>
+
+ <optional>
+  <element name="fence_daemon">
+   <optional>
+    <attribute name="post_join_delay"/>
+   </optional>
+   <optional>
+    <attribute name="post_fail_delay"/>
+   </optional>
+   <optional>
+    <attribute name="override_path"/>
+   </optional>
+   <optional>
+    <attribute name="override_time"/>
+   </optional>
+   <optional>
+    <attribute name="clean_start"/>
+   </optional>
+  </element>
+ </optional>
+
+ <optional>
+  <element name="quorumd">
+   <optional>
+    <attribute name="interval"/>
+   </optional>
+   <optional>
+    <attribute name="tko"/>
+   </optional>
+   <optional>
+    <attribute name="votes"/>
+   </optional>
+   <optional>
+    <attribute name="min_score"/>
+   </optional>
+   <optional>
+    <attribute name="device"/>
+   </optional>
+   <optional>
+    <attribute name="label"/>
+   </optional>
+   <optional>
+    <attribute name="status_file"/>
+   </optional>
+   <optional>
+    <attribute name="scheduler"/>
+   </optional>
+   <optional>
+    <attribute name="reboot"/>
+   </optional>
+   <optional>
+    <attribute name="priority"/>
+   </optional>
+   <optional>
+    <attribute name="stop_cman"/>
+   </optional>
+   <optional>
+    <attribute name="paranoid"/>
+   </optional>
+   <optional>
+    <attribute name="allow_kill"/>
+   </optional>
+   <optional>
+    <attribute name="max_error_cycles"/>
+   </optional>
+
+   <oneOrMore>
+    <element name="heuristic">
+     <attribute name="program"/>
+     <optional>
+      <attribute name="score"/>
+     </optional>
+     <optional>
+      <attribute name="interval"/>
+     </optional>
+     <optional>
+      <attribute name="tko"/>
+     </optional>
+    </element>
+   </oneOrMore>
+  </element>
+ </optional>
+
+ </interleave>
+</element> <!-- cluster end -->
+</start>
+
+
+<!--Beginning of resource definitions-->
+<!-- Autogenerated.  Paste in to cluster.ng in the 'resources' section -->
+
+  <define name="SERVICE">
+    <element name="service">
+      <!-- Defines a services. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="domain"/>
+        </optional>
+        <optional>
+          <attribute name="autostart"/>
+        </optional>
+        <optional>
+          <attribute name="hardrecovery"/>
+        </optional>
+        <optional>
+          <attribute name="exclusive"/>
+        </optional>
+        <optional>
+          <attribute name="nfslock"/>
+        </optional>
+        <optional>
+          <attribute name="nfs_client_cache"/>
+        </optional>
+        <optional>
+          <attribute name="recovery"/>
+        </optional>
+        <optional>
+          <attribute name="depend"/>
+        </optional>
+        <optional>
+          <attribute name="depend_mode"/>
+        </optional>
+        <optional>
+          <attribute name="max_restarts"/>
+        </optional>
+        <optional>
+          <attribute name="restart_expire_time"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="IP">
+    <element name="ip">
+      <!-- This is an IP address. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="address"/>
+        <optional>
+          <attribute name="family"/>
+        </optional>
+        <optional>
+          <attribute name="monitor_link"/>
+        </optional>
+        <optional>
+          <attribute name="nfslock"/>
+        </optional>
+        <optional>
+          <attribute name="sleeptime"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="NFSCLIENT">
+    <element name="nfsclient">
+      <!-- Defines an NFS client. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="target"/>
+        <optional>
+          <attribute name="path"/>
+        </optional>
+        <optional>
+          <attribute name="svcname"/>
+        </optional>
+        <optional>
+          <attribute name="fsid"/>
+        </optional>
+        <optional>
+          <attribute name="options"/>
+        </optional>
+        <optional>
+          <attribute name="allow_recover"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+        <optional>
+          <attribute name="use_cache"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="NFSEXPORT">
+    <element name="nfsexport">
+      <!-- This defines an NFS export. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="device"/>
+        </optional>
+        <optional>
+          <attribute name="path"/>
+        </optional>
+        <optional>
+          <attribute name="fsid"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="SCRIPT">
+    <element name="script">
+      <!-- LSB-compliant init script as a clustered resource. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="file"/>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="NETFS">
+    <element name="netfs">
+      <!-- Defines an NFS/CIFS file system mount. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="mountpoint"/>
+        <attribute name="host"/>
+        <attribute name="export"/>
+        <optional>
+          <attribute name="fstype"/>
+        </optional>
+        <optional>
+          <attribute name="no_unmount"/>
+        </optional>
+        <optional>
+          <attribute name="force_unmount"/>
+        </optional>
+        <optional>
+          <attribute name="options"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="CLUSTERFS">
+    <element name="clusterfs">
+      <!-- Defines a cluster file system mount. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="mountpoint"/>
+        <attribute name="device"/>
+        <optional>
+          <attribute name="fstype"/>
+        </optional>
+        <optional>
+          <attribute name="force_unmount"/>
+        </optional>
+        <optional>
+          <attribute name="options"/>
+        </optional>
+        <optional>
+          <attribute name="self_fence"/>
+        </optional>
+        <optional>
+          <attribute name="fsid"/>
+        </optional>
+        <optional>
+          <attribute name="nfslock"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="SMB">
+    <element name="smb">
+      <!-- Dynamic smbd/nmbd resource agent -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="workgroup"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="APACHE">
+    <element name="apache">
+      <!-- Defines an Apache web server -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="server_root"/>
+        </optional>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="httpd_options"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="OPENLDAP">
+    <element name="openldap">
+      <!-- Defines an Open LDAP server -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="url_list"/>
+        </optional>
+        <optional>
+          <attribute name="slapd_options"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="SAMBA">
+    <element name="samba">
+      <!-- Dynamic smbd/nmbd resource agent -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="smbd_options"/>
+        </optional>
+        <optional>
+          <attribute name="nmbd_options"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="MYSQL">
+    <element name="mysql">
+      <!-- Defines a MySQL database server -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="listen_address"/>
+        </optional>
+        <optional>
+          <attribute name="mysqld_options"/>
+        </optional>
+        <optional>
+          <attribute name="startup_wait"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="POSTGRES-8">
+    <element name="postgres-8">
+      <!-- Defines a PostgreSQL server -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="postmaster_user"/>
+        </optional>
+        <optional>
+          <attribute name="postmaster_options"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="TOMCAT-5">
+    <element name="tomcat-5">
+      <!-- Defines a Tomcat server -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="tomcat_user"/>
+        </optional>
+        <optional>
+          <attribute name="catalina_options"/>
+        </optional>
+        <optional>
+          <attribute name="catalina_base"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="LVM">
+    <element name="lvm">
+      <!-- LVM Failover script -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="vg_name"/>
+        <optional>
+          <attribute name="lv_name"/>
+        </optional>
+        <optional>
+          <attribute name="self_fence"/>
+        </optional>
+        <optional>
+          <attribute name="nfslock"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="VM">
+    <element name="vm">
+      <!-- Defines a Virtual Machine -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="domain"/>
+        </optional>
+        <optional>
+          <attribute name="autostart"/>
+        </optional>
+        <optional>
+          <attribute name="hardrecovery"/>
+        </optional>
+        <optional>
+          <attribute name="exclusive"/>
+        </optional>
+        <optional>
+          <attribute name="recovery"/>
+        </optional>
+        <optional>
+          <attribute name="memory"/>
+        </optional>
+        <optional>
+          <attribute name="migration_mapping"/>
+        </optional>
+        <optional>
+          <attribute name="bootloader"/>
+        </optional>
+        <optional>
+          <attribute name="path"/>
+        </optional>
+        <optional>
+          <attribute name="rootdisk_physical"/>
+        </optional>
+        <optional>
+          <attribute name="rootdisk_virtual"/>
+        </optional>
+        <optional>
+          <attribute name="swapdisk_physical"/>
+        </optional>
+        <optional>
+          <attribute name="swapdisk_virtual"/>
+        </optional>
+        <optional>
+          <attribute name="vif"/>
+        </optional>
+        <optional>
+          <attribute name="migrate"/>
+        </optional>
+        <optional>
+          <attribute name="snapshot"/>
+        </optional>
+        <optional>
+          <attribute name="depend"/>
+        </optional>
+        <optional>
+          <attribute name="depend_mode"/>
+        </optional>
+        <optional>
+          <attribute name="max_restarts"/>
+        </optional>
+        <optional>
+          <attribute name="restart_expire_time"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="SAPINSTANCE">
+    <element name="SAPInstance">
+      <!-- SAP instance resource agent -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="InstanceName"/>
+        <optional>
+          <attribute name="DIR_EXECUTABLE"/>
+        </optional>
+        <optional>
+          <attribute name="DIR_PROFILE"/>
+        </optional>
+        <optional>
+          <attribute name="START_PROFILE"/>
+        </optional>
+        <optional>
+          <attribute name="START_WAITTIME"/>
+        </optional>
+        <optional>
+          <attribute name="AUTOMATIC_RECOVER"/>
+        </optional>
+        <optional>
+          <attribute name="PRE_START_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="POST_START_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="PRE_STOP_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="POST_STOP_USEREXIT"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="SAPDATABASE">
+    <element name="SAPDatabase">
+      <!-- SAP database resource agent -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="SID"/>
+        <optional>
+          <attribute name="DIR_EXECUTABLE"/>
+        </optional>
+        <attribute name="DBTYPE"/>
+        <optional>
+          <attribute name="NETSERVICENAME"/>
+        </optional>
+        <optional>
+          <attribute name="DBJ2EE_ONLY"/>
+        </optional>
+        <optional>
+          <attribute name="JAVA_HOME"/>
+        </optional>
+        <optional>
+          <attribute name="STRICT_MONITORING"/>
+        </optional>
+        <optional>
+          <attribute name="AUTOMATIC_RECOVER"/>
+        </optional>
+        <optional>
+          <attribute name="DIR_BOOTSTRAP"/>
+        </optional>
+        <optional>
+          <attribute name="DIR_SECSTORE"/>
+        </optional>
+        <optional>
+          <attribute name="DB_JARS"/>
+        </optional>
+        <optional>
+          <attribute name="PRE_START_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="POST_START_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="PRE_STOP_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="POST_STOP_USEREXIT"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="NAMED">
+    <element name="named">
+      <!-- Defines an instance of named server -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="config_file"/>
+        </optional>
+        <optional>
+          <attribute name="named_sdb"/>
+        </optional>
+        <optional>
+          <attribute name="named_working_dir"/>
+        </optional>
+        <optional>
+          <attribute name="named_options"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="ASEHAAGENT">
+    <element name="ASEHAagent">
+      <!-- Sybase ASE Failover Instance -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="sybase_home"/>
+        <attribute name="sybase_ase"/>
+        <attribute name="sybase_ocs"/>
+        <attribute name="server_name"/>
+        <attribute name="login_file"/>
+        <attribute name="interfaces_file"/>
+        <attribute name="sybase_user"/>
+        <attribute name="shutdown_timeout"/>
+        <attribute name="start_timeout"/>
+        <attribute name="deep_probe_timeout"/>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="FS">
+    <element name="fs">
+      <!-- Defines a file system mount. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="mountpoint"/>
+        <attribute name="device"/>
+        <optional>
+          <attribute name="fstype"/>
+        </optional>
+        <optional>
+          <attribute name="force_unmount"/>
+        </optional>
+        <optional>
+          <attribute name="self_fence"/>
+        </optional>
+        <optional>
+          <attribute name="nfslock"/>
+        </optional>
+        <optional>
+          <attribute name="fsid"/>
+        </optional>
+        <optional>
+          <attribute name="force_fsck"/>
+        </optional>
+        <optional>
+          <attribute name="options"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="ORACLEDB">
+    <element name="oracledb">
+      <!-- Oracle 10g Failover Instance -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="listener_name"/>
+        </optional>
+        <attribute name="user"/>
+        <attribute name="home"/>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <optional>
+          <attribute name="vhost"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+  <define name="CHILD">
+  <!-- for recursion to work properly, CHILD may be referenced at CHILDREN only -->
+    <zeroOrMore>
+     <choice>
+
+        <ref name="SERVICE"/>
+        <ref name="IP"/>
+        <ref name="NFSCLIENT"/>
+        <ref name="NFSEXPORT"/>
+        <ref name="SCRIPT"/>
+        <ref name="NETFS"/>
+        <ref name="CLUSTERFS"/>
+        <ref name="SMB"/>
+        <ref name="APACHE"/>
+        <ref name="OPENLDAP"/>
+        <ref name="SAMBA"/>
+        <ref name="MYSQL"/>
+        <ref name="POSTGRES-8"/>
+        <ref name="TOMCAT-5"/>
+        <ref name="LVM"/>
+        <ref name="VM"/>
+        <ref name="SAPINSTANCE"/>
+        <ref name="SAPDATABASE"/>
+        <ref name="NAMED"/>
+        <ref name="ASEHAAGENT"/>
+        <ref name="FS"/>
+        <ref name="ORACLEDB"/>
+      <ref name="RESOURCEACTION"/>
+     </choice>
+    </zeroOrMore>
+  </define>
+
+  <define name="CHILDREN">
+   <zeroOrMore>
+    <choice>
+     <ref name="CHILD"/>
+    </choice>
+   </zeroOrMore>
+  </define>
+
+  <define name="RESOURCEACTION">
+   <zeroOrMore>
+    <element name="action">
+     <attribute name="name"/>
+     <optional>
+      <attribute name="depth"/>
+     </optional>
+     <optional>
+      <attribute name="interval"/>
+     </optional>
+     <optional>
+      <attribute name="timeout"/>
+     </optional>
+    </element>
+   </zeroOrMore>
+  </define>
+
+<!-- End autogenerated resources definitions -->
+<!--End of resource definitions-->
+
+<!--Beginning of fence definitions-->
+
+ <define name="FENCE">
+  <element name="fence">
+   <zeroOrMore>
+    <element name="method">
+     <attribute name="name"/>
+     <zeroOrMore>
+       <ref name="DEVICE"/>
+     </zeroOrMore>
+    </element>
+   </zeroOrMore>
+  </element>
+ </define>
+
+ <define name="UNFENCE">
+  <element name="unfence">
+   <zeroOrMore>
+    <ref name="DEVICE"/>
+   </zeroOrMore>
+  </element>
+ </define>
+
+ <define name="DEVICE">
+  <element name="device">
+   <attribute name="name">
+    <data type="IDREF"/>
+   </attribute>
+   <choice>
+
+<!-- autogenerated -->
+      <!-- fence_alom -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <attribute name="login"/>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_apc -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="switch"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_bladecenter -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="identity_file"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_drac5 -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_eps -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="login"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_ilo -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="ssl"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_ldom -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="identity_file"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_lpar -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="partition"/>
+        </optional>
+        <optional>
+          <attribute name="managed"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_virsh -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="identity_file"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_vmware -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="exec"/>
+        </optional>
+        <optional>
+          <attribute name="vmware_type"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <optional>
+          <attribute name="vmware_datacenter"/>
+        </optional>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_wti -->
+      <group>
+        <optional>
+          <attribute name="action"/>
+        </optional>
+        <optional> <!-- lhh - compat -->
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="login"/>
+        </optional>
+        <optional>
+          <attribute name="passwd"/>
+        </optional>
+        <optional>
+          <attribute name="passwd_script"/>
+        </optional>
+        <optional>
+          <attribute name="secure"/>
+        </optional>
+        <attribute name="port"/>
+        <optional>
+          <attribute name="verbose"/>
+        </optional>
+      </group>
+
+      <!-- fence_xvm -->
+      <group>
+        <optional>
+          <attribute name="debug"/>
+        </optional>
+        <optional>
+          <attribute name="ip_family"/>
+        </optional>
+        <optional>
+          <attribute name="multicast_address"/>
+        </optional>
+        <optional>
+          <attribute name="port"/>
+        </optional>
+        <optional>
+          <attribute name="multicast_ttl"/>
+        </optional>
+        <optional>
+          <attribute name="retrans"/>
+        </optional>
+        <optional>
+          <attribute name="auth"/>
+        </optional>
+        <optional>
+          <attribute name="hash"/>
+        </optional>
+        <optional>
+          <attribute name="key_file"/>
+        </optional>
+        <optional>
+          <attribute name="domain"/>
+        </optional>
+        <optional>
+          <attribute name="use_uuid"/>
+        </optional>
+        <optional>
+          <attribute name="option"/>
+        </optional>
+        <optional>
+          <attribute name="timeout"/>
+        </optional>
+      </group>
+
+
+        <!-- Brocade, Vixel, McData, SANBox2 -->
+        <group>
+         <attribute name="port"/>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+        <!-- BladeCenter -->
+        <group>
+         <attribute name="blade"/>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+        <!-- xCAT, manual -->
+        <group>
+         <attribute name="nodename"/>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+	<!-- GNBD -->
+        <group>
+         <attribute name="nodename"/>
+	 <optional>
+	  <attribute name="ipaddr"/>
+	 </optional>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+        <!-- bullpap -->
+        <group>
+         <attribute name="domain"/>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+        <!-- Egenera -->
+        <group>
+         <attribute name="lpan"/>
+         <attribute name="pserver"/>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+        <!-- ILO, ipmilan -->
+        <group>
+         <optional>
+          <empty/>
+         </optional>
+         <optional>
+          <attribute name="lanplus"/>
+         </optional>
+         <optional>
+          <attribute name="option"/>
+         </optional>
+        </group>
+        <!-- scsi reservations -->
+        <group>
+         <optional>
+          <attribute name="node"/>
+         </optional>
+        </group>
+        <!-- xvm -->
+        <group>
+         <optional>
+          <attribute name="domain"/>
+         </optional>
+        </group>
+       </choice>
+      </element>
+     </define>
+</grammar>      
