@@ -287,7 +287,8 @@ start_qdiskd()
 start_daemons()
 {
     status groupd > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [ $? -ne 0 ] && \
+	[ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
 	errmsg=$( @SBINDIR@/groupd 2>&1 ) || return 1
     fi
     status fenced > /dev/null 2>&1
