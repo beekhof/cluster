@@ -44,7 +44,7 @@ static int add_to_buffer(char *data, char **buffer, int *bufsize)
 	return 0;
 }
 
-static int dump_objdb_buff(confdb_handle_t dump_handle,
+static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_handle,
 			   hdb_handle_t parent_object_handle, char **buffer,
 			   int *bufsize)
 {
@@ -66,7 +66,7 @@ static int dump_objdb_buff(confdb_handle_t dump_handle,
 
 	if (!*buffer || ((*buffer) && !strlen(*buffer))) {
 		snprintf(temp, PATH_MAX - 1,
-			 "<?xml version=\"1.0\"?>\n<objdbmaindoc>\n");
+			 "<?xml version=\"1.0\"?>\n<cluster");
 		if (add_to_buffer(temp, buffer, bufsize))
 			return -1;
 	}
@@ -77,13 +77,6 @@ static int dump_objdb_buff(confdb_handle_t dump_handle,
 				&key_value_len)) == CS_OK) {
 		key_name[key_name_len] = '\0';
 		key_value[key_value_len] = '\0';
-
-		if (!strncmp(key_name, "service_id", key_name_len))
-			continue;
-		if (!strncmp(key_name, "handle", key_name_len))
-			continue;
-		if (!strncmp(key_name, "next_handle", key_name_len))
-			continue;
 
 		snprintf(temp, PATH_MAX - 1, " %s=\"%s\"", key_name, key_value);
 		if (add_to_buffer(temp, buffer, bufsize))
@@ -118,15 +111,12 @@ static int dump_objdb_buff(confdb_handle_t dump_handle,
 
 		object_name[object_name_len] = '\0';
 
-		/* we need to skip the top level services because they have invalid
-		 * xml chars */
-
 		snprintf(temp, PATH_MAX - 1, "<%s", object_name);
 		if (add_to_buffer(temp, buffer, bufsize))
 			return -1;
 
 		res =
-		    dump_objdb_buff(dump_handle, object_handle, buffer,
+		    dump_objdb_buff(dump_handle, cluster_handle, object_handle, buffer,
 				    bufsize);
 		if (res) {
 			errno = res;
@@ -144,8 +134,8 @@ static int dump_objdb_buff(confdb_handle_t dump_handle,
 		}
 	}
 
-	if (parent_object_handle == OBJECT_PARENT_HANDLE) {
-		snprintf(temp, PATH_MAX - 1, "</objdbmaindoc>\n");
+	if (parent_object_handle == cluster_handle) {
+		snprintf(temp, PATH_MAX - 1, "</cluster>\n");
 		if (add_to_buffer(temp, buffer, bufsize))
 			return -1;
 	}
@@ -157,6 +147,7 @@ int xpathfull_init(confdb_handle_t handle)
 {
 	int size = XMLBUFSIZE;
 	char *buffer, *newbuf;
+	hdb_handle_t cluster_handle;
 
 	newbuf = buffer = malloc(XMLBUFSIZE);
 	if (!buffer) {
@@ -166,7 +157,13 @@ int xpathfull_init(confdb_handle_t handle)
 
 	memset(buffer, 0, XMLBUFSIZE);
 
-	if (dump_objdb_buff(handle, OBJECT_PARENT_HANDLE, &newbuf, &size))
+	if (confdb_object_find_start(handle, OBJECT_PARENT_HANDLE) != CS_OK)
+		goto fail;
+
+	if (confdb_object_find(handle, OBJECT_PARENT_HANDLE, "cluster", strlen("cluster"), &cluster_handle) != CS_OK)
+		goto fail;
+
+	if (dump_objdb_buff(handle, cluster_handle, cluster_handle, &newbuf, &size))
 		goto fail;
 
 	if (newbuf != buffer) {
@@ -222,7 +219,6 @@ char *_ccs_get_fullxpath(confdb_handle_t handle, hdb_handle_t connection_handle,
 			 const char *query, int list)
 {
 	xmlXPathObjectPtr obj = NULL;
-	char realquery[PATH_MAX + 16];
 	char previous_query[PATH_MAX];
 	hdb_handle_t list_handle = 0;
 	unsigned int xmllistindex = 0;
@@ -255,10 +251,7 @@ char *_ccs_get_fullxpath(confdb_handle_t handle, hdb_handle_t connection_handle,
 		xmllistindex = 0;
 	}
 
-	memset(realquery, 0, PATH_MAX + 16);
-	snprintf(realquery, PATH_MAX + 16 - 1, "/objdbmaindoc%s", query);
-
-	obj = xmlXPathEvalExpression((xmlChar *) realquery, ctx);
+	obj = xmlXPathEvalExpression((xmlChar *) query, ctx);
 
 	if (!obj) {
 		errno = EINVAL;
