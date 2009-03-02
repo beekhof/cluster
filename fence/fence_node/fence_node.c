@@ -68,6 +68,7 @@ static int setup_cman(void)
 		return -1;
 	}
 
+	memset(&node, 0, sizeof(node));
 	rv = cman_get_node(ch, CMAN_NODEID_US, &node);
 	if (rv < 0) {
 		cman_finish(ch);
