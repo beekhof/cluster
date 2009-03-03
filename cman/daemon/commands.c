@@ -1169,6 +1169,9 @@ static int reread_config(int new_version)
 		corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
 					     ccsd_timer_fn, &ccsd_timer);
 	}
+	else {
+		send_transition_msg(0,0);
+	}
 
 	return read_err;
 }
