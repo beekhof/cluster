@@ -331,7 +331,7 @@ gfs_write_begin(struct file *file, struct address_space *mapping,
 		return -ENOSYS;
 
 	error = -ENOMEM;
-	page = __grab_cache_page(mapping, index);
+	page = grab_cache_page_write_begin(mapping, index, flags);
 	*pagep = page;
 	if (!page)
 		goto out;
