@@ -757,6 +757,11 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 					    LOGDIR "/cman.log", strlen(LOGDIR "/cman.log")+1);
 	}
 
+	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
+		objdb->object_key_create(object_handle, "timestamp", strlen("timestamp"),
+					    "on", strlen("on")+1);
+	}
+
 	if (debug_mask) {
 		objdb->object_key_create(object_handle, "to_stderr", strlen("to_stderr"),
 					    "yes", strlen("yes")+1);
