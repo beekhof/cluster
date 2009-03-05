@@ -63,6 +63,7 @@ static int
    _node_clean = 0,
    _service_owner = 0,
    _service_last_owner = 0,
+   _service_restarts_exceeded = 0,
    _user_request = 0,
    _user_arg1 = 0,
    _user_arg2 = 0,
@@ -107,6 +108,8 @@ SLang_Intrin_Var_Type rgmanager_vars[] =
 	MAKE_VARIABLE("service_state",	&_service_state,SLANG_STRING_TYPE,1),
 	MAKE_VARIABLE("service_owner",	&_service_owner,SLANG_INT_TYPE, 1),
 	MAKE_VARIABLE("service_last_owner", &_service_last_owner,
+		      					SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE("service_restarts_exceeded", &_service_restarts_exceeded,
 		      					SLANG_INT_TYPE, 1),
 
 	/* User event information */
@@ -204,11 +207,21 @@ void
 sl_service_status(char *svcName)
 {
 	rg_state_t svcStatus;
+	int restarts_exceeded = 0;
 	char *state_str;
 
 	if (get_service_state_internal(svcName, &svcStatus) < 0) {
 		SLang_verror(SL_RunTime_Error,
 			     "%s: Failed to get status for %s",
+			     __FUNCTION__,
+			     svcName);
+		return;
+	}
+
+	restarts_exceeded = check_restart(svcName);
+	if (SLang_push_integer(restarts_exceeded) < 0) {
+		SLang_verror(SL_RunTime_Error,
+			     "%s: Failed to push restarts_exceeded %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -1077,6 +1090,7 @@ S_service_event(const char *file, const char *script, char *name,
 	_service_state = (char *)rg_state_str(state);
 	_service_owner = owner;
 	_service_last_owner = last_owner;
+	_service_restarts_exceeded = check_restart(name);
 
 	switch(state) {
 	case RG_STATE_DISABLED:
@@ -1094,6 +1108,7 @@ S_service_event(const char *file, const char *script, char *name,
 	_service_state = 0;
 	_service_owner = 0;
 	_service_last_owner = 0;
+	_service_restarts_exceeded = 0;
 
 	return ret;
 }

@@ -684,7 +684,6 @@ svc_advise_start(rg_state_t *svcStatus, char *svcName, int req)
 			logt_print(LOG_NOTICE,
 			       "Recovering failed service %s\n",
 			       svcName);
-			svcStatus->rs_state = RG_STATE_STOPPED;
 			/* Start! */
 			ret = 1;
 			break;
@@ -798,13 +797,16 @@ svc_start(char *svcName, int req)
 	/* LOCK HELD if we get here */
 
 	svcStatus.rs_owner = my_id();
-	svcStatus.rs_state = RG_STATE_STARTING;
 	svcStatus.rs_transition = (uint64_t)time(NULL);
 
-	if (req == RG_START_RECOVER)
+	if (svcStatus.rs_state == RG_STATE_RECOVER) {
+		add_restart(svcName);
 		svcStatus.rs_restarts++;
-	else
+	} else {
 		svcStatus.rs_restarts = 0;
+	}
+
+	svcStatus.rs_state = RG_STATE_STARTING;
 
 	if (set_rg_state(svcName, &svcStatus) < 0) {
 		logt_print(LOG_ERR,
@@ -1273,7 +1275,7 @@ _svc_stop(char *svcName, int req, int recover, uint32_t newstate)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
-	int ret;
+	int ret = 0;
 	int old_state;
 
 	if (!rg_quorate()) {
@@ -1328,6 +1330,18 @@ _svc_stop(char *svcName, int req, int recover, uint32_t newstate)
 	}
 
 	old_state = svcStatus.rs_state;
+
+	if (old_state == RG_STATE_RECOVER) {
+		logt_print(LOG_DEBUG, "%s is clean; skipping double-stop\n",
+		       svcName);
+		svcStatus.rs_state = newstate;
+
+		if (set_rg_state(svcName, &svcStatus) != 0) {
+			rg_unlock(&lockp);
+			logt_print(LOG_ERR, "#52: Failed changing RG status\n");
+			return RG_EFAIL;
+		}
+	} 
 
 	logt_print(LOG_NOTICE, "Stopping service %s\n", svcName);
 

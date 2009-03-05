@@ -8,6 +8,11 @@
 2008-02-26 Lon Hohberger <lhh at redhat.com>
 	* src/resources/ip.sh: Fix netmask handling in ip.sh
 	* src/utils/clustat.c: Don't show estranged nodes if they're down
+2008-02-01 Lon Hohberger <lhh at redhat.com>
+	* src/daemons/rg_state.c, slang_event.c, groups.c, restart_counter.c,
+	include/restart_counter.h, resgroup.h,
+	src/resources/default_event_script.sl: Allow restart counters to 
+	correctly work with central_processing. (#400211 / #431130)
 
 2008-01-25 Lon Hohberger <lhh at redhat.com>
 	* src/daemons/rg_thread.c: Fix case that broke 'clusvcadm -e <service>

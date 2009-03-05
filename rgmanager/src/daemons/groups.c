@@ -1797,7 +1797,7 @@ get_service_property(char *rg_name, char *prop, char *buf, size_t buflen)
 
 
 int
-check_restart(char *rg_name)
+add_restart(char *rg_name)
 {
 	resource_node_t *node;
 	int ret = 1;
@@ -1806,11 +1806,24 @@ check_restart(char *rg_name)
 	node = node_by_ref(&_tree, rg_name);
 	if (node) {
 		ret = restart_add(node->rn_restart_counter);
-		if (ret) {
-			/* Clear it out - caller is about 
-			   to relocate the service anyway */
-			restart_clear(node->rn_restart_counter);
-		}
+	}
+	pthread_rwlock_unlock(&resource_lock);
+
+	return ret;
+}
+
+
+int
+check_restart(char *rg_name)
+{
+	resource_node_t *node;
+	int ret = 0;
+
+	pthread_rwlock_rdlock(&resource_lock);
+	node = node_by_ref(&_tree, rg_name);
+	if (node) {
+		printf("%s %p\n", rg_name, node->rn_restart_counter);
+		ret = restart_threshold_exceeded(node->rn_restart_counter);
 	}
 	pthread_rwlock_unlock(&resource_lock);
 

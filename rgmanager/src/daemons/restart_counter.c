@@ -29,6 +29,10 @@ typedef struct {
 
 #define VALIDATE(arg, ret) \
 do { \
+	if (!arg) {\
+		errno = EINVAL; \
+		return ret; \
+	} \
 	if (((restart_info_t *)arg)->magic != RESTART_INFO_MAGIC) {\
 		errno = EINVAL; \
 		return ret; \
@@ -80,6 +84,21 @@ restart_count(restart_counter_t arg)
 }
 
 
+int
+restart_threshold_exceeded(restart_counter_t arg)
+{
+	restart_info_t *restarts = (restart_info_t *)arg;
+	time_t now;
+
+	VALIDATE(arg, -1);
+	now = time(NULL);
+	restart_timer_purge(arg, now);
+	if (restarts->restart_count >= restarts->max_restarts)
+		return 1;
+	return 0;
+}
+
+
 /* Add a restart entry to the list.  Returns 1 if restart
    count is exceeded */
 int
@@ -110,7 +129,7 @@ restart_add(restart_counter_t arg)
 	/* Check and remove old entries */
 	restart_timer_purge(restarts, t);
 
-	if (restarts->restart_count > restarts->max_restarts)
+	if (restarts->restart_count >= restarts->max_restarts)
 		return 1;
 
 	return 0;
@@ -153,6 +172,7 @@ restart_init(time_t expire_timeout, int max_restarts)
 	info->expire_timeout = expire_timeout;
 	info->max_restarts = max_restarts;
 	info->restart_count = 0;
+	info->restart_nodes = NULL;
 
 	return (void *)info;
 }
