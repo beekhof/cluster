@@ -408,31 +408,30 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 
 		error = getnameinfo(sa, sizeof(*sa), nodename2,
 				    sizeof(nodename2), NULL, 0, 0);
-		if (error)
-			goto out;
+		if (!error) {
 
-		if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
-			strcpy(nodename, nodename2);
-			goto out;
-		}
+			if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
+				strcpy(nodename, nodename2);
+				goto out;
+			}
 
-		/* truncate this name and try again */
+			/* Truncate this name and try again */
+			dot = strchr(nodename2, '.');
+			if (dot) {
+				*dot = '\0';
 
-		dot = strchr(nodename2, '.');
-		if (!dot)
-			continue;
-		*dot = '\0';
-
-		if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
-			strcpy(nodename, nodename2);
-			goto out;
+				if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
+					strcpy(nodename, nodename2);
+					goto out;
+				}
+			}
 		}
 
 		/* See if it's the IP address that's in cluster.conf */
 		error = getnameinfo(sa, sizeof(*sa), nodename2,
 				    sizeof(nodename2), NULL, 0, NI_NUMERICHOST);
 		if (error)
-			goto out;
+			continue;
 
 		if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
 			strcpy(nodename, nodename2);
