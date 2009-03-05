@@ -46,8 +46,8 @@ event_table_t *master_event_table = NULL;
 void
 set_transition_throttling(int nsecs)
 {
-	if (nsecs < 0)
-		nsecs = 0;
+	if (nsecs < 1)
+		nsecs = 1;
 	transition_throttling = nsecs;
 }
 
@@ -358,19 +358,12 @@ _event_thread_f(void __attribute__ ((unused)) *arg)
 	struct timespec expire;
 	int count = 0;
 
-	/* Event thread usually doesn't hang around.  When it's
-   	   spawned, sleep for this many seconds in order to let
-   	   some events queue up */
-	if (transition_throttling && !central_events) {
-		sleep(transition_throttling);
-	}
-
 	while (1) {
 		pthread_mutex_lock(&event_queue_mutex);
 		ev = event_queue;
 		if (!ev && !central_events) {
 			gettimeofday(&now, NULL);
-			expire.tv_sec = now.tv_sec + 5;
+			expire.tv_sec = now.tv_sec + transition_throttling;
 			expire.tv_nsec = now.tv_usec * 1000;
 			pthread_cond_timedwait(&event_queue_cond,
 						&event_queue_mutex,
