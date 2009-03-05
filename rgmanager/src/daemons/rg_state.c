@@ -1036,7 +1036,7 @@ get_new_owner(char *svcName)
 			continue;
 
 		if (msg_open(MSG_CLUSTER, membership->cml_members[x].cn_nodeid,
-			     RG_PORT, &ctx, 2) < 0) {
+			     RG_PORT, &ctx, 10) < 0) {
 			/* failed to open: better to claim false successful
 			   status rather than claim a failure and possibly
 			   end up with a service on >1 node */
@@ -1044,8 +1044,9 @@ get_new_owner(char *svcName)
 		}
 
 		msg_send(&ctx, &msgp, sizeof(msgp));
-		if (msg_receive(&ctx, &response, sizeof (response), 5) != sizeof(response))
-			goto cont;;
+		if (msg_receive(&ctx, &response, sizeof (response), 10) !=
+		    		sizeof(response))
+			goto cont;
 
 		swab_SmMessageSt(&response);
 		if (response.sm_data.d_ret == RG_SUCCESS)
