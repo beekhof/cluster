@@ -166,30 +166,10 @@ fence_domain_joined(void)
 {
 	int rv;
 
-	rv = system("group_tool ls fence default &> /dev/null");	
+	rv = system("fence_tool ls &> /dev/null");	
 	if (rv == 0)
 		return 1;
 	return 0;
-}
-
-
-/**
-   Quick query to cman to see if a node has been fenced.
- */
-int
-node_fenced(int nodeid)
-{
-	cman_handle_t ch;
-	int fenced = 0;
-	uint64_t fence_time;
-
-	ch = cman_init(NULL);
-	if (cman_get_fenceinfo(ch, nodeid, &fence_time, &fenced, NULL) < 0)
-		fenced = 0;
-
-	cman_finish(ch);
-
-	return fenced;
 }
 
 
@@ -376,7 +356,7 @@ _event_thread_f(void __attribute__ ((unused)) *arg)
 	event_t *ev;
 	struct timeval now;
 	struct timespec expire;
-	int notice = 0, count = 0;
+	int count = 0;
 
 	/* Event thread usually doesn't hang around.  When it's
    	   spawned, sleep for this many seconds in order to let
@@ -447,26 +427,6 @@ _event_thread_f(void __attribute__ ((unused)) *arg)
 			       ev->ev.node.ne_state?"UP":"DOWN",
 			       ev->ev.node.ne_clean?"Clean":"Dirty")
 			 */
-
-			if (ev->ev.node.ne_state == 0 &&
-			    !ev->ev.node.ne_clean &&
-			    node_has_fencing(ev->ev.node.ne_nodeid)) {
-				notice = 0;
-				while (!node_fenced(ev->ev.node.ne_nodeid)) {
-					if (!notice) {
-						notice = 1;
-						logt_print(LOG_INFO, "Waiting for "
-						       "node #%d to be fenced\n",
-						       ev->ev.node.ne_nodeid);
-					}
-					sleep(2);
-				}
-
-				if (notice)
-					logt_print(LOG_INFO, "Node #%d fenced; "
-					       "continuing\n",
-					       ev->ev.node.ne_nodeid);
-			}
 
 			node_event(ev->ev.node.ne_local,
 				   ev->ev.node.ne_nodeid,
