@@ -40,7 +40,7 @@ typedef void *cman_handle_t;
  * The 'arg' parameter varies depending on the callback type.
  * for PORTCLOSED/PORTOPENED  arg == the port opened/closed
  * for STATECHANGE            arg is quorum state (1=quorate, 0=not)
- * for TRY_SHUTDOWN           arg == 1 for ANYWAY, otherwise 0 (ie if arg == 1 
+ * for TRY_SHUTDOWN           arg == 1 for ANYWAY, otherwise 0 (ie if arg == 1
  * 			      then cman WILL shutdown regardless
  *                            of your response, think of this as advance warning)
  * for CONFIG_UPDATE          arg will be the new config version
@@ -70,9 +70,9 @@ typedef enum {CMAN_REASON_PORTCLOSED,
 /*
  * Flags passed to cman_dispatch():
  * CMAN_DISPATCH_ONE dispatches a single message then returns,
- * CMAN_DISPATCH_ALL dispatches all outstanding messages (ie till EAGAIN) then 
+ * CMAN_DISPATCH_ALL dispatches all outstanding messages (ie till EAGAIN) then
  *                   returns,
- * CMAN_DISPATCH_BLOCKING forces it to wait for a message (clears MSG_DONTWAIT 
+ * CMAN_DISPATCH_BLOCKING forces it to wait for a message (clears MSG_DONTWAIT
  * 			  in recvmsg)
  * CMAN_DISPATCH_IGNORE_* allows the caller to select which messages to process.
  */
@@ -258,14 +258,14 @@ int cman_replyto_shutdown(cman_handle_t, int yesno);
  * When it's active then call cman_dispatch() on the handle to process the event
  * NOTE: This fd can change between calls to cman_dispatch() so always call this
  * routine to get the latest one. (This is mainly due to message caching).
- * One upshot of this is that you must never read or write this FD (it may on 
+ * One upshot of this is that you must never read or write this FD (it may on
  * occasion point to /dev/zero if you have messages cached!)
  */
 int cman_get_fd(cman_handle_t handle);
 
 /*
  * cman_dispatch() will return -1 with errno == EHOSTDOWN if the cluster is
- * shut down, 0 if nothing was read, or a positive number if something was 
+ * shut down, 0 if nothing was read, or a positive number if something was
  * dispatched.
  */
 
@@ -278,23 +278,23 @@ int cman_dispatch(cman_handle_t handle, int flags);
  */
 
 /* Return the number of nodes we know about. This will normally
- *  be the number of nodes in CCS 
+ *  be the number of nodes in CCS
  */
 int cman_get_node_count(cman_handle_t handle);
 
 /* Returns the number of connected clients. This isn't as useful as a it used to
  * be as a count >1 does not automatically mean cman won't shut down. Subsystems
- * can decide for themselves whether a clean shutdown is possible. 
+ * can decide for themselves whether a clean shutdown is possible.
  */
 int cman_get_subsys_count(cman_handle_t handle);
 
 /* Returns an array of node info structures. Call cman_get_node_count() first
- * to determine how big your array needs to be 
+ * to determine how big your array needs to be
  */
 int cman_get_nodes(cman_handle_t handle, int maxnodes, int *retnodes, cman_node_t *nodes);
 
 /* Returns a list of nodes that are known to AIS but blocked from joining the
- * CMAN cluster because they rejoined with cluster without a cman_tool join 
+ * CMAN cluster because they rejoined with cluster without a cman_tool join
  */
 int cman_get_disallowed_nodes(cman_handle_t handle, int maxnodes, int *retnodes, cman_node_t *nodes);
 
@@ -314,8 +314,8 @@ int cman_get_node_extra(cman_handle_t handle, int nodeid, cman_node_extra_t *nod
 
 /* cman_get_node() only returns the first address of a node (whatever /that/
  * may mean). If you want to know all of them you need to call this.
- * max_addrs is the size of the 'addrs' array. num_addrs will be filled in by 
- * the number of addresses the node has, regardless of the size of max_addrs. 
+ * max_addrs is the size of the 'addrs' array. num_addrs will be filled in by
+ * the number of addresses the node has, regardless of the size of max_addrs.
  * So if you don't allocate enough space for the first call, you should know how
  * much is needed for a second!
  */
@@ -342,24 +342,26 @@ int cman_get_version(cman_handle_t handle, cman_version_t *version);
 /* Get cluster name and number */
 int cman_get_cluster(cman_handle_t handle, cman_cluster_t *clinfo);
 
-/* Get fence information for a node.
- * 'int *fenced' is only valid if the node is down, it is set to
- * 1 if the node has been fenced since it left the cluster.
- * agent should be CMAN_MAX_FENCE_AGENT_NAME_LEN
+/*
+ * These two fencing-related API calls are DEPRECATED from cluster3.
+ * libfenced should be used instead.
  */
 int cman_get_fenceinfo(cman_handle_t handle, int nodeid, uint64_t *fence_time, int *fenced, char *agent);
+int cman_node_fenced(cman_handle_t handle, int nodeid, uint64_t fence_time, char *agent);
+
+
 
 /* Get stuff for cman_tool. Nobody else should use this */
 int cman_get_extra_info(cman_handle_t handle, cman_extra_info_t *info, int maxlen);
 
 /*
  * -----------------------------------------------------------------------------
- * Admin functions. You will need privileges and have a handle created by 
+ * Admin functions. You will need privileges and have a handle created by
  * cman_admin_init() to use them.
  */
 
-/* Change the config file version. This should be needed much less now, as 
- * cman will re-read the config file if a new node joins with a new config 
+/* Change the config file version. This should be needed much less now, as
+ * cman will re-read the config file if a new node joins with a new config
  * version */
 int cman_set_version(cman_handle_t handle, const cman_version_t *version);
 
@@ -376,9 +378,6 @@ int cman_set_expected_votes(cman_handle_t handle, int expected_votes);
 
 /* Tell a particular node to leave the cluster NOW */
 int cman_kill_node(cman_handle_t handle, int nodeid);
-
-/* Tell CMAN a node has been fenced, when and by what means. */
-int cman_node_fenced(cman_handle_t handle, int nodeid, uint64_t fence_time, char *agent);
 
 /*
  * cman_shutdown() will send a REASON_TRY_SHUTDOWN event to all
@@ -433,7 +432,7 @@ int cman_get_quorum_device(cman_handle_t handle, struct cman_qdev_info *info);
  * Sets the dirty bit inside cman. This indicates that the node has
  * some internal 'state' (eg in a daemon, filesystem or lock manager)
  * and cannot merge with another cluster that already has state.
- * This needs an admin socket. It cannot be reset. 
+ * This needs an admin socket. It cannot be reset.
  */
 int cman_set_dirty(cman_handle_t handle);
 
