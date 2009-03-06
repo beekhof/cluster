@@ -42,10 +42,11 @@ not used.
 .SS Cluster Nodes
 
 cluster.conf is an XML file.  It has one top-level \fIcluster\fP section
-containing everything else.  The cluster section has two mandatory attributes:
-\fIname\fP and \fIconfig_version\fP.  \fIname\fP can be up to 16 characters
-long and specifies the name of the cluster.  It is important that this name is
-unique from other clusters.  \fIconfig_version\fP is a number used to identify
+containing everything else.  The cluster section has two mandatory
+attributes: \fIname\fP and \fIconfig_version\fP.  \fIname\fP can be up to
+15 characters long (16 including terminating null) and specifies the name
+of the cluster.  It is important that this name be unique among clusters
+on the same network.  \fIconfig_version\fP is a number used to identify
 the revision level of the cluster.conf file.
 
   <cluster name="alpha" config_version="1">
@@ -174,7 +175,7 @@ An explicit configuration for the default settings would be:
 
 .B Examples
 .br
-To include LOG_DEBUG messages (and above) from all daemons in their default log files, either
+To include debug messages (and above) from all daemons in their default log files, either
 .in +7
 <logging debug="on"/> or
 <logging logfile_priority="debug"/>
@@ -190,9 +191,15 @@ To disable logging to all log files
 <logging to_file="no"/>
 .in -7
 
-To include LOG_DEBUG messages (and above) from all daemons in syslog
+To include debug messages (and above) from all daemons in syslog
 .in +7
 <logging syslog_priority="debug"/>
+.in -7
+
+To limit syslog messages to error (and above), keeping info (and above) in
+log files (this logfile_priority setting is the default so could be omitted)
+.in +7
+<logging syslog_priority="error" logfile_priority="info"/>
 .in -7
 
 
