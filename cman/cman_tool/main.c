@@ -102,7 +102,6 @@ static void print_usage(int subcmd)
 
 	if (!subcmd || subcmd == OP_NODES) {
 		printf("nodes              Show local record of cluster nodes\n");
-		printf("  -f                 Also show when node was last fenced\n");
 		printf("  -a                 Also show node address(es)\n");
 		printf("  -n <nodename>      Only show information for specific node\n");
 		printf("  -F <format>        Specify output format (see man page)\n");
@@ -342,7 +341,6 @@ static int get_format_opt(const char *opt)
 static void print_node(commandline_t *comline, cman_handle_t h, int *format, struct cman_node *node)
 {
 	char member_type;
-	struct tm *ftime;
 	struct tm *jtime;
 	int numaddrs;
 	struct cman_node_address addrs[MAX_INTERFACES];
@@ -391,24 +389,6 @@ static void print_node(commandline_t *comline, cman_handle_t h, int *format, str
 		printf("%4u   %c  %5d   %s  %s\n",
 		       node->cn_nodeid, member_type,
 		       node->cn_incarnation, jstring, node->cn_name);
-	}
-
-	if (comline->fence_opt && !comline->format_opts) {
-		char agent[255];
-		uint64_t fence_time;
-		int fenced;
-
-		if (!cman_get_fenceinfo(h, node->cn_nodeid, &fence_time, &fenced, agent)) {
-			if (fence_time) {
-				time_t fence_time_t = (time_t)fence_time;
-				ftime = localtime(&fence_time_t);
-				strftime(jstring, sizeof(jstring), "%F %H:%M:%S", ftime);
-				printf("       Last fenced:   %-15s by %s\n", jstring, agent);
-			}
-			if (!node->cn_member && node->cn_incarnation && !fenced) {
-				printf("       Node has not been fenced since it went down\n");
-			}
-		}
 	}
 
 	if (comline->addresses_opt || comline->format_opts) {
@@ -781,10 +761,6 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 
 		case 'm':
 			comline->multicast_addr = strdup(optarg);
-			break;
-
-		case 'f':
-			comline->fence_opt = 1;
 			break;
 
 		case 'a':

@@ -89,7 +89,6 @@ struct commandline
 	int clustername_opt;
 	int wait_opt;
 	int wait_quorate_opt;
-	int fence_opt;
 	int addresses_opt;
 	int noconfig_opt;
 	int nosetpri_opt;
