@@ -313,7 +313,7 @@ start_daemons()
 		# nothing to do
 	    ;;
 	    conditional)
-		if [ -n "$(ls -1 @NOTIFYDDIR@)" ]; then
+		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
 		    errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
 		fi
 	    ;;
