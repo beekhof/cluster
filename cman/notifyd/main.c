@@ -226,11 +226,11 @@ static void dispatch_notification(char *str, int *quorum)
 	if (debug)
 		envp[envptr++] = strdup("CMAN_NOTIFICATION_DEBUG=1");
 
-	envp[envptr++] = NULL;
+	envp[envptr--] = NULL;
 
 	argv[argvptr++] = "cman_notify";
 
-	argv[argvptr++] = NULL;
+	argv[argvptr--] = NULL;
 
 	switch ( (notify_pid = fork()) )
 	{
@@ -250,6 +250,12 @@ static void dispatch_notification(char *str, int *quorum)
 			break;
 	}
 
+	while(envptr >= 0) {
+		if (envp[envptr])
+			free(envp[envptr]);
+
+		envptr--;
+	}
 }
 
 static void cman_callback(cman_handle_t ch, void *private, int reason, int arg)
