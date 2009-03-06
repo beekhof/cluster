@@ -43,7 +43,7 @@ static confdb_handle_t confdb_connect(void)
 
 static int confdb_disconnect(confdb_handle_t handle)
 {
-	if (confdb_finalize(handle) != CONFDB_OK) {
+	if (confdb_finalize(handle) != CS_OK) {
 		errno = EINVAL;
 		return -1;
 	}
