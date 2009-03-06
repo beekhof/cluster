@@ -210,6 +210,7 @@ static void dispatch_notification(char *str, int *quorum)
 	char scratch[PATH_MAX];
 	pid_t notify_pid;
 	int pidstatus;
+	int err = 0;
 
 	if (!str)
 		return;
@@ -236,13 +237,15 @@ static void dispatch_notification(char *str, int *quorum)
 	{
 		case -1:
 			/* unable to fork */
-			exit(EXIT_FAILURE);
+			err = 1;
+			goto out;
 			break;
 
 		case 0: /* child */
 			execve(SBINDIR "/cman_notify", argv, envp);
 			/* unable to execute cman_notify */
-			exit(EXIT_FAILURE);
+			err = 1;
+			goto out;
 			break;
 
 		default: /* parent */
@@ -250,12 +253,15 @@ static void dispatch_notification(char *str, int *quorum)
 			break;
 	}
 
+out:
 	while(envptr >= 0) {
 		if (envp[envptr])
 			free(envp[envptr]);
 
 		envptr--;
 	}
+	if (err)
+		exit(EXIT_FAILURE);
 }
 
 static void cman_callback(cman_handle_t ch, void *private, int reason, int arg)
