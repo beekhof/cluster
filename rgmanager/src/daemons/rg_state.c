@@ -2100,7 +2100,7 @@ handle_start_remote_req(char *svcName, int req)
 
 	x = svc_start(svcName, req);
 
-	if ((x == 0) || (x == RG_ERUN)) {
+	if ((x == 0) || (x == RG_ERUN) || (x == RG_EFROZEN)) {
 		if (need_check)
 			pthread_mutex_unlock(&exclusive_mutex);
 		return x;
