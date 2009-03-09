@@ -406,7 +406,7 @@ static void do_dump(void)
 	if (rv < 0)
 		die("can't communicate with fenced");
 
-	do_write(STDOUT_FILENO, buf, sizeof(buf));
+	do_write(STDOUT_FILENO, buf, strlen(buf));
 
 	exit(EXIT_SUCCESS);
 }
