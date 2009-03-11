@@ -19,6 +19,7 @@ TARGET += \
 	fence_ibmblade.8 \
 	fence_ifmib.8 \
 	fence_ilo.8 \
+	fence_intelmodular.8 \
 	fence_ipmilan.8 \
 	fence_ldom.8 \
 	fence_manual.8 \
@@ -29,8 +30,8 @@ TARGET += \
 	fence_rsb.8 \
 	fence_sanbox2.8 \
 	fence_scsi.8 \
-	fence_vixel.8 \
 	fence_virsh.8 \
+	fence_vixel.8 \
 	fence_vmware.8 \
 	fence_wti.8 \
 	fence_xcat.8 \
