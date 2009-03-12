@@ -29,8 +29,8 @@
 #define MAX_PATH_LEN PATH_MAX
 
 static unsigned int debug_mask;
-static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, char **error_string);
-static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, char **error_string);
+static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
+static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const char **error_string);
 
 static char *nodename_env;
 static int expected_votes;
@@ -1044,7 +1044,7 @@ static int get_cman_globals(struct objdb_iface_ver0 *objdb)
 	return 0;
 }
 
-static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, char **error_string)
+static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const char **error_string)
 {
 	int ret = -1;
 	hdb_handle_t object_handle;
@@ -1102,7 +1102,7 @@ err:
 	return ret;
 }
 
-static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, char **error_string)
+static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string)
 {
 	int ret = 0;
 	hdb_handle_t object_handle;
