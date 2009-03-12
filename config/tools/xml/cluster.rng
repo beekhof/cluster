@@ -38,37 +38,38 @@ To validate your cluster.conf against this schema, run:
 
 
  <!--cman block-->
-
- <element name="cman">
-  <optional>
-   <attribute name="two_node"/>
-  </optional>
-  <optional>
-   <attribute name="expected_votes">
-    <data type="positiveInteger"/>
-   </attribute>
-  </optional>
-  <optional>
-   <attribute name="quorum_dev_poll"/>
-  </optional>
-  <optional>
-   <attribute name="shutdown_timeout"/>
-  </optional>
-  <optional>
-   <attribute name="ccsd_poll"/>
-  </optional>
-  <optional>
-   <attribute name="debug_mask"/>
-  </optional>
-  <optional>
-   <attribute name="disable_openais"/>
-  </optional>
-  <optional>
-   <element name="multicast">
-    <attribute name="addr"/>
-   </element>
-  </optional> 
- </element>
+ <optional>
+  <element name="cman">
+   <optional>
+    <attribute name="two_node"/>
+   </optional>
+   <optional>
+    <attribute name="expected_votes">
+     <data type="positiveInteger"/>
+    </attribute>
+   </optional>
+   <optional>
+    <attribute name="quorum_dev_poll"/>
+   </optional>
+   <optional>
+    <attribute name="shutdown_timeout"/>
+   </optional>
+   <optional>
+    <attribute name="ccsd_poll"/>
+   </optional>
+   <optional>
+    <attribute name="debug_mask"/>
+   </optional>
+   <optional>
+    <attribute name="disable_openais"/>
+   </optional>
+   <optional>
+    <element name="multicast">
+     <attribute name="addr"/>
+    </element>
+   </optional> 
+  </element>
+ </optional>
 
  <!--clusternode block-->
  <element name="clusternodes">
