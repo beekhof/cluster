@@ -116,21 +116,19 @@ static char *priority_name_get (unsigned int priority)
 static int ipaddr_equal(struct sockaddr_storage *addr1, struct sockaddr_storage *addr2)
 {
 	int addrlen = 0;
-	struct sockaddr *saddr1 = (struct sockaddr *)addr1;
-	struct sockaddr *saddr2 = (struct sockaddr *)addr2;
 
-	if (saddr1->sa_family != saddr2->sa_family)
+	if (addr1->ss_family != addr2->ss_family)
 		return 0;
 
-	if (saddr1->sa_family == AF_INET) {
+	if (addr1->ss_family == AF_INET) {
 		addrlen = sizeof(struct sockaddr_in);
 	}
-	if (saddr1->sa_family == AF_INET6) {
+	if (addr1->ss_family == AF_INET6) {
 		addrlen = sizeof(struct sockaddr_in6);
 	}
 	assert(addrlen);
 
-	if (memcmp(saddr1, saddr2, addrlen) == 0)
+	if (memcmp(addr1, addr2, addrlen) == 0)
 		return 1;
 	else
 		return 0;
@@ -198,7 +196,7 @@ static int address_family(char *addr, struct sockaddr_storage *ssaddr, int famil
 /* Find the "CMAN" logger_subsys object. Or create one if it does not
    exist
 */
-static unsigned int find_cman_logger(struct objdb_iface_ver0 *objdb, unsigned int object_handle)
+static hdb_handle_t find_cman_logger(struct objdb_iface_ver0 *objdb, hdb_handle_t object_handle)
 {
 	hdb_handle_t subsys_handle;
 	hdb_handle_t find_handle;
@@ -951,7 +949,7 @@ static int set_noccs_defaults(struct objdb_iface_ver0 *objdb)
 }
 
 /* Move an object/key tree */
-static int copy_config_tree(struct objdb_iface_ver0 *objdb, unsigned int source_object, unsigned int target_parent_object, int always_create)
+static int copy_config_tree(struct objdb_iface_ver0 *objdb, hdb_handle_t source_object, hdb_handle_t target_parent_object, int always_create)
 {
 	hdb_handle_t object_handle;
 	hdb_handle_t new_object;
@@ -985,7 +983,7 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, unsigned int source_
 	/* Create sub-objects */
 	res = objdb->object_find_create(source_object, NULL, 0, &find_handle);
 	if (res) {
-		sprintf(error_reason, "error resetting object iterator for object %d: %d\n", source_object, res);
+		sprintf(error_reason, "error resetting object iterator for object %ud: %d\n", (unsigned int)source_object, res);
 		return -1;
 	}
 

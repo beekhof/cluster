@@ -1,5 +1,5 @@
 /* These just make the access a little neater */
-static inline int objdb_get_string(OBJDB_API *corosync, unsigned int object_service_handle,
+static inline int objdb_get_string(OBJDB_API *corosync, hdb_handle_t object_service_handle,
 				   char *key, char **value)
 {
 	int res;
@@ -16,7 +16,7 @@ static inline int objdb_get_string(OBJDB_API *corosync, unsigned int object_serv
 	return -1;
 }
 
-static inline void objdb_get_int(OBJDB_API *corosync, unsigned int object_service_handle,
+static inline void objdb_get_int(OBJDB_API *corosync, hdb_handle_t object_service_handle,
 				 char *key, unsigned int *intvalue, unsigned int default_value)
 {
 	char *value = NULL;
@@ -33,7 +33,7 @@ static inline void objdb_get_int(OBJDB_API *corosync, unsigned int object_servic
 
 
 /* Helper functions for navigating the nodes list */
-static inline unsigned int nodeslist_init(OBJDB_API *corosync,
+static inline hdb_handle_t nodeslist_init(OBJDB_API *corosync,
 					  hdb_handle_t cluster_parent_handle,
 					  hdb_handle_t *find_handle)
 {
@@ -58,7 +58,7 @@ static inline unsigned int nodeslist_init(OBJDB_API *corosync,
 	return 0;
 }
 
-static inline unsigned int nodeslist_next(OBJDB_API *corosync, hdb_handle_t find_handle)
+static inline hdb_handle_t nodeslist_next(OBJDB_API *corosync, hdb_handle_t find_handle)
 {
         hdb_handle_t nodes_handle;
 
@@ -68,7 +68,7 @@ static inline unsigned int nodeslist_next(OBJDB_API *corosync, hdb_handle_t find
 		return 0;
 }
 
-static inline unsigned int nodelist_byname(OBJDB_API *corosync,
+static inline hdb_handle_t nodelist_byname(OBJDB_API *corosync,
 					   hdb_handle_t cluster_parent_handle,
 					   char *name)
 {
