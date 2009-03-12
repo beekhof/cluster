@@ -9,11 +9,11 @@
 
 #include "logging.h"
 
-static int xml_readconfig(struct objdb_iface_ver0 *objdb, char **error_string);
+static int xml_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
 static int xml_reloadconfig(struct objdb_iface_ver0 *objdb, int flush,
-			    char **error_string);
+			    const char **error_string);
 static int init_config(struct objdb_iface_ver0 *objdb, char *configfile,
-		       char *error_string);
+		       const char *error_string);
 static char error_reason[1024];
 
 #define DEFAULT_CONFIG DEFAULT_CONFIG_DIR "/" DEFAULT_CONFIG_FILE
@@ -87,12 +87,12 @@ static void xml2objdb(xmlNodePtr tmpnode, struct objdb_iface_ver0 *objdb,
 }
 
 static int xml_reloadconfig(struct objdb_iface_ver0 *objdb, int flush,
-			    char **error_string)
+			    const char **error_string)
 {
 	return xml_readconfig(objdb, error_string);
 }
 
-static int xml_readconfig(struct objdb_iface_ver0 *objdb, char **error_string)
+static int xml_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string)
 {
 	int ret = 0;
 	char *configfile = DEFAULT_CONFIG;
@@ -117,7 +117,7 @@ static int xml_readconfig(struct objdb_iface_ver0 *objdb, char **error_string)
 }
 
 static int init_config(struct objdb_iface_ver0 *objdb, char *configfile,
-		       char *error_string)
+		       const char *error_string)
 {
 	int err = 0;
 	xmlDocPtr doc = NULL;

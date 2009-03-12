@@ -19,7 +19,7 @@
 #define DEFAULT_LDAP_URL "ldap:///"
 #define DEFAULT_LDAP_BASEDN "dc=chrissie,dc=net"
 
-static int ldap_readconfig(struct objdb_iface_ver0 *objdb, char **error_string);
+static int ldap_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
 static int init_config(struct objdb_iface_ver0 *objdb);
 static char error_reason[1024];
 static char *ldap_url = DEFAULT_LDAP_URL;
@@ -59,7 +59,7 @@ __attribute__ ((constructor)) static void ldap_comp_register(void) {
 	lcr_component_register(&ldap_comp_ver0);
 };
 
-static int ldap_readconfig(struct objdb_iface_ver0 *objdb, char **error_string)
+static int ldap_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string)
 {
 	int ret;
 
