@@ -50,10 +50,6 @@ ifdef KHEADT
 	install -d ${incdir}/linux
 	install -m644 ${KHEADT} ${incdir}/linux
 endif
-ifdef MIBRESOURCE
-	install -d ${mibdir}
-	install -m644 $(S)/${MIBRESOURCE} ${mibdir}
-endif
 ifdef FENCEAGENTSLIB
 	install -d ${DESTDIR}/${fenceagentslibdir}
 	install -m644 ${FENCEAGENTSLIB} ${DESTDIR}/${fenceagentslibdir}

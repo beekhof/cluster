@@ -11,7 +11,6 @@ logrotatedir ?= ${DESTDIR}@LOGROTATEDIR@
 mandir ?= ${DESTDIR}@MANDIR@
 module_dir ?= ${DESTDIR}@MODULE_DIR@
 incdir ?= ${DESTDIR}@INCDIR@
-mibdir ?= ${DESTDIR}@MIBDIR@
 snmpbin ?= @SNMPBIN@
 notifyddir ?= ${DESTDIR}@CONFDIR@/cman-notify.d
 pkgconfigdir ?= ${DESTDIR}@LIBDIR@/pkgconfig
