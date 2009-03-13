@@ -203,6 +203,7 @@ int setup_cpg(void);
 void close_cpg(void);
 int set_protocol(void);
 void free_cg(struct change *cg);
+void node_history_init(struct fd *fd, int nodeid);
 void node_history_fence(struct fd *fd, int victim, int master, int how,
 			uint64_t mastertime);
 void send_external(struct fd *fd, int victim);

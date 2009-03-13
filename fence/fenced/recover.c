@@ -18,6 +18,11 @@ void add_complete_node(struct fd *fd, int nodeid)
 
 	node = get_new_node(fd, nodeid);
 	list_add(&node->list, &fd->complete);
+
+	if (group_mode == GROUP_LIBGROUP)
+		return;
+
+	node_history_init(fd, nodeid);
 }
 
 int list_count(struct list_head *head)

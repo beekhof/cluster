@@ -235,7 +235,7 @@ static struct node_history *get_node_history(struct fd *fd, int nodeid)
 	return NULL;
 }
 
-static void node_history_init(struct fd *fd, int nodeid)
+void node_history_init(struct fd *fd, int nodeid)
 {
 	struct node_history *node;
 
