@@ -92,12 +92,11 @@ fi
 #                         are found in @NOTIFYDDIR@
 [ -z "$CMAN_NOTIFYD_START" ] && CMAN_NOTIFYD_START=conditional
 
-# FENCED_START_TIMEOUT -- amount of time to wait for starting fenced
-#     before giving up.  If FENCED_START_TIMEOUT is positive, then we will
-#     wait FENCED_START_TIMEOUT seconds before giving up and failing when
-#     fenced does not start.  If FENCED_START_TIMEOUT is zero, then
-#     wait indefinately for fenced to start.
-[ -z "$FENCED_START_TIMEOUT" ] && FENCED_START_TIMEOUT=300
+# FENCE_JOIN_TIMEOUT -- seconds to wait for fence domain join to
+#     complete.  If the join hasn't completed in this time, fence_tool join
+#     exits with an error, and this script exits with an error.  To wait
+#     indefinitely set the value to -1.
+[ -z "$FENCE_JOIN_TIMEOUT" ] && FENCE_JOIN_TIMEOUT=20
 
 # NET_RMEM_DEFAULT -- minimum value for rmem_default. If this is set
 # higher elsewhere it will not be reduced here.
@@ -299,11 +298,11 @@ start_fence()
     @SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1
     if [ $? -ne 0 ]
     then
-        errmsg=$( @SBINDIR@/fence_tool -w -t $FENCED_START_TIMEOUT join \
+        errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
                  > /dev/null 2>&1 ) || return 1
     else
-        errmsg=$( @SBINDIR@/fence_tool -w -t $FENCED_START_TIMEOUT \
-                 -m $FENCED_MEMBER_DELAY join \
+        errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+		 -m $FENCED_MEMBER_DELAY join \
                  > /dev/null 2>&1 ) || return 1
     fi
     return 0
@@ -590,9 +589,8 @@ stop_fence()
 {
     if pidof fenced > /dev/null 2>&1
     then
-	@SBINDIR@/fence_tool -w leave > /dev/null 2>&1
+	@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
 	rtrn=$?
-	sleep 1 # A bit of time for fenced to exit
 	return $rtrn
     fi
     return 0 # all ok

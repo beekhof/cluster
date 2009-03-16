@@ -26,23 +26,28 @@
 #define OP_LIST				3
 #define OP_DUMP				4
 
-#define DEFAULT_WAIT_TIMEOUT		300 /* five minutes */
-
 #define MAX_NODES			128
 
 int all_nodeids[MAX_NODES];
 int all_nodeids_count;
+cman_handle_t ch;
 cman_node_t cman_nodes[MAX_NODES];
 int cman_nodes_count;
 struct fenced_node nodes[MAX_NODES];
 char *prog_name;
 int operation;
-int ls_all_nodes = 0;
-int inquorate_fail = 0;
-int wait_join = 0;			 /* default: don't wait for join */
-int wait_leave = 0;			 /* default: don't wait for leave */
-int wait_members = 0;			 /* default: don't wait for members */
-int wait_timeout = DEFAULT_WAIT_TIMEOUT;
+
+#define DEFAULT_RETRY_CMAN 0 /* fail immediately if we can't connect to cman */
+#define DEFAULT_DELAY_QUORUM 0
+#define DEFAULT_DELAY_MEMBERS 0
+#define DEFAULT_WAIT_JOINLEAVE 0
+
+int opt_all_nodes = 0;
+int opt_retry_cman = DEFAULT_RETRY_CMAN;
+int opt_delay_quorum = DEFAULT_DELAY_QUORUM;
+int opt_delay_members = DEFAULT_DELAY_MEMBERS;
+int opt_wait_joinleave = DEFAULT_WAIT_JOINLEAVE;
+
 
 #define die(fmt, args...) \
 do { \
@@ -70,19 +75,30 @@ static int do_write(int fd, void *buf, size_t count)
 	return 0;
 }
 
-static int get_int_arg(char argopt, char *arg)
-{
-	char *tmp;
-	int val;
+#define LOCKFILE_NAME           "/var/run/fenced.pid"
 
-	val = strtol(arg, &tmp, 10);
-	if (tmp == arg || tmp != arg + strlen(arg))
-		die("argument to %c (%s) is not an integer", argopt, arg);
-	
-	if (val < 0)
-		die("argument to %c cannot be negative", argopt);
-	
-	return val;
+static void check_fenced_running(void)
+{
+	struct flock lock;
+	int fd, rv;
+
+	fd = open(LOCKFILE_NAME, O_RDONLY);
+	if (fd < 0)
+		die("fenced not running, no lockfile");
+
+	lock.l_type = F_RDLCK;
+	lock.l_start = 0;
+	lock.l_whence= SEEK_SET;
+	lock.l_len = 0;
+
+	rv = fcntl(fd, F_GETLK, &lock);
+	if (rv < 0)
+		die("fenced not running, get lockfile");
+
+	if (lock.l_type == F_UNLCK)
+		die("fenced not running, unlocked lockfile");
+
+	close(fd);
 }
 
 static int check_gfs(void)
@@ -102,7 +118,7 @@ static int check_gfs(void)
 		if (sscanf(line, "%s %s %s", device, path, type) != 3)
 			continue;
 		if (!strcmp(type, "gfs") || !strcmp(type, "gfs2")) {
-			printf("found %s file system mounted from %s on %s\n",
+			fprintf(stderr, "found %s file system mounted from %s on %s\n",
 				type, device, path);
 			count++;
 		}
@@ -131,7 +147,7 @@ static int check_controlled_dir(char *path)
 			continue;
 #endif
 
-		printf("found dlm lockspace %s/%s\n", path, de->d_name);
+		fprintf(stderr, "found dlm lockspace %s/%s\n", path, de->d_name);
 		count++;
 	}
 
@@ -177,6 +193,9 @@ static void wait_domain(int joining)
 	int in, tries = 0;
 
 	while (1) {
+		if (joining)
+			check_fenced_running();
+
 		in = we_are_in_fence_domain();
 
 		if (joining && in)
@@ -185,19 +204,25 @@ static void wait_domain(int joining)
 		if (!joining && !in)
 			break;
 
-		if (tries++ >= wait_timeout)
-			goto fail;
+		tries++;
 
-		if (!(tries % 5))
-			printf("Waiting for fenced to %s the fence group.\n",
-			       joining ? "join" : "leave");
+		if (opt_wait_joinleave < 0)
+			goto retry_domain;
+
+		if (!opt_wait_joinleave || tries >= opt_wait_joinleave) {
+			fprintf(stderr, "%s: %s not complete\n",
+			       prog_name, joining ? "join" : "leave");
+			break;
+		}
+ retry_domain:
+		if (!(tries % 10))
+			fprintf(stderr, "%s: waiting for fenced to %s the fence group.\n",
+			       prog_name, joining ? "join" : "leave");
 
 		sleep(1);
 	}
 
 	return;
- fail:
-	printf("Error %s the fence group.\n", joining ? "joining" : "leaving");
 }
 
 static void read_ccs_nodeids(int cd)
@@ -223,7 +248,7 @@ static void read_ccs_nodeids(int cd)
 	}
 }
 
-static int all_nodeids_are_members(cman_handle_t ch)
+static int all_nodeids_are_members(void)
 {
 	int i, j, rv, found;
 
@@ -231,10 +256,8 @@ static int all_nodeids_are_members(cman_handle_t ch)
 	cman_nodes_count = 0;
 
 	rv = cman_get_nodes(ch, MAX_NODES, &cman_nodes_count, cman_nodes);
-	if (rv < 0) {
-		printf("cman_get_nodes error %d %d\n", rv, errno);
-		return 0;
-	}
+	if (rv < 0)
+		return -1;
 
 	for (i = 0; i < all_nodeids_count; i++) {
 		found = 0;
@@ -253,30 +276,25 @@ static int all_nodeids_are_members(cman_handle_t ch)
 	return 1;
 }
 
-static void wait_cman(void)
+static int connect_cman(void)
 {
-	cman_handle_t ch;
-	int try_init = 0, try_active = 0, try_quorate = 0;
-	int try_ccs = 0, try_members = 0;
-	int rv, cd;
+	int rv, tries = 0;
 
 	while (1) {
 		ch = cman_init(NULL);
 		if (ch)
 			break;
 
-		if (inquorate_fail)
-			goto fail;
+		tries++;
 
-		if (try_init++ >= wait_timeout) {
-			printf("%s: timed out waiting for cman init\n",
-			       prog_name);
-			goto fail;
-		}
+		if (opt_retry_cman < 0)
+			goto retry_init;
 
-		if (!(try_init % 10))
-			printf("%s: waiting for cman to start\n", prog_name);
-
+		if (!opt_retry_cman || tries >= opt_retry_cman)
+			return -1;
+ retry_init:
+		if (!(tries % 10))
+			fprintf(stderr, "%s: retrying cman connection\n", prog_name);
 		sleep(1);
 	}
 
@@ -285,97 +303,140 @@ static void wait_cman(void)
 		if (rv)
 			break;
 
-		if (inquorate_fail)
-			goto fail;
+		tries++;
 
-		if (try_active++ >= wait_timeout) {
-			printf("%s: timed out waiting for cman active\n",
-			       prog_name);
-			goto fail;
+		if (opt_retry_cman < 0)
+			goto retry_active;
+
+		if (!opt_retry_cman || tries >= opt_retry_cman) {
+			cman_finish(ch);
+			return -1;
 		}
-
-		if (!(try_active % 10))
-			printf("%s: waiting for cman active\n", prog_name);
+ retry_active:
+		if (!(tries % 10))
+			fprintf(stderr, "%s: retrying cman active check\n", prog_name);
 		sleep(1);
 	}
+
+	return 0;
+}
+
+static void delay_quorum(void)
+{
+	int rv, tries = 0;
 
 	while (1) {
 		rv = cman_is_quorate(ch);
 		if (rv)
 			break;
 
-		if (inquorate_fail)
-			goto fail;
-
-		if (try_quorate++ >= wait_timeout) {
-			printf("%s: timed out waiting for cman quorum\n",
-			       prog_name);
-			goto fail;
+		rv = cman_is_active(ch);
+		if (!rv) {
+			cman_finish(ch);
+			die("lost cman connection");
 		}
+		
+		tries++;
 
-		if (!(try_quorate % 10))
-			printf("%s: waiting for cman quorum\n", prog_name);
+		if (opt_delay_quorum < 0)
+			goto retry_quorum;
 
-		sleep(1);
-	}
-
-	while (1) {
-		cd = ccs_connect();
-		if (cd > 0)
+		if (!opt_delay_quorum || tries >= opt_delay_quorum) {
+			fprintf(stderr, "%s: continuing without quorum\n", prog_name);
 			break;
-
-		if (try_ccs++ >= wait_timeout) {
-			printf("%s: timed out waiting for ccs connect\n",
-			       prog_name);
-			goto fail;
 		}
-
-		if (!(try_ccs % 10))
-			printf("%s: waiting for ccs connect\n", prog_name);
+ retry_quorum:
+		if (!(tries % 10))
+			fprintf(stderr, "%s: delaying for quorum\n", prog_name);
 
 		sleep(1);
 	}
 
-	if (!wait_members)
-		goto out;
+	return;
+}
+
+static void delay_members(void)
+{
+	int rv, tries = 0;
+	int cd;
+
+	cd = ccs_connect();
+	if (cd < 0) {
+		cman_finish(ch);
+		die("lost cman/ccs connection");
+	}
+
 	read_ccs_nodeids(cd);
 
 	while (1) {
-		rv = all_nodeids_are_members(ch);
+		rv = all_nodeids_are_members();
+		if (rv < 0) {
+			ccs_disconnect(cd);
+			cman_finish(ch);
+			die("lost cman connection");
+		}
 		if (rv)
 			break;
 
-		if (try_members++ >= wait_members)
-			break;
+		tries++;
 
-		if (!(try_members % 10))
-			printf("%s: waiting for all %d nodes to be members\n",
-			       prog_name, all_nodeids_count);
+		if (opt_delay_members < 0)
+			goto retry_members;
+
+		if (!opt_delay_members || tries > opt_delay_members) {
+			fprintf(stderr, "%s: continuing without all members\n", prog_name);
+			break;
+		}
+ retry_members:
+		if (!(tries % 10))
+			fprintf(stderr, "%s: delaying for members\n", prog_name);
+
 		sleep(1);
 	}
 
- out:
 	ccs_disconnect(cd);
-	cman_finish(ch);
 	return;
-
- fail:
-	if (ch)
-		cman_finish(ch);
-	exit(EXIT_FAILURE);
 }
 
 static void do_join(int argc, char *argv[])
 {
-	int rv;
+	int rv, tries = 0;
 
-	wait_cman();
-
-	rv = fenced_join();
+	rv = connect_cman();
 	if (rv < 0)
-		die("can't communicate with fenced");
+		die("can't connect to cman");
 
-	if (wait_join)
+	/* if delay_quorum() or delay_members() fail on any cman/ccs
+	   connection or operation, they call cman_finish() and exit
+	   with failure */
+
+	if (opt_delay_quorum)
+		delay_quorum();
+
+	if (opt_delay_members)
+		delay_members();
+
+	cman_finish(ch);
+
+	/* This loop deals with the case where fenced is slow enough starting
+	   up that fenced_join fails.  Do we also want to add a delay here to
+	   deal with the case where fenced is so slow starting up that it hasn't
+	   locked its lockfile yet, causing check_fenced_running to fail? */
+
+	while (1) {
+		rv = fenced_join();
+		if (!rv)
+			break;
+
+		check_fenced_running();
+
+		tries++;
+		if (!(tries % 10))
+			fprintf(stderr, "%s: retrying join\n", prog_name);
+		sleep(1);
+	}
+
+	if (opt_wait_joinleave)
 		wait_domain(1);
 
 	exit(EXIT_SUCCESS);
@@ -389,9 +450,9 @@ static void do_leave(void)
 
 	rv = fenced_leave();
 	if (rv < 0)
-		die("can't communicate with fenced");
+		die("leave: can't communicate with fenced");
 
-	if (wait_leave)
+	if (opt_wait_joinleave)
 		wait_domain(0);
 
 	exit(EXIT_SUCCESS);
@@ -404,7 +465,7 @@ static void do_dump(void)
 
 	rv = fenced_dump_debug(buf);
 	if (rv < 0)
-		die("can't communicate with fenced");
+		die("dump: can't communicate with fenced");
 
 	do_write(STDOUT_FILENO, buf, strlen(buf));
 
@@ -500,7 +561,7 @@ static int do_list(void)
 	}
 	printf("\n");
 
-	if (!ls_all_nodes) {
+	if (!opt_all_nodes) {
 		printf("\n");
 		exit(EXIT_SUCCESS);
 	}
@@ -539,27 +600,40 @@ static void print_usage(void)
 {
 	printf("Usage:\n");
 	printf("\n");
-	printf("%s <join|leave|dump> [options]\n", prog_name);
+	printf("%s <ls|join|leave|dump> [options]\n", prog_name);
 	printf("\n");
 	printf("Actions:\n");
+	printf("  ls		   List nodes status\n");
 	printf("  join             Join the default fence domain\n");
 	printf("  leave            Leave default fence domain\n");
-	printf("  ls		   List nodes status\n");
 	printf("  dump		   Dump debug buffer from fenced\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("  -n               Show all node information in ls\n");
+
+	printf("  -t <seconds>     Retry cman connection for <seconds>.\n");
+	printf("                   Default %d.  0 no retry, -1 indefinite retry.\n",
+				   DEFAULT_RETRY_CMAN);
+
+	printf("  -q <seconds>     Delay join up to <seconds> for the cluster to have quorum.\n");
+	printf("                   Default %d.  0 no delay, -1 indefinite delay.\n",
+				   DEFAULT_DELAY_QUORUM);
+
 	printf("  -m <seconds>     Delay join up to <seconds> for all nodes in cluster.conf\n");
-	printf("                   to be cluster members\n");
-	printf("  -w               Wait for join or leave to complete\n");
-	printf("  -t <seconds>     Maximum time in seconds to wait (default %d)\n", DEFAULT_WAIT_TIMEOUT);
-	printf("  -Q               Fail if cluster is not quorate, don't wait\n");
+	printf("                   to be cluster members.\n");
+	printf("                   Default %d.  0 no delay, -1 indefinite delay\n",
+				   DEFAULT_DELAY_MEMBERS);
+
+	printf("  -w <seconds>     Wait up to <seconds> for join or leave result.\n");
+	printf("                   Default %d.  0 no wait, -1 indefinite wait.\n",
+				   DEFAULT_WAIT_JOINLEAVE);
+
 	printf("  -V               Print program version information, then exit\n");
 	printf("  -h               Print this help, then exit\n");
 	printf("\n");
 }
 
-#define OPTION_STRING "Vht:wQm:n"
+#define OPTION_STRING "nt:q:m:w:Vh"
 
 static void decode_arguments(int argc, char *argv[])
 {
@@ -571,6 +645,26 @@ static void decode_arguments(int argc, char *argv[])
 
 		switch (optchar) {
 
+		case 'n':
+			opt_all_nodes = 1;
+			break;
+
+		case 't':
+			opt_retry_cman = atoi(optarg);
+			break;
+
+		case 'q':
+			opt_delay_quorum = atoi(optarg);
+			break;
+
+		case 'm':
+			opt_delay_members = atoi(optarg);
+			break;
+
+		case 'w':
+			opt_wait_joinleave = atoi(optarg);
+			break;
+
 		case 'V':
 			printf("fence_tool %s (built %s %s)\n",
 			       RELEASE_VERSION, __DATE__, __TIME__);
@@ -578,30 +672,9 @@ static void decode_arguments(int argc, char *argv[])
 			exit(EXIT_SUCCESS);
 			break;
 
-		case 'n':
-			ls_all_nodes = 1;
-			break;
-
 		case 'h':
 			print_usage();
 			exit(EXIT_SUCCESS);
-			break;
-
-		case 'Q':
-			inquorate_fail = 1;
-			break;
-
-		case 'w':
-			wait_join = 1;
-			wait_leave = 1;
-			break;
-
-		case 'm':
-			wait_members = atoi(optarg);
-			break;
-
-		case 't':
-			wait_timeout = get_int_arg(optchar, optarg);
 			break;
 
 		case ':':
@@ -647,12 +720,16 @@ int main(int argc, char *argv[])
 	switch (operation) {
 	case OP_JOIN:
 		do_join(argc, argv);
+		break;
 	case OP_LEAVE:
 		do_leave();
+		break;
 	case OP_DUMP:
 		do_dump();
+		break;
 	case OP_LIST:
 		do_list();
+		break;
 	}
 
 	return EXIT_FAILURE;
