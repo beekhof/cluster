@@ -1023,7 +1023,6 @@ int main(int argc, char *argv[])
 		INIT_LIST_HEAD(&gd_levels[i]);
 
 	read_arguments(argc, argv);
-	lockfile();
 
 	if (!daemon_debug_opt) {
 		if (daemon(0, 0) < 0) {
@@ -1031,6 +1030,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
+	lockfile();
 	init_logging();
 	log_level(LOG_INFO, "groupd %s", RELEASE_VERSION);
 	signal(SIGTERM, sigterm_handler);

@@ -1026,7 +1026,6 @@ int main(int argc, char **argv)
 	INIT_LIST_HEAD(&controlled_entries);
 
 	read_arguments(argc, argv);
-	lockfile();
 
 	if (!daemon_debug_opt) {
 		if (daemon(0, 0) < 0) {
@@ -1035,6 +1034,7 @@ int main(int argc, char **argv)
 		}
 		umask(0);
 	}
+	lockfile();
 	init_logging();
 	log_level(LOG_INFO, "fenced %s", RELEASE_VERSION);
 	signal(SIGTERM, sigterm_handler);
