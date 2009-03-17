@@ -384,15 +384,13 @@ int main(int argc, char **argv)
 {
 
 	read_arguments(argc, argv);
-	lockfile();
-
 	if (daemonize) {
 		if (daemon(0, 0) < 0) {
 			perror("Unable to daemonize");
 			exit(EXIT_FAILURE);
 		}
 	}
-
+	lockfile();
 	init_logging(0);
 	signal(SIGTERM, sigterm_handler);
 	set_oom_adj(-16);
