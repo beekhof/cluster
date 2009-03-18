@@ -20,9 +20,37 @@ typedef struct _thr {
 	pthread_t th;
 } mthread_t;
 
+typedef struct _arglist {
+	void *(*real_thread_fn)(void *arg);
+	void *real_thread_arg;
+} thread_arg_t;
+
 static mthread_t *_tlist = NULL;
 static int _tcount = 0;
 static pthread_rwlock_t _tlock = PTHREAD_RWLOCK_INITIALIZER;
+
+void *
+setup_thread(void *thread_arg)
+{
+	thread_arg_t *args = (thread_arg_t *)thread_arg;
+	void *(*thread_func)(void *arg);
+	sigset_t set;
+
+	/* Block all non-fatal signals */
+	sigemptyset(&set);
+	sigaddset(&set, SIGUSR1);
+	sigaddset(&set, SIGUSR2);
+	sigaddset(&set, SIGINT);
+	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGQUIT);
+	sigaddset(&set, SIGHUP);
+	sigprocmask(SIG_BLOCK, &set, NULL);
+
+	thread_func = args->real_thread_fn;
+	thread_arg = args->real_thread_arg;
+	free(args);
+	return thread_func(thread_arg);
+}
 
 void
 dump_thread_states(FILE *fp)
@@ -49,14 +77,22 @@ __wrap_pthread_create(pthread_t *th, const pthread_attr_t *attr,
 {
 	void *fn = start_routine;
 	mthread_t *new;
+	thread_arg_t *targ;
 	int ret;
 
 	new = malloc(sizeof (*new));
+	targ = malloc(sizeof (*targ));
+	if (!targ||!new)
+		return -1;
+	targ->real_thread_fn = start_routine;
+	targ->real_thread_arg = arg;
 
-	ret = __real_pthread_create(th, attr, start_routine, arg);
+	ret = __real_pthread_create(th, attr, setup_thread, targ);
 	if (ret) {
 		if (new)
 			free(new);
+		if (targ)
+			free(targ);
 		return ret;
 	}
 
