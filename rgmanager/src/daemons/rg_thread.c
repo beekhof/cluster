@@ -59,7 +59,7 @@ dump_threads(FILE *fp)
 			rt,
 			rg_req_str(rt->rt_request),
 			rt->rt_request);
-		if (!*rt->rt_queue) {
+		if (rt->rt_queue) {
 			fprintf(fp, "    Pending requests: \n");
 			list_for(rt->rt_queue, req, y) {
 				fprintf(fp, "      %s tgt:%d  ctx:%p  a0:%d  a1:%d\n",
