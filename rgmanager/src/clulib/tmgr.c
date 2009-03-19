@@ -76,32 +76,37 @@ __wrap_pthread_create(pthread_t *th, const pthread_attr_t *attr,
 	 	      void *arg)
 {
 	void *fn = start_routine;
-	mthread_t *new;
+	mthread_t *newthread;
 	thread_arg_t *targ;
 	int ret;
 
-	new = malloc(sizeof (*new));
-	targ = malloc(sizeof (*targ));
-	if (!targ||!new)
+	newthread = malloc(sizeof (*newthread));
+	if (!newthread)
 		return -1;
+	targ = malloc(sizeof (*targ));
+	if (!targ) {
+		free(newthread)
+		return -1;
+	}
+
 	targ->real_thread_fn = start_routine;
 	targ->real_thread_arg = arg;
 
 	ret = __real_pthread_create(th, attr, setup_thread, targ);
 	if (ret) {
-		if (new)
-			free(new);
+		if (newthread)
+			free(newthread);
 		if (targ)
 			free(targ);
 		return ret;
 	}
 
-	if (new) {
-		new->th = *th;
-		new->fn = start_routine;
-		new->name = backtrace_symbols(&new->fn, 1);
+	if (newthread) {
+		newthread->th = *th;
+		newthread->fn = start_routine;
+		newthread->name = backtrace_symbols(&new->fn, 1);
 		pthread_rwlock_wrlock(&_tlock);
-		list_insert(&_tlist, new);
+		list_insert(&_tlist, newthread);
 		++_tcount;
 		pthread_rwlock_unlock(&_tlock);
 	}
