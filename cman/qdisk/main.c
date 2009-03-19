@@ -650,13 +650,19 @@ check_votes(qd_ctx *ctx, node_info_t *ni, int max, disk_msg_t *msg)
 static void
 print_node_info(FILE *fp, node_info_t *ni)
 {
+	uint64_t incarnation;
+
 	fprintf(fp, "node_info_t [node %d] {\n", ni->ni_status.ps_nodeid);
+
+	incarnation = be_swap64(ni->ni_incarnation);
 	fprintf(fp, "    ni_incarnation = 0x%08x%08x\n",
-		((int)(ni->ni_incarnation>>32))&0xffffffff,
-		((int)(ni->ni_incarnation)&0xffffffff));
+		((int)(incarnation>>32))&0xffffffff,
+		((int)(incarnation)&0xffffffff));
+
+	incarnation = be_swap64(ni->ni_evil_incarnation);
 	fprintf(fp, "    ni_evil_incarnation = 0x%08x%08x\n",
-		((int)(ni->ni_evil_incarnation>>32))&0xffffffff,
-		((int)(ni->ni_evil_incarnation)&0xffffffff));
+		((int)(incarnation>>32))&0xffffffff,
+		((int)(incarnation)&0xffffffff));
 	fprintf(fp, "    ni_last_seen = %s", ctime(&ni->ni_last_seen));
 	fprintf(fp, "    ni_misses = %d\n", ni->ni_misses);
 	fprintf(fp, "    ni_seen = %d\n", ni->ni_seen);

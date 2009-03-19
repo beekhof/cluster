@@ -53,15 +53,15 @@ static void
 header_encode(shared_header_t *hdr)
 {
 	/* sanity check - LE machine -> already encoded. */
-	if (hdr->h_magic == be_swap32(SHARED_HEADER_MAGIC))
+	if (hdr->h_magic == le_swap32(SHARED_HEADER_MAGIC))
 		return;
 
-	swab32(hdr->h_magic);
-	swab32(hdr->h_hcrc);
-	swab32(hdr->h_dcrc);
-	swab32(hdr->h_length);
-	swab64(hdr->h_view);
-	swab64(hdr->h_timestamp);
+	hdr->h_magic = le_swap32(hdr->h_magic);
+	hdr->h_hcrc = le_swap32(hdr->h_hcrc);
+	hdr->h_dcrc = le_swap32(hdr->h_dcrc);
+	hdr->h_length = le_swap32(hdr->h_length);
+	hdr->h_view = le_swap64(hdr->h_view);
+	hdr->h_timestamp = le_swap64(hdr->h_timestamp);
 }
 
 
@@ -78,12 +78,12 @@ header_decode(shared_header_t *hdr)
 	if (hdr->h_magic == SHARED_HEADER_MAGIC)
 		return;
 
-	swab32(hdr->h_magic);
-	swab32(hdr->h_hcrc);
-	swab32(hdr->h_dcrc);
-	swab32(hdr->h_length);
-	swab64(hdr->h_view);
-	swab64(hdr->h_timestamp);
+	hdr->h_magic = le_swap32(hdr->h_magic);
+	hdr->h_hcrc = le_swap32(hdr->h_hcrc);
+	hdr->h_dcrc = le_swap32(hdr->h_dcrc);
+	hdr->h_length = le_swap32(hdr->h_length);
+	hdr->h_view = le_swap64(hdr->h_view);
+	hdr->h_timestamp = le_swap64(hdr->h_timestamp);
 }
 
 
@@ -119,14 +119,14 @@ header_generate(shared_header_t *hdr, const char *data, size_t count)
 	}
 
 	hdr->h_timestamp = (uint64_t)time(NULL);
+	header_encode(hdr);
+	hdr->h_hcrc = 0;
+	hdr->h_hcrc = le_swap32(clu_crc32((char *)hdr, sizeof(*hdr)));
 
-	hdr->h_hcrc = clu_crc32((char *)hdr, sizeof(*hdr));
 	if (hdr->h_hcrc == 0) {
 		logt_print(LOG_ERR, "Invalid CRC32 generated on header!\n");
 		return -1;
 	}
-
-	header_encode(hdr);
 
 	return 0;
 }
@@ -148,23 +148,26 @@ header_verify(shared_header_t *hdr, const char *data, size_t count)
 	uint32_t crc;
 	uint32_t bkupcrc;
 
-	header_decode(hdr);
 	/*
 	 * verify the header's CRC32.  Ok, we know it's overkill taking
 	 * the CRC32 of a friggin' 16-byte (12 bytes, really) structure,
 	 * but why not?
 	 */
 	bkupcrc = hdr->h_hcrc;
+
+	/* BUG: Headers are stored in little-endian form */
+	bkupcrc = le_swap32(hdr->h_hcrc); 
+
 	hdr->h_hcrc = 0;
 	crc = clu_crc32((char *)hdr, sizeof(*hdr));
 	hdr->h_hcrc = bkupcrc;
 	if (bkupcrc != crc) {
-#ifdef DEBUG
 		logt_print(LOG_DEBUG, "Header CRC32 mismatch; Exp: 0x%08x "
 			"Got: 0x%08x\n", bkupcrc, crc);
-#endif
 		return -1;
 	}
+
+	header_decode(hdr);
 
 	/*
 	 * Verify the magic number.
@@ -328,7 +331,6 @@ diskRawReadShadow(target_info_t *disk, off_t readOffset, char *buf, int len)
 	int ret;
 	shared_header_t *hdrp;
 	char *data;
-	int datalen;
 
 	ret = lseek(disk->d_fd, readOffset, SEEK_SET);
 	if (ret != readOffset) {
@@ -350,8 +352,6 @@ diskRawReadShadow(target_info_t *disk, off_t readOffset, char *buf, int len)
 	/* Decode the header portion so we can run a checksum on it. */
 	hdrp = (shared_header_t *)buf;
 	data = (char *)buf + sizeof(*hdrp);
-	swab_shared_header_t(hdrp);
-	datalen = hdrp->h_length;
 
 	if (header_verify(hdrp, data, len)) {
 #ifdef DEBUG
@@ -650,7 +650,6 @@ qdisk_write(target_info_t *disk, __off64_t offset, const void *buf, int count)
 		free((char *)hdrp);
 		return -1;
 	}
-	swab_shared_header_t(hdrp);
 
 	/* 
 	 * Locking must be performed elsewhere.  We make no assumptions

@@ -21,8 +21,6 @@ main(int argc, char **argv)
 	char *newdev = NULL, *newlabel = NULL;
 	int rv, verbose_level = 1;
 
-	logt_init(PROGRAM_NAME, LOG_MODE_OUTPUT_STDERR, 0, 0, 0, NULL);
-
 	printf(PROGRAM_NAME " v" RELEASE_VERSION "\n\n");
 
 	/* XXX this is horrible but we need to prioritize options as long as
@@ -32,9 +30,14 @@ main(int argc, char **argv)
 		switch (rv) {
 		case 'd':
 			++verbose_level;
+			if (verbose_level > LOG_DEBUG)
+				verbose_level = LOG_DEBUG;
 			break;
 		}
 	}
+
+	logt_init(PROGRAM_NAME, LOG_MODE_OUTPUT_STDERR,
+		  verbose_level, verbose_level, verbose_level, NULL);
 
 	/* reset the option index to reparse */
 	optind = 0;

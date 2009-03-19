@@ -127,6 +127,7 @@ static void
 print_status_block(status_block_t *sb)
 {
 	time_t timestamp = (time_t)sb->ps_timestamp;
+	uint64_t incarnation = be_swap64(sb->ps_incarnation);
 
 	if (sb->ps_state == S_NONE)
 		return;
@@ -134,15 +135,15 @@ print_status_block(status_block_t *sb)
 	logt_print(LOG_INFO, "\tLast updated by node %d\n", sb->ps_updatenode);
 	logt_print(LOG_INFO, "\tLast updated on %s", ctime((time_t *)&timestamp));
 	logt_print(LOG_INFO, "\tState: %s\n", state_str(sb->ps_state));
-	logt_print(LOG_INFO, "\tFlags: %04x\n", sb->ps_flags);
+	logt_print(LOG_INFO, "\tFlags: %04x\n", (be_swap16(sb->ps_flags)));
 	logt_print(LOG_INFO, "\tScore: %d/%d\n", sb->ps_score, sb->ps_scoremax);
 	logt_print(LOG_INFO, "\tAverage Cycle speed: %d.%06d seconds\n", 
 		sb->ps_ca_sec, sb->ps_ca_usec);
 	logt_print(LOG_INFO, "\tLast Cycle speed: %d.%06d seconds\n", 
 		sb->ps_lc_sec, sb->ps_lc_usec);
 	logt_print(LOG_INFO, "\tIncarnation: %08x%08x\n",
-		(int)(sb->ps_incarnation>>32&0xffffffff),
-		(int)(sb->ps_incarnation&0xffffffff));
+		(int)(incarnation>>32&0xffffffff),
+		(int)(incarnation&0xffffffff));
 
 }
 
