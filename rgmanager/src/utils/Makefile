@@ -56,7 +56,7 @@ ${TARGET4}: ${OBJS4} ${LDDEPS}
 			$(LOGSYS_LDFLAGS) $(LDFLAGS)
 
 ${TARGET5}: ${OBJS5} ${LDDEPS}
-	$(CC) -o $@ $^ $(CCS_LDFLAGS) $(CMAN_LDFLAGS) \
+	$(CC) -o $@ $^ $(CCS_LDFLAGS) \
 			$(LOGSYS_LDFLAGS) $(LDFLAGS)
 
 ${TARGET6}:
