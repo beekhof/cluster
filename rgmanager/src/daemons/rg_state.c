@@ -1259,7 +1259,7 @@ svc_status_inquiry(char *svcName)
 	if (svcStatus.rs_flags & RG_FLAG_FROZEN)
 		return 0;
 	
-	return group_op(svcName, RG_STATUS);
+	return group_op(svcName, RG_STATUS_INQUIRY);
 }
 
 

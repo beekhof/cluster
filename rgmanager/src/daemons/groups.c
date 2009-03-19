@@ -964,6 +964,9 @@ group_op(char *groupname, int op)
 	case RG_STATUS:
 		ret = res_status(&_tree, res, NULL);
 		break;
+	case RG_STATUS_INQUIRY:
+		ret = res_status_inquiry(&_tree, res, NULL);
+		break;
 	case RG_CONDSTOP:
 		ret = res_condstop(&_tree, res, NULL);
 		break;

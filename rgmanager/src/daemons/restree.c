@@ -1337,7 +1337,19 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			++node->rn_resource->r_incarnations;
 			node->rn_state = RES_STARTED;
 		}
-	} else if (me && (op == RS_STATUS)) {
+	} else if (me && (op == RS_STATUS || op == RS_STATUS_INQUIRY)) {
+
+		/* Special quick-check for status inquiry */
+		if (op == RS_STATUS_INQUIRY) {
+			if (res_exec(node, RS_STATUS, NULL, 0) != 0)
+				return SFL_FAILURE;
+
+			/* XXX: A migratable service (the only place this
+			 * check can be used) cannot have child dependencies
+			 * anyway, so this is a short-circuit. */
+			return 0;
+		}
+
 		/* Check status before children*/
 		rv = do_status(node);
 		if (rv != 0) {
@@ -1519,6 +1531,20 @@ int
 res_status(resource_node_t **tree, resource_t *res, void *ret)
 {
 	return _res_op(tree, res, NULL, ret, RS_STATUS);
+}
+
+
+/**
+   Check status of all occurrences of a resource in a tree
+
+   @param tree		Tree to search for our resource.
+   @param res		Resource to start/stop
+   @param ret		Unused
+ */
+int
+res_status_inquiry(resource_node_t **tree, resource_t *res, void *ret)
+{
+	return _res_op(tree, res, NULL, ret, RS_STATUS_INQUIRY);
 }
 
 

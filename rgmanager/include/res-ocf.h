@@ -46,5 +46,6 @@
 #define RS_VALIDATE	(12)
 #define RS_MIGRATE	(13)
 #define RS_RECONFIG	(14)
+#define RS_STATUS_INQUIRY (15)	/** Quick status */
 
 #endif
