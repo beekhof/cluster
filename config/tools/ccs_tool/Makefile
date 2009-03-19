@@ -17,12 +17,10 @@ OBJS =	ccs_tool.o \
 	editconf.o
 
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
-CFLAGS += -I${cmanincdir} `xml2-config --cflags`
-CFLAGS += -I${ccsincdir} -I$(SRCDIR)/config/daemons/ccsd
-CFLAGS += -I$(SRCDIR)/config/libs/libccscompat
+CFLAGS += `xml2-config --cflags`
+CFLAGS += -I${ccsincdir}
 CFLAGS += -I${incdir}
 
-LDFLAGS += -L${cmanlibdir} -lcman
 LDFLAGS += -L${ccslibdir} -lccs
 LDFLAGS += `xml2-config --libs`
 LDFLAGS += -L${libdir}
