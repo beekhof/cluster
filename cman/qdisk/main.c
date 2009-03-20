@@ -31,6 +31,7 @@
 
 /* from daemon_init.c */
 int daemon_init(char *);
+void daemon_cleanup(void);
 int check_process_running(char *, pid_t *);
 
 /* from proc.c */
@@ -1779,6 +1780,7 @@ out:
 	}
 	qd_destroy(&ctx);
 	logt_exit();
+	daemon_cleanup();
 	return ret;
 }
 

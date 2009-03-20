@@ -36,6 +36,7 @@ int check_process_running(char *prog, pid_t * pid);
  */
 static void update_pidfile(char *prog);
 static int setup_sigmask(void);
+static char pid_filename[PATH_MAX];
 
 static int
 check_pid_valid(pid_t pid, char *prog)
@@ -148,14 +149,13 @@ update_pidfile(char *prog)
 {
 	FILE *fp = NULL;
 	char *cmd;
-	char filename[PATH_MAX];
 
-	memset(filename, 0, PATH_MAX);
+	memset(pid_filename, 0, PATH_MAX);
 
 	cmd = basename(prog);
-	snprintf(filename, sizeof (filename), "/var/run/%s.pid", cmd);
+	snprintf(pid_filename, sizeof (pid_filename), "/var/run/%s.pid", cmd);
 
-	fp = fopen(filename, "w");
+	fp = fopen(pid_filename, "w");
 	if (fp == NULL) {
 		exit(1);
 	}
@@ -224,4 +224,12 @@ daemon_init(char *prog)
 
 
 	update_pidfile(prog);
+}
+
+
+void
+daemon_cleanup(void)
+{
+	if (strlen(pid_filename))
+		unlink(pid_filename);
 }
