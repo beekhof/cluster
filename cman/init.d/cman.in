@@ -267,7 +267,7 @@ start_daemons()
 	    ;;
 	    *)
 		errmsg="unknown CMAN_NOTIFYD_START option"
-		exit 1
+		return 1
 	    ;;
 	esac
     fi
