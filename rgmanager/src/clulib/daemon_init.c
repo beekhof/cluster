@@ -38,6 +38,7 @@ int check_process_running(char *prog, pid_t * pid);
  */
 static void update_pidfile(char *prog);
 static int setup_sigmask(void);
+static char pid_filename[PATH_MAX];
 
 
 int
@@ -149,14 +150,13 @@ update_pidfile(char *prog)
 {
 	FILE *fp = NULL;
 	char *cmd;
-	char filename[PATH_MAX];
 
-	memset(filename, 0, PATH_MAX);
+	memset(pid_filename, 0, PATH_MAX);
 
 	cmd = basename(prog);
-	snprintf(filename, sizeof (filename), "/var/run/%s.pid", cmd);
+	snprintf(pid_filename, sizeof (pid_filename), "/var/run/%s.pid", cmd);
 
-	fp = fopen(filename, "w");
+	fp = fopen(pid_filename, "w");
 	if (fp == NULL) {
 		exit(1);
 	}
@@ -222,4 +222,15 @@ daemon_init(char *prog)
 		fprintf(stderr, "daemon_init: Unable to renice.\n");
 
 	//mlockall(MCL_CURRENT | MCL_FUTURE);
+}
+
+
+void
+daemon_cleanup(void)
+{
+	if (!strlen(pid_filename))
+		return;
+
+	unlink(pid_filename);
+	memset(pid_filename, 0, sizeof(pid_filename));
 }

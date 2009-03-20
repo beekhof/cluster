@@ -32,6 +32,7 @@ void set_transition_throttling(int);
 void node_event(int, int, int, int);
 void node_event_q(int, int, int, int);
 int daemon_init(char *);
+void daemon_cleanup(void);
 void kill_resource_groups(void);
 void set_my_id(int);
 void flag_shutdown(int sig);
@@ -1106,5 +1107,6 @@ main(int argc, char **argv)
 	/*malloc_dump_table(); */ /* Only works if alloc.c us used */
 	/*malloc_stats();*/
 
+	daemon_cleanup();
 	exit(0);
 }
