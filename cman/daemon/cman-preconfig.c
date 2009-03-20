@@ -966,7 +966,7 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, hdb_handle_t source_
 	objdb->object_name_get(source_object, object_name, &object_name_len);
 
 	objdb->object_find_create(target_parent_object, object_name, strlen(object_name), &find_handle);
-	if (always_create || objdb->object_find_next(find_handle, &object_handle))
+	if (always_create || objdb->object_find_next(find_handle, &new_object))
 			objdb->object_create(target_parent_object, &new_object, object_name, object_name_len);
 	objdb->object_find_destroy(find_handle);
 
