@@ -1042,6 +1042,7 @@ int main(int argc, char **argv)
 
 	loop();
 
+	unlink(LOCKFILE_NAME);
 	return 0;
 }
 
