@@ -94,6 +94,11 @@ static void read_arguments(int argc, char **argv)
 	}
 }
 
+static void remove_lockfile(void)
+{
+	unlink(LOCKFILE_NAME);
+}
+
 static void lockfile(void)
 {
 	int fd, error;
@@ -134,6 +139,8 @@ static void lockfile(void)
 		fprintf(stderr, "cannot write lock file %s\n", LOCKFILE_NAME);
 		exit(EXIT_FAILURE);
 	}
+
+	atexit(remove_lockfile);
 }
 
 static void sigterm_handler(int sig)
@@ -356,6 +363,10 @@ static void loop()
 		cman_fd = cman_get_fd(cman_handle);
 		FD_SET (cman_fd, &read_fds);
 		se_result = select((cman_fd + 1), &read_fds, 0, 0, 0);
+
+		if (daemon_quit)
+			goto out;
+
 		if (se_result == -1) {
 			logt_print(LOG_CRIT, "Unable to select on cman_fd: %s\n", strerror(errno));
 			byebye_cman();
@@ -376,6 +387,7 @@ static void loop()
 		}
 	} while (se_result && !daemon_quit);
 
+out:
 	logt_print(LOG_DEBUG, "shutting down...\n");
 	byebye_cman();
 }
