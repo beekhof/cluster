@@ -225,27 +225,10 @@ unfence_self()
 
 start_qdiskd()
 {
-    declare current_runlevel
-
-    current_runlevel=$(/sbin/runlevel 2>/dev/null | awk '{ print $2 }' 2>/dev/null)
-    #
-    # Start qdiskd before fenced to resolve bug #436381.  This only
-    # happens if qdiskd is configured to run in the runlevel we are in
-    #
-    chkconfig --levels "$current_runlevel" qdiskd 2>/dev/null
-    if [ $? -ne 0 ]; then
-        # qdiskd doesn't start at this runlevel.
-        return 0
-    fi
-
-    echo -n "   Starting qdiskd... "
-    service qdiskd start > /dev/null 2>&1
-    if [ $? -eq 0 ] 
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
+    status qdiskd > /dev/null 2>&1
+    if [ $? -ne 0 ] && \
+	ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
+	errmsg=$( @SBINDIR@/qdiskd -Q 2>&1 ) || return 1
     fi
     return 0
 }
@@ -495,7 +478,15 @@ start()
         return 1
     fi
 
+    echo -n "   Starting qdiskd... "
     start_qdiskd
+    if [ $? -eq 0 ]
+    then
+	echo "done"
+    else
+	echo "failed"
+	return 1
+    fi
 
     echo -n "   Starting daemons... "
     start_daemons
@@ -585,6 +576,24 @@ stop_cmannotifyd()
     return 0
 }
 
+stop_qdiskd()
+{
+    retries=0
+
+    pid="$(pidof qdiskd)"
+    while [ -n "$pid" ] && [ $retries -lt 5 ]; do
+	kill $pid 2>&1
+	sleep 1
+	((retries++))
+	pid="$(pidof qdiskd)"
+    done
+    if [ -z "$(pidof qdiskd)" ]; then
+	return 0
+    else
+	return 1
+    fi
+}
+
 stop_fence()
 {
     if pidof fenced > /dev/null 2>&1
@@ -638,6 +647,16 @@ stop()
 
     echo -n "   Stopping daemons... "
     stop_daemons
+    if [ $? -eq 0 ]
+    then
+	echo "done"
+    else
+	echo "failed"
+	return 1
+    fi
+
+    echo -n "   Stopping the Quorum Disk Daemon: "
+    stop_qdiskd
     if [ $? -eq 0 ]
     then
 	echo "done"

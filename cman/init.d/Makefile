@@ -1,26 +1,19 @@
-TARGET1=cman
-TARGET2=qdiskd
+TARGET=cman
 
-INITDT=$(TARGET1) $(TARGET2)
+INITDT=$(TARGET)
 
-all: $(TARGET1) $(TARGET2)
+all: $(TARGET)
 
 include ../../make/defines.mk
 include $(OBJDIR)/make/clean.mk
 include $(OBJDIR)/make/install.mk
 include $(OBJDIR)/make/uninstall.mk
 
-$(TARGET1): $(S)/$(TARGET1).in
-	cat $(S)/$(TARGET1).in | sed \
+$(TARGET): $(S)/$(TARGET).in
+	cat $(S)/$(TARGET).in | sed \
 		-e 's#@SBINDIR@#${sbindir}#g' \
 		-e 's#@INITDDIR@#${initddir}#g' \
 		-e 's#@NOTIFYDDIR@#${notifyddir}#g' \
-	> $(TARGET1)
-
-$(TARGET2): $(S)/$(TARGET2).in
-	cat $(S)/$(TARGET2).in | sed \
-		-e 's#@SBINDIR@#${sbindir}#g' \
-		-e 's#@INITDDIR@#${initddir}#g' \
-	> $(TARGET2)
+	> $(TARGET)
 
 clean: generalclean
