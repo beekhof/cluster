@@ -10,51 +10,57 @@ group_tool
 
 .SH DESCRIPTION
 
-The group_tool program displays the status of fence, dlm and gfs groups.
-The information is read from the groupd daemon which controls the fenced,
-dlm_controld and gfs_controld daemons.  group_tool will also dump debug
-logs from various daemons.
+The group_tool program displays information about fence, dlm and gfs groups.
 
 .SH SUBCOMMANDS
 
-.TP
-\fBls\fP
-displays the list of groups and their membership.  It is the default
-subcommand if none is specified.
+group_tool ls -a [-n]
 
-.TP
-\fBdump\fP
-dumps the debug log from groupd.
+  Queries individual daemons, and displays full daemon and group state.
+  It is a shortcut for:
+  fence_tool ls [-n]
+  dlm_tool ls [-n]
+  gfs_control ls [-n]
 
-.TP
-\fBdump fence\fP
-dumps the debug log from fenced.
+group_tool ls [-v]
 
-.TP
-\fBdump gfs\fP
-dumps the debug log from gfs_controld.
+  Queries groupd or individual daemons, depending on groupd compat mode.
+  Displays limited cluster2-style output of daemon and group state.
 
-.TP
-\fBdump plocks\fP <fsname>
-prints the posix locks on the named gfs fs from gfs_controld.
+group_tool compat
+
+  Queries groupd about compatibility mode currently running.  Any ls command
+  also includes this query and displays the result.  Possible results:
+  groupd not running
+  groupd compatibility mode 0
+  groupd compatibility mode 1
+  groupd compatibility mode 2 (pending)
+
+group_tool dump [gfs|dlm|fence|plocks] [name]
+
+  Dumps debug info from daemons:
+
+  group_tool dump gfs: dump gfs_controld debug log
+	(same as gfs_control dump)
+  group_tool dump dlm: dump dlm_controld debug log
+	(same as dlm_tool dump)
+  group_tool dump fence: dump fenced debug log
+	(same as fence_tool dump)
+  group_tool dump plocks <x>: dump plock state
+	(same as dlm_tool plocks <x>)
+  group_tool dump: dump groupd debug log
+
 
 .SH OPTIONS
 .TP
 \fB-v\fP
 Verbose output, used with the 'ls' subcommand.
 .TP
-\fB-D\fP
-Run the daemon in the foreground and print debug statements to stdout.
-.TP
 \fB-V\fP
 Print the version information and exit.
 .TP
 \fB-h\fP 
 Print out a help message describing available options, then exit.
-
-.SH DEBUGGING
-The groupd daemon keeps a circular buffer of debug messages that can be
-dumped with the 'group_tool dump' command.
 
 .SH SEE ALSO
 groupd(8)
