@@ -702,11 +702,33 @@ stop()
 
 cmanstatus()
 {
-	errmsg=$( $status groupd 2>&1) || return 1
-	errmsg=$( $status fenced 2>&1) || return 1
-	errmsg=$( $status dlm_controld 2>&1) || return 1
-	errmsg=$( $status gfs_controld 2>&1) || return 1
-	errmsg=$( $status cmannotifyd 2>&1) || return 1
+	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
+		errmsg=$( status groupd 2>&1) || return 1
+	fi
+
+	errmsg=$( status fenced 2>&1) || return 1
+	errmsg=$( status dlm_controld 2>&1) || return 1
+	errmsg=$( status gfs_controld 2>&1) || return 1
+
+	case "$CMAN_NOTIFYD_START" in
+		yes)
+			errmsg=$( status cmannotifyd 2>&1) || return 1
+		;;
+		no)
+			# nothing to do
+		;;
+		conditional)
+			if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
+				errmsg=$( status cmannotifyd 2>&1) || return 1
+			fi
+		;;
+	esac
+
+	if ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
+		errmsg=$( status qdiskd 2>&1) || return 1
+	fi
+
+	errmsg=$( status corosync 2>&1) || return 1
 
 	fence_xvmd_enabled || return 0
 	errmsg=$( status fence_xvmd 2>&1) || return 1
