@@ -962,8 +962,10 @@ static int do_cmd_leave_cluster(char *cmdbuf, int *retlen)
 	quit_threads = 1;
 
 	/* No messaging available yet, just die */
-	if (!we_are_a_cluster_member)
+	if (!we_are_a_cluster_member) {
+		cman_finish();
 		exit(0);
+	}
 
 	send_leave(leave_flags);
 	use_count = 0;
@@ -1865,6 +1867,7 @@ static void do_process_transition(int nodeid, char *data)
 	if (msg->flags & NODE_FLAGS_SEESDISALLOWED && !have_disallowed()) {
 		/* Must use syslog directly here or the message will never arrive */
 		syslog(LOG_CRIT, "CMAN: Joined a cluster with disallowed nodes. must die");
+		cman_finish();
 		exit(2);
 	}
 	msg->flags &= ~NODE_FLAGS_SEESDISALLOWED;
@@ -2027,6 +2030,7 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 			/* Must use syslog directly here or the message will never arrive */
 			syslog(LOG_CRIT, "cman killed by node %d because %s\n", nodeid,
 			       killmsg_reason(killmsg->reason));
+			cman_finish();
 			exit(1);
 		}
 		break;
@@ -2040,6 +2044,7 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 			/* Tell whomever asked us to leave that we are now going down */
 			if (shutdown_con)
 				send_status_return(shutdown_con, CMAN_CMD_TRY_SHUTDOWN, 0);
+			cman_finish();
 			exit(0);
 		}
 
