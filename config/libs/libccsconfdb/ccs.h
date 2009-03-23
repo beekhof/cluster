@@ -17,8 +17,4 @@ void ccs_read_logging(int fd, char *name, int *debug, int *mode,
                       int *logfile_priority, char *logfile);
 extern int fullxpath;
 
-#ifdef EXPERIMENTAL_BUILD
-extern int ccs_persistent_conn;
-#endif
-
 #endif /*  __CCS_DOT_H__ */

@@ -6,22 +6,9 @@
 #include <limits.h>
 #include <corosync/corotypes.h>
 #include <corosync/confdb.h>
-#ifdef EXPERIMENTAL_BUILD
-#include <time.h>
-#endif
 
 #include "ccs.h"
 #include "ccs_internal.h"
-
-#ifdef EXPERIMENTAL_BUILD
-#ifndef CCS_HANDLE_TIMEOUT
-#define CCS_HANDLE_TIMEOUT 60	/* 60 seconds */
-#endif
-#endif
-
-#ifdef EXPERIMENTAL_BUILD
-int ccs_persistent_conn = 0;
-#endif
 
 /* Callbacks are not supported - we will use them to update fullxml doc/ctx */
 static confdb_callbacks_t callbacks = {
@@ -236,9 +223,6 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 	hdb_handle_t libccs_handle = 0, connection_handle = 0;
 	char buf[128];
 	int config_version = 0;
-#ifdef EXPERIMENTAL_BUILD
-	time_t current_time;
-#endif
 
 	libccs_handle = find_libccs_handle(handle);
 	if (libccs_handle == -1)
@@ -283,21 +267,6 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 		errno = ENOMEM;
 		return -1;
 	}
-#ifdef EXPERIMENTAL_BUILD
-	if (ccs_persistent_conn)
-		return connection_handle;
-
-	memset(buf, 0, sizeof(buf));
-	time(&current_time);
-	memcpy(buf, &current_time, sizeof(time_t));
-	if (confdb_key_create
-	    (handle, connection_handle, "last_access", strlen("last_access"),
-	     buf, sizeof(time_t)) != CS_OK) {
-		destroy_ccs_handle(handle, connection_handle);
-		errno = ENOMEM;
-		return -1;
-	}
-#endif
 
 	return connection_handle;
 }
@@ -435,42 +404,6 @@ void reset_iterator(confdb_handle_t handle, hdb_handle_t connection_handle)
 	return;
 }
 
-#ifdef EXPERIMENTAL_BUILD
-static int clean_stalled_ccs_handles(confdb_handle_t handle)
-{
-	int datalen = 0;
-	hdb_handle_t libccs_handle = 0, connection_handle = 0;
-	time_t current_time, stored_time;
-
-	libccs_handle = find_libccs_handle(handle);
-	if (libccs_handle == -1)
-		return -1;
-
-	if (confdb_object_find_start(handle, libccs_handle) != CS_OK) {
-		errno = ENOMEM;
-		return -1;
-	}
-
-	time(&current_time);
-
-	while (confdb_object_find
-	       (handle, libccs_handle, "connection", strlen("connection"),
-		&connection_handle) == CS_OK) {
-		if (confdb_key_get
-		    (handle, connection_handle, "last_access",
-		     strlen("last_access"), &stored_time,
-		     &datalen) == CS_OK) {
-			if ((current_time - stored_time) > CCS_HANDLE_TIMEOUT)
-				destroy_ccs_handle(handle, connection_handle);
-		}
-	}
-
-	confdb_object_find_destroy(handle, libccs_handle);
-
-	return 0;
-}
-#endif
-
 static int check_cluster_name(int ccs_handle, const char *cluster_name)
 {
 	confdb_handle_t handle = 0;
@@ -587,10 +520,6 @@ int ccs_connect(void)
 	handle = confdb_connect();
 	if (handle == -1)
 		return handle;
-
-#ifdef EXPERIMENTAL_BUILD
-	clean_stalled_ccs_handles(handle);
-#endif
 
 	get_ccs_handle(handle, &ccs_handle, fullxpath);
 	if (ccs_handle < 0)
