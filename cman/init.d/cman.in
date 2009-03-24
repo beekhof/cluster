@@ -415,6 +415,9 @@ start()
 {
     echo "Starting cluster: "
 
+    # required for distributions that use tmpfs for /var/run
+    mkdir -p /var/run/cluster
+
     xend_bridged_net_enabled
     if [ $? -eq 0 ]
     then
