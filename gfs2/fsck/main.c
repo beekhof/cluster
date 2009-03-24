@@ -90,15 +90,9 @@ static int read_cmdline(int argc, char **argv, struct gfs2_options *gopts)
 		}
 	}
 	if(argc > optind) {
-<<<<<<< HEAD:gfs2/fsck/main.c
 		gopts->device = (argv[optind]);
-		if(!gopts->device) {
-			fprintf(stderr, "Please use '-h' for usage.\n");
-=======
-		opts->device = (argv[optind]);
 		if(!opts->device) {
 			fprintf(stderr, _("Please use '-h' for usage.\n"));
->>>>>>> abf33c3... fsck.gfs2: Add gettext support:gfs2/fsck/main.c
 			return FSCK_USAGE;
 		}
 	} else {
