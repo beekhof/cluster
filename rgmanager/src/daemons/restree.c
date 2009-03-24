@@ -1151,15 +1151,19 @@ do_status(resource_node_t *node)
 	}
 
 	/* No check levels ready at the moment. */
-	if (idx == -1) {
+	/* Cap status check children if configured to do so */
+	if (idx == -1 || rg_inc_children() < 0) {
 		if (node->rn_checked)
 			return node->rn_last_status;
 		return 0;
 	}
 
-
-	node->rn_actions[idx].ra_last = now;
 	x = res_exec(node, RS_STATUS, NULL, node->rn_actions[idx].ra_depth);
+	rg_dec_children();
+
+	/* Record status check result *after* the status check has
+	 * completed. */
+	node->rn_actions[idx].ra_last = time(NULL);
 
 	node->rn_last_status = x;
 	node->rn_last_depth = node->rn_actions[idx].ra_depth;

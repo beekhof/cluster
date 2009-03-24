@@ -27,6 +27,10 @@ int rg_inc_status(void);
 int rg_dec_status(void);
 int rg_set_statusmax(int max);
 
+int rg_inc_children(void);
+int rg_dec_children(void);
+int rg_set_childmax(int max);
+
 int ccs_lock(void);
 int ccs_unlock(int fd);
 

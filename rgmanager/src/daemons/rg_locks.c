@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <assert.h>
 #ifdef NO_CCS
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -17,6 +18,9 @@ static int __rg_initialized = 0;
 
 static int _rg_statuscnt = 0;
 static int _rg_statusmax = 5; /* XXX */
+
+static int _rg_childcnt = 0;
+static int _rg_childmax = 0; /* XXX */
 
 static pthread_cond_t unlock_cond = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t zero_cond = PTHREAD_COND_INITIALIZER;
@@ -302,6 +306,50 @@ rg_dec_status(void)
 	--_rg_statuscnt;
 	if (_rg_statuscnt < 0)
 		_rg_statuscnt = 0;
+	pthread_mutex_unlock(&locks_mutex);
+	return 0;
+}
+
+
+int
+rg_set_childmax(int max)
+{
+	int old;
+	
+	if (max <= 1)
+		max = 1;
+	
+	pthread_mutex_lock(&locks_mutex);
+	old = _rg_childmax;
+	_rg_childmax = max;
+	pthread_mutex_unlock(&locks_mutex);
+	return old;
+}
+
+
+int
+rg_inc_children(void)
+{
+	pthread_mutex_lock(&locks_mutex);
+	if (_rg_childmax && (_rg_childcnt >= _rg_childmax)) {
+		pthread_mutex_unlock(&locks_mutex);
+		return -1;
+	}
+	++_rg_childcnt;
+	pthread_mutex_unlock(&locks_mutex);
+	return 0;
+}
+
+
+int
+rg_dec_children(void)
+{
+	pthread_mutex_lock(&locks_mutex);
+	--_rg_childcnt;
+	if (_rg_childcnt < 0) {
+		assert(0);
+		_rg_childcnt = 0;
+	}
 	pthread_mutex_unlock(&locks_mutex);
 	return 0;
 }

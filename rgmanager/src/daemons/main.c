@@ -833,6 +833,7 @@ configure_rgmanager(int ccsfd, int dbg)
 {
 	char *v;
 	char internal = 0;
+	int status_child_max = 0;
 
 	if (ccsfd < 0) {
 		internal = 1;
@@ -865,12 +866,26 @@ configure_rgmanager(int ccsfd, int dbg)
 		} else {
 			logt_print(LOG_WARNING, "Ignoring illegal "
 			       "status_poll_interval of %s\n", v);
-			status_poll_interval = 10;
+			status_poll_interval = DEFAULT_CHECK_INTERVAL;
 		}
 		
 		free(v);
 	}
 
+	if (ccs_get(ccsfd, "/cluster/rm/@status_child_max", &v) == 0) {
+		status_child_max = atoi(v);
+		if (status_child_max >= 1) {
+			logt_print(LOG_NOTICE,
+			       "Status Child Max set to %d\n",
+			       status_poll_interval);
+			rg_set_childmax(status_child_max);
+		} else {
+			logt_print(LOG_WARNING, "Ignoring illegal "
+			       "status_child_max of %s\n", v);
+		}
+		
+		free(v);
+	}
 
 	if (internal)
 		ccs_disconnect(ccsfd);
