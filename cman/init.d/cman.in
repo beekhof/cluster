@@ -138,6 +138,9 @@ fi
 # openaisparser   - use internal openais config file parser.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
 
+
+### helper/common functions
+
 ok() {
 	success
 	echo
@@ -148,6 +151,73 @@ nok() {
 	echo
 	exit 1
 }
+
+xend_bridged_net_enabled() {
+	# Not a xen kernel
+	test -d /proc/xen || return 1
+
+	current_runlevel=$(/sbin/runlevel 2>/dev/null | awk '{ print $2 }' 2>/dev/null)
+	if [ -z "$current_runlevel" ]; then
+		errmsg='Unable to determine the current runlevel'
+		return 1
+	fi
+
+	if ! chkconfig --levels "$current_runlevel" xend 2>/dev/null; then
+		# xend doesn't start at this runlevel.
+		return 1
+	fi
+
+	if [ ! -f /etc/xen/xend-config.sxp ]; then
+		# xend isn't configured to use bridged networking.
+		return 1
+	fi
+
+	if ! egrep "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp >&/dev/null; then
+		# xend isn't configured to use bridged networking.
+		return 1
+	fi
+	return 0
+}
+
+fence_join_enabled()
+{
+	#
+	# Check the value of FENCE_JOIN.
+	# If FENCE_JOIN is set to "no", we will not attempt to join
+	# the fence domain. If FENCE_JOIN is set to any other value,
+	# we will attempt to join the fence domain (default).
+	#
+	if [ "$FENCE_JOIN" = "no" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+fence_xvmd_enabled()
+{
+	fence_join_enabled || return 1
+
+	#
+	# Check for the 'xm' binary.  If it's not here, we are not
+	# running on a machine capable of running xvmd.
+	#
+	which xm > /dev/null 2>&1 || return 1
+
+	#
+	# Check for presence of /cluster/fence_xvmd in cluster.conf
+	# (If -X is specified, it doesn't matter if it's in cluster.conf;
+	#  we'll start it anyway since ccsd is not required)
+	#
+	if @SBINDIR@/cman_tool status > /dev/null 2>&1; then
+		if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
+			@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
+		fi
+	fi
+
+	return 0
+}
+
 
 load_modules()
 {
@@ -295,33 +365,6 @@ start_fence_xvmd()
 	return 0
 }
 
-xend_bridged_net_enabled() {
-	# Not a xen kernel
-	test -d /proc/xen || return 1
-
-	current_runlevel=$(/sbin/runlevel 2>/dev/null | awk '{ print $2 }' 2>/dev/null)
-	if [ -z "$current_runlevel" ]; then
-		errmsg='Unable to determine the current runlevel'
-		return 1
-	fi
-
-	if ! chkconfig --levels "$current_runlevel" xend 2>/dev/null; then
-		# xend doesn't start at this runlevel.
-		return 1
-	fi
-
-	if [ ! -f /etc/xen/xend-config.sxp ]; then
-		# xend isn't configured to use bridged networking.
-		return 1
-	fi
-
-	if ! egrep "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp >&/dev/null; then
-		# xend isn't configured to use bridged networking.
-		return 1
-	fi
-	return 0
-}
-
 xend_bridged_net_start() {
 	if [ ! -x /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
 		if [ -f /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
@@ -339,36 +382,6 @@ xend_bridged_net_start() {
 	return 0
 }
 
-fence_xvmd_enabled()
-{
-	#
-	# Check the value of FENCE_JOIN.
-	# If FENCE_JOIN is set to "no", then we should disable fence_xvm.
-	#
-	if [ "$FENCE_JOIN" = "no" ]; then
-		return 1
-	fi
-
-	#
-	# Check for the 'xm' binary.  If it's not here, we are not
-	# running on a machine capable of running xvmd.
-	#
-	which xm > /dev/null 2>&1 || return 1
-
-	#
-	# Check for presence of /cluster/fence_xvmd in cluster.conf
-	# (If -X is specified, it doesn't matter if it's in cluster.conf;
-	#  we'll start it anyway since ccsd is not required)
-	#
-	if @SBINDIR@/cman_tool status > /dev/null 2>&1; then
-		if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
-			@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
-		fi
-	fi
-
-	return 0
-}
-
 set_networking_params()
 {
 	if [ ! -f  /proc/sys/net/core/rmem_default ]; then
@@ -383,21 +396,6 @@ set_networking_params()
 	value="$(cat /proc/sys/net/core/rmem_max)"
 	if [ $value -le $NET_RMEM_MAX ]; then
 		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
-	fi
-}
-
-fence_join_enabled()
-{
-	#
-	# Check the value of FENCE_JOIN.
-	# If FENCE_JOIN is set to "no", we will not attempt to join
-	# the fence domain. If FENCE_JOIN is set to any other value,
-	# we will attempt to join the fence domain (default).
-	#
-	if [ "$FENCE_JOIN" = "no" ]; then
-		return 1
-	else
-		return 0
 	fi
 }
 
