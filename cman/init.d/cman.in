@@ -366,6 +366,11 @@ start_daemons()
 
 start_fence()
 {
+	if ! fence_join_enabled; then
+		echo -n "not required"
+		return 0
+	fi
+
 	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1; then
         	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			> /dev/null 2>&1 ) || return 1
@@ -379,6 +384,11 @@ start_fence()
 
 start_fence_xvmd()
 {
+	if ! fence_xvmd_enabled; then
+		echo -n "not required"
+		return 0
+	fi
+
 	if ! status fence_xvmd > /dev/null 2>&1; then
 		errmsg=$( @SBINDIR@/fence_xvmd $FENCE_XVMD_OPTS 2>&1 ) || return 1
 	fi
@@ -386,6 +396,11 @@ start_fence_xvmd()
 }
 
 xend_bridged_net_start() {
+	if ! xend_bridged_net_enabled; then
+		echo -n "not required"
+		return 0
+	fi
+
 	if [ ! -x /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
 		if [ -f /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
 			errmsg='The xend bridged network script cannot be run'
@@ -430,15 +445,10 @@ start()
 	mkdir -p /var/run/cluster
 
 	echo -n "   Enable Xend bridge net workaround... "
-	if xend_bridged_net_enabled; then
-		if xend_bridged_net_start; then
-			ok
-		else
-			nok
-		fi
-	else
-		echo -n "not required"
+	if xend_bridged_net_start; then
 		ok
+	else
+		nok
 	fi
 
 	echo -n "   Loading modules... "
@@ -491,27 +501,17 @@ start()
 	fi
 
 	echo -n "   Starting fencing... "
-	if fence_join_enabled; then
-		if start_fence; then
-			ok
-		else
-			nok
-		fi
-	else
-		echo -n "not required"
+	if start_fence; then
 		ok
+	else
+		nok
 	fi
 
 	echo -n "   Starting virtual machine fencing host... "
-	if fence_xvmd_enabled; then
-		if start_fence_xvmd; then
-			ok
-		else
-			nok
-		fi
-	else
-		echo -n "not required"
+	if start_fence_xvmd; then
 		ok
+	else
+		nok
 	fi
     
 	return 0
@@ -580,6 +580,10 @@ stop_qdiskd()
 
 stop_fence()
 {
+	if ! fence_join_enabled; then
+		return 0
+	fi
+
 	if status fenced > /dev/null 2>&1; then
 		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
 		return $?
@@ -589,6 +593,10 @@ stop_fence()
 
 stop_fence_xvmd()
 {
+	if ! fence_xvmd_enabled; then
+		return 0
+	fi
+
 	if status fence_xvmd > /dev/null 2>&1; then
 		errmsg=$(pkill -TERM fence_xvmd) || return 1
 		sleep 1 # A bit of time for fenced to exit
@@ -609,25 +617,17 @@ stop()
 	echo "Stopping cluster: "
 
 	echo -n "   Stopping virtual machine fencing host... "
-	if fence_xvmd_enabled; then
-		if stop_fence_xvmd; then
-			ok
-		else
-			nok
-		fi
-	else
+	if stop_fence_xvmd; then
 		ok
+	else
+		nok
 	fi
 
 	echo -n "   Stopping fencing... "
-	if fence_join_enabled; then
-		if stop_fence; then
-			ok
-		else
-			nok
-		fi
-	else
+	if stop_fence; then
 		ok
+	else
+		nok
 	fi
 
 	echo -n "   Stopping daemons... "
