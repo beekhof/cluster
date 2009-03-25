@@ -268,6 +268,20 @@ cmannotifyd_enabled()
 	esac
 }
 
+runwrap()
+{
+	function=$1
+	shift
+	message="$@"
+
+	echo -n "   $message... "
+	if $function; then
+		ok
+	else
+		nok
+	fi
+}
+
 ### the real stuff starts here
 
 load_modules()
@@ -452,75 +466,16 @@ start()
 	# required for distributions that use tmpfs for /var/run
 	mkdir -p /var/run/cluster
 
-	echo -n "   Enable Xend bridge net workaround... "
-	if xend_bridged_net_start; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Loading modules... "
-	if load_modules; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Mounting configfs... "
-	if start_configfs; then
-		ok
-	else
-		nok
-	fi	
-
-	echo -n "   Setting network parameters... "
-	if set_networking_params; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Starting cman... "
-	if start_cman; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Unfencing self... "
-	if unfence_self; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Starting qdiskd... "
-	if start_qdiskd; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Starting daemons... "
-	if start_daemons; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Starting fencing... "
-	if start_fence; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Starting virtual machine fencing host... "
-	if start_fence_xvmd; then
-		ok
-	else
-		nok
-	fi
+	runwrap xend_bridged_net_start "Enable Xend bridge net workaround"
+	runwrap load_modules "Loading modules"
+	runwrap start_configfs "Mounting configfs"
+	runwrap set_networking_params "Setting network parameters"
+	runwrap start_cman "Starting cman"
+	runwrap unfence_self "Unfencing self"
+	runwrap start_qdiskd "Starting qdiskd"
+	runwrap start_daemons "Starting daemons"
+	runwrap start_fence "Starting fencing"
+	runwrap start_fence_xvmd "Starting virtual machine fencing host"
     
 	return 0
 }
@@ -541,7 +496,7 @@ stop_cman()
 {
 	if cman_running; then
 		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
-			-w leave $1 2>&1 ) || return 1
+			-w leave $cmanremove 2>&1 ) || return 1
 	fi
 	return 0 # all ok
 }
@@ -624,58 +579,14 @@ stop()
 {
 	echo "Stopping cluster: "
 
-	echo -n "   Stopping virtual machine fencing host... "
-	if stop_fence_xvmd; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Stopping fencing... "
-	if stop_fence; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Stopping daemons... "
-	if stop_daemons; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Stopping qdiskd... "
-	if stop_qdiskd; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Stopping cman... "
-	if stop_cman "$1"; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Stopping cmannotifyd... "
-	if stop_cmannotifyd; then
-		ok
-	else
-		nok
-	fi
-
-	echo -n "   Unloading modules..."
-	unload_modules
-	ok
-
-	echo -n "   Unmounting configfs... "
-	if stop_configfs; then
-		ok
-	else
-		nok
-	fi
+	runwrap stop_fence_xvmd "Stopping virtual machine fencing host"
+	runwrap stop_fence "Stopping fencing"
+	runwrap stop_daemons "Stopping daemons"
+	runwrap stop_qdiskd "Stopping qdiskd"
+	runwrap stop_cman "Stopping cman"
+	runwrap stop_cmannotifyd "Stopping cmannotifyd"
+	runwrap unload_modules "Unloading modules"
+	runwrap stop_configfs "Unmounting configfs"
 
 	return 0
 }
@@ -720,6 +631,7 @@ start)
 	fi
 ;;
 stop)
+	cmanremove=""
 	if stop; then
 		rm -f $LOCK_FILE
 	else
@@ -729,7 +641,8 @@ stop)
 ;;
 restart|reload)
 	echo -n "Restarting cluster: "
-	if stop remove > /dev/null 2>&1 && \
+	cmanremove=remove
+	if stop > /dev/null 2>&1 && \
 		start > /dev/null 2>&1; then
 			ok
 	else
