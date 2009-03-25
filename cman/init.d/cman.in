@@ -138,6 +138,17 @@ fi
 # openaisparser   - use internal openais config file parser.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
 
+ok() {
+	success
+	echo
+}
+
+nok() {
+	failure
+	echo
+	return 1
+}
+
 load_modules()
 {
 	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
@@ -199,20 +210,23 @@ start_cman()
 
 unfence_self()
 {
+	echo -n "   Unfencing self... "
 	fence_node -U > /dev/null 2>&1
-	error=$?
 
-	if [ $error -eq 0 ]; then
-		echo "   Unfencing self... done"
-		return 0
-	else
-		if [ $error -eq 1 ]; then
-			echo "   Unfencing self... failed"
+	case $? in
+		0)
+			ok
+		;;
+		1)
+			nok
 			return 1
-		else
-			return 0
-		fi
-	fi
+		;;
+		2)
+			echo -n "unconfigured"
+			ok
+		;;
+	esac
+	return 0
 }
 
 start_qdiskd()
@@ -223,7 +237,6 @@ start_qdiskd()
 	fi
 	return 0
 }
-
 
 start_daemons()
 {
@@ -258,8 +271,8 @@ start_daemons()
 			return 1
 		;;
 		esac
-    fi
-    return 0
+	fi
+	return 0
 }
 
 start_fence()
@@ -402,82 +415,71 @@ start()
 	if xend_bridged_net_enabled; then
 		echo -n "   Enabling workaround for Xend bridged networking... "
 		if xend_bridged_net_start; then
-			echo "done"
+			ok
 		else
-			echo "failed: $errmsg"
-			return 1
+			nok
 		fi
 	fi
 
 	echo -n "   Loading modules... "
 	if load_modules; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Mounting configfs... "
 	if start_configfs; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi	
 
 	echo -n "   Setting network parameters... "
-	set_networking_params
 	if set_networking_params; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Starting cman... "
-	start_cman
 	if start_cman; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	unfence_self || return 1
 
 	echo -n "   Starting qdiskd... "
 	if start_qdiskd; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Starting daemons... "
 	if start_daemons; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	if fence_join_enabled; then
 		echo -n "   Starting fencing... "
 		if start_fence; then
-			echo "done"
+			ok
 		else
-			echo "failed"
-			return 1
+			nok
 		fi
 	fi
 
 	if fence_xvmd_enabled; then
 		echo -n "   Starting virtual machine fencing host... "
 		if start_fence_xvmd; then
-			echo "done"
+			ok
 		else
-			echo "failed"
-			return 1
+			nok
 		fi
 	fi
     
@@ -573,61 +575,54 @@ stop()
 	if fence_xvmd_enabled; then
 		echo -n "   Stopping virtual machine fencing host... "
 		if stop_fence_xvmd; then
-			echo "done"
+			ok
 		else
-			echo "failed"
-			return 1
+			nok
 		fi
 	fi
 
 	if fence_join_enabled; then
 		echo -n "   Stopping fencing... "
 		if stop_fence; then
-			echo "done"
+			ok
 		else
-			echo "failed"
-			return 1
+			nok
 		fi
 	fi
 
 	echo -n "   Stopping daemons... "
 	if stop_daemons; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Stopping the Quorum Disk Daemon: "
 	if stop_qdiskd; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Stopping cman... "
 	if stop_cman "$1"; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Stopping cmannotifyd... "
 	if stop_cmannotifyd; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	echo -n "   Unmounting configfs... "
 	if stop_configfs; then
-		echo "done"
+		ok
 	else
-		echo "failed"
-		return 1
+		nok
 	fi
 
 	return 0
@@ -669,53 +664,47 @@ cmanstatus()
 	return 0
 }
 
-rtrn=1
+rtrn=0
 
 # See how we were called.
 case "$1" in
 start)
 	if start; then
 		touch $LOCK_FILE
-		success
-		rtrn=0
 	else
 		echo $errmsg
-		failure 
+		rtrn=1
 	fi
-	echo
 ;;
 stop)
 	if stop; then
-		success
 		rm -f $LOCK_FILE
-		rtrn=0
 	else
 		echo $errmsg
-		failure
+		rtrn=1
 	fi
-	echo
 ;;
 restart|reload)
 	echo -n "Restarting cluster: "
 	if stop remove > /dev/null 2>&1 && \
 		start > /dev/null 2>&1; then
-			success
-			rtrn=0
+			ok
 	else
 		failure
+		rtrn=1
 	fi
-	echo
 ;;
 status)
 	if cmanstatus; then
-		echo "cman is running."
-		rtrn=0
+		echo "cluster is running."
 	else
 		echo $errmsg
+		rtrn=1
 	fi
 ;;
 *)
 	echo "Usage: $0 {start|stop|reload|restart|status}"
+	rtrn=1
 ;;
 esac
 
