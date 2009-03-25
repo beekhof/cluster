@@ -218,6 +218,14 @@ fence_xvmd_enabled()
 	return 0
 }
 
+mtab_configfs()
+{
+	awk '{ print $2 }' /etc/mtab | \
+		grep "/sys/kernel/config" > /dev/null 2>&1 && \
+	awk '{ print $3 }' /etc/mtab | \
+		grep "configfs" > /dev/null 2>&1
+	return $?
+}
 
 load_modules()
 {
@@ -229,10 +237,7 @@ load_modules()
 
 start_configfs()
 {
-	# configfs
-	awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
-	&& awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
-	if [ $? -ne 0 ]; then
+	if ! mtab_configfs; then
 		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
 		return $?
 	fi
@@ -485,9 +490,7 @@ start()
 
 stop_configfs()
 {
-	awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
-		&& awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
-	if [ $? -eq 0 ] && [ -z "$(ls -1 /sys/kernel/config)" ]; then
+	if mtab_configfs && [ -z "$(ls -1 /sys/kernel/config)" ]; then
 		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
 		if [ $? -ne 0 ]; then
 			echo -n $errmsg " "
