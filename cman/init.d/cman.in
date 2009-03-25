@@ -21,30 +21,30 @@ PATH="/bin:/usr/bin:/sbin:/usr/sbin:@SBINDIR@"
 
 local_chkconfig()
 {
-    ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
-    return $?
+	ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
+	return $?
 }
 
 success()
 {
-    echo -ne "[  OK  ]\r"
+	echo -ne "[  OK  ]\r"
 }
 
 failure()
 {
-    echo -ne "[FAILED]\r"
+	echo -ne "[FAILED]\r"
 }
 
 status()
 {
-    pid=$(pidof $1 2>/dev/null)
-    rtrn=$?
-    if [ $rtrn -ne 0 ]; then
-	echo "$1 is stopped"
-    else
-	echo "$1 (pid $pid) is running..."
-    fi
-    return $rtrn
+	pid=$(pidof $1 2>/dev/null)
+	rtrn=$?
+	if [ $rtrn -ne 0 ]; then
+		echo "$1 is stopped"
+	else
+		echo "$1 (pid $pid) is running..."
+	fi
+	return $rtrn
 }
 
 # rpm based distros
@@ -140,567 +140,567 @@ fi
 
 load_modules()
 {
-    errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
-    errmsg=$( /sbin/modprobe dlm 2>&1 ) || return 1
-    errmsg=$( /sbin/modprobe lock_dlm 2>&1 ) || true
-    return 0
+	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
+	errmsg=$( /sbin/modprobe dlm 2>&1 ) || return 1
+	errmsg=$( /sbin/modprobe lock_dlm 2>&1 ) || true
+	return 0
 }
 
 start_configfs()
 {
-    # configfs
-    awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
-    && awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
-    if [ $? -ne 0 ]
-    then
-	errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
-	return $?
-    fi
-    return 0
+	# configfs
+	awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
+	&& awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
+		return $?
+	fi
+	return 0
 }
 
 start_cman()
 {
-    # cman
-    @SBINDIR@/cman_tool status > /dev/null 2>&1
-    if [ $? -ne 0 ]
-    then
-	case "$CONFIG_LOADER" in
-	    ldapconfig)
-		if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
-		    if [ -n "$LDAP_BINDDN" ]; then
-			if [ -z "$LDAP_BINDPWD" ]; then
-			    errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
-			    return 1
-			fi
-		    fi
-		    if [ -n "$LDAP_BINDPWD" ]; then
-			if [ -z "$LDAP_BINDDN" ]; then
-			    errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
-			    return 1
-			fi
-		    fi
-		else
-		    errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
-		    return 1
-		fi
-		;;
-	    *)
-		# nothing to do for now
-		;;
-	esac
-	errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
-	    $cman_join_opts 2>&1 ) || return 1
-
-	if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]
+	# cman
+	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	if [ $? -ne 0 ]
 	then
-	    errmsg=$( @SBINDIR@/cman_tool -t $CMAN_QUORUM_TIMEOUT \
-		    -q wait 2>&1 ) || return 1
+		case "$CONFIG_LOADER" in
+		ldapconfig)
+			if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
+				if [ -n "$LDAP_BINDDN" ]; then
+					if [ -z "$LDAP_BINDPWD" ]; then
+						errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
+						return 1
+					fi
+				fi
+				if [ -n "$LDAP_BINDPWD" ]; then
+					if [ -z "$LDAP_BINDDN" ]; then
+						errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
+						return 1
+					fi
+				fi
+			else
+				errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
+				return 1
+			fi
+		;;
+		*)
+			# nothing to do for now
+		;;
+		esac
+		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
+			$cman_join_opts 2>&1 ) || return 1
+
+		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]
+		then
+			errmsg=$( @SBINDIR@/cman_tool -t $CMAN_QUORUM_TIMEOUT \
+				-q wait 2>&1 ) || return 1
+		fi
 	fi
-    fi
-    return 0
+	return 0
 }
 
 unfence_self()
 {
-    fence_node -U > /dev/null 2>&1
-    error=$?
+	fence_node -U > /dev/null 2>&1
+	error=$?
 
-    if [ $error -eq 0 ]
-    then
-        echo "   Unfencing self... done"
-        return 0
-    else
-        if [ $error -eq 1 ]
-        then
-            echo "   Unfencing self... failed"
-            return 1
-        else
-            return 0
-        fi
-    fi
+	if [ $error -eq 0 ]
+	then
+		echo "   Unfencing self... done"
+		return 0
+	else
+		if [ $error -eq 1 ]
+		then
+			echo "   Unfencing self... failed"
+			return 1
+		else
+			return 0
+		fi
+	fi
 }
 
 start_qdiskd()
 {
-    status qdiskd > /dev/null 2>&1
-    if [ $? -ne 0 ] && \
-	ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
-	errmsg=$( @SBINDIR@/qdiskd -Q 2>&1 ) || return 1
-    fi
-    return 0
+	status qdiskd > /dev/null 2>&1
+	if [ $? -ne 0 ] && \
+		ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
+		errmsg=$( @SBINDIR@/qdiskd -Q 2>&1 ) || return 1
+	fi
+	return 0
 }
 
 
 start_daemons()
 {
-    status groupd > /dev/null 2>&1
-    if [ $? -ne 0 ] && \
-	[ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
-	errmsg=$( @SBINDIR@/groupd 2>&1 ) || return 1
-    fi
-    status fenced > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-	errmsg=$( @SBINDIR@/fenced 2>&1 ) || return 1
-    fi
-    status dlm_controld > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-	errmsg=$( @SBINDIR@/dlm_controld 2>&1 ) || return 1
-    fi
-    status gfs_controld > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-	errmsg=$( @SBINDIR@/gfs_controld 2>&1 ) || return 1
-    fi
-    status cmannotifyd > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-	case "$CMAN_NOTIFYD_START" in
-	    yes)
-		errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
-	    ;;
-	    no)
-		# nothing to do
-	    ;;
-	    conditional)
-		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
-		    errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
-		fi
-	    ;;
-	    *)
-		errmsg="unknown CMAN_NOTIFYD_START option"
-		return 1
-	    ;;
-	esac
+	status groupd > /dev/null 2>&1
+	if [ $? -ne 0 ] && \
+		[ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
+		errmsg=$( @SBINDIR@/groupd 2>&1 ) || return 1
+	fi
+	status fenced > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		errmsg=$( @SBINDIR@/fenced 2>&1 ) || return 1
+	fi
+	status dlm_controld > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		errmsg=$( @SBINDIR@/dlm_controld 2>&1 ) || return 1
+	fi
+	status gfs_controld > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		errmsg=$( @SBINDIR@/gfs_controld 2>&1 ) || return 1
+	fi
+	status cmannotifyd > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		case "$CMAN_NOTIFYD_START" in
+		yes)
+			errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
+		;;
+		no)
+			# nothing to do
+		;;
+		conditional)
+			if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
+				errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
+			fi
+		;;
+		*)
+			errmsg="unknown CMAN_NOTIFYD_START option"
+			return 1
+		;;
+		esac
     fi
     return 0
 }
 
 start_fence()
 {
-    @SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1
-    if [ $? -ne 0 ]
-    then
-        errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
-                 > /dev/null 2>&1 ) || return 1
-    else
-        errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
-		 -m $FENCED_MEMBER_DELAY join \
-                 > /dev/null 2>&1 ) || return 1
-    fi
-    return 0
+	@SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+        	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+			> /dev/null 2>&1 ) || return 1
+	else
+		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+			-m $FENCED_MEMBER_DELAY join \
+			> /dev/null 2>&1 ) || return 1
+	fi
+	return 0
 }
 
 start_fence_xvmd()
 {
-    status fence_xvmd > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-	errmsg=$( @SBINDIR@/fence_xvmd $FENCE_XVMD_OPTS 2>&1 ) || return 1
-    fi
-    return 0
+	status fence_xvmd > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		errmsg=$( @SBINDIR@/fence_xvmd $FENCE_XVMD_OPTS 2>&1 ) || return 1
+	fi
+	return 0
 }
 
 xend_bridged_net_enabled() {
-    # Not a xen kernel
-    test -d /proc/xen || return 1
+	# Not a xen kernel
+	test -d /proc/xen || return 1
 
-    current_runlevel=$(/sbin/runlevel 2>/dev/null | awk '{ print $2 }' 2>/dev/null)
-    if [ -z "$current_runlevel" ]; then
-        errmsg='Unable to determine the current runlevel'
-        return 1
-    fi
+	current_runlevel=$(/sbin/runlevel 2>/dev/null | awk '{ print $2 }' 2>/dev/null)
+	if [ -z "$current_runlevel" ]; then
+		errmsg='Unable to determine the current runlevel'
+		return 1
+	fi
 
-    chkconfig --levels "$current_runlevel" xend 2>/dev/null
-    if [ $? -ne 0 ]; then
-        # xend doesn't start at this runlevel.
-        return 1
-    fi
+	chkconfig --levels "$current_runlevel" xend 2>/dev/null
+	if [ $? -ne 0 ]; then
+		# xend doesn't start at this runlevel.
+		return 1
+	fi
 
-    if [ ! -f /etc/xen/xend-config.sxp ]; then
-        # xend isn't configured to use bridged networking.
-        return 1
-    fi
+	if [ ! -f /etc/xen/xend-config.sxp ]; then
+		# xend isn't configured to use bridged networking.
+		return 1
+	fi
 
-    egrep "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp >&/dev/null
-    if [ $? -ne 0 ]; then
-        # xend isn't configured to use bridged networking.
-        return 1
-    fi
-    return 0
+	egrep "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp >&/dev/null
+	if [ $? -ne 0 ]; then
+		# xend isn't configured to use bridged networking.
+		return 1
+	fi
+	return 0
 }
 
 xend_bridged_net_start() {
-    if [ ! -x /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
-        if [ -f /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
-            errmsg='The xend bridged network script cannot be run'
-        else
-            errmsg='The xend bridged network script is missing'
-        fi
-        return 1
-    fi
+	if [ ! -x /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
+		if [ -f /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
+			errmsg='The xend bridged network script cannot be run'
+		else
+			errmsg='The xend bridged network script is missing'
+		fi
+		return 1
+	fi
 
-    /sbin/modprobe netbk >& /dev/null
-    /sbin/modprobe netloop >& /dev/null
-    bridge_parms=`egrep -m 1 "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp| sed -r "s/^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+'?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}[[:blank:]]*//; s/'?[[:blank:]]*\).*//"`
-    errmsg=$(/etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} start $bridge_parms 2>&1) || return 1
-    return 0
+	/sbin/modprobe netbk >& /dev/null
+	/sbin/modprobe netloop >& /dev/null
+	bridge_parms=`egrep -m 1 "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp| sed -r "s/^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+'?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}[[:blank:]]*//; s/'?[[:blank:]]*\).*//"`
+	errmsg=$(/etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} start $bridge_parms 2>&1) || return 1
+	return 0
 }
 
 fence_xvmd_enabled()
 {
-    #
-    # Check the value of FENCE_JOIN.
-    # If FENCE_JOIN is set to "no", then we should disable fence_xvm.
-    #
-    if [ "$FENCE_JOIN" = "no" ]; then
-	return 1
-    fi
-
-    #
-    # Check for the 'xm' binary.  If it's not here, we are not
-    # running on a machine capable of running xvmd.
-    #
-    which xm > /dev/null 2>&1 || return 1
-
-    #
-    # Check for presence of /cluster/fence_xvmd in cluster.conf
-    # (If -X is specified, it doesn't matter if it's in cluster.conf;
-    #  we'll start it anyway since ccsd is not required)
-    #
-    @SBINDIR@/cman_tool status > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-	if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
-		@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
+	#
+	# Check the value of FENCE_JOIN.
+	# If FENCE_JOIN is set to "no", then we should disable fence_xvm.
+	#
+	if [ "$FENCE_JOIN" = "no" ]; then
+		return 1
 	fi
-    fi
 
-    return 0
+	#
+	# Check for the 'xm' binary.  If it's not here, we are not
+	# running on a machine capable of running xvmd.
+	#
+	which xm > /dev/null 2>&1 || return 1
+
+	#
+	# Check for presence of /cluster/fence_xvmd in cluster.conf
+	# (If -X is specified, it doesn't matter if it's in cluster.conf;
+	#  we'll start it anyway since ccsd is not required)
+	#
+	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
+			@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
+		fi
+	fi
+
+	return 0
 }
 
 set_networking_params()
 {
-    if [ ! -f  /proc/sys/net/core/rmem_default ]
-    then
-	return 0;
-    fi
-   
-    value="$(cat /proc/sys/net/core/rmem_default)"
-    if [ $value -le $NET_RMEM_DEFAULT ]
-    then
-	echo $NET_RMEM_DEFAULT > /proc/sys/net/core/rmem_default
-    fi
-    
-    value="$(cat /proc/sys/net/core/rmem_max)"
-    if [ $value -le $NET_RMEM_MAX ]
-        then
-        echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
-    fi
+	if [ ! -f  /proc/sys/net/core/rmem_default ]
+	then
+		return 0;
+	fi
+
+	value="$(cat /proc/sys/net/core/rmem_default)"
+	if [ $value -le $NET_RMEM_DEFAULT ]
+	then
+		echo $NET_RMEM_DEFAULT > /proc/sys/net/core/rmem_default
+	fi
+
+	value="$(cat /proc/sys/net/core/rmem_max)"
+	if [ $value -le $NET_RMEM_MAX ]
+	then
+		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
+	fi
 }
 
 fence_join_enabled()
 {
-    #
-    # Check the value of FENCE_JOIN.
-    # If FENCE_JOIN is set to "no", we will not attempt to join
-    # the fence domain. If FENCE_JOIN is set to any other value,
-    # we will attempt to join the fence domain (default).
-    #
-    if [ "$FENCE_JOIN" = "no" ]; then
-	return 1
-    else
-	return 0
-    fi
+	#
+	# Check the value of FENCE_JOIN.
+	# If FENCE_JOIN is set to "no", we will not attempt to join
+	# the fence domain. If FENCE_JOIN is set to any other value,
+	# we will attempt to join the fence domain (default).
+	#
+	if [ "$FENCE_JOIN" = "no" ]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
 start()
 {
-    echo "Starting cluster: "
+	echo "Starting cluster: "
 
-    # required for distributions that use tmpfs for /var/run
-    mkdir -p /var/run/cluster
+	# required for distributions that use tmpfs for /var/run
+	mkdir -p /var/run/cluster
 
-    xend_bridged_net_enabled
-    if [ $? -eq 0 ]
-    then
-        echo -n "   Enabling workaround for Xend bridged networking... "
-        xend_bridged_net_start
-        if [ $? -eq 0 ] 
-        then
-            echo "done"
-        else
-            echo "failed: $errmsg"
-			return 1
-        fi
-    fi
-
-    echo -n "   Loading modules... "
-    ulimit -c unlimited
-    load_modules
-    if [ $? -eq 0 ] 
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    echo -n "   Mounting configfs... "
-    start_configfs
-    if [ $? -eq 0 ] 
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi	
-
-    echo -n "   Setting network parameters... "
-    set_networking_params
-    if [ $? -eq 0 ] 
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    echo -n "   Starting cman... "
-    start_cman
-    if [ $? -eq 0 ] 
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    unfence_self
-    if [ $? -eq 1 ]
-    then
-        return 1
-    fi
-
-    echo -n "   Starting qdiskd... "
-    start_qdiskd
-    if [ $? -eq 0 ]
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    echo -n "   Starting daemons... "
-    start_daemons
-    if [ $? -eq 0 ] 
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    if fence_join_enabled; then
-	echo -n "   Starting fencing... "
-	start_fence
-	if [ $? -eq 0 ] 
-	    then
-	    echo "done"
-	else
-	    echo "failed"
-	    return 1
-	fi
-    fi
-
-    if fence_xvmd_enabled; then
-	echo -n "   Starting virtual machine fencing host... "
-	start_fence_xvmd
+	xend_bridged_net_enabled
 	if [ $? -eq 0 ]
 	then
-	    echo "done"
-	else
-	    echo "failed"
-	return 1
+		echo -n "   Enabling workaround for Xend bridged networking... "
+		xend_bridged_net_start
+		if [ $? -eq 0 ] 
+		then
+			echo "done"
+		else
+			echo "failed: $errmsg"
+			return 1
+		fi
 	fi
-    fi
+
+	echo -n "   Loading modules... "
+	ulimit -c unlimited
+	load_modules
+	if [ $? -eq 0 ] 
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
+
+	echo -n "   Mounting configfs... "
+	start_configfs
+	if [ $? -eq 0 ] 
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi	
+
+	echo -n "   Setting network parameters... "
+	set_networking_params
+	if [ $? -eq 0 ] 
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
+
+	echo -n "   Starting cman... "
+	start_cman
+	if [ $? -eq 0 ] 
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
+
+	unfence_self
+	if [ $? -eq 1 ]
+	then
+		return 1
+	fi
+
+	echo -n "   Starting qdiskd... "
+	start_qdiskd
+	if [ $? -eq 0 ]
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
+
+	echo -n "   Starting daemons... "
+	start_daemons
+	if [ $? -eq 0 ] 
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
+
+	if fence_join_enabled; then
+		echo -n "   Starting fencing... "
+		start_fence
+		if [ $? -eq 0 ] 
+		then
+			echo "done"
+		else
+			echo "failed"
+			return 1
+		fi
+	fi
+
+	if fence_xvmd_enabled; then
+		echo -n "   Starting virtual machine fencing host... "
+		start_fence_xvmd
+		if [ $? -eq 0 ]
+		then
+			echo "done"
+		else
+			echo "failed"
+			return 1
+		fi
+	fi
     
-    return 0
+	return 0
 }
 
 stop_configfs()
 {
-    awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
-    && awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
-    if [ $? -eq 0 ] && [ -z "$(ls -1 /sys/kernel/config)" ]
-    then
-	errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
-	if [ $? -ne 0 ]
+	awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
+		&& awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
+	if [ $? -eq 0 ] && [ -z "$(ls -1 /sys/kernel/config)" ]
 	then
-	    echo -n $errmsg " "
+		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
+		if [ $? -ne 0 ]
+		then
+			echo -n $errmsg " "
+		fi
 	fi
-    fi
-    return 0
+	return 0
 }
 
 stop_cman()
 {
-    @SBINDIR@/cman_tool status > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-    errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
-	    -w leave $1 2>&1 ) || return 1
-    fi
-    return 0 # all ok
+	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+	errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
+		-w leave $1 2>&1 ) || return 1
+	fi
+	return 0 # all ok
 }
 
 stop_daemons()
 {
-    if pid=$(pidof gfs_controld 2>&1); then
-	errmsg=$(kill $pid 2>&1) || return 1
-    fi
-    if pid=$(pidof dlm_controld 2>&1); then
-	errmsg=$(kill $pid 2>&1) || return 1
-    fi
-    if pid=$(pidof fenced 2>&1); then
-	errmsg=$(kill $pid 2>&1) || return 1
-    fi
-    if pid=$(pidof groupd 2>&1); then
-	errmsg=$(kill $pid 2>&1) || return 1
-    fi
-    return 0 # all ok
+	if pid=$(pidof gfs_controld 2>&1); then
+		errmsg=$(kill $pid 2>&1) || return 1
+	fi
+	if pid=$(pidof dlm_controld 2>&1); then
+		errmsg=$(kill $pid 2>&1) || return 1
+	fi
+	if pid=$(pidof fenced 2>&1); then
+		errmsg=$(kill $pid 2>&1) || return 1
+	fi
+	if pid=$(pidof groupd 2>&1); then
+		errmsg=$(kill $pid 2>&1) || return 1
+	fi
+	return 0 # all ok
 }
 
 stop_cmannotifyd()
 {
-    if pid=$(pidof cmannotifyd 2>&1); then
-	errmsg=$(kill $pid 2>&1) || return 1
-    fi
-    return 0
+	if pid=$(pidof cmannotifyd 2>&1); then
+		errmsg=$(kill $pid 2>&1) || return 1
+	fi
+	return 0
 }
 
 stop_qdiskd()
 {
-    retries=0
+	retries=0
 
-    pid="$(pidof qdiskd)"
-    while [ -n "$pid" ] && [ $retries -lt 5 ]; do
-	kill $pid 2>&1
-	sleep 1
-	((retries++))
 	pid="$(pidof qdiskd)"
-    done
-    if [ -z "$(pidof qdiskd)" ]; then
-	return 0
-    else
-	return 1
-    fi
+	while [ -n "$pid" ] && [ $retries -lt 5 ]; do
+		kill $pid 2>&1
+		sleep 1
+		((retries++))
+		pid="$(pidof qdiskd)"
+	done
+	if [ -z "$(pidof qdiskd)" ]; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 stop_fence()
 {
-    if pidof fenced > /dev/null 2>&1
-    then
-	@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
-	rtrn=$?
-	return $rtrn
-    fi
-    return 0 # all ok
+	if pidof fenced > /dev/null 2>&1
+	then
+		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
+		rtrn=$?
+		return $rtrn
+	fi
+	return 0 # all ok
 }
 
 stop_fence_xvmd()
 {
-    if pidof fence_xvmd > /dev/null 2>&1
-    then
-    	pkill -TERM fence_xvmd
-	sleep 1 # A bit of time for fenced to exit
-    fi
-    
-    [ -z "$(pidof fence_xvmd)" ]
-    return $?
+	if pidof fence_xvmd > /dev/null 2>&1
+	then
+		pkill -TERM fence_xvmd
+		sleep 1 # A bit of time for fenced to exit
+	fi
+
+	[ -z "$(pidof fence_xvmd)" ]
+	return $?
 }
 
 stop()
 {
-    echo "Stopping cluster: "
+	echo "Stopping cluster: "
 
-    if fence_xvmd_enabled; then
-	echo -n "   Stopping virtual machine fencing host... "
-	stop_fence_xvmd
+	if fence_xvmd_enabled; then
+		echo -n "   Stopping virtual machine fencing host... "
+		stop_fence_xvmd
+		if [ $? -eq 0 ]
+		then
+			echo "done"
+		else
+			echo "failed"
+			return 1
+		fi
+	fi
+
+	if fence_join_enabled; then
+		echo -n "   Stopping fencing... "
+		stop_fence
+		if [ $? -eq 0 ]
+		then
+			echo "done"
+		else
+			echo "failed"
+			return 1
+		fi
+	fi
+
+	echo -n "   Stopping daemons... "
+	stop_daemons
 	if [ $? -eq 0 ]
 	then
-	    echo "done"
+		echo "done"
 	else
-	    echo "failed"
-	    return 1
+		echo "failed"
+		return 1
 	fi
-    fi
 
-    if fence_join_enabled; then
-	echo -n "   Stopping fencing... "
-	stop_fence
+	echo -n "   Stopping the Quorum Disk Daemon: "
+	stop_qdiskd
 	if [ $? -eq 0 ]
-	    then
-	    echo "done"
+	then
+		echo "done"
 	else
-	    echo "failed"
-	    return 1
+		echo "failed"
+		return 1
 	fi
-    fi
 
-    echo -n "   Stopping daemons... "
-    stop_daemons
-    if [ $? -eq 0 ]
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
+	echo -n "   Stopping cman... "
+	if [ $1 ]; then
+		stop_cman $1
+	else
+		stop_cman
+	fi
+	if [ $? -eq 0 ]
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
 
-    echo -n "   Stopping the Quorum Disk Daemon: "
-    stop_qdiskd
-    if [ $? -eq 0 ]
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
+	echo -n "   Stopping cmannotifyd... "
+	stop_cmannotifyd
+	if [ $? -eq 0 ]
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
 
-    echo -n "   Stopping cman... "
-    if [ $1 ]; then
-	stop_cman $1
-    else
-	stop_cman
-    fi
-    if [ $? -eq 0 ]
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
+	echo -n "   Unmounting configfs... "
+	stop_configfs
+	if [ $? -eq 0 ]
+	then
+		echo "done"
+	else
+		echo "failed"
+		return 1
+	fi
 
-    echo -n "   Stopping cmannotifyd... "
-    stop_cmannotifyd
-    if [ $? -eq 0 ]
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    echo -n "   Unmounting configfs... "
-    stop_configfs
-    if [ $? -eq 0 ]
-    then
-	echo "done"
-    else
-	echo "failed"
-	return 1
-    fi
-
-    return 0
+	return 0
 }
 
 cmanstatus()
@@ -714,17 +714,17 @@ cmanstatus()
 	errmsg=$( status gfs_controld 2>&1) || return 1
 
 	case "$CMAN_NOTIFYD_START" in
-		yes)
+	yes)
+		errmsg=$( status cmannotifyd 2>&1) || return 1
+	;;
+	no)
+		# nothing to do
+	;;
+	conditional)
+		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
 			errmsg=$( status cmannotifyd 2>&1) || return 1
-		;;
-		no)
-			# nothing to do
-		;;
-		conditional)
-			if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
-				errmsg=$( status cmannotifyd 2>&1) || return 1
-			fi
-		;;
+		fi
+	;;
 	esac
 
 	if ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
@@ -743,58 +743,55 @@ rtrn=1
 
 # See how we were called.
 case "$1" in
-    start)
+start)
 	start
 	rtrn=$?
 	[ $rtrn = 0 ] && touch $LOCK_FILE
 	if [ $rtrn -ne 0 ] 
 	then
-	    echo $errmsg
-	    failure "failed to start cman"
-	    echo
+		echo $errmsg
+		failure "failed to start cman"
+		echo
 	else
-	    success "start"
-	    echo
+		success "start"
+		echo
 	fi
-	;;
-    stop)
+;;
+stop)
 	if [ $2 ]; then
-	    stop
+		stop
 	else
-	    stop remove
+		stop remove
 	fi
 	rtrn=$?
 	[ $rtrn = 0 ] && rm -f $LOCK_FILE
 	if [ $rtrn -ne 0 ] 
 	then
-	    echo $errmsg
-	    failure "failed to stop cman"
-	    echo
+		echo $errmsg
+		failure "failed to stop cman"
+		echo
 	else
-	    success "shutdown"
-	    echo
+		success "shutdown"
+		echo
 	fi
-	;;
-
-    restart|reload)
+;;
+restart|reload)
 	$0 stop restart
 	$0 start
 	rtrn=$?
-	;;
-
-    status)
+;;
+status)
 	cmanstatus
 	rtrn=$?
 	if [ $rtrn -ne 0 ] ; then
-	    echo $errmsg
+		echo $errmsg
 	else
-	    echo "cman is running."
+		echo "cman is running."
 	fi
-	;;
-
-    *)
-	    echo $"Usage: $0 {start|stop|reload|restart|status}"
-	    ;;
+;;
+*)
+	echo $"Usage: $0 {start|stop|reload|restart|status}"
+;;
 esac
 
 exit $rtrn
