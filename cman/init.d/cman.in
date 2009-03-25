@@ -227,6 +227,41 @@ mtab_configfs()
 	return $?
 }
 
+qdiskd_enabled()
+{
+	ccs_tool query /cluster/quorumd >/dev/null 2>&1
+	return $?
+}
+
+groupd_enabled()
+{
+	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+cmannotifyd_enabled()
+{
+	case "$CMAN_NOTIFYD_START" in
+	yes)
+		return 0
+	;;
+	no)
+		return 1
+	;;
+	conditional)
+		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
+			return 0
+		fi
+	;;
+	*)
+		return 1
+	;;
+	esac
+}
+
 load_modules()
 {
 	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
@@ -301,7 +336,7 @@ unfence_self()
 start_qdiskd()
 {
 	if ! status qdiskd > /dev/null 2>&1 && \
-		ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
+		qdiskd_enabled; then
 		errmsg=$( @SBINDIR@/qdiskd -Q 2>&1 ) || return 1
 	fi
 	return 0
@@ -310,7 +345,7 @@ start_qdiskd()
 start_daemons()
 {
 	if ! status groupd > /dev/null 2>&1 && \
-		[ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
+		groupd_enabled; then
 		errmsg=$( @SBINDIR@/groupd 2>&1 ) || return 1
 	fi
 	if ! status fenced > /dev/null 2>&1 ; then
@@ -322,24 +357,9 @@ start_daemons()
 	if ! status gfs_controld > /dev/null 2>&1; then
 		errmsg=$( @SBINDIR@/gfs_controld 2>&1 ) || return 1
 	fi
-	if ! status cmannotifyd > /dev/null 2>&1; then
-		case "$CMAN_NOTIFYD_START" in
-		yes)
-			errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
-		;;
-		no)
-			# nothing to do
-		;;
-		conditional)
-			if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
-				errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
-			fi
-		;;
-		*)
-			errmsg="unknown CMAN_NOTIFYD_START option"
-			return 1
-		;;
-		esac
+	if ! status cmannotifyd > /dev/null 2>&1 && \
+		cmannotifyd_enabled; then
+		errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
 	fi
 	return 0
 }
@@ -654,7 +674,7 @@ stop()
 
 cmanstatus()
 {
-	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
+	if groupd_enabled; then
 		errmsg=$( status groupd 2>&1) || return 1
 	fi
 
@@ -662,28 +682,19 @@ cmanstatus()
 	errmsg=$( status dlm_controld 2>&1) || return 1
 	errmsg=$( status gfs_controld 2>&1) || return 1
 
-	case "$CMAN_NOTIFYD_START" in
-	yes)
+	if cmannotifyd_enabled; then
 		errmsg=$( status cmannotifyd 2>&1) || return 1
-	;;
-	no)
-		# nothing to do
-	;;
-	conditional)
-		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
-			errmsg=$( status cmannotifyd 2>&1) || return 1
-		fi
-	;;
-	esac
+	fi
 
-	if ccs_tool query /cluster/quorumd >/dev/null 2>&1; then
+	if qdiskd_enabled; then
 		errmsg=$( status qdiskd 2>&1) || return 1
 	fi
 
 	errmsg=$( status corosync 2>&1) || return 1
 
-	fence_xvmd_enabled || return 0
-	errmsg=$( status fence_xvmd 2>&1) || return 1
+	if fence_xvmd_enabled; then
+		errmsg=$( status fence_xvmd 2>&1) || return 1
+	fi
 
 	return 0
 }
