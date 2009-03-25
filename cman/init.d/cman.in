@@ -151,8 +151,7 @@ start_configfs()
 	# configfs
 	awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
 	&& awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
-	if [ $? -ne 0 ]
-	then
+	if [ $? -ne 0 ]; then
 		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
 		return $?
 	fi
@@ -163,8 +162,7 @@ start_cman()
 {
 	# cman
 	@SBINDIR@/cman_tool status > /dev/null 2>&1
-	if [ $? -ne 0 ]
-	then
+	if [ $? -ne 0 ]; then
 		case "$CONFIG_LOADER" in
 		ldapconfig)
 			if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
@@ -192,8 +190,7 @@ start_cman()
 		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
 			$cman_join_opts 2>&1 ) || return 1
 
-		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]
-		then
+		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]; then
 			errmsg=$( @SBINDIR@/cman_tool -t $CMAN_QUORUM_TIMEOUT \
 				-q wait 2>&1 ) || return 1
 		fi
@@ -206,13 +203,11 @@ unfence_self()
 	fence_node -U > /dev/null 2>&1
 	error=$?
 
-	if [ $error -eq 0 ]
-	then
+	if [ $error -eq 0 ]; then
 		echo "   Unfencing self... done"
 		return 0
 	else
-		if [ $error -eq 1 ]
-		then
+		if [ $error -eq 1 ]; then
 			echo "   Unfencing self... failed"
 			return 1
 		else
@@ -277,8 +272,7 @@ start_daemons()
 start_fence()
 {
 	@SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1
-	if [ $? -ne 0 ]
-	then
+	if [ $? -ne 0 ]; then
         	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			> /dev/null 2>&1 ) || return 1
 	else
@@ -366,8 +360,7 @@ fence_xvmd_enabled()
 	#  we'll start it anyway since ccsd is not required)
 	#
 	@SBINDIR@/cman_tool status > /dev/null 2>&1
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
 			@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
 		fi
@@ -378,20 +371,17 @@ fence_xvmd_enabled()
 
 set_networking_params()
 {
-	if [ ! -f  /proc/sys/net/core/rmem_default ]
-	then
+	if [ ! -f  /proc/sys/net/core/rmem_default ]; then
 		return 0;
 	fi
 
 	value="$(cat /proc/sys/net/core/rmem_default)"
-	if [ $value -le $NET_RMEM_DEFAULT ]
-	then
+	if [ $value -le $NET_RMEM_DEFAULT ]; then
 		echo $NET_RMEM_DEFAULT > /proc/sys/net/core/rmem_default
 	fi
 
 	value="$(cat /proc/sys/net/core/rmem_max)"
-	if [ $value -le $NET_RMEM_MAX ]
-	then
+	if [ $value -le $NET_RMEM_MAX ]; then
 		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
 	fi
 }
@@ -419,12 +409,10 @@ start()
 	mkdir -p /var/run/cluster
 
 	xend_bridged_net_enabled
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo -n "   Enabling workaround for Xend bridged networking... "
 		xend_bridged_net_start
-		if [ $? -eq 0 ] 
-		then
+		if [ $? -eq 0 ]; then
 			echo "done"
 		else
 			echo "failed: $errmsg"
@@ -435,8 +423,7 @@ start()
 	echo -n "   Loading modules... "
 	ulimit -c unlimited
 	load_modules
-	if [ $? -eq 0 ] 
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -445,8 +432,7 @@ start()
 
 	echo -n "   Mounting configfs... "
 	start_configfs
-	if [ $? -eq 0 ] 
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -455,8 +441,7 @@ start()
 
 	echo -n "   Setting network parameters... "
 	set_networking_params
-	if [ $? -eq 0 ] 
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -465,8 +450,7 @@ start()
 
 	echo -n "   Starting cman... "
 	start_cman
-	if [ $? -eq 0 ] 
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -474,15 +458,13 @@ start()
 	fi
 
 	unfence_self
-	if [ $? -eq 1 ]
-	then
+	if [ $? -eq 1 ]; then
 		return 1
 	fi
 
 	echo -n "   Starting qdiskd... "
 	start_qdiskd
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -491,8 +473,7 @@ start()
 
 	echo -n "   Starting daemons... "
 	start_daemons
-	if [ $? -eq 0 ] 
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -502,8 +483,7 @@ start()
 	if fence_join_enabled; then
 		echo -n "   Starting fencing... "
 		start_fence
-		if [ $? -eq 0 ] 
-		then
+		if [ $? -eq 0 ]; then
 			echo "done"
 		else
 			echo "failed"
@@ -514,8 +494,7 @@ start()
 	if fence_xvmd_enabled; then
 		echo -n "   Starting virtual machine fencing host... "
 		start_fence_xvmd
-		if [ $? -eq 0 ]
-		then
+		if [ $? -eq 0 ]; then
 			echo "done"
 		else
 			echo "failed"
@@ -530,11 +509,9 @@ stop_configfs()
 {
 	awk '{ print $2 }' /etc/mtab | grep "/sys/kernel/config" > /dev/null 2>&1 \
 		&& awk '{ print $3 }' /etc/mtab | grep "configfs" > /dev/null 2>&1
-	if [ $? -eq 0 ] && [ -z "$(ls -1 /sys/kernel/config)" ]
-	then
+	if [ $? -eq 0 ] && [ -z "$(ls -1 /sys/kernel/config)" ]; then
 		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
-		if [ $? -ne 0 ]
-		then
+		if [ $? -ne 0 ]; then
 			echo -n $errmsg " "
 		fi
 	fi
@@ -544,10 +521,9 @@ stop_configfs()
 stop_cman()
 {
 	@SBINDIR@/cman_tool status > /dev/null 2>&1
-	if [ $? -eq 0 ]
-	then
-	errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
-		-w leave $1 2>&1 ) || return 1
+	if [ $? -eq 0 ]; then
+		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
+			-w leave $1 2>&1 ) || return 1
 	fi
 	return 0 # all ok
 }
@@ -597,8 +573,7 @@ stop_qdiskd()
 
 stop_fence()
 {
-	if pidof fenced > /dev/null 2>&1
-	then
+	if pidof fenced > /dev/null 2>&1; then
 		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
 		rtrn=$?
 		return $rtrn
@@ -608,8 +583,7 @@ stop_fence()
 
 stop_fence_xvmd()
 {
-	if pidof fence_xvmd > /dev/null 2>&1
-	then
+	if pidof fence_xvmd > /dev/null 2>&1; then
 		pkill -TERM fence_xvmd
 		sleep 1 # A bit of time for fenced to exit
 	fi
@@ -625,8 +599,7 @@ stop()
 	if fence_xvmd_enabled; then
 		echo -n "   Stopping virtual machine fencing host... "
 		stop_fence_xvmd
-		if [ $? -eq 0 ]
-		then
+		if [ $? -eq 0 ]; then
 			echo "done"
 		else
 			echo "failed"
@@ -637,8 +610,7 @@ stop()
 	if fence_join_enabled; then
 		echo -n "   Stopping fencing... "
 		stop_fence
-		if [ $? -eq 0 ]
-		then
+		if [ $? -eq 0 ]; then
 			echo "done"
 		else
 			echo "failed"
@@ -648,8 +620,7 @@ stop()
 
 	echo -n "   Stopping daemons... "
 	stop_daemons
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -658,8 +629,7 @@ stop()
 
 	echo -n "   Stopping the Quorum Disk Daemon: "
 	stop_qdiskd
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -672,8 +642,7 @@ stop()
 	else
 		stop_cman
 	fi
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -682,8 +651,7 @@ stop()
 
 	echo -n "   Stopping cmannotifyd... "
 	stop_cmannotifyd
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -692,8 +660,7 @@ stop()
 
 	echo -n "   Unmounting configfs... "
 	stop_configfs
-	if [ $? -eq 0 ]
-	then
+	if [ $? -eq 0 ]; then
 		echo "done"
 	else
 		echo "failed"
@@ -747,8 +714,7 @@ start)
 	start
 	rtrn=$?
 	[ $rtrn = 0 ] && touch $LOCK_FILE
-	if [ $rtrn -ne 0 ] 
-	then
+	if [ $rtrn -ne 0 ]; then
 		echo $errmsg
 		failure "failed to start cman"
 		echo
@@ -765,8 +731,7 @@ stop)
 	fi
 	rtrn=$?
 	[ $rtrn = 0 ] && rm -f $LOCK_FILE
-	if [ $rtrn -ne 0 ] 
-	then
+	if [ $rtrn -ne 0 ]; then
 		echo $errmsg
 		failure "failed to stop cman"
 		echo
@@ -783,7 +748,7 @@ restart|reload)
 status)
 	cmanstatus
 	rtrn=$?
-	if [ $rtrn -ne 0 ] ; then
+	if [ $rtrn -ne 0 ]; then
 		echo $errmsg
 	else
 		echo "cman is running."
