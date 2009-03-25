@@ -146,7 +146,7 @@ ok() {
 nok() {
 	failure
 	echo
-	return 1
+	exit 1
 }
 
 load_modules()
@@ -219,7 +219,6 @@ unfence_self()
 		;;
 		1)
 			nok
-			return 1
 		;;
 		2)
 			echo -n "unconfigured"
