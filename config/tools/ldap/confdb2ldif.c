@@ -27,6 +27,7 @@ struct objectclasses
 	{ "fencedevice", "rhcsFencedevice" },
 	{ "method", "rhcsFencemethod" },
 	{ "logging", "rhcsLoggersubsys" },
+	{ "fence_daemon", "rhcsFencedaemon" },
 };
 /* TODO: Add more here as the schema gets filled in */
 
