@@ -292,7 +292,7 @@ unfence_self()
 			return 1
 		;;
 		2)
-			echo -n "unconfigured/unrequired"
+			echo -n "unconfigured or not required"
 		;;
 	esac
 	return 0
