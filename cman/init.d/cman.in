@@ -179,6 +179,12 @@ xend_bridged_net_enabled() {
 	return 0
 }
 
+cman_running()
+{
+	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	return $?
+}
+
 fence_join_enabled()
 {
 	#
@@ -209,7 +215,7 @@ fence_xvmd_enabled()
 	# (If -X is specified, it doesn't matter if it's in cluster.conf;
 	#  we'll start it anyway since ccsd is not required)
 	#
-	if @SBINDIR@/cman_tool status > /dev/null 2>&1; then
+	if cman_running; then
 		if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
 			@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
 		fi
@@ -262,6 +268,8 @@ cmannotifyd_enabled()
 	esac
 }
 
+### the real stuff starts here
+
 load_modules()
 {
 	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
@@ -282,7 +290,7 @@ start_configfs()
 start_cman()
 {
 	# cman
-	if ! @SBINDIR@/cman_tool status > /dev/null 2>&1; then
+	if ! cman_running; then
 		case "$CONFIG_LOADER" in
 		ldapconfig)
 			if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
@@ -531,7 +539,7 @@ stop_configfs()
 
 stop_cman()
 {
-	if @SBINDIR@/cman_tool status > /dev/null 2>&1; then
+	if cman_running; then
 		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
 			-w leave $1 2>&1 ) || return 1
 	fi
