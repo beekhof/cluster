@@ -285,19 +285,14 @@ start_cman()
 
 unfence_self()
 {
-	echo -n "   Unfencing self... "
 	fence_node -U > /dev/null 2>&1
 
 	case $? in
-		0)
-			ok
-		;;
 		1)
-			nok
+			return 1
 		;;
 		2)
-			echo -n "unconfigured"
-			ok
+			echo -n "unconfigured/unrequired"
 		;;
 	esac
 	return 0
@@ -414,13 +409,16 @@ start()
 	# required for distributions that use tmpfs for /var/run
 	mkdir -p /var/run/cluster
 
+	echo -n "   Enable Xend bridge net workaround... "
 	if xend_bridged_net_enabled; then
-		echo -n "   Enabling workaround for Xend bridged networking... "
 		if xend_bridged_net_start; then
 			ok
 		else
 			nok
 		fi
+	else
+		echo -n "not required"
+		ok
 	fi
 
 	echo -n "   Loading modules... "
@@ -451,7 +449,12 @@ start()
 		nok
 	fi
 
-	unfence_self || return 1
+	echo -n "   Unfencing self... "
+	if unfence_self; then
+		ok
+	else
+		nok
+	fi
 
 	echo -n "   Starting qdiskd... "
 	if start_qdiskd; then
@@ -467,22 +470,28 @@ start()
 		nok
 	fi
 
+	echo -n "   Starting fencing... "
 	if fence_join_enabled; then
-		echo -n "   Starting fencing... "
 		if start_fence; then
 			ok
 		else
 			nok
 		fi
+	else
+		echo -n "not required"
+		ok
 	fi
 
+	echo -n "   Starting virtual machine fencing host... "
 	if fence_xvmd_enabled; then
-		echo -n "   Starting virtual machine fencing host... "
 		if start_fence_xvmd; then
 			ok
 		else
 			nok
 		fi
+	else
+		echo -n "not required"
+		ok
 	fi
     
 	return 0
@@ -579,22 +588,26 @@ stop()
 {
 	echo "Stopping cluster: "
 
+	echo -n "   Stopping virtual machine fencing host... "
 	if fence_xvmd_enabled; then
-		echo -n "   Stopping virtual machine fencing host... "
 		if stop_fence_xvmd; then
 			ok
 		else
 			nok
 		fi
+	else
+		ok
 	fi
 
+	echo -n "   Stopping fencing... "
 	if fence_join_enabled; then
-		echo -n "   Stopping fencing... "
 		if stop_fence; then
 			ok
 		else
 			nok
 		fi
+	else
+		ok
 	fi
 
 	echo -n "   Stopping daemons... "
@@ -604,7 +617,7 @@ stop()
 		nok
 	fi
 
-	echo -n "   Stopping the Quorum Disk Daemon: "
+	echo -n "   Stopping qdiskd... "
 	if stop_qdiskd; then
 		ok
 	else
