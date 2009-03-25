@@ -254,18 +254,13 @@ cmannotifyd_enabled()
 	yes)
 		return 0
 	;;
-	no)
-		return 1
-	;;
 	conditional)
 		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
 			return 0
 		fi
 	;;
-	*)
-		return 1
-	;;
 	esac
+	return 1
 }
 
 runwrap()
@@ -476,7 +471,7 @@ start()
 	runwrap start_daemons "Starting daemons"
 	runwrap start_fence "Starting fencing"
 	runwrap start_fence_xvmd "Starting virtual machine fencing host"
-    
+
 	return 0
 }
 
