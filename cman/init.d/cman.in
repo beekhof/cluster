@@ -493,8 +493,9 @@ stop_configfs()
 	if mtab_configfs && [ -z "$(ls -1 /sys/kernel/config)" ]; then
 		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
 		if [ $? -ne 0 ]; then
-			echo -n $errmsg " "
+			return 1
 		fi
+		/sbin/modprobe -r configfs > /dev/null 2>&1 || true
 	fi
 	return 0
 }
@@ -568,6 +569,12 @@ stop_fence_xvmd()
 	return $?
 }
 
+unload_modules()
+{
+	/sbin/modprobe -r lock_dlm > /dev/null 2>&1 || true
+	/sbin/modprobe -r dlm > /dev/null 2>&1 || true
+}
+
 stop()
 {
 	echo "Stopping cluster: "
@@ -617,6 +624,10 @@ stop()
 	else
 		nok
 	fi
+
+	echo -n "   Unloading modules..."
+	unload_modules
+	ok
 
 	echo -n "   Unmounting configfs... "
 	if stop_configfs; then
