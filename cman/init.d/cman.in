@@ -345,12 +345,12 @@ unfence_self()
 	fence_node -U > /dev/null 2>&1
 
 	case $? in
-		1)
-			return 1
-		;;
-		2)
-			echo -n "unconfigured or not required"
-		;;
+	1)
+		return 1
+	;;
+	2)
+		echo -n "unconfigured or not required"
+	;;
 	esac
 	return 0
 }
