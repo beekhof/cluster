@@ -22,7 +22,6 @@ PATH="/bin:/usr/bin:/sbin:/usr/sbin:@SBINDIR@"
 local_chkconfig()
 {
 	ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
-	return $?
 }
 
 success()
@@ -129,11 +128,12 @@ fi
 
 # CONFIG_LOADER -- select default config parser.
 # This can be:
-# xmlconfig       - read directly from cluster.conf and use ricci as default config
-#                   propagation method. (default)
+# xmlconfig       - read directly from cluster.conf and use ricci as default
+#                   config propagation method. (default)
 # ldapconfig      - read configuration from an ldap server.
 #                   Requires: LDAP_URL or/and LDAP_BASEDN envvar to be set.
-#                   LDAP_BINDDN and LDAP_BINDPWD have to be either both set or both unset.
+#                   LDAP_BINDDN and LDAP_BINDPWD have to be either both set
+#                   or both unset.
 # corosync_parser - use internal corosync config file parser.
 # openaisparser   - use internal openais config file parser.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
@@ -184,10 +184,8 @@ start_daemon()
 	shift
 	args="$@"
 
-	if ! status $daemon > /dev/null 2>&1; then
-		errmsg=$( @SBINDIR@/$daemon $args 2>&1 ) || return 1
-	fi
-	return 0
+	! status $daemon > /dev/null 2>&1 && \
+		errmsg=$( @SBINDIR@/$daemon $args 2>&1 )
 }
 
 stop_daemon()
@@ -207,8 +205,7 @@ stop_daemon()
 		((retries++))
 	done
 
-	status $daemon > /dev/null 2>&1 && return 1
-	return 0
+	! status $daemon > /dev/null 2>&1
 }
 
 ### check functions (enable/disable) (on/off)
@@ -219,13 +216,11 @@ mtab_configfs()
 		grep "/sys/kernel/config" > /dev/null 2>&1 && \
 	awk '{ print $3 }' /etc/mtab | \
 		grep "configfs" > /dev/null 2>&1
-	return $?
 }
 
 cman_running()
 {
 	@SBINDIR@/cman_tool status > /dev/null 2>&1
-	return $?
 }
 
 # NOTE: this could probably grow a bit to do config sanity checks
@@ -236,18 +231,21 @@ cman_checkconfig()
 		if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
 			if [ -n "$LDAP_BINDDN" ]; then
 				if [ -z "$LDAP_BINDPWD" ]; then
-					errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
+					errmsg="ldadconfig has been select \
+						but LDAP_BINDPWD is not set"
 					return 1
 				fi
 			fi
 			if [ -n "$LDAP_BINDPWD" ]; then
 				if [ -z "$LDAP_BINDDN" ]; then
-					errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
+					errmsg="ldadconfig has been select \
+						but LDAP_BINDDN is not set"
 					return 1
 				fi
 			fi
 		else
-			errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
+			errmsg="ldadconfig has been select but neither \
+				LDAP_URL or LDAP_BASEDN have been set"
 			return 1
 		fi
 	;;
@@ -262,47 +260,38 @@ cman_checkconfig()
 		fi
 	;;
 	esac
-	return 0
 }
 
 xend_bridged_net_enabled() {
 	# Not a xen kernel
 	test -d /proc/xen || return 1
 
-	current_runlevel=$(/sbin/runlevel 2>/dev/null | awk '{ print $2 }' 2>/dev/null)
-	if [ -z "$current_runlevel" ]; then
-		errmsg='Unable to determine the current runlevel'
-		return 1
-	fi
+	# uanble to determine current runlevel
+	current_runlevel=$(/sbin/runlevel 2>/dev/null | \
+				awk '{ print $2 }' 2>/dev/null)
+	[ -z "$current_runlevel" ] && return 1
 
-	if ! chkconfig --levels "$current_runlevel" xend 2>/dev/null; then
-		# xend doesn't start at this runlevel.
-		return 1
-	fi
+	# xend doesn't start at this runlevel.
+	! chkconfig --levels "$current_runlevel" xend 2>/dev/null && return 1
 
-	if [ ! -f /etc/xen/xend-config.sxp ]; then
-		# xend isn't configured to use bridged networking.
-		return 1
-	fi
+	# xend isn't configured to use bridged networking.
+	[ ! -f /etc/xen/xend-config.sxp ] && return 1
 
-	if ! egrep "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp >&/dev/null; then
-		# xend isn't configured to use bridged networking.
-		return 1
-	fi
-	return 0
+	# xend isn't configured to use bridged networking.
+	! egrep \
+		"^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" \
+		/etc/xen/xend-config.sxp >&/dev/null && return 1
 }
 
 qdiskd_enabled()
 {
 	ccs_tool query /cluster/quorumd >/dev/null 2>&1
-	return $?
 }
 
 groupd_enabled()
 {
-	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
-		return 0
-	else
+	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || \
+		true)" == "0" ]; then
 		return 1
 	fi
 }
@@ -332,8 +321,6 @@ fence_join_enabled()
 	#
 	if [ "$FENCE_JOIN" = "no" ]; then
 		return 1
-	else
-		return 0
 	fi
 }
 
@@ -352,13 +339,11 @@ fence_xvmd_enabled()
 	# (If -X is specified, it doesn't matter if it's in cluster.conf;
 	#  we'll start it anyway since ccsd is not required)
 	#
-	if cman_running; then
-		if [ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
-			@SBINDIR@/ccs_tool query /cluster/fence_xvmd || return 1
-		fi
+	if cman_running && \
+		[ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
+			@SBINDIR@/ccs_tool query /cluster/fence_xvmd \
+				> /dev/null 2>&1 || return 1
 	fi
-
-	return 0
 }
 
 ### the real stuff starts here
@@ -375,18 +360,24 @@ start_global()
 xend_bridged_net_start() {
 	if [ ! -x /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
 		if [ -f /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
-			errmsg='The xend bridged network script cannot be run'
+			errmsg="The xend bridged network script cannot be run"
 		else
-			errmsg='The xend bridged network script is missing'
+			errmsg="The xend bridged network script is missing"
 		fi
 		return 1
 	fi
 
-	/sbin/modprobe netbk >& /dev/null
-	/sbin/modprobe netloop >& /dev/null
-	bridge_parms=`egrep -m 1 "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp| sed -r "s/^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+'?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}[[:blank:]]*//; s/'?[[:blank:]]*\).*//"`
-	errmsg=$(/etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} start $bridge_parms 2>&1) || return 1
-	return 0
+	/sbin/modprobe netbk >& /dev/null || true
+	/sbin/modprobe netloop >& /dev/null || true
+
+	bridge_parms=$( egrep -m 1 \
+			"^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" \
+			/etc/xen/xend-config.sxp | \
+			sed -r \
+			"s/^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+'?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}[[:blank:]]*//; s/'?[[:blank:]]*\).*//" )
+
+	errmsg=$( /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} \
+		start $bridge_parms 2>&1 ) || return 1
 }
 
 load_kernel_modules()
@@ -394,7 +385,6 @@ load_kernel_modules()
 	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
 	errmsg=$( /sbin/modprobe dlm 2>&1 ) || return 1
 	errmsg=$( /sbin/modprobe lock_dlm 2>&1 ) || true
-	return 0
 }
 
 unload_kernel_modules()
@@ -405,46 +395,36 @@ unload_kernel_modules()
 
 start_configfs()
 {
-	if ! mtab_configfs; then
+	! mtab_configfs && \
 		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
-		return $?
-	fi
-	return 0
 }
 
 stop_configfs()
 {
 	if mtab_configfs && [ -z "$(ls -1 /sys/kernel/config)" ]; then
-		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
-		if [ $? -ne 0 ]; then
-			return 1
-		fi
+		errmsg=$( /bin/umount /sys/kernel/config 2>&1 ) || return 1
 		/sbin/modprobe -r configfs > /dev/null 2>&1 || true
 	fi
-	return 0
 }
 
 
 set_networking_params()
 {
-	if [ ! -f  /proc/sys/net/core/rmem_default ]; then
-		return 0;
-	fi
+	[ ! -f  /proc/sys/net/core/rmem_default ] && return 0
 
 	value="$(cat /proc/sys/net/core/rmem_default)"
-	if [ $value -le $NET_RMEM_DEFAULT ]; then
+
+	[ $value -le $NET_RMEM_DEFAULT ] && \
 		echo $NET_RMEM_DEFAULT > /proc/sys/net/core/rmem_default
-	fi
 
 	value="$(cat /proc/sys/net/core/rmem_max)"
-	if [ $value -le $NET_RMEM_MAX ]; then
+
+	[ $value -le $NET_RMEM_MAX ] && \
 		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
-	fi
 }
 
 start_cman()
 {
-	# cman
 	if ! cman_running && cman_checkconfig; then
 		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
 			$cman_join_opts 2>&1 ) || return 1
@@ -454,7 +434,6 @@ start_cman()
 				-q wait 2>&1 ) || return 1
 		fi
 	fi
-	return 0
 }
 
 stop_cman()
@@ -463,7 +442,6 @@ stop_cman()
 		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
 			-w leave $cmanremove 2>&1 ) || return 1
 	fi
-	return 0
 }
 
 unfence_self()
@@ -476,78 +454,67 @@ unfence_self()
 start_qdiskd()
 {
 	start_daemon qdiskd "-Q" 
-	return $?
 }
 
 stop_qdiskd()
 {
 	stop_daemon qdiskd 5
-	return $?
 }
 
 start_groupd()
 {
 	start_daemon groupd 
-	return $?
 }
 
 stop_groupd()
 {
 	stop_daemon groupd
-	return $?
 }
 
 start_fenced()
 {
 	start_daemon fenced
-	return $?
 }
 
 stop_fenced()
 {
 	stop_daemon fenced
-	return $?
 }
 
 start_dlm_controld()
 {
 	start_daemon dlm_controld
-	return $?
 }
 
 stop_dlm_controld()
 {
 	stop_daemon dlm_controld
-	return $?
 }
 
 start_gfs_controld()
 {
 	start_daemon gfs_controld
-	return $?
 }
 
 stop_gfs_controld()
 {
 	stop_daemon gfs_controld
-	return $?
 }
 
 start_cmannotifyd()
 {
 	start_daemon cmannotifyd
-	return $?
 }
 
 stop_cmannotifyd()
 {
 	stop_daemon cmannotifyd
-	return $?
 }
 
 join_fence_domain()
 {
-	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1; then
+	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node \
+		> /dev/null 2>&1; then
         	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			> /dev/null 2>&1 ) || return 1
 	else
@@ -555,7 +522,6 @@ join_fence_domain()
 			-m $FENCED_MEMBER_DELAY join \
 			> /dev/null 2>&1 ) || return 1
 	fi
-	return 0
 }
 
 leave_fence_domain()
@@ -564,19 +530,16 @@ leave_fence_domain()
 		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
 		return $?
 	fi
-	return 0
 }
 
 start_fence_xvmd()
 {
 	start_daemon fence_xvmd "$FENCE_XVMD_OPTS"
-	return $?
 }
 
 stop_fence_xvmd()
 {
 	stop_daemon fence_xvmd 
-	return $?
 }
 
 start()
@@ -642,8 +605,6 @@ start()
 	runwrap start_fence_xvmd \
 		fence_xvmd_enabled \
 		"Starting virtual machine fencing host"
-
-	return 0
 }
 
 stop()
@@ -693,8 +654,6 @@ stop()
 	runwrap stop_configfs \
 		none \
 		"Unmounting configfs"
-
-	return 0
 }
 
 cmanstatus()
@@ -725,8 +684,6 @@ cmanstatus()
 	if fence_xvmd_enabled; then
 		errmsg=$( status fence_xvmd 2>&1 ) || return 1
 	fi
-
-	return 0
 }
 
 rtrn=0
