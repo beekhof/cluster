@@ -93,14 +93,14 @@ the nodeid to one that is already used.
 .in +7
 It is quite common to use multiple ethernet adapters for cluster nodes, so
 they will tolerate the failure of one link. A common way to do this is to use
-ethernet bonding. Alternatively you can get openais to run in redundant ring
+ethernet bonding. Alternatively you can get corosync to run in redundant ring
 mode by specifying an 'altname' for the node. This is an alternative name by
 which the node is known, that resolves to another IP address used on the 
 other ethernet adapter(s). You can optionally specify a different port and/or 
 multicast address for each altname in use. Up to 9 altnames (10 interfaces 
 in total) can be used.
 
-Note that if you are using the DLM with cman/openais then you MUST tell it 
+Note that if you are using the DLM with cman/corosync then you MUST tell it 
 to use SCTP as it's communications protocol as TCP does not support multihoming.
 
   <clusternode name="nd1" nodeid="1"> 
@@ -141,15 +141,15 @@ you feel the need. Sometimes cluster names can hash to the same ID.
 
 .in -7
 
-\fIopenais security key\fR
+\fIcorosync security key\fR
 .in +7
-All traffic sent out by cman/openais is encrypted. By default the security key 
+All traffic sent out by cman/corosync is encrypted. By default the security key 
 used is simply the cluster name. If you need more security you can specify a
 key file that contains the key used to encrypt cluster communications.
 Of course, the contents of the key file must be the same on all nodes in the
 cluster. It is up to you to securely copy the file to the nodes.
 
-  <cman keyfile="/etc/openais.key">
+  <cman keyfile="/etc/cluster/corosync.key">
   </cman>
 
 Note that this only applies to cluster communication. The DLM does not encrypt 
@@ -157,13 +157,13 @@ traffic.
 .in -7
 
 
-\fIOther openais parameters\fR
+\fIOther corosync parameters\fR
 .in +7
-When openais is started by cman (cman_tool runs aisexec), the openais.conf
+When corosync is started by cman (cman_tool runs aisexec), the corosync.conf
 file is not used.  Many of the configuration parameters listed in
-openais.conf can be set in cluster.conf (CCS) instead.  Cman will read
-openais parameters from the following sections in cluster.conf and load
-them into openais:
+corosync.conf can be set in cluster.conf (CCS) instead.  Cman will read
+corosync parameters from the following sections in cluster.conf and load
+them into corosync:
 
   <cluster>
     <totem />
@@ -174,15 +174,15 @@ them into openais:
   </cluster>
 
 See the 
-.B openais.conf(5)
+.B corosync.conf(5)
 man page for more information on keys that are valid for these sections.
 Note that settings in the <clusternodes> section will override settings in
 the sections above, and options on the cman_tool command line will
 override both.  In particular, settings like bindnetaddr, mcastaddr,
 mcastport and nodeid will always be replaced by values in <clusternodes>.
 
-Cman uses different defaults for some of the openais parameters listed in
-openais.conf(5).  If you wish to use a non-default setting, they can be
+Cman uses different defaults for some of the corosync parameters listed in
+corosync.conf(5).  If you wish to use a non-default setting, they can be
 configured in cluster.conf as shown above.  Cman uses the following
 default values:
 
@@ -202,12 +202,12 @@ Here's how to set the token timeout to five seconds:
 
   <totem token="5000"/>
 
-And this is how to add extra openais logging options to CMAN and CPG:
+And this is how to add extra corosync logging options to CMAN and CPG:
 
   <logging to_stderr="yes">
-    <logger ident="CPG" debug="on" to_stderr="yes">
+    <logger_subsys subsys="CPG" debug="on">
     </logger>
-    <logger ident="CMAN" debug="on" to_stderr="yes">
+    <logger_subsys subsys="CMAN" debug="on">
     </logger>
   </logging>
 
@@ -218,5 +218,5 @@ And this is how to add extra openais logging options to CMAN and CPG:
 
 .SH "SEE ALSO"
 
-cluster.conf(5), openais.conf(5), ccs(7), cman_tool(8)
+cluster.conf(5), corosync.conf(5), ccs(7), cman_tool(8)
 
