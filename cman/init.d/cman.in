@@ -700,26 +700,30 @@ stop()
 cmanstatus()
 {
 	errmsg=$( status corosync 2>&1 ) || return 1
-	cman_running || return 1
+
+	if ! cman_running; then
+		errmsg="cman is not running"
+		return 1
+	fi
 
 	if qdiskd_enabled; then
-		errmsg=$( status qdiskd 2>&1) || return 1
+		errmsg=$( status qdiskd 2>&1 ) || return 1
 	fi
 
 	if groupd_enabled; then
-		errmsg=$( status groupd 2>&1) || return 1
+		errmsg=$( status groupd 2>&1 ) || return 1
 	fi
 
-	errmsg=$( status fenced 2>&1) || return 1
-	errmsg=$( status dlm_controld 2>&1) || return 1
-	errmsg=$( status gfs_controld 2>&1) || return 1
+	errmsg=$( status fenced 2>&1 ) || return 1
+	errmsg=$( status dlm_controld 2>&1 ) || return 1
+	errmsg=$( status gfs_controld 2>&1 ) || return 1
 
 	if cmannotifyd_enabled; then
-		errmsg=$( status cmannotifyd 2>&1) || return 1
+		errmsg=$( status cmannotifyd 2>&1 ) || return 1
 	fi
 
 	if fence_xvmd_enabled; then
-		errmsg=$( status fence_xvmd 2>&1) || return 1
+		errmsg=$( status fence_xvmd 2>&1 ) || return 1
 	fi
 
 	return 0
