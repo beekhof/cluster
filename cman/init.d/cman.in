@@ -423,12 +423,14 @@ stop_configfs()
 
 set_networking_params()
 {
-	[ ! -f  /proc/sys/net/core/rmem_default ] && return 0
+	rmemdefault=/proc/sys/net/core/rmem_default
 
-	value="$(cat /proc/sys/net/core/rmem_default)"
+	[ ! -f $rmemdefault ] && return 0
+
+	value="$(cat $rmemdefault)"
 
 	[ $value -le $NET_RMEM_DEFAULT ] && \
-		echo $NET_RMEM_DEFAULT > /proc/sys/net/core/rmem_default
+		echo $NET_RMEM_DEFAULT > $rmemdefault
 
 	value="$(cat /proc/sys/net/core/rmem_max)"
 
