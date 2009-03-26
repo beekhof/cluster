@@ -139,7 +139,7 @@ fi
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
 
 
-### helper/common functions
+### generic wrapper functions
 
 ok() {
 	success
@@ -151,6 +151,97 @@ nok() {
 	failure
 	echo
 	exit 1
+}
+
+none()
+{
+	return 0
+}
+
+runwrap()
+{
+	function=$1
+	shift
+	conditional=$1
+	shift
+	message="$@"
+
+	if ! $conditional; then
+		return 0
+	fi
+
+	echo -n "   $message... "
+	if $function; then
+		ok
+	else
+		nok
+	fi
+}
+
+start_daemon()
+{
+	daemon=$1
+	shift
+	args="$@"
+
+	if ! status $daemon > /dev/null 2>&1; then
+		errmsg=$( @SBINDIR@/$daemon $args 2>&1 ) || return 1
+	fi
+	return 0
+}
+
+### check functions (enable/disable) (on/off)
+
+mtab_configfs()
+{
+	awk '{ print $2 }' /etc/mtab | \
+		grep "/sys/kernel/config" > /dev/null 2>&1 && \
+	awk '{ print $3 }' /etc/mtab | \
+		grep "configfs" > /dev/null 2>&1
+	return $?
+}
+
+cman_running()
+{
+	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	return $?
+}
+
+# NOTE: this could probably grow a bit to do config sanity checks
+cman_checkconfig()
+{
+	case "$CONFIG_LOADER" in
+	ldapconfig)
+		if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
+			if [ -n "$LDAP_BINDDN" ]; then
+				if [ -z "$LDAP_BINDPWD" ]; then
+					errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
+					return 1
+				fi
+			fi
+			if [ -n "$LDAP_BINDPWD" ]; then
+				if [ -z "$LDAP_BINDDN" ]; then
+					errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
+					return 1
+				fi
+			fi
+		else
+			errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
+			return 1
+		fi
+	;;
+	xmlconfig|"")
+		configfile=@CONFDIR@/@CONFFILE@
+		[ -n "$COROSYNC_CLUSTER_CONFIG_FILE" ] && \
+			configfile=$COROSYNC_CLUSTER_CONFIG_FILE
+
+		if [ ! -f $configfile ]; then
+			errmsg="xmlconfig cannot find $configfile"
+			return 1
+		fi
+	;;
+	esac
+	return 0
 }
 
 xend_bridged_net_enabled() {
@@ -180,10 +271,34 @@ xend_bridged_net_enabled() {
 	return 0
 }
 
-cman_running()
+qdiskd_enabled()
 {
-	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	ccs_tool query /cluster/quorumd >/dev/null 2>&1
 	return $?
+}
+
+groupd_enabled()
+{
+	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+cmannotifyd_enabled()
+{
+	case "$CMAN_NOTIFYD_START" in
+	yes)
+		return 0
+	;;
+	conditional)
+		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
+			return 0
+		fi
+	;;
+	esac
+	return 1
 }
 
 fence_join_enabled()
@@ -225,213 +340,18 @@ fence_xvmd_enabled()
 	return 0
 }
 
-mtab_configfs()
-{
-	awk '{ print $2 }' /etc/mtab | \
-		grep "/sys/kernel/config" > /dev/null 2>&1 && \
-	awk '{ print $3 }' /etc/mtab | \
-		grep "configfs" > /dev/null 2>&1
-	return $?
-}
-
-qdiskd_enabled()
-{
-	ccs_tool query /cluster/quorumd >/dev/null 2>&1
-	return $?
-}
-
-groupd_enabled()
-{
-	if [ "$(ccs_tool query /cluster/group/@groupd_compat 2>/dev/null || true)" != "0" ]; then
-		return 0
-	else
-		return 1
-	fi
-}
-
-cmannotifyd_enabled()
-{
-	case "$CMAN_NOTIFYD_START" in
-	yes)
-		return 0
-	;;
-	conditional)
-		if [ -n "$(ls -1 @NOTIFYDDIR@ 2>/dev/null)" ]; then
-			return 0
-		fi
-	;;
-	esac
-	return 1
-}
-
-runwrap()
-{
-	function=$1
-	shift
-	message="$@"
-
-	echo -n "   $message... "
-	if $function; then
-		ok
-	else
-		nok
-	fi
-}
-
-# NOTE: this could probably grow a bit to do config sanity checks
-cman_checkconfig()
-{
-	case "$CONFIG_LOADER" in
-	ldapconfig)
-		if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
-			if [ -n "$LDAP_BINDDN" ]; then
-				if [ -z "$LDAP_BINDPWD" ]; then
-					errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
-					return 1
-				fi
-			fi
-			if [ -n "$LDAP_BINDPWD" ]; then
-				if [ -z "$LDAP_BINDDN" ]; then
-					errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
-					return 1
-				fi
-			fi
-		else
-			errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
-			return 1
-		fi
-	;;
-	xmlconfig|"")
-		configfile=@CONFDIR@/@CONFFILE@
-		[ -n "$COROSYNC_CLUSTER_CONFIG_FILE" ] && \
-			configfile=$COROSYNC_CLUSTER_CONFIG_FILE
-
-		if [ ! -f $configfile ]; then
-			errmsg="xmlconfig cannot find $configfile"
-			return 1
-		fi
-	;;
-	esac
-	return 0
-}
-
 ### the real stuff starts here
 
-load_modules()
+start_global()
 {
-	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
-	errmsg=$( /sbin/modprobe dlm 2>&1 ) || return 1
-	errmsg=$( /sbin/modprobe lock_dlm 2>&1 ) || true
-	return 0
-}
-
-start_configfs()
-{
-	if ! mtab_configfs; then
-		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
-		return $?
-	fi
-	return 0
-}
-
-start_cman()
-{
-	# cman
-	if ! cman_running && cman_checkconfig; then
-		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
-			$cman_join_opts 2>&1 ) || return 1
-
-		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]; then
-			errmsg=$( @SBINDIR@/cman_tool -t $CMAN_QUORUM_TIMEOUT \
-				-q wait 2>&1 ) || return 1
-		fi
-	fi
-	return 0
-}
-
-unfence_self()
-{
-	fence_node -U > /dev/null 2>&1
-
-	case $? in
-	1)
-		return 1
-	;;
-	2)
-		echo -n "unconfigured or not required"
-	;;
-	esac
-	return 0
-}
-
-start_qdiskd()
-{
-	if ! status qdiskd > /dev/null 2>&1 && \
-		qdiskd_enabled; then
-		errmsg=$( @SBINDIR@/qdiskd -Q 2>&1 ) || return 1
-	fi
-	return 0
-}
-
-start_daemons()
-{
-	if ! status groupd > /dev/null 2>&1 && \
-		groupd_enabled; then
-		errmsg=$( @SBINDIR@/groupd 2>&1 ) || return 1
-	fi
-	if ! status fenced > /dev/null 2>&1 ; then
-		errmsg=$( @SBINDIR@/fenced 2>&1 ) || return 1
-	fi
-	if ! status dlm_controld > /dev/null 2>&1; then
-		errmsg=$( @SBINDIR@/dlm_controld 2>&1 ) || return 1
-	fi
-	if ! status gfs_controld > /dev/null 2>&1; then
-		errmsg=$( @SBINDIR@/gfs_controld 2>&1 ) || return 1
-	fi
-	if ! status cmannotifyd > /dev/null 2>&1 && \
-		cmannotifyd_enabled; then
-		errmsg=$(@SBINDIR@/cmannotifyd 2>&1 ) || return 1
-	fi
-	return 0
-}
-
-start_fence()
-{
-	if ! fence_join_enabled; then
-		echo -n "not required"
-		return 0
-	fi
-
-	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1; then
-        	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
-			> /dev/null 2>&1 ) || return 1
-	else
-		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
-			-m $FENCED_MEMBER_DELAY join \
-			> /dev/null 2>&1 ) || return 1
-	fi
-	return 0
-}
-
-start_fence_xvmd()
-{
-	if ! fence_xvmd_enabled; then
-		echo -n "not required"
-		return 0
-	fi
-
-	if ! status fence_xvmd > /dev/null 2>&1; then
-		errmsg=$( @SBINDIR@/fence_xvmd $FENCE_XVMD_OPTS 2>&1 ) || return 1
-	fi
-	return 0
+	## global bits
+	# guarantee enough limits
+	ulimit -c unlimited
+	# required for distributions that use tmpfs for /var/run
+	mkdir -p /var/run/cluster
 }
 
 xend_bridged_net_start() {
-	if ! xend_bridged_net_enabled; then
-		echo -n "not required"
-		return 0
-	fi
-
 	if [ ! -x /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
 		if [ -f /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} ]; then
 			errmsg='The xend bridged network script cannot be run'
@@ -445,6 +365,23 @@ xend_bridged_net_start() {
 	/sbin/modprobe netloop >& /dev/null
 	bridge_parms=`egrep -m 1 "^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" /etc/xen/xend-config.sxp| sed -r "s/^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+'?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}[[:blank:]]*//; s/'?[[:blank:]]*\).*//"`
 	errmsg=$(/etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} start $bridge_parms 2>&1) || return 1
+	return 0
+}
+
+load_kernel_modules()
+{
+	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
+	errmsg=$( /sbin/modprobe dlm 2>&1 ) || return 1
+	errmsg=$( /sbin/modprobe lock_dlm 2>&1 ) || true
+	return 0
+}
+
+start_configfs()
+{
+	if ! mtab_configfs; then
+		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
+		return $?
+	fi
 	return 0
 }
 
@@ -465,26 +402,146 @@ set_networking_params()
 	fi
 }
 
+start_cman()
+{
+	# cman
+	if ! cman_running && cman_checkconfig; then
+		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
+			$cman_join_opts 2>&1 ) || return 1
+
+		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]; then
+			errmsg=$( @SBINDIR@/cman_tool -t $CMAN_QUORUM_TIMEOUT \
+				-q wait 2>&1 ) || return 1
+		fi
+	fi
+	return 0
+}
+
+unfence_self()
+{
+	fence_node -U > /dev/null 2>&1
+	[ $? -eq 1 ] && return 1
+	return 0
+}
+
+start_qdiskd()
+{
+	start_daemon qdiskd "-Q" 
+	return $?
+}
+
+start_groupd()
+{
+	start_daemon groupd 
+	return $?
+}
+
+start_fenced()
+{
+	start_daemon fenced
+	return $?
+}
+
+start_dlm_controld()
+{
+	start_daemon dlm_controld
+	return $?
+}
+
+start_gfs_controld()
+{
+	start_daemon gfs_controld
+	return $?
+}
+
+start_cmannotifyd()
+{
+	start_daemon cmannotifyd
+	return $?
+}
+
+join_fence_domain()
+{
+	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node > /dev/null 2>&1; then
+        	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+			> /dev/null 2>&1 ) || return 1
+	else
+		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+			-m $FENCED_MEMBER_DELAY join \
+			> /dev/null 2>&1 ) || return 1
+	fi
+	return 0
+}
+
+start_fence_xvmd()
+{
+	start_daemon fence_xvmd "$FENCE_XVMD_OPTS"
+	return $?
+}
+
 start()
 {
 	echo "Starting cluster: "
 
-	## global bits
-	# guarantee enough limits
-	ulimit -c unlimited
-	# required for distributions that use tmpfs for /var/run
-	mkdir -p /var/run/cluster
+	runwrap start_global \
+		none \
+		"Global setup"
 
-	runwrap xend_bridged_net_start "Enable Xend bridge net workaround"
-	runwrap load_modules "Loading modules"
-	runwrap start_configfs "Mounting configfs"
-	runwrap set_networking_params "Setting network parameters"
-	runwrap start_cman "Starting cman"
-	runwrap unfence_self "Unfencing self"
-	runwrap start_qdiskd "Starting qdiskd"
-	runwrap start_daemons "Starting daemons"
-	runwrap start_fence "Starting fencing"
-	runwrap start_fence_xvmd "Starting virtual machine fencing host"
+	runwrap xend_bridged_net_start \
+		xend_bridged_net_enabled \
+		"Enable Xend bridge net workaround"
+
+	runwrap load_kernel_modules \
+		none \
+		"Loading kernel modules"
+
+	runwrap start_configfs \
+		none \
+		"Mounting configfs"
+
+	runwrap set_networking_params \
+		none \
+		"Setting network parameters"
+
+	runwrap start_cman \
+		none \
+		"Starting cman"
+
+	runwrap unfence_self \
+		none \
+		"Unfencing self"
+
+	runwrap start_qdiskd \
+		qdiskd_enabled \
+		"Starting qdiskd"
+
+	runwrap start_groupd \
+		groupd_enabled \
+		"Starting groupd"
+
+	runwrap start_fenced \
+		none \
+		"Starting fenced"
+
+	runwrap start_dlm_controld \
+		none \
+		"Starting dlm_controld"
+
+	runwrap start_gfs_controld \
+		none \
+		"Starting gfs_controld"
+
+	runwrap start_cmannotifyd \
+		cmannotifyd_enabled \
+		"Starting cmannotifyd"
+
+	runwrap join_fence_domain \
+		fence_join_enabled \
+		"Joining fence domain"
+
+	runwrap start_fence_xvmd \
+		fence_xvmd_enabled \
+		"Starting virtual machine fencing host"
 
 	return 0
 }
@@ -588,14 +645,14 @@ stop()
 {
 	echo "Stopping cluster: "
 
-	runwrap stop_fence_xvmd "Stopping virtual machine fencing host"
-	runwrap stop_fence "Stopping fencing"
-	runwrap stop_daemons "Stopping daemons"
-	runwrap stop_qdiskd "Stopping qdiskd"
-	runwrap stop_cman "Stopping cman"
-	runwrap stop_cmannotifyd "Stopping cmannotifyd"
-	runwrap unload_modules "Unloading modules"
-	runwrap stop_configfs "Unmounting configfs"
+	runwrap stop_fence_xvmd none "Stopping virtual machine fencing host"
+	runwrap stop_fence none "Stopping fencing"
+	runwrap stop_daemons none "Stopping daemons"
+	runwrap stop_qdiskd none "Stopping qdiskd"
+	runwrap stop_cman none "Stopping cman"
+	runwrap stop_cmannotifyd none "Stopping cmannotifyd"
+	runwrap unload_modules none "Unloading modules"
+	runwrap stop_configfs none "Unmounting configfs"
 
 	return 0
 }
@@ -632,12 +689,7 @@ rtrn=0
 # See how we were called.
 case "$1" in
 start)
-	if start; then
-		touch $LOCK_FILE
-	else
-		echo $errmsg
-		rtrn=1
-	fi
+	start && touch $LOCK_FILE
 ;;
 stop)
 	cmanremove=""
