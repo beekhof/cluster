@@ -23,7 +23,7 @@ struct objectclasses
 	{ "cman", "rhcsCman" },
 	{ "totem", "rhcsTotem" },
 	{ "clusternode", "rhcsNode" },
-	{ "device", "rhcsFenceagent" },
+	{ "device", "rhcsDevice" },
 	{ "fencedevice", "rhcsFencedevice" },
 	{ "method", "rhcsFencemethod" },
 	{ "logging", "rhcsLoggersubsys" },
