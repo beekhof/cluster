@@ -390,7 +390,7 @@ xend_bridged_net_start() {
 			"s/^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+'?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}[[:blank:]]*//; s/'?[[:blank:]]*\).*//" )
 
 	errmsg=$( /etc/xen/scripts/${NETWORK_BRIDGE_SCRIPT} \
-		start $bridge_parms 2>&1 ) || return 1
+		start $bridge_parms 2>&1 )
 }
 
 load_kernel_modules()
