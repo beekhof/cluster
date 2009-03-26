@@ -737,15 +737,9 @@ stop)
 	stop && rm -f $LOCK_FILE
 ;;
 restart|reload)
-	echo -n "Restarting cluster: "
 	cmanremove=remove
-	if stop > /dev/null 2>&1 && \
-		start > /dev/null 2>&1; then
-			ok
-	else
-		failure
-		rtrn=1
-	fi
+	stop
+	start
 ;;
 status)
 	if cmanstatus; then
