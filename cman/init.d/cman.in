@@ -147,6 +147,7 @@ ok() {
 }
 
 nok() {
+	echo $errmsg
 	failure
 	echo
 	exit 1
@@ -277,6 +278,43 @@ runwrap()
 	fi
 }
 
+# NOTE: this could probably grow a bit to do config sanity checks
+cman_checkconfig()
+{
+	case "$CONFIG_LOADER" in
+	ldapconfig)
+		if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
+			if [ -n "$LDAP_BINDDN" ]; then
+				if [ -z "$LDAP_BINDPWD" ]; then
+					errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
+					return 1
+				fi
+			fi
+			if [ -n "$LDAP_BINDPWD" ]; then
+				if [ -z "$LDAP_BINDDN" ]; then
+					errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
+					return 1
+				fi
+			fi
+		else
+			errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
+			return 1
+		fi
+	;;
+	xmlconfig|"")
+		configfile=@CONFDIR@/@CONFFILE@
+		[ -n "$COROSYNC_CLUSTER_CONFIG_FILE" ] && \
+			configfile=$COROSYNC_CLUSTER_CONFIG_FILE
+
+		if [ ! -f $configfile ]; then
+			errmsg="xmlconfig cannot find $configfile"
+			return 1
+		fi
+	;;
+	esac
+	return 0
+}
+
 ### the real stuff starts here
 
 load_modules()
@@ -299,31 +337,7 @@ start_configfs()
 start_cman()
 {
 	# cman
-	if ! cman_running; then
-		case "$CONFIG_LOADER" in
-		ldapconfig)
-			if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
-				if [ -n "$LDAP_BINDDN" ]; then
-					if [ -z "$LDAP_BINDPWD" ]; then
-						errmsg="ldadconfig has been select but LDAP_BINDPWD is not set"
-						return 1
-					fi
-				fi
-				if [ -n "$LDAP_BINDPWD" ]; then
-					if [ -z "$LDAP_BINDDN" ]; then
-						errmsg="ldadconfig has been select but LDAP_BINDDN is not set"
-						return 1
-					fi
-				fi
-			else
-				errmsg="ldadconfig has been select but neither LDAP_URL or LDAP_BASEDN have been set"
-				return 1
-			fi
-		;;
-		*)
-			# nothing to do for now
-		;;
-		esac
+	if ! cman_running && cman_checkconfig; then
 		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
 			$cman_join_opts 2>&1 ) || return 1
 

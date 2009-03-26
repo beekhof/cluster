@@ -14,6 +14,8 @@ $(TARGET): $(S)/$(TARGET).in
 		-e 's#@SBINDIR@#${sbindir}#g' \
 		-e 's#@INITDDIR@#${initddir}#g' \
 		-e 's#@NOTIFYDDIR@#${notifyddir}#g' \
+		-e 's#@CONFDIR@#${CONFDIR}#g' \
+		-e 's#@CONFFILE@#${CONFFILE}#g' \
 	> $(TARGET)
 
 clean: generalclean
