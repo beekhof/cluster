@@ -1,7 +1,7 @@
 include ../../make/defines.mk
 
 ifdef fence_agents
-SUBDIRS = ${fence_agents} lib
+SUBDIRS = ${fence_agents} lib nss_wrapper
 endif
 
 all: ${SUBDIRS}
