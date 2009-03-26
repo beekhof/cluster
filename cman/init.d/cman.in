@@ -244,20 +244,20 @@ cman_checkconfig()
 		if [ -n "$LDAP_URL" ] || [ -n "$LDAP_BASEDN" ]; then
 			if [ -n "$LDAP_BINDDN" ]; then
 				if [ -z "$LDAP_BINDPWD" ]; then
-					errmsg="ldadconfig has been select \
+					errmsg="ldadconfig has been selected \
 						but LDAP_BINDPWD is not set"
 					return 1
 				fi
 			fi
 			if [ -n "$LDAP_BINDPWD" ]; then
 				if [ -z "$LDAP_BINDDN" ]; then
-					errmsg="ldadconfig has been select \
+					errmsg="ldadconfig has been selected \
 						but LDAP_BINDDN is not set"
 					return 1
 				fi
 			fi
 		else
-			errmsg="ldadconfig has been select but neither \
+			errmsg="ldadconfig has been selected but neither \
 				LDAP_URL or LDAP_BASEDN have been set"
 			return 1
 		fi
