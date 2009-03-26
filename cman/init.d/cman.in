@@ -70,14 +70,14 @@ fi
 #     negative, do not check to see that the cluster has been joined
 [ -z "$CMAN_CLUSTER_TIMEOUT" ] && CMAN_CLUSTER_TIMEOUT=120
 
-# CMAN_QUORUM_TIMEOUT -- amount of time to wait for a quorate cluster on 
-#     startup quorum is needed by many other applications, so we may as 
-#     well wait here.  If CMAN_QUORUM_TIMEOUT is less than 1, quorum will 
+# CMAN_QUORUM_TIMEOUT -- amount of time to wait for a quorate cluster on
+#     startup quorum is needed by many other applications, so we may as
+#     well wait here.  If CMAN_QUORUM_TIMEOUT is less than 1, quorum will
 #     be ignored.
 [ -z "$CMAN_QUORUM_TIMEOUT" ] && CMAN_QUORUM_TIMEOUT=0
 
-# CMAN_SHUTDOWN_TIMEOUT -- amount of time to wait for cman to become a 
-#     cluster member before calling cman_tool leave during shutdown.  
+# CMAN_SHUTDOWN_TIMEOUT -- amount of time to wait for cman to become a
+#     cluster member before calling cman_tool leave during shutdown.
 #     The default is 60 seconds
 [ -z "$CMAN_SHUTDOWN_TIMEOUT" ] && CMAN_SHUTDOWN_TIMEOUT=60
 
