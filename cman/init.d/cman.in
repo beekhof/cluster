@@ -138,12 +138,20 @@ fi
 # openaisparser   - use internal openais config file parser.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
 
+# INITLOGLEVEL -- select how verbose the init script should be
+# possible values:
+# quiet           - only one line notification for start/stop operations
+# terse (default) - show only required activity
+# full            - show everything
+[ -z "$INITLOGLEVEL" ] && INITLOGLEVEL=terse
 
 ### generic wrapper functions
 
 ok() {
-	success
-	echo
+	if [ "$INITLOGLEVEL" != "quiet" ]; then
+		success
+		echo
+	fi
 }
 
 nok() {
@@ -167,10 +175,15 @@ runwrap()
 	message="$@"
 
 	if ! $conditional; then
+		if [ "$INITLOGLEVEL" = "full" ]; then
+			echo "   $message... action not required"
+		fi
 		return 0
 	fi
 
-	echo -n "   $message... "
+	if [ "$INITLOGLEVEL" != "quiet" ]; then
+		echo -n "   $message... "
+	fi
 	if $function; then
 		ok
 	else
@@ -544,7 +557,11 @@ stop_fence_xvmd()
 
 start()
 {
-	echo "Starting cluster: "
+	if [ "$INITLOGLEVEL" = "quiet" ]; then
+		echoarg="-n"
+	fi
+
+	echo $echoarg "Starting cluster: "
 
 	runwrap start_global \
 		none \
@@ -609,7 +626,11 @@ start()
 
 stop()
 {
-	echo "Stopping cluster: "
+	if [ "$INITLOGLEVEL" = "quiet" ]; then
+		echoarg="-n"
+	fi
+
+	echo $echoarg "Stopping cluster: "
 
 	runwrap stop_fence_xvmd \
 		fence_xvmd_enabled \
@@ -692,10 +713,18 @@ rtrn=0
 case "$1" in
 start)
 	start && touch $LOCK_FILE
+	if [ "$INITLOGLEVEL" = "quiet" ]; then
+		success
+		echo
+	fi
 ;;
 stop)
 	cmanremove=""
 	stop && rm -f $LOCK_FILE
+	if [ "$INITLOGLEVEL" = "quiet" ]; then
+		success
+		echo
+	fi
 ;;
 restart|reload)
 	cmanremove=remove
