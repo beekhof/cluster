@@ -190,6 +190,27 @@ start_daemon()
 	return 0
 }
 
+stop_daemon()
+{
+	daemon=$1
+	shift
+	maxretries=$1
+
+	[ -z "$maxretries" ] && maxretries=1
+	retries=0
+
+	while status $daemon > /dev/null 2>&1 && \
+		[ $retries -lt $maxretries ]; do
+
+		errmsg=$( pkill -TERM $daemon ) || return 1
+		sleep 1
+		((retries++))
+	done
+
+	status $daemon > /dev/null 2>&1 && return 1
+	return 0
+}
+
 ### check functions (enable/disable) (on/off)
 
 mtab_configfs()
@@ -376,6 +397,12 @@ load_kernel_modules()
 	return 0
 }
 
+unload_kernel_modules()
+{
+	/sbin/modprobe -r lock_dlm > /dev/null 2>&1 || true
+	/sbin/modprobe -r dlm > /dev/null 2>&1 || true
+}
+
 start_configfs()
 {
 	if ! mtab_configfs; then
@@ -384,6 +411,19 @@ start_configfs()
 	fi
 	return 0
 }
+
+stop_configfs()
+{
+	if mtab_configfs && [ -z "$(ls -1 /sys/kernel/config)" ]; then
+		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
+		if [ $? -ne 0 ]; then
+			return 1
+		fi
+		/sbin/modprobe -r configfs > /dev/null 2>&1 || true
+	fi
+	return 0
+}
+
 
 set_networking_params()
 {
@@ -417,6 +457,15 @@ start_cman()
 	return 0
 }
 
+stop_cman()
+{
+	if cman_running; then
+		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
+			-w leave $cmanremove 2>&1 ) || return 1
+	fi
+	return 0
+}
+
 unfence_self()
 {
 	fence_node -U > /dev/null 2>&1
@@ -430,9 +479,21 @@ start_qdiskd()
 	return $?
 }
 
+stop_qdiskd()
+{
+	stop_daemon qdiskd 5
+	return $?
+}
+
 start_groupd()
 {
 	start_daemon groupd 
+	return $?
+}
+
+stop_groupd()
+{
+	stop_daemon groupd
 	return $?
 }
 
@@ -442,9 +503,21 @@ start_fenced()
 	return $?
 }
 
+stop_fenced()
+{
+	stop_daemon fenced
+	return $?
+}
+
 start_dlm_controld()
 {
 	start_daemon dlm_controld
+	return $?
+}
+
+stop_dlm_controld()
+{
+	stop_daemon dlm_controld
 	return $?
 }
 
@@ -454,9 +527,21 @@ start_gfs_controld()
 	return $?
 }
 
+stop_gfs_controld()
+{
+	stop_daemon gfs_controld
+	return $?
+}
+
 start_cmannotifyd()
 {
 	start_daemon cmannotifyd
+	return $?
+}
+
+stop_cmannotifyd()
+{
+	stop_daemon cmannotifyd
 	return $?
 }
 
@@ -473,9 +558,24 @@ join_fence_domain()
 	return 0
 }
 
+leave_fence_domain()
+{
+	if status fenced > /dev/null 2>&1; then
+		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
+		return $?
+	fi
+	return 0
+}
+
 start_fence_xvmd()
 {
 	start_daemon fence_xvmd "$FENCE_XVMD_OPTS"
+	return $?
+}
+
+stop_fence_xvmd()
+{
+	stop_daemon fence_xvmd 
 	return $?
 }
 
@@ -546,113 +646,53 @@ start()
 	return 0
 }
 
-stop_configfs()
-{
-	if mtab_configfs && [ -z "$(ls -1 /sys/kernel/config)" ]; then
-		errmsg=$( /bin/umount /sys/kernel/config 2>&1 )
-		if [ $? -ne 0 ]; then
-			return 1
-		fi
-		/sbin/modprobe -r configfs > /dev/null 2>&1 || true
-	fi
-	return 0
-}
-
-stop_cman()
-{
-	if cman_running; then
-		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
-			-w leave $cmanremove 2>&1 ) || return 1
-	fi
-	return 0 # all ok
-}
-
-stop_daemons()
-{
-	if status gfs_controld > /dev/null 2>&1; then
-		errmsg=$(pkill -TERM gfs_controld) || return 1
-	fi
-	if status dlm_controld > /dev/null 2>&1; then
-		errmsg=$(pkill -TERM dlm_controld) || return 1
-	fi
-	if status fenced > /dev/null 2>&1; then
-		errmsg=$(pkill -TERM fenced) || return 1
-	fi
-	if status groupd > /dev/null 2>&1; then
-		errmsg=$(pkill -TERM groupd) || return 1
-	fi
-	return 0 # all ok
-}
-
-stop_cmannotifyd()
-{
-	if status cmannotifyd > /dev/null 2>&1; then
-		errmsg=$(pkill -TERM cmannotifyd) || return 1
-	fi
-	return 0
-}
-
-stop_qdiskd()
-{
-	retries=0
-
-	while status qdiskd > /dev/null 2>&1 && [ $retries -lt 5 ]; do
-		errmsg=$(pkill -TERM qdiskd) || return 1
-		sleep 1
-		((retries++))
-	done
-	if status qdiskd > /dev/null 2>&1; then
-		return 1
-	fi
-	return 0
-}
-
-stop_fence()
-{
-	if ! fence_join_enabled; then
-		return 0
-	fi
-
-	if status fenced > /dev/null 2>&1; then
-		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
-		return $?
-	fi
-	return 0 # all ok
-}
-
-stop_fence_xvmd()
-{
-	if ! fence_xvmd_enabled; then
-		return 0
-	fi
-
-	if status fence_xvmd > /dev/null 2>&1; then
-		errmsg=$(pkill -TERM fence_xvmd) || return 1
-		sleep 1 # A bit of time for fenced to exit
-	fi
-
-	status fence_xvmd
-	return $?
-}
-
-unload_modules()
-{
-	/sbin/modprobe -r lock_dlm > /dev/null 2>&1 || true
-	/sbin/modprobe -r dlm > /dev/null 2>&1 || true
-}
-
 stop()
 {
 	echo "Stopping cluster: "
 
-	runwrap stop_fence_xvmd none "Stopping virtual machine fencing host"
-	runwrap stop_fence none "Stopping fencing"
-	runwrap stop_daemons none "Stopping daemons"
-	runwrap stop_qdiskd none "Stopping qdiskd"
-	runwrap stop_cman none "Stopping cman"
-	runwrap stop_cmannotifyd none "Stopping cmannotifyd"
-	runwrap unload_modules none "Unloading modules"
-	runwrap stop_configfs none "Unmounting configfs"
+	runwrap stop_fence_xvmd \
+		fence_xvmd_enabled \
+		"Stopping virtual machine fencing host"
+
+	runwrap leave_fence_domain \
+		fence_join_enabled \
+		"Leaving fence domain"
+
+	runwrap stop_gfs_controld \
+		none \
+		"Stopping gfs_controld"
+
+	runwrap stop_dlm_controld \
+		none \
+		"Stopping dlm_controld"
+
+	runwrap stop_fenced \
+		none \
+		"Stopping fenced"
+
+	runwrap stop_groupd \
+		none \
+		"Stopping groupd"
+
+	runwrap stop_qdiskd \
+		none \
+		"Stopping qdiskd"
+
+	runwrap stop_cman \
+		none \
+		"Stopping cman"
+
+	runwrap stop_cmannotifyd \
+		cmannotifyd_enabled \
+		"Stopping cmannotifyd"
+
+	runwrap unload_kernel_modules \
+		none \
+		"Unloading kernel modules"
+
+	runwrap stop_configfs \
+		none \
+		"Unmounting configfs"
 
 	return 0
 }
@@ -693,12 +733,7 @@ start)
 ;;
 stop)
 	cmanremove=""
-	if stop; then
-		rm -f $LOCK_FILE
-	else
-		echo $errmsg
-		rtrn=1
-	fi
+	stop && rm -f $LOCK_FILE
 ;;
 restart|reload)
 	echo -n "Restarting cluster: "
