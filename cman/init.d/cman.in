@@ -466,7 +466,7 @@ unfence_self()
 
 start_qdiskd()
 {
-	start_daemon qdiskd "-Q" 
+	start_daemon qdiskd "-Q"
 }
 
 stop_qdiskd()
@@ -476,7 +476,7 @@ stop_qdiskd()
 
 start_groupd()
 {
-	start_daemon groupd 
+	start_daemon groupd
 }
 
 stop_groupd()
@@ -528,7 +528,7 @@ join_fence_domain()
 {
 	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node \
 		> /dev/null 2>&1; then
-        	errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			> /dev/null 2>&1 ) || return 1
 	else
 		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
@@ -552,7 +552,7 @@ start_fence_xvmd()
 
 stop_fence_xvmd()
 {
-	stop_daemon fence_xvmd 
+	stop_daemon fence_xvmd
 }
 
 start()
