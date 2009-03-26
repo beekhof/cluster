@@ -641,7 +641,52 @@ To validate your cluster.conf against this schema, run:
 
  <optional>
   <element name="fence_xvmd">
-   <empty/>
+    <optional>
+      <attribute name="debug">
+	<data type="integer"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="port">
+	<data type="integer"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="use_uuid">
+	<data type="boolean"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="multicast_address">
+	<data type="string"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="auth">
+	<data type="string"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="hash">
+	<data type="string"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="uri">
+	<data type="string"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="key_file">
+	<data type="string"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="multicast_interface">
+	<data type="string"/>
+      </attribute>
+    </optional>
+
   </element>
  </optional>
 
@@ -727,16 +772,34 @@ To validate your cluster.conf against this schema, run:
  <optional>
   <element name="rm">
    <optional>
-    <attribute name="log_level"/>
+    <attribute name="log_level">
+     <data type="integer"/>
+    </attribute>
    </optional>
    <optional>
-    <attribute name="statusmax"/>
+    <attribute name="statusmax">
+     <data type="integer"/>
+    </attribute>
    </optional>
    <optional>
-    <attribute name="central_processing"/>
+    <attribute name="status_poll_interval">
+     <data type="integer"/>
+    </attribute>
    </optional>
    <optional>
-    <attribute name="log_facility"/>
+    <attribute name="transition_throttling">
+     <data type="integer"/>
+    </attribute>
+   </optional>
+   <optional>
+    <attribute name="central_processing">
+     <data type="integer"/>
+    </attribute>
+   </optional>
+   <optional>
+    <attribute name="log_facility">
+     <data type="string"/>
+    </attribute>
    </optional>
    <interleave>
    <optional>
@@ -896,7 +959,7 @@ To validate your cluster.conf against this schema, run:
     <attribute name="max_error_cycles"/>
    </optional>
 
-   <oneOrMore>
+   <zeroOrMore>
     <element name="heuristic">
      <attribute name="program"/>
      <optional>
@@ -909,7 +972,7 @@ To validate your cluster.conf against this schema, run:
       <attribute name="tko"/>
      </optional>
     </element>
-   </oneOrMore>
+   </zeroOrMore>
   </element>
  </optional>
 
