@@ -30,7 +30,9 @@ To validate your cluster.conf against this schema, run:
 <start>
 <element name="cluster">
  <attribute name="name"/>
- <attribute name="config_version"/>
+ <attribute name="config_version">
+  <data type="positiveInteger"/>
+ </attribute>
  <optional>
   <attribute name="alias"/>
  </optional>
@@ -49,19 +51,27 @@ To validate your cluster.conf against this schema, run:
     </attribute>
    </optional>
    <optional>
-    <attribute name="quorum_dev_poll"/>
+    <attribute name="quorum_dev_poll">
+     <data type="positiveInteger"/>
+    </attribute>
    </optional>
    <optional>
-    <attribute name="shutdown_timeout"/>
+    <attribute name="shutdown_timeout">
+     <data type="nonNegativeInteger"/>
+    </attribute>
    </optional>
    <optional>
-    <attribute name="ccsd_poll"/>
+    <attribute name="ccsd_poll">
+     <data type="positiveInteger"/>
+    </attribute>
    </optional>
    <optional>
     <attribute name="debug_mask"/>
    </optional>
    <optional>
-    <attribute name="port"/>
+    <attribute name="port">
+     <data type="nonNegativeInteger"/>
+    </attribute>
    </optional>
    <optional>
     <element name="multicast">

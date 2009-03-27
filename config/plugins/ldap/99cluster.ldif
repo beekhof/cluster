@@ -1,9 +1,9 @@
-# Auto-generated from cluster.rng
+# Auto-generated from ../../tools/xml/cluster.rng
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.1 NAME 'rhcsConfig-version'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
@@ -20,26 +20,26 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.6 NAME 'rhcsExpected-votes'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.16 NAME 'rhcsQuorum-dev-poll'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.17 NAME 'rhcsShutdown-timeout'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.18 NAME 'rhcsCcsd-poll'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
@@ -50,8 +50,8 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.13 NAME 'rhcsPort'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
@@ -62,14 +62,14 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.4 NAME 'rhcsVotes'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.2 NAME 'rhcsNodeid'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
@@ -488,32 +488,32 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.87 NAME 'rhcsLog-level'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.88 NAME 'rhcsStatusmax'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.89 NAME 'rhcsStatus-poll-interval'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.90 NAME 'rhcsTransition-throttling'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.91 NAME 'rhcsCentral-processing'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   )
 attributeTypes: (
