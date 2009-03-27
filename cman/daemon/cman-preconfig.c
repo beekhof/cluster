@@ -493,8 +493,8 @@ static int get_env_overrides()
 		expected_votes = 1;
 		votes = 1;
 	}
-	if (getenv("CMAN_DEBUGLOG")) {
-		debug_mask = atoi(getenv("CMAN_DEBUGLOG"));
+	if (getenv("CMAN_DEBUG")) {
+		debug_mask = atoi(getenv("CMAN_DEBUG"));
 	}
 
 	return 0;

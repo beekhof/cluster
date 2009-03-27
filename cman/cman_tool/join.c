@@ -166,7 +166,7 @@ int join(commandline_t *comline, char *main_envp[])
 		envp[envptr++] = strdup(scratch);
 	}
 	if (comline->verbose ^ DEBUG_STARTUP_ONLY) {
-		snprintf(scratch, sizeof(scratch), "CMAN_DEBUGLOG=%d", comline->verbose);
+		snprintf(scratch, sizeof(scratch), "CMAN_DEBUG=%d", comline->verbose);
 		envp[envptr++] = strdup(scratch);
 	}
 	if (comline->noconfig_opt) {
