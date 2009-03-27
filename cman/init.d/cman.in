@@ -59,7 +59,7 @@ if [ -d /etc/default ]; then
 	[ -f /etc/default/cluster ] && . /etc/default/cluster
 	[ -f /etc/default/cman ] && . /etc/default/cman
 	[ -z "$LOCK_FILE" ] && LOCK_FILE="/var/lock/cman"
-	[ -z "$(which chkconfig)" ] && alias chkconfig=local_chkconfig
+	type chkconfig > /dev/null 2>&1 || alias chkconfig=local_chkconfig
 fi
 
 # CMAN_CLUSTER_TIMEOUT -- amount of time to wait for joinging a cluster
@@ -341,11 +341,7 @@ fence_xvmd_enabled()
 {
 	fence_join_enabled || return 1
 
-	#
-	# Check for the 'xm' binary.  If it's not here, we are not
-	# running on a machine capable of running xvmd.
-	#
-	which xm > /dev/null 2>&1 || return 1
+	type virsh > /dev/null 2>&1 || return 1
 
 	#
 	# Check for presence of /cluster/fence_xvmd in cluster.conf
