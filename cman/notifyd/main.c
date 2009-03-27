@@ -92,6 +92,10 @@ static void read_arguments(int argc, char **argv)
 		}
 
 	}
+
+	if (getenv("CMANNOTIFYD_DEBUG"))
+		debug = 1;
+
 }
 
 static void remove_lockfile(void)
