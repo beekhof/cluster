@@ -30,7 +30,7 @@
 
 #define OP_LIST				1
 #define OP_DUMP				2
-#define OP_LOG				3
+#define OP_COMPAT			3
 
 static char *prog_name;
 static int operation;
@@ -81,28 +81,28 @@ static void print_usage(void)
 {
 	printf("Usage:\n");
 	printf("\n");
-	printf("%s [options] [ls|dump]\n", prog_name);
+	printf("%s [options] [compat|ls|dump]\n", prog_name);
 	printf("\n");
 	printf("Options:\n");
-	printf("  -v               Verbose output, extra event information\n");
-	printf("  -a               fence_tool ls; dlm_tool ls; gfs_control ls\n");
-	printf("  -n               Show all node information with -a\n");
 	printf("  -h               Print this help, then exit\n");
 	printf("  -V               Print program version information, then exit\n");
 	printf("\n");
-	printf("Display group information from groupd\n");
-	printf("ls                 Show information for all groups\n");
-	printf("ls <level> <name>  Show information one group.  If\n");
-	printf("                   we are not a member of the group,\n");
-	printf("                   return 1.\n");
+
+	printf("compat             Show compatibility mode that groupd is running\n");
 	printf("\n");
-	printf("Display debugging information\n");
+
+	printf("ls                 Show group state for fence, dlm, gfs\n");
+	printf("   -a              fence_tool ls; dlm_tool ls; gfs_control ls\n");
+	printf("   -n              Show all node information with -a\n");
+	printf("   -v              Show extra event information (with compat 1)\n");
+	printf("\n");
+
 	printf("dump               Show debug log from groupd\n");
-	printf("dump fence         Show debug log from fenced\n");
-	printf("dump gfs           Show debug log from gfs_controld\n");
-	printf("dump plocks <name> Show posix locks for gfs with given name\n");
-	printf("\n");
-	printf("log <comments>     Add information to the groupd log.\n");
+	printf("dump fence         Show debug log from fenced (fence_tool dump)\n");
+	printf("dump dlm           Show debug log from dlm_controld (dlm_tool dump)\n");
+	printf("dump gfs           Show debug log from gfs_controld (gfs_control dump)\n");
+	printf("dump plocks <name> Show posix locks from dlm_controld for lockspace <name>\n");
+	printf("                   (dlm_tool plocks <name>)\n");
 	printf("\n");
 }
 
@@ -168,8 +168,8 @@ static void decode_arguments(int argc, char **argv)
 			operation = OP_LIST;
 			opt_ind = optind + 1;
 			break;
-		} else if (strcmp(argv[optind], "log") == 0) {
-			operation = OP_LOG;
+		} else if (strcmp(argv[optind], "compat") == 0) {
+			operation = OP_COMPAT;
 			opt_ind = optind + 1;
 			break;
 		}
@@ -591,21 +591,6 @@ static void groupd_dump_debug(int argc, char **argv, char *inbuf)
 	close(fd);
 }
 
-static int do_log(char *comment)
-{
-	char buf[GROUPD_MSGLEN];
-	int fd, rv;
-
-	fd = connect_daemon(GROUPD_SOCK_PATH);
-	if (fd < 0)
-		return fd;
-	memset(buf, 0, sizeof(buf));
-	snprintf(buf, sizeof(buf), "log %s", comment);
-	rv = write(fd, &buf, GROUPD_MSGLEN);
-	close(fd);
-	return rv;
-}
-
 int main(int argc, char **argv)
 {
 	int rv, version = 0; 
@@ -614,6 +599,33 @@ int main(int argc, char **argv)
 	decode_arguments(argc, argv);
 
 	switch (operation) {
+	case OP_COMPAT:
+		rv = group_get_version(&version);
+		if (rv < 0)
+			version = -1;
+
+		switch (version) {
+		case -1:
+			printf("groupd not running\n");
+			break;
+		case -EAGAIN:
+			printf("groupd compatibility mode 2 (pending)\n");
+			break;
+		case GROUP_LIBGROUP:
+			printf("groupd compatibility mode 1\n");
+			break;
+		case GROUP_LIBCPG:
+			printf("groupd compatibility mode 0\n");
+			break;
+		default:
+			printf("groupd compatibility mode %d\n", version);
+			break;
+		}
+
+		if (rv < 0)
+			exit(EXIT_FAILURE);
+		break;
+
 	case OP_LIST:
 
 		rv = group_get_version(&version);
@@ -734,11 +746,6 @@ int main(int argc, char **argv)
 		}
 
 		break;
-
-	case OP_LOG:
-		if (opt_ind && opt_ind < argc) {
-			return do_log(argv[opt_ind]);
-		}
 	}
 
 	return 0;
