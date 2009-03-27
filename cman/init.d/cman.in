@@ -198,7 +198,7 @@ start_daemon()
 	args="$@"
 
 	! status $daemon > /dev/null 2>&1 && \
-		errmsg=$( @SBINDIR@/$daemon $args 2>&1 )
+		errmsg=$( $daemon $args 2>&1 )
 }
 
 stop_daemon()
@@ -233,7 +233,7 @@ mtab_configfs()
 
 cman_running()
 {
-	@SBINDIR@/cman_tool status > /dev/null 2>&1
+	cman_tool status > /dev/null 2>&1
 }
 
 # NOTE: this could probably grow a bit to do config sanity checks
@@ -280,8 +280,8 @@ xend_bridged_net_enabled() {
 	test -d /proc/xen || return 1
 
 	# uanble to determine current runlevel
-	current_runlevel=$(/sbin/runlevel 2>/dev/null | \
-				awk '{ print $2 }' 2>/dev/null)
+	current_runlevel=$( runlevel 2>/dev/null | \
+				awk '{ print $2 }' 2>/dev/null )
 	[ -z "$current_runlevel" ] && return 1
 
 	# xend doesn't start at this runlevel.
@@ -354,7 +354,7 @@ fence_xvmd_enabled()
 	#
 	if cman_running && \
 		[ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
-			@SBINDIR@/ccs_tool query /cluster/fence_xvmd \
+			ccs_tool query /cluster/fence_xvmd \
 				> /dev/null 2>&1 || return 1
 	fi
 }
@@ -380,8 +380,8 @@ xend_bridged_net_start() {
 		return 1
 	fi
 
-	/sbin/modprobe netbk >& /dev/null || true
-	/sbin/modprobe netloop >& /dev/null || true
+	modprobe netbk >& /dev/null || true
+	modprobe netloop >& /dev/null || true
 
 	bridge_parms=$( egrep -m 1 \
 			"^[[:blank:]]*\([[:blank:]]*network-script[[:blank:]]+(')?[[:blank:]]*${NETWORK_BRIDGE_SCRIPT}([[:blank:]]*\)|[[:blank:]]+)" \
@@ -395,28 +395,28 @@ xend_bridged_net_start() {
 
 load_kernel_modules()
 {
-	errmsg=$( /sbin/modprobe configfs 2>&1 ) || return 1
-	errmsg=$( /sbin/modprobe dlm 2>&1 ) || return 1
-	errmsg=$( /sbin/modprobe lock_dlm 2>&1 ) || true
+	errmsg=$( modprobe configfs 2>&1 ) || return 1
+	errmsg=$( modprobe dlm 2>&1 ) || return 1
+	errmsg=$( modprobe lock_dlm 2>&1 ) || true
 }
 
 unload_kernel_modules()
 {
-	/sbin/modprobe -r lock_dlm > /dev/null 2>&1 || true
-	/sbin/modprobe -r dlm > /dev/null 2>&1 || true
+	modprobe -r lock_dlm > /dev/null 2>&1 || true
+	modprobe -r dlm > /dev/null 2>&1 || true
 }
 
 start_configfs()
 {
 	! mtab_configfs && \
-		errmsg=$( /bin/mount -t configfs none /sys/kernel/config 2>&1 )
+		errmsg=$( mount -t configfs none /sys/kernel/config 2>&1 )
 }
 
 stop_configfs()
 {
 	if mtab_configfs && [ -z "$(ls -1 /sys/kernel/config)" ]; then
-		errmsg=$( /bin/umount /sys/kernel/config 2>&1 ) || return 1
-		/sbin/modprobe -r configfs > /dev/null 2>&1 || true
+		errmsg=$( umount /sys/kernel/config 2>&1 ) || return 1
+		modprobe -r configfs > /dev/null 2>&1 || true
 	fi
 }
 
@@ -441,11 +441,11 @@ set_networking_params()
 start_cman()
 {
 	if ! cman_running && cman_checkconfig; then
-		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
+		errmsg=$( cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
 			$cman_join_opts 2>&1 ) || return 1
 
 		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]; then
-			errmsg=$( @SBINDIR@/cman_tool -t $CMAN_QUORUM_TIMEOUT \
+			errmsg=$( cman_tool -t $CMAN_QUORUM_TIMEOUT \
 				-q wait 2>&1 ) || return 1
 		fi
 	fi
@@ -454,7 +454,7 @@ start_cman()
 stop_cman()
 {
 	if cman_running; then
-		errmsg=$( @SBINDIR@/cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
+		errmsg=$( cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
 			-w leave $cmanremove 2>&1 ) || return 1
 	fi
 }
@@ -528,12 +528,12 @@ stop_cmannotifyd()
 
 join_fence_domain()
 {
-	if ! @SBINDIR@/cman_tool status | grep Flags | grep 2node \
+	if ! cman_tool status | grep Flags | grep 2node \
 		> /dev/null 2>&1; then
-		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+		errmsg=$( fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			> /dev/null 2>&1 ) || return 1
 	else
-		errmsg=$( @SBINDIR@/fence_tool join -w $FENCE_JOIN_TIMEOUT \
+		errmsg=$( fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			-m $FENCED_MEMBER_DELAY join \
 			> /dev/null 2>&1 ) || return 1
 	fi
@@ -542,7 +542,7 @@ join_fence_domain()
 leave_fence_domain()
 {
 	if status fenced > /dev/null 2>&1; then
-		@SBINDIR@/fence_tool leave -w 10 > /dev/null 2>&1
+		fence_tool leave -w 10 > /dev/null 2>&1
 		return $?
 	fi
 }
