@@ -469,7 +469,6 @@ unfence_self()
 		return 0
 	;;
 	esac
-	return 1
 }
 
 start_qdiskd()
