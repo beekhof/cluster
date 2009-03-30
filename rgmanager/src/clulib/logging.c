@@ -86,7 +86,7 @@ ccs_read_old_logging(int ccsfd, int *facility, int *priority)
 void
 setup_logging(int ccs_handle)
 {
-	int mode = DEFAULT_MODE;
+	int mode = default_mode;
 	int facility = DEFAULT_FACILITY;
 	int loglevel = default_priority, filelevel = default_priority;
 	int debug = 0;
