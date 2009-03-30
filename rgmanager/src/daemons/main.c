@@ -894,8 +894,8 @@ configure_rgmanager(int ccsfd, int dbg)
 }
 
 
-void
-clu_initialize(cman_handle_t *ch)
+int
+cman_connect(cman_handle_t *ch)
 {
 	if (!ch)
 		exit(1);
@@ -906,6 +906,8 @@ clu_initialize(cman_handle_t *ch)
 
 		while (!(*ch = cman_init(NULL))) {
 			sleep(1);
+			if (shutdown_pending)
+				return 1;
 		}
 	}
 
@@ -920,10 +922,13 @@ clu_initialize(cman_handle_t *ch)
 
 		while (cman_is_quorate(*ch) == 0) {
 			sleep(1);
+			if (shutdown_pending)
+				return 1;
 		}
 		logt_print(LOG_NOTICE, "Quorum formed\n");
 	}
 
+	return 0;
 }
 
 
@@ -1022,7 +1027,9 @@ main(int argc, char **argv)
 	}
 
 	init_logging(NULL, foreground, (debug? LOG_DEBUG : SYSLOGLEVEL));
-	clu_initialize(&clu);
+	if (cman_connect(&clu) != 0)
+		goto out;	/* Clean exit if sigint/sigterm here */
+
 	if (cman_init_subsys(clu) < 0) {
 		perror("cman_init_subsys");
 		return -1;
@@ -1118,8 +1125,10 @@ main(int argc, char **argv)
 
 	if (rg_initialized())
 		cleanup(cluster_ctx);
-	logt_print(LOG_NOTICE, "Shutdown complete, exiting\n");
 	clu_lock_finished(rgmanager_lsname);
+
+out:
+	logt_print(LOG_NOTICE, "Shutdown complete, exiting\n");
 	cman_finish(clu);
 	
 	close_logging();
