@@ -13,8 +13,6 @@
 #include <mntent.h>
 #include <ctype.h>
 #include <sys/time.h>
-#include <libintl.h>
-#define _(String) gettext(String)
 
 #include <linux/types.h>
 #include "libgfs2.h"
@@ -44,22 +42,25 @@ void print_it(const char *label, const char *fmt, const char *fmt2, ...)
 static void
 print_usage(void)
 {
-	printf( _("Usage:\n\n"
-		"%s [options] <device> [ block-count ]\n\n"
-		"Options:\n\n"
-		"  -b <bytes>       Filesystem block size\n"
-		"  -c <MB>          Size of quota change file\n"
-		"  -D               Enable debugging code\n"
-		"  -h               Print this help, then exit\n"
-		"  -J <MB>          Size of journals\n"
-		"  -j <num>         Number of journals\n"
-		"  -O               Don't ask for confirmation\n"
-		"  -p <name>        Name of the locking protocol\n"
-		"  -q               Don't print anything\n"
-		"  -r <MB>          Resource Group Size\n"
-		"  -t <name>        Name of the lock table\n"
-		"  -u <MB>          Size of unlinked file\n"
-		"  -V               Print program version information, then exit\n"), prog_name);
+	printf("Usage:\n");
+	printf("\n");
+	printf("%s [options] <device> [ block-count ]\n", prog_name);
+	printf("\n");
+	printf("Options:\n");
+	printf("\n");
+	printf("  -b <bytes>       Filesystem block size\n");
+	printf("  -c <MB>          Size of quota change file\n");
+	printf("  -D               Enable debugging code\n");
+	printf("  -h               Print this help, then exit\n");
+	printf("  -J <MB>          Size of journals\n");
+	printf("  -j <num>         Number of journals\n");
+	printf("  -O               Don't ask for confirmation\n");
+	printf("  -p <name>        Name of the locking protocol\n");
+	printf("  -q               Don't print anything\n");
+	printf("  -r <MB>          Resource Group Size\n");
+	printf("  -t <name>        Name of the lock table\n");
+	printf("  -u <MB>          Size of unlinked file\n");
+	printf("  -V               Print program version information, then exit\n");
 }
 
 /**
@@ -70,7 +71,8 @@ print_usage(void)
  *
  */
 
-static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
+static void
+decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 {
 	int cont = TRUE;
 	int optchar;
@@ -97,7 +99,7 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 
 		case 'h':
 			print_usage();
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 
 		case 'J':
@@ -114,7 +116,7 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 
 		case 'p':
 			if (strlen(optarg) >= GFS2_LOCKNAME_LEN)
-				die( _("lock protocol name %s is too long\n"),
+				die("lock protocol name %s is too long\n",
 				    optarg);
 			strcpy(sdp->lockproto, optarg);
 			break;
@@ -129,7 +131,7 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 
 		case 't':
 			if (strlen(optarg) >= GFS2_LOCKNAME_LEN)
-				die( _("lock table name %s is too long\n"), optarg);
+				die("lock table name %s is too long\n", optarg);
 			strcpy(sdp->locktable, optarg);
 			break;
 
@@ -140,7 +142,7 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 		case 'V':
 			printf("gfs2_mkfs %s (built %s %s)\n", RELEASE_VERSION,
 			       __DATE__, __TIME__);
-			printf( _(REDHAT_COPYRIGHT "\n"));
+			printf("%s\n", REDHAT_COPYRIGHT);
 			exit(EXIT_SUCCESS);
 			break;
 
@@ -150,7 +152,7 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 
 		case ':':
 		case '?':
-			fprintf(stderr, _("Please use '-h' for usage.\n"));
+			fprintf(stderr, "Please use '-h' for usage.\n");
 			exit(EXIT_FAILURE);
 			break;
 
@@ -167,11 +169,11 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 				 isdigit(optarg[0]))
 				sdp->orig_fssize = atol(optarg);
 			else
-				die( _("More than one device specified (try -h for help)\n"));
+				die("More than one device specified (try -h for help)\n");
 			break;
 
 		default:
-			die( _("unknown option: %c\n"), optchar);
+			die("unknown option: %c\n", optchar);
 			break;
 		};
 	}
@@ -180,16 +182,16 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 		strcpy(sdp->device_name, argv[optind++]);
 
 	if (sdp->device_name[0] == '\0')
-		die( _("no device specified (try -h for help)\n"));
+		die("no device specified (try -h for help)\n");
 
 	if (optind < argc)
 		sdp->orig_fssize = atol(argv[optind++]);
 
 	if (optind < argc)
-		die( _("Unrecognized argument: %s\n"), argv[optind]);
+		die("Unrecognized argument: %s\n", argv[optind]);
 
 	if (sdp->debug) {
-		printf( _("Command Line Arguments:\n"));
+		printf("Command Line Arguments:\n");
 		printf("  bsize = %u\n", sdp->bsize);
 		printf("  qcsize = %u\n", sdp->qcsize);
 		printf("  jsize = %u\n", sdp->jsize);
@@ -198,7 +200,7 @@ static void decode_arguments(int argc, char *argv[], struct gfs2_sbd *sdp)
 		printf("  proto = %s\n", sdp->lockproto);
 		printf("  quiet = %d\n", sdp->quiet);
 		if (sdp->rgsize==-1)
-			printf( _("  rgsize = optimize for best performance\n"));
+			printf("  rgsize = optimize for best performance\n");
 		else
 			printf("  rgsize = %u\n", sdp->rgsize);
 		printf("  table = %s\n", sdp->locktable);
@@ -227,33 +229,33 @@ static void test_locking(char *lockproto, char *locktable)
 		   strcmp(lockproto, "lock_dlm") == 0) {
 		for (c = locktable; *c; c++) {
 			if (isspace(*c))
-				die( _("locktable error: contains space characters\n"));
+				die("locktable error: contains space characters\n");
 			if (!isprint(*c))
-				die( _("locktable error: contains unprintable characters\n"));
+				die("locktable error: contains unprintable characters\n");
 		}
 
 		c = strstr(locktable, ":");
 		if (!c)
-			die( _("locktable error: missing colon in the locktable\n"));
+			die("locktable error: missing colon in the locktable\n");
 
 		if (c == locktable)
-			die( _("locktable error: missing cluster name\n"));
+			die("locktable error: missing cluster name\n");
 		if (c - locktable > 16)
-			die( _("locktable error: cluster name too long\n"));
+			die("locktable error: cluster name too long\n");
 
 		c++;
 		if (!c)
-			die( _("locktable error: missing filesystem name\n"));
+			die("locktable error: missing filesystem name\n");
 
 		if (strstr(c, ":"))
-			die( _("locktable error: more than one colon present\n"));
+			die("locktable error: more than one colon present\n");
 
 		if (!strlen(c))
-			die( _("locktable error: missing filesystem name\n"));
+			die("locktable error: missing filesystem name\n");
 		if (strlen(c) > 16)
-			die( _("locktable error: filesystem name too long\n"));
+			die("locktable error: filesystem name too long\n");
 	} else {
-		die( _("lockproto error: %s unknown\n"), lockproto);
+		die("lockproto error: %s unknown\n", lockproto);
 	}
 }
 
@@ -271,28 +273,28 @@ static void verify_arguments(struct gfs2_sbd *sdp)
 			break;
 
 	if (!x || sdp->bsize > 65536)
-		die( _("block size must be a power of two between 512 and 65536\n"));
+		die("block size must be a power of two between 512 and 65536\n");
 
 	/* Look at this!  Why can't we go bigger than 2GB? */
 	if (sdp->expert) {
 		if (1 > sdp->rgsize || sdp->rgsize > 2048)
-			die( _("bad resource group size\n"));
+			die("bad resource group size\n");
 	} else {
 		if (32 > sdp->rgsize || sdp->rgsize > 2048)
-			die( _("bad resource group size\n"));
+			die("bad resource group size\n");
 	}
 
 	if (!sdp->md.journals)
-		die( _("no journals specified\n"));
+		die("no journals specified\n");
 
 	if (sdp->jsize < 8 || sdp->jsize > 1024)
-		die( _("bad journal size\n"));
+		die("bad journal size\n");
 
 	if (!sdp->utsize || sdp->utsize > 64)
-		die( _("bad unlinked size\n"));
+		die("bad unlinked size\n");
 
 	if (!sdp->qcsize || sdp->qcsize > 64)
-		die( _("bad quota change size\n"));
+		die("bad quota change size\n");
 }
 
 /**
@@ -309,14 +311,14 @@ static void are_you_sure(struct gfs2_sbd *sdp)
 
 	fd = open(sdp->device_name, O_RDONLY);
 	if (fd < 0)
-		die( _("Error: device %s not found.\n"), sdp->device_name);
+		die("Error: device %s not found.\n", sdp->device_name);
 	vid = volume_id_open_fd(fd);
 	if (vid == NULL) {
 		close(fd);
-		die( _("error identifying the contents of %s: %s\n"),
+		die("error identifying the contents of %s: %s\n",
 		    sdp->device_name, strerror(errno));
 	}
-	printf( _("This will destroy any data on %s.\n"), sdp->device_name);
+	printf("This will destroy any data on %s.\n", sdp->device_name);
 	if (volume_id_probe_all(vid, 0, sdp->device_size) == 0) {
 		const char *fstype, *fsusage;
 		int rc;
@@ -326,18 +328,18 @@ static void are_you_sure(struct gfs2_sbd *sdp)
 			rc = volume_id_get_usage(vid, &fsusage);
 			if (!rc || strncmp(fsusage, "other", 5) == 0)
 				fsusage = "partition";
-			printf( _("  It appears to contain a %s %s.\n"), fstype,
+			printf("  It appears to contain a %s %s.\n", fstype,
 			       fsusage);
 		}
 	}
 	volume_id_close(vid);
 	close(fd);
-	printf( _("\nAre you sure you want to proceed? [y/n] "));
+	printf("\nAre you sure you want to proceed? [y/n] ");
 	if(!fgets(input, 32, stdin))
-		die( _("unable to read from stdin\n"));
+		die("unable to read from stdin\n");
 
 	if (input[0] != 'y')
-		die( _("aborted\n"));
+		die("aborted\n");
 	else
 		printf("\n");
 }
@@ -354,15 +356,15 @@ void check_mount(char *device)
 	int fd;
 
 	if (stat(device, &st_buf) < 0)
-		die( _("could not stat device %s\n"), device);
+		die("could not stat device %s\n", device);
 	if (!S_ISBLK(st_buf.st_mode))
-		die( _("%s is not a block device\n"), device);
+		die("%s is not a block device\n", device);
 
 	fd = open(device, O_RDONLY | O_NONBLOCK | O_EXCL);
 
 	if (fd < 0) {
 		if (errno == EBUSY) {
-			die( _("device %s is busy\n"), device);
+			die("device %s is busy\n", device);
 		}
 	}
 	else {
@@ -432,31 +434,31 @@ print_results(struct gfs2_sbd *sdp, uint64_t real_device_size,
 		return;
 
 	if (sdp->expert)
-		printf( _("Expert mode:               on\n"));
+		printf("Expert mode:               on\n");
 
-	printf( _("Device:                    %s\n"), sdp->device_name);
+	printf("Device:                    %s\n", sdp->device_name);
 
-	printf( _("Blocksize:                 %u\n"), sdp->bsize);
-	printf( _("Device Size                %.2f GB (%"PRIu64" blocks)\n"),
+	printf("Blocksize:                 %u\n", sdp->bsize);
+	printf("Device Size                %.2f GB (%"PRIu64" blocks)\n",
 	       real_device_size / ((float)(1 << 30)),
 	       real_device_size / sdp->bsize);
-	printf( _("Filesystem Size:           %.2f GB (%"PRIu64" blocks)\n"),
+	printf("Filesystem Size:           %.2f GB (%"PRIu64" blocks)\n",
 	       sdp->fssize / ((float)(1 << 30)) * sdp->bsize, sdp->fssize);
 
-	printf( _("Journals:                  %u\n"), sdp->md.journals);
-	printf( _("Resource Groups:           %"PRIu64"\n"), sdp->rgrps);
+	printf("Journals:                  %u\n", sdp->md.journals);
+	printf("Resource Groups:           %"PRIu64"\n", sdp->rgrps);
 
-	printf( _("Locking Protocol:          \"%s\"\n"), sdp->lockproto);
-	printf( _("Lock Table:                \"%s\"\n"), sdp->locktable);
+	printf("Locking Protocol:          \"%s\"\n", sdp->lockproto);
+	printf("Lock Table:                \"%s\"\n", sdp->locktable);
 
 	if (sdp->debug) {
 		printf("\n");
-		printf( _("Spills:                    %u\n"),
+		printf("Spills:                    %u\n",
 		       sdp->buf_list.spills);
-		printf( _("Writes:                    %u\n"), sdp->writes);
+		printf("Writes:                    %u\n", sdp->writes);
 	}
 
-	printf( _("UUID:                      %s\n"), str_uuid(uuid));
+	printf("UUID:                      %s\n", str_uuid(uuid));
 	printf("\n");
 }
 
@@ -467,7 +469,8 @@ print_results(struct gfs2_sbd *sdp, uint64_t real_device_size,
  *
  */
 
-void main_mkfs(int argc, char *argv[])
+void
+main_mkfs(int argc, char *argv[])
 {
 	struct gfs2_sbd sbd, *sdp = &sbd;
 	int error;
@@ -499,7 +502,7 @@ void main_mkfs(int argc, char *argv[])
 
 	sdp->device_fd = open(sdp->device_name, O_RDWR);
 	if (sdp->device_fd < 0)
-		die( _("can't open device %s: %s\n"),
+		die("can't open device %s: %s\n",
 		    sdp->device_name, strerror(errno));
 
 	if (!sdp->override)
@@ -511,7 +514,7 @@ void main_mkfs(int argc, char *argv[])
 
 	device_size(sdp->device_fd, &real_device_size);
 	if (device_geometry(sdp)) {
-		fprintf(stderr, _("Geometry error\n"));
+		fprintf(stderr, "Geometry error\n");
 		exit(-1);
 	}
 	/* Convert optional block-count to basic blocks */
@@ -519,9 +522,9 @@ void main_mkfs(int argc, char *argv[])
 		sdp->orig_fssize *= sdp->bsize;
 		sdp->orig_fssize >>= GFS2_BASIC_BLOCK_SHIFT;
 		if (sdp->orig_fssize > sdp->device.length) {
-			fprintf(stderr, _("%s: Specified block count is bigger "
-				"than the actual device.\n"), prog_name);
-			die( _("Device Size is %.2f GB (%"PRIu64" blocks)\n"),
+			fprintf(stderr, "%s: Specified block count is bigger "
+				"than the actual device.\n", prog_name);
+			die("Device Size is %.2f GB (%"PRIu64" blocks)\n",
 			       real_device_size / ((float)(1 << 30)),
 			       real_device_size / sdp->bsize);
 		}
@@ -562,11 +565,11 @@ void main_mkfs(int argc, char *argv[])
 
 	error = fsync(sdp->device_fd);
 	if (error)
-		die( _("can't fsync device (%d): %s\n"),
+		die("can't fsync device (%d): %s\n",
 		    error, strerror(errno));
 	error = close(sdp->device_fd);
 	if (error)
-		die( _("error closing device (%d): %s\n"),
+		die("error closing device (%d): %s\n",
 		    error, strerror(errno));
 
 	print_results(sdp, real_device_size, uuid);
