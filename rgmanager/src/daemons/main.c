@@ -999,6 +999,10 @@ main(int argc, char **argv)
 		}
 	}
 
+	if (getenv("RGMANAGER_DEBUG")) {
+		debug = 1;
+	}
+
 	if (!foreground && (geteuid() == 0)) {
 		daemon_init(argv[0]);
 		if (wd && !debug && !watchdog_init())
