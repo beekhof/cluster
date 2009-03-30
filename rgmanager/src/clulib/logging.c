@@ -43,7 +43,7 @@ init_logging(char *name, int foreground, int default_prio)
 	if (default_prio >= 0)
 		default_priority = default_prio;
 	logt_init(name, default_mode, DEFAULT_FACILITY,
-		  DEFAULT_PRIORITY, DEFAULT_PRIORITY, DEFAULT_FILE);
+		  default_priority, default_priority, DEFAULT_FILE);
 }
 
 
@@ -73,7 +73,7 @@ ccs_read_old_logging(int ccsfd, int *facility, int *priority)
 		*priority = atoi(val);
 		free(val);
 		if (*priority < 0)
-			*priority = DEFAULT_PRIORITY;
+			*priority = default_priority;
 		else
 			ret = 1;
 	}
@@ -88,7 +88,7 @@ setup_logging(int ccs_handle)
 {
 	int mode = DEFAULT_MODE;
 	int facility = DEFAULT_FACILITY;
-	int loglevel = DEFAULT_PRIORITY, filelevel = DEFAULT_PRIORITY;
+	int loglevel = default_priority, filelevel = default_priority;
 	int debug = 0;
 	char file[PATH_MAX];
 
