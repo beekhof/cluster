@@ -1627,7 +1627,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if(getenv("QDISK_DEBUGLOG"))
+	if(getenv("QDISK_DEBUG"))
 		_debug = 1;
 
 	if (!_foreground && daemon_init(argv[0]) < 0) {
