@@ -1651,6 +1651,8 @@ init_resource_groups(int reconfigure, int do_init)
 	x = 0;
 	list_do(&domains, fod) { ++x; } while (!list_done(&domains, fod));
 	logt_print(LOG_DEBUG, "%d domains defined\n", x);
+
+	logt_print(LOG_DEBUG, "Loading Event Triggers\n");
 	construct_events(fd, &evt);
 	cnt = 0;
 	if (evt) {
@@ -1667,7 +1669,7 @@ init_resource_groups(int reconfigure, int do_init)
 			cnt += y;
 		}
 	}
-	logt_print(LOG_DEBUG, "%d events defined\n", x);
+	logt_print(LOG_DEBUG, "%d events defined\n", cnt);
 	
 
 	/* Reconfiguration done */
