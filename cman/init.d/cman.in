@@ -505,6 +505,7 @@ start_groupd()
 		fi
 		((retries++))
 	done
+	return 0
 }
 
 stop_groupd()
