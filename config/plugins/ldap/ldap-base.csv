@@ -1,4 +1,4 @@
-# Max attribute value: 226
+# Max attribute value: 227
 # Max object class value: 55
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -280,3 +280,4 @@ obj,rhcsUnfence,unfence,55
 attr,rhcsBlade,blade,224
 attr,rhcsLpan,lpan,225
 attr,rhcsPserver,pserver,226
+attr,rhcsQuick-status,quick_status,227

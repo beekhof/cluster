@@ -1909,6 +1909,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="options"/>
         </optional>
+        <optional>
+          <attribute name="quick_status"/>
+        </optional>
       </group>
       </choice>
       <optional>
