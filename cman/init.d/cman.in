@@ -490,7 +490,21 @@ stop_qdiskd()
 
 start_groupd()
 {
-	start_daemon groupd
+	start_daemon groupd || return 1
+
+	if [ "$INITLOGLEVEL" = "full" ]; then
+		ok
+		echo -n "   Waiting groupd protocol negotiation: "
+	fi
+	retries=0
+	while group_tool ls | \
+		grep -q pending && [ $retries -lt 10 ]; do
+		sleep 1
+		if [ "$INITLOGLEVEL" = "full" ]; then
+			echo -n "$retries "
+		fi
+		((retries++))
+	done
 }
 
 stop_groupd()
