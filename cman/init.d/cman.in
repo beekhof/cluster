@@ -415,8 +415,8 @@ unload_kernel_modules()
 
 start_configfs()
 {
-	! mtab_configfs && \
-		errmsg=$( mount -t configfs none /sys/kernel/config 2>&1 )
+	mtab_configfs && return 0
+	errmsg=$( mount -t configfs none /sys/kernel/config 2>&1 )
 }
 
 stop_configfs()
