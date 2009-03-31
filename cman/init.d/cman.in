@@ -337,6 +337,19 @@ fence_join_enabled()
 	fi
 }
 
+check_fence_opt()
+{
+	for i in $(getopt dfi:a:p:I:C:U:c:k:u?hLXV $FENCE_XVMD_OPTS); do
+		[ -$1 = $i ] && return 0
+	done
+	return 1
+}
+
+fence_xvmd_standalone()
+{
+	check_fence_opt L
+}
+
 fence_xvmd_enabled()
 {
 	fence_join_enabled || return 1
@@ -347,7 +360,7 @@ fence_xvmd_enabled()
 	#  we'll start it anyway since ccsd is not required)
 	#
 	if cman_running && \
-		[ "$FENCE_XVMD_OPTS" = "${FENCE_XVMD_OPTS/-X/}" ]; then
+		! check_fence_opt X; then
 			ccs_tool query /cluster/fence_xvmd \
 				> /dev/null 2>&1 || return 1
 	fi
