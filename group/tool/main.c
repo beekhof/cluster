@@ -302,7 +302,8 @@ static int groupd_list(int argc, char **argv)
 		count = 1;
 
 		/* don't output if there's no group at all */
-		if (data[0].id == 0) {
+		if (data[0].id == 0 && !strlen(data[0].name) && 
+		    !strlen(data[0].client_name)) {
 			fprintf(stderr, "groupd has no information about "
 			        "the specified group\n");
 			return 1;
