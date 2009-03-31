@@ -480,7 +480,23 @@ unfence_self()
 
 start_qdiskd()
 {
-	start_daemon qdiskd "-Q"
+	start_daemon qdiskd "-Q" || return 1
+
+	if [ "$INITLOGLEVEL" = "full" ]; then
+		ok
+		echo -n "   Waiting for qdiskd to be active: "
+	fi
+	retries=0
+	while ! cman_tool status |grep -q "Quorum device" && \
+		status qdiskd > /dev/null 2>&1 && \
+		[ $retries -lt 10 ]; do
+		sleep 2
+		if [ "$INITLOGLEVEL" = "full" ]; then
+			echo -n "$retries "
+		fi
+		((retries++))
+	done
+	status qdiskd > /dev/null 2>&1
 }
 
 stop_qdiskd()
