@@ -341,8 +341,6 @@ fence_xvmd_enabled()
 {
 	fence_join_enabled || return 1
 
-	type virsh > /dev/null 2>&1 || return 1
-
 	#
 	# Check for presence of /cluster/fence_xvmd in cluster.conf
 	# (If -X is specified, it doesn't matter if it's in cluster.conf;
