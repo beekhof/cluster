@@ -420,6 +420,8 @@ check_rdomain_crash(char *svcName)
 	if (_group_property(svcName, "domain", fd_name, sizeof(fd_name)) != 0)
 		goto out_free;
 
+	member_online_set(&nodes, &nodecount);
+
 	if (node_domain_set(&_domains, fd_name, &fd_nodes,
 			    &fd_nodecount, &fl) != 0)
 		goto out_free;
