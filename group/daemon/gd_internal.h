@@ -54,7 +54,7 @@ extern uint32_t gd_event_nr;
 
 extern int group_mode;
 
-#define DEFAULT_GROUPD_COMPAT		2
+#define DEFAULT_GROUPD_COMPAT		0
 #define DEFAULT_GROUPD_WAIT		5
 #define DEFAULT_GROUPD_MODE_DELAY	2
 #define DEFAULT_DEBUG_LOGFILE		0
