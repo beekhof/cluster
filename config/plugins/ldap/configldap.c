@@ -14,7 +14,7 @@
 #include <corosync/engine/config.h>
 
 /* These are defaults. they can be overridden with environment variables
- *  LDAP_URL & LDAP_BASEDN
+ *  COROSYNC_LDAP_URL & COROSYNC_LDAP_BASEDN
  */
 #define DEFAULT_LDAP_URL "ldap:///"
 #define DEFAULT_LDAP_BASEDN "dc=chrissie,dc=net"

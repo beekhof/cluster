@@ -398,13 +398,22 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 		return -1;
 
 	for (ifa = ifa_list; ifa; ifa = ifa->ifa_next) {
+		socklen_t salen;
+
 		/* Restore this */
 		strcpy(nodename2, nodename);
 		sa = ifa->ifa_addr;
-		if (!sa || sa->sa_family != AF_INET)
+		if (!sa)
+			continue;
+		if (sa->sa_family != AF_INET && sa->sa_family != AF_INET6)
 			continue;
 
-		error = getnameinfo(sa, sizeof(*sa), nodename2,
+		if (sa->sa_family == AF_INET)
+			salen = sizeof(struct sockaddr_in);
+		if (sa->sa_family == AF_INET6)
+			salen = sizeof(struct sockaddr_in6);
+
+		error = getnameinfo(sa, salen, nodename2,
 				    sizeof(nodename2), NULL, 0, 0);
 		if (!error) {
 
