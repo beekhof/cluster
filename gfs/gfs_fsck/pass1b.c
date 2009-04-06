@@ -125,6 +125,8 @@ static int find_dentry(struct fsck_inode *ip, struct gfs_dirent *de,
 	osi_list_t *tmp1, *tmp2;
 	struct blocks *b;
 	struct inode_with_dups *id;
+	struct gfs_leaf leaf;
+
 	osi_list_foreach(tmp1, &ip->i_sbd->dup_list) {
 		b = osi_list_entry(tmp1, struct blocks, list);
 		osi_list_foreach(tmp2, &b->ref_inode_list) {
@@ -149,6 +151,10 @@ static int find_dentry(struct fsck_inode *ip, struct gfs_dirent *de,
 			}
 		}
 	}
+	/* Return the number of leaf entries so metawalk doesn't flag this
+	   leaf as having none. */
+	gfs_leaf_in(&leaf, bh->b_data);
+	*count = leaf.lf_entries;
 	return 0;
 }
 
