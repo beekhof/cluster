@@ -32,13 +32,15 @@
 #define OP_DUMP				2
 #define OP_COMPAT			3
 
+#define DEFAULT_GROUPD_COMPAT		0
+
 static char *prog_name;
 static int operation;
 static int opt_ind;
 static int verbose;
-static int all_daemons;
 static int ls_all_nodes;
-static int print_header_done;
+static int opt_groupd_compat;
+static int cfg_groupd_compat = DEFAULT_GROUPD_COMPAT;
 
 
 static int do_write(int fd, void *buf, size_t count)
@@ -92,9 +94,14 @@ static void print_usage(void)
 	printf("\n");
 
 	printf("ls                 Show group state for fence, dlm, gfs\n");
-	printf("   -a              fence_tool ls; dlm_tool ls; gfs_control ls\n");
-	printf("   -n              Show all node information with -a\n");
-	printf("   -v              Show extra event information (with compat 1)\n");
+	printf("   -g <num>        select daemons to query\n");
+	printf("                   0: query fenced, dlm_controld, gfs_controld\n");
+	printf("                   1: query groupd (for old compat mode)\n");
+	printf("                   2: use 0 if daemons running in new mode,\n");
+	printf("                   or 1 if groupd running in old mode.\n");
+	printf("                   Default %d\n", DEFAULT_GROUPD_COMPAT);
+	printf("   -n              Show all node information (with -g0)\n");
+	printf("   -v              Show extra event information (with -g1)\n");
 	printf("\n");
 
 	printf("dump               Show debug log from groupd\n");
@@ -106,7 +113,7 @@ static void print_usage(void)
 	printf("\n");
 }
 
-#define OPTION_STRING "ahVvn"
+#define OPTION_STRING "g:hVvn"
 
 static void decode_arguments(int argc, char **argv)
 {
@@ -117,8 +124,10 @@ static void decode_arguments(int argc, char **argv)
 		optchar = getopt(argc, argv, OPTION_STRING);
 
 		switch (optchar) {
-		case 'a':
-			all_daemons = 1;
+		
+		case 'g':
+			opt_groupd_compat = 1;
+			cfg_groupd_compat = atoi(optarg);
 			break;
 
 		case 'n':
@@ -355,6 +364,9 @@ static int groupd_list(int argc, char **argv)
 	return ret;
 }
 
+#if 0
+static int print_header_done;
+
 static int fenced_node_compare(const void *va, const void *vb)
 {
 	const struct fenced_node *a = va;
@@ -543,6 +555,7 @@ static void gfs_controld_list(void)
 		printf("]\n");
 	}
 }
+#endif
 
 static int connect_daemon(char *path)
 {
@@ -635,6 +648,7 @@ int main(int argc, char **argv)
 		switch (version) {
 		case -1:
 			printf("groupd not running\n");
+			version = GROUP_LIBCPG;
 			break;
 		case -EAGAIN:
 			printf("groupd compatibility mode 2 (pending)\n");
@@ -650,7 +664,8 @@ int main(int argc, char **argv)
 			break;
 		}
 
-		if (all_daemons) {
+		if ((cfg_groupd_compat == 0) ||
+		    (cfg_groupd_compat == 2 && version == GROUP_LIBCPG)) {
 			/* show the new cluster3 data (from daemons) in
 			   the new daemon-specific format */
 
@@ -665,27 +680,29 @@ int main(int argc, char **argv)
 			}
 
 			if (version == GROUP_LIBGROUP)
-				printf("Run 'group_tool ls' for groupd information.\n");
-
-		} else {
-			if (version == GROUP_LIBGROUP) {
-				/* show the same old cluster2 data (from groupd)
-				   in the same old format as cluster2 */
-
-				groupd_list(argc, argv);
-
-			} else if (version == GROUP_LIBCPG || version == -1) {
-				/* show the new cluster3 data (from daemons)
-				   in the (nearly) same old format as cluster2 */
-
-				fenced_list();
-				dlm_controld_list();
-				gfs_controld_list();
-
-				printf("Run 'group_tool ls -a' for daemon information.\n");
-			}
+				printf("Run 'group_tool ls -g1' for groupd information.\n");
+			break;
 		}
-		break;
+
+		if ((cfg_groupd_compat == 1) ||
+		    (cfg_groupd_compat == 2 && version == GROUP_LIBGROUP)) {
+			/* show the same old cluster2 data (from groupd)
+			   in the same old format as cluster2 */
+
+			groupd_list(argc, argv);
+
+			if (version == GROUP_LIBCPG)
+				printf("Run 'group_tool ls -g0' for daemon information.\n");
+			break;
+		}
+				
+#if 0
+		/* do we want to add an option that will use these functions
+		   to "fake" new cluster3 data in the old cluster2 format? */
+		fenced_list();
+		dlm_controld_list();
+		gfs_controld_list();
+#endif
 
 	case OP_DUMP:
 		if (opt_ind && opt_ind < argc) {
