@@ -109,7 +109,7 @@ device_geometry(char *device)
  * Returns: Error code, or amount of data read
  */
 
-int
+static int
 jread(int fd, char *file, void *buf, uint64_t size, uint64_t *offset)
 {
 	struct gfs_ioctl gi;
@@ -140,7 +140,7 @@ jread(int fd, char *file, void *buf, uint64_t size, uint64_t *offset)
  * Returns: Error code, or the amount of data written
  */
 
-int
+static int
 jwrite(int fd, char *file, void *buf, uint64_t size, uint64_t *offset)
 {
 	struct gfs_ioctl gi;
@@ -314,39 +314,25 @@ read_rgrps(int fs_fd)
  */
 
 static void
-write_a_block(uint64_t where, struct gfs_rgrp *rg)
+write_a_block(int fd, struct gfs_rgrp *rg)
 {
 	char buffer[4096];
-	uint64_t fsoffset = where * (uint64_t) fs_sb.sb_bsize;
-	int fd = open(device, O_RDWR);
-	struct gfs_meta_header mh;
-	mh.mh_magic = GFS_MAGIC;
-	mh.mh_type = GFS_METATYPE_RB;
-	mh.mh_format = GFS_FORMAT_RB;
 
-	if (fd < 0) {
-		perror(device);
-		exit(EXIT_FAILURE);
-	}
-	if (where < fssize) {
-		fprintf(stderr,
-			"Sanity check failed: Caught trying to write to live filesystem!\n");
-		exit(EXIT_FAILURE);
-	}
-	memset(buffer, 0, 4096);
+	memset(buffer, 0, fs_sb.sb_bsize);
 	if (rg)
 		gfs_rgrp_out(rg, buffer);
-	else
+	else {
+		struct gfs_meta_header mh;
+
+		mh.mh_magic = GFS_MAGIC;
+		mh.mh_type = GFS_METATYPE_RB;
+		mh.mh_format = GFS_FORMAT_RB;
 		gfs_meta_header_out(&mh, buffer);
-	if (lseek(fd, fsoffset, SEEK_SET) != fsoffset) {
-		perror(device);
-		exit(EXIT_FAILURE);
 	}
 	if (write(fd, buffer, fs_sb.sb_bsize) != fs_sb.sb_bsize) {
 		perror("write_zero_block");
 		exit(EXIT_FAILURE);
 	}
-	close(fd);
 }
 
 /**
@@ -359,16 +345,24 @@ write_a_block(uint64_t where, struct gfs_rgrp *rg)
  */
 
 static void
-write_whole_rgrp(struct rglist_entry *rgl)
+write_whole_rgrp(int fd, struct rglist_entry *rgl)
 {
 	uint32_t l;
 	uint32_t nzb = rgl->ri.ri_length;
-	uint64_t addr = rgl->ri.ri_addr;
+	uint64_t fsoffset = rgl->ri.ri_addr * (uint64_t) fs_sb.sb_bsize;
 
-	write_a_block(addr++, &rgl->rg);
+	if (fsoffset < fssize) {
+		fprintf(stderr,
+			"Sanity check failed: Caught trying to write to live filesystem!\n");
+		exit(EXIT_FAILURE);
+	}
+	if (lseek(fd, fsoffset, SEEK_SET) != fsoffset) {
+		perror(device);
+		exit(EXIT_FAILURE);
+	}
+	write_a_block(fd, &rgl->rg);
 	for (l = 1; l < nzb; l++)
-		write_a_block(addr++, NULL);
-	sync();
+		write_a_block(fd, NULL);
 }
 
 /**
@@ -415,9 +409,18 @@ write_rindex(int fs_fd)
 {
 	osi_list_t *tmp, *head;
 	struct rglist_entry *rgl;
-	char buffer[sizeof(struct gfs_rindex)];
-	uint64_t offset;
+	char *buffer;
+	int b, data_per_blk, data_per_page, firstblock;
+	int chunks_this_page, page_freebytes, data_this_page;
+	long page_size;
+	uint64_t offset, size;
 
+	page_size = sysconf(_SC_PAGESIZE);
+	buffer = malloc(page_size * 2);
+	if (!buffer) {
+		fprintf(stderr, "Error: out of memory.\n");
+		exit(EXIT_FAILURE);
+	}
 	offset = get_length(fs_fd, "rindex");
 
 	/*
@@ -425,23 +428,63 @@ write_rindex(int fs_fd)
 	 * If things mess up here, it could be very difficult to put right
 	 */
 	tmp = head = &rglist_new;
+	firstblock = 1;
+	data_per_blk = fs_sb.sb_bsize - sizeof(struct gfs_meta_header);
+	data_per_page = (page_size / fs_sb.sb_bsize) * data_per_blk;
 	for (;;) {
-		tmp = tmp->next;
-		if (tmp == head)
-			break;
-		rgl = osi_list_entry(tmp, struct rglist_entry, list);
-		gfs_rindex_out(&rgl->ri, buffer);
-		if (jwrite(fs_fd, "rindex", buffer,
-			   sizeof(struct gfs_rindex), &offset) !=
-		    sizeof(struct gfs_rindex)) {
+		size = 0;
+		/* We used to write new rindex entries out one by one.
+		   However, that can be very slow, especially if there's a
+		   load on the file system.  That's because each write is
+		   done with the glock sync option and the journal will need
+		   to be synced before the glock is freed up for the next
+		   write.  (The rindex file is journaled data). If the block
+		   size matches the page size, the syncs happen much faster.
+		   If the block size is smaller, it takes a huge amount of
+		   time to get all the blocks to settle within the page.
+
+		   What I'm trying to do here is optimize our writes so
+		   that multiple blocks may be allocated during a single
+		   write request, all under the same glock, in order to
+		   get a page-full of data written.  This makes the syncing
+		   go much faster.  The exception is the very first write
+		   (see note below). */
+		data_this_page = offset % data_per_page;
+		page_freebytes = page_size - data_this_page;
+		if (page_freebytes < sizeof(struct gfs_rindex))
+			page_freebytes = data_per_page;
+		chunks_this_page = (page_freebytes /
+				    sizeof(struct gfs_rindex)) + 1;
+		for (b = 0; b < chunks_this_page; b++) {
+			tmp = tmp->next;
+			if (tmp == head)
+				break;
+			rgl = osi_list_entry(tmp, struct rglist_entry, list);
+			gfs_rindex_out(&rgl->ri, buffer + size);
+			size += sizeof(struct gfs_rindex);
+			/* Write the first block on its own.  This minimizes
+			   the chance of running out of blocks on a nearly
+			   full file system.  Once that first block is written,
+			   the file system should have more free blocks to
+			   allocate in chunks. */
+			if (firstblock) {
+				firstblock = 0;
+				break;
+			}
+		}
+		if (size &&
+		    jwrite(fs_fd, "rindex", buffer, size, &offset) != size) {
 			perror("write: rindex");
 			fprintf(stderr, "Aborting...\n");
 			exit(EXIT_FAILURE);
 		}
+		if (tmp == head)
+			break;
 	}
 	/*
 	 * This is the end of the critical section
 	 */
+	free(buffer);
 }
 
 /**
@@ -459,15 +502,22 @@ write_rgrps(int fs_fd)
 {
 	osi_list_t *tmp, *head;
 	struct rglist_entry *rgl;
+	int fd = open(device, O_RDWR);
 
+	if (fd < 0) {
+		perror(device);
+		exit(EXIT_FAILURE);
+	}
 	tmp = head = &rglist_new;
 	for (;;) {
 		tmp = tmp->next;
 		if (tmp == head)
 			break;
 		rgl = osi_list_entry(tmp, struct rglist_entry, list);
-		write_whole_rgrp(rgl);
+		write_whole_rgrp(fd, rgl);
 	}
+	sync();
+	close(fd);
 
 	sync();
 	sync();
