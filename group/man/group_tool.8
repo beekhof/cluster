@@ -14,47 +14,70 @@ The group_tool program displays information about fence, dlm and gfs groups.
 
 .SH SUBCOMMANDS
 
-group_tool ls -a [-n]
+\fBgroup_tool ls\fP [-n]
 
   Queries individual daemons, and displays full daemon and group state.
   It is a shortcut for:
+
   fence_tool ls [-n]
+.br
   dlm_tool ls [-n]
+.br
   gfs_control ls [-n]
 
-group_tool ls [-v]
+\fBgroup_tool compat\fP
 
-  Queries groupd or individual daemons, depending on groupd compat mode.
-  Displays limited cluster2-style output of daemon and group state.
+  Queries groupd about compatibility mode currently running:
 
-group_tool compat
-
-  Queries groupd about compatibility mode currently running.  Any ls command
-  also includes this query and displays the result.  Possible results:
   groupd not running
+.br
   groupd compatibility mode 0
+.br
   groupd compatibility mode 1
+.br
   groupd compatibility mode 2 (pending)
+.br
 
-group_tool dump [gfs|dlm|fence|plocks] [name]
+\fBgroup_tool dump\fP [gfs|dlm|fence|plocks] [name]
 
   Dumps debug info from daemons:
 
   group_tool dump gfs: dump gfs_controld debug log
+.br
 	(same as gfs_control dump)
+.br
   group_tool dump dlm: dump dlm_controld debug log
+.br
 	(same as dlm_tool dump)
+.br
   group_tool dump fence: dump fenced debug log
+.br
 	(same as fence_tool dump)
+.br
   group_tool dump plocks <x>: dump plock state
+.br
 	(same as dlm_tool plocks <x>)
+.br
   group_tool dump: dump groupd debug log
+.br
 
 
 .SH OPTIONS
 .TP
+\fB-g <num>\fP
+Select daemons to query with ls
+.br
+0: query fenced, dlm_controld, gfs_controld (default)
+.br
+1: query groupd (for old compat mode)
+.br
+2: query groupd (1) when in compat mode, otherwise daemons (0)
+.TP
+\fB-n\fP
+Show all node information (with ls -g0)
+.TP
 \fB-v\fP
-Verbose output, used with the 'ls' subcommand.
+Show extra event information (with ls -g1)
 .TP
 \fB-V\fP
 Print the version information and exit.
@@ -63,5 +86,5 @@ Print the version information and exit.
 Print out a help message describing available options, then exit.
 
 .SH SEE ALSO
-groupd(8)
+groupd(8), fence_tool(8), dlm_tool(8), gfs_control(8)
 
