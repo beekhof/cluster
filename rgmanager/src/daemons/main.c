@@ -877,7 +877,7 @@ configure_rgmanager(int ccsfd, int dbg)
 		if (status_child_max >= 1) {
 			logt_print(LOG_NOTICE,
 			       "Status Child Max set to %d\n",
-			       status_poll_interval);
+			       status_child_max);
 			rg_set_childmax(status_child_max);
 		} else {
 			logt_print(LOG_WARNING, "Ignoring illegal "
