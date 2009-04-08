@@ -10,38 +10,38 @@ groupd
 
 .SH DESCRIPTION
 
-The group daemon, groupd, provides a compatibility layer between the
-corosync closed process group (CPG) service and the fenced, dlm_controld
-and gfs_controld daemons.  New versions of fenced/dlm_controld/gfs_controld
-no longer require this compat layer, and can run without groupd.  They use
-libcpg directly, making them much more robust.  This makes them incompatible
-with old (cluster2) versions.  Enable this new mode with:
+The group daemon, groupd, provides a compatibility layer between the corosync
+closed process group (CPG) service and the fenced, dlm_controld and
+gfs_controld daemons.  New versions of fenced/dlm_controld/gfs_controld no
+longer require this compat layer, and can run without groupd.  They use libcpg
+directly, making them much more robust.  This makes them incompatible with old
+(cluster2) versions.  Explicitly enable the new incompatible mode with:
 
 	<group groupd_compat="0"/>
 
-This should be added to the configuration (cluster.conf) before a cluster is
-restarted following an upgrade of all nodes.
-
-If compatibility with old (cluster2) nodes is necessary (mixing cluster2 and
-cluster3 nodes should be avoided), the daemons can be run in the old mode,
-using groupd as before.  Enable this mode with:
+This is the default if no groupd_compat setting exists.  If compatibility with
+old (cluster2) nodes is necessary (mixing cluster2 and cluster3 nodes should
+be avoided), the daemons can be run in the old mode, using groupd as before.
+Enable this mode with:
 
 	<group groupd_compat="1"/>
 
-.B Rolling Upgrades
+To perform a rolling upgrade from cluster2 to cluster3, add the
+groupd_compat="1" setting to cluster.conf before upgrading any existing nodes
+or adding any new cluster3 nodes.  The next time the entire cluster is shut
+down, after all nodes are upgraded, groupd_compat can be changed to 0 (or
+removed entirely).  \fBWarning:\fP groupd_compat must not be changed from 1 to
+0 in a running cluster (or from 0 to 1).  cluster2 nodes are equivalent to
+groupd_compat="1", so it is fine to add groupd_compat="1" to a running
+cluster2 cluster as described above to perform a rolling upgrade.
 
-In the absence of any groupd_compat setting,
-groupd/fenced/dlm_controld/gfs_controld default to a third option,
-groupd_compat="2", which supports rolling upgrades.  In this mode, groupd
-initially tries to detect nodes running an old cluster2 version of groupd.  If
-any are found, it will run in the compat mode (groupd_compat="1"), otherwise
-it will run in the new mode (groupd_compat="0").  The other daemons will take
-the final groupd_compat result (0 or 1) from groupd.
+A third option, groupd_compat="2", enables a special phase during startup
+where the daemons attempt to discover cluster2 nodes or cluster3 nodes running
+in mode 1.  If any are found, they run in mode 1, otherwise mode 0.  This mode
+will delay startup and makes cluster operation less predictable.
 
-This groupd_compat="2" mode only supports rolling upgrades, and will not
-support mixing cluster2 and cluster3 nodes in general.  Once all nodes are
-upgraded, the first full cluster restart should be used to specify the new
-mode <group groupd_compat="0"/> in the configuration (cluster.conf).
+The cman init script will not start the groupd daemon unless it is needed,
+i.e. groupd_compat=1 (or 2).
 
 .B Logging
 
