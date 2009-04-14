@@ -297,7 +297,12 @@ main_grow(int argc, char *argv[])
 		if(read_sb(sdp) < 0)
 			die("gfs: Error reading superblock.\n");
 
-		fix_device_geometry(sdp);
+		if (fix_device_geometry(sdp)) {
+			fprintf(stderr, "Device is too small (%"PRIu64" bytes)\n",
+				sdp->device.length << GFS2_BASIC_BLOCK_SHIFT);
+			exit(-1);
+		}
+
 		if (mount_gfs2_meta(sdp)) {
 			fprintf(stderr, "Error mounting GFS2 metafs: %s\n",
 					strerror(errno));

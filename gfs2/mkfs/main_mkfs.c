@@ -533,7 +533,11 @@ main_mkfs(int argc, char *argv[])
 		}
 		sdp->device.length = sdp->orig_fssize;
 	}
-	fix_device_geometry(sdp);
+	if (fix_device_geometry(sdp)) {
+		fprintf(stderr, "Device is too small (%"PRIu64" bytes)\n",
+				sdp->device.length << GFS2_BASIC_BLOCK_SHIFT);
+		exit(-1);
+	}
 
 	/* Compute the resource group layouts */
 
