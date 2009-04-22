@@ -331,29 +331,44 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 			stack;
 			return -1;
 		}
-		if(error == 0) {
-			if(pass->check_eattr_extentry && ea_hdr->ea_num_ptrs) {
-				ea_data_ptr = ((uint64_t *)((char *)ea_hdr +
-							    sizeof(struct gfs_ea_header) +
-							    ((ea_hdr->ea_name_len + 7) & ~7)));
+		if(error == 0 && pass->check_eattr_extentry &&
+		   ea_hdr->ea_num_ptrs) {
+			uint32_t tot_ealen = 0;
+			struct fsck_sb *sdp = ip->i_sbd;
 
-				/* It is possible when a EA is shrunk
-				** to have ea_num_ptrs be greater than
-				** the number required for ** data.
-				** In this case, the EA ** code leaves
-				** the blocks ** there for **
-				** reuse...........  */
-				for(i = 0; i < ea_hdr->ea_num_ptrs; i++){
-					if(pass->check_eattr_extentry(ip,
-								      ea_data_ptr,
-								      bh, ea_hdr,
-								      ea_hdr_prev,
-								      pass->private)) {
-						stack;
+			ea_data_ptr = ((uint64_t *)((char *)ea_hdr +
+						    sizeof(struct gfs_ea_header) +
+						    ((ea_hdr->ea_name_len + 7) & ~7)));
+
+			/* It is possible when a EA is shrunk
+			** to have ea_num_ptrs be greater than
+			** the number required for ** data.
+			** In this case, the EA ** code leaves
+			** the blocks ** there for **
+			** reuse...........  */
+			for(i = 0; i < ea_hdr->ea_num_ptrs; i++){
+				if(pass->check_eattr_extentry(ip,
+							      ea_data_ptr,
+							      bh, ea_hdr,
+							      ea_hdr_prev,
+							      pass->private)) {
+					if (query(ip->i_sbd,
+						  "Repair the bad EA? "
+						  "(y/n) ")) {
+						ea_hdr->ea_num_ptrs = i;
+						ea_hdr->ea_data_len =
+							cpu_to_be32(tot_ealen);
+						*ea_data_ptr = 0;
+						/* Endianness doesn't matter
+						   in this case because it's
+						   a single byte. */
 						return -1;
 					}
-					ea_data_ptr++;
+					log_err("The bad EA was not fixed.\n");
 				}
+				tot_ealen += sdp->sb.sb_bsize -
+					sizeof(struct gfs_meta_header);
+				ea_data_ptr++;
 			}
 		}
 		offset += gfs32_to_cpu(ea_hdr->ea_rec_len);
@@ -399,7 +414,8 @@ static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
 
 	check_eattr_entries(ip, bh, pass);
 
-	relse_buf(ip->i_sbd, bh);
+	if (bh)
+		relse_buf(ip->i_sbd, bh);
 
 	return 0;
 }
@@ -425,9 +441,13 @@ static int check_indirect_eattr(struct fsck_inode *ip, uint64_t indirect,
 
 	log_debug("Checking EA indirect block #%"PRIu64".\n", indirect);
 
-	if (!pass->check_eattr_indir ||
-	    !pass->check_eattr_indir(ip, indirect, ip->i_di.di_num.no_addr,
-				     &indirect_buf, pass->private)) {
+	if (!pass->check_eattr_indir)
+		return 0;
+	error = pass->check_eattr_indir(ip, indirect, ip->i_di.di_num.no_addr,
+					&indirect_buf, pass->private);
+	if (!error) {
+		int leaf_pointers = 0, leaf_pointer_errors = 0;
+
 		ea_leaf_ptr = (uint64 *)(BH_DATA(indirect_buf)
 					 + sizeof(struct gfs_indirect));
 		end = ea_leaf_ptr
@@ -436,14 +456,29 @@ static int check_indirect_eattr(struct fsck_inode *ip, uint64_t indirect,
 
 		while(*ea_leaf_ptr && (ea_leaf_ptr < end)){
 			block = gfs64_to_cpu(*ea_leaf_ptr);
-			/* FIXME: should I call check_leaf_eattr if we
-			 * find a dup? */
+			leaf_pointers++;
 			error = check_leaf_eattr(ip, block, indirect, pass);
+			if (error)
+				leaf_pointer_errors++;
 			ea_leaf_ptr++;
+		}
+		if (pass->finish_eattr_indir) {
+			int indir_ok = 1;
+
+			if (leaf_pointer_errors == leaf_pointers)
+				indir_ok = 0;
+			pass->finish_eattr_indir(ip, indir_ok, pass->private);
+			if (!indir_ok) {
+				fs_set_bitmap(sdp, indirect, GFS_BLKST_FREE);
+				block_clear(sdp->bl, indirect, indir_blk);
+				block_set(sdp->bl, indirect, block_free);
+				error = 1;
+			}
 		}
 	}
 
-	relse_buf(sdp, indirect_buf);
+	if (indirect_buf)
+		relse_buf(sdp, indirect_buf);
 	return error;
 }
 

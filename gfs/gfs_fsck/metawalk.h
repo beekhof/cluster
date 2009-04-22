@@ -60,6 +60,8 @@ struct metawalk_fxns {
 				     struct gfs_ea_header *ea_hdr,
 				     struct gfs_ea_header *ea_hdr_prev,
 				     void *private);
+	int (*finish_eattr_indir) (struct fsck_inode *ip, int indir_ok,
+				   void *private);
 };
 
 #endif /* _METAWALK_H */
