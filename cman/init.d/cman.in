@@ -202,20 +202,34 @@ start_daemon()
 	errmsg=$( $daemon $args 2>&1 )
 }
 
+check_sleep()
+{
+	if ! sleep 0.01 > /dev/null 2>&1; then
+		return 1
+	fi
+}
+
 stop_daemon()
 {
 	daemon=$1
 	shift
-	maxretries=$1
+	retryforsec=$1
 
-	[ -z "$maxretries" ] && maxretries=1
+	[ -z "$retryforsec" ] && retryforsec=1
 	retries=0
 
+	if check_sleep; then
+		sleepfor=0.25
+		retryforsec=$(($retryforsec * 4))
+	else
+		sleepfor=1
+	fi
+
 	while status $daemon > /dev/null 2>&1 && \
-		[ $retries -lt $maxretries ]; do
+		[ $retries -lt $retryforsec ]; do
 
 		errmsg=$( pkill -TERM $daemon ) || return 1
-		sleep 1
+		sleep $sleepfor
 		((retries++))
 	done
 
