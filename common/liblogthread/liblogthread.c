@@ -70,7 +70,7 @@ static void *thread_fn(void *arg)
 {
 	char str[ENTRY_STR_LEN];
 	struct entry *e;
-	time_t time;
+	time_t logtime;
 	int level, prev_dropped = 0;
 
 	while (1) {
@@ -89,18 +89,18 @@ static void *thread_fn(void *arg)
 
 		memcpy(str, e->str, ENTRY_STR_LEN);
 		level = e->level;
-		time = e->time;
+		logtime = e->time;
 
 		prev_dropped = dropped;
 		dropped = 0;
 		pthread_mutex_unlock(&mutex);
 
 		if (prev_dropped) {
-			write_dropped(level, &time, prev_dropped);
+			write_dropped(level, &logtime, prev_dropped);
 			prev_dropped = 0;
 		}
 
-		write_entry(level, &time, str);
+		write_entry(level, &logtime, str);
 	}
  out:
 	pthread_exit(NULL);
@@ -129,7 +129,7 @@ static void _logt_print(int level, char *buf)
 	pthread_mutex_unlock(&mutex);
 }
 
-void logt_print(int level, char *fmt, ...)
+void logt_print(int level, const char *fmt, ...)
 {
 	va_list ap;
 	char buf[ENTRY_STR_LEN];
@@ -154,8 +154,8 @@ void logt_print(int level, char *fmt, ...)
 	_logt_print(level, buf);
 }
 
-static void _conf(char *name, int mode, int syslog_facility,
-		  int syslog_priority, int logfile_priority, char *logfile)
+static void _conf(const char *name, int mode, int syslog_facility,
+		  int syslog_priority, int logfile_priority, const char *logfile)
 {
 	int fd;
 
@@ -193,8 +193,8 @@ static void _conf(char *name, int mode, int syslog_facility,
 	pthread_mutex_unlock(&mutex);
 }
 
-void logt_conf(char *name, int mode, int syslog_facility, int syslog_priority,
-	       int logfile_priority, char *logfile)
+void logt_conf(const char *name, int mode, int syslog_facility, int syslog_priority,
+	       int logfile_priority, const char *logfile)
 {
 	if (!init)
 		return;
@@ -203,8 +203,8 @@ void logt_conf(char *name, int mode, int syslog_facility, int syslog_priority,
 	      logfile);
 }
 
-int logt_init(char *name, int mode, int syslog_facility, int syslog_priority,
-	      int logfile_priority, char *logfile)
+int logt_init(const char *name, int mode, int syslog_facility, int syslog_priority,
+	      int logfile_priority, const char *logfile)
 {
 	int rv;
 
