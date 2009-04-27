@@ -123,7 +123,7 @@ static struct devnode *alloc_list_obj(struct devlisthead *devlisthead, int maj,
  * Once we find a device, we know maj/min and this new path.
  * add_path_obj will add the given path to the devnode
  */
-static int add_path_obj(struct devnode *startnode, char *path)
+static int add_path_obj(struct devnode *startnode, const char *path)
 {
 	struct devpath *nextpath, *startpath;
 
@@ -155,7 +155,7 @@ static int add_path_obj(struct devnode *startnode, char *path)
  * this function simply avoid duplicate code around.
  */
 static int add_lsdev_block(struct devlisthead *devlisthead, struct stat *sb,
-			   char *path)
+			   const char *path)
 {
 	int maj, min;
 	struct devnode *startnode;
@@ -200,7 +200,7 @@ static int dev_is_block(struct stat *sb, char *path)
  * -1 for generic errors
  * -2 -ENOMEM
  */
-static int lsdev(struct devlisthead *devlisthead, char *path)
+static int lsdev(struct devlisthead *devlisthead, const char *path)
 {
 	int i, n, err = 0;
 	struct dirent **namelist;
@@ -514,7 +514,7 @@ static int sysfs_is_removable(char *path)
  * always return the amount of entries in the dir if successful
  * or any return value from scandir.
  */
-static int sysfs_has_subdirs_entries(char *path, char *subdir)
+static int sysfs_has_subdirs_entries(char *path, const char *subdir)
 {
 	char newpath[MAXPATHLEN];
 	struct dirent **namelist;
@@ -621,7 +621,7 @@ static int sysfs_is_disk(char *path)
  * -1 on generic error
  * -2 -ENOMEM
  */
-static int scansysfs(struct devlisthead *devlisthead, char *path, int level, int parent_holder)
+static int scansysfs(struct devlisthead *devlisthead, const char *path, int level, int parent_holder)
 {
 	struct devnode *startnode;
 	int i, n, maj, min, has_holder = 0;
