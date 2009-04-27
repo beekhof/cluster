@@ -32,7 +32,7 @@ int rr = 0;
 #define MAX_ARGS	128
 #endif
 
-static void print_usage()
+static void print_usage(void)
 {
 	printf("Usage:\n\n");
 	printf("cmannotifyd [options]\n\n");
@@ -212,7 +212,7 @@ static void init_logging(int reconf)
 		logt_conf("cmannotifyd", mode, syslog_facility, syslog_priority, logfile_priority, logfile);
 }
 
-static void dispatch_notification(char *str, int *quorum)
+static void dispatch_notification(const char *str, int *quorum)
 {
 	char *envp[MAX_ARGS];
 	char *argv[MAX_ARGS];
@@ -240,7 +240,7 @@ static void dispatch_notification(char *str, int *quorum)
 
 	envp[envptr--] = NULL;
 
-	argv[argvptr++] = "cman_notify";
+	argv[argvptr++] = strdup("cman_notify");
 
 	argv[argvptr--] = NULL;
 
@@ -271,13 +271,19 @@ out:
 
 		envptr--;
 	}
+	while(argvptr >= 0) {
+		if (argv[argvptr])
+			free(argv[argvptr]);
+
+		argvptr--;
+	}
 	if (err)
 		exit(EXIT_FAILURE);
 }
 
 static void cman_callback(cman_handle_t ch, void *private, int reason, int arg)
 {
-	char *str = NULL;
+	const char *str = NULL;
 
 	switch (reason) {
 	case CMAN_REASON_TRY_SHUTDOWN:
@@ -302,7 +308,7 @@ static void cman_callback(cman_handle_t ch, void *private, int reason, int arg)
 	}
 }
 
-static void byebye_cman()
+static void byebye_cman(void)
 {
 	if (!cman_handle)
 		return;
@@ -356,7 +362,7 @@ out:
 	exit(EXIT_SUCCESS);
 }
 
-static void loop()
+static void loop(void)
 {
 	int cd_result, se_result;
 	fd_set read_fds;
