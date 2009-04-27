@@ -294,7 +294,7 @@ static void create_daemon_path(const char *name, const char *field, char *path)
    is set to LOG_DEBUG; all debug and logfile_priority values from
    cluster.conf are ignored. */
 
-void ccs_read_logging(int fd, char *name, int *debug, int *mode,
+void ccs_read_logging(int fd, const char *name, int *debug, int *mode,
 		      int *syslog_facility, int *syslog_priority,
 		      int *logfile_priority, char *logfile)
 {
