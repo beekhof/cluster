@@ -60,9 +60,10 @@ static hdb_handle_t find_libccs_handle(confdb_handle_t handle)
 
 static hdb_handle_t find_ccs_handle(confdb_handle_t handle, int ccs_handle)
 {
-	int res, datalen = 0, found = 0;
+	int res, found = 0;
 	hdb_handle_t libccs_handle = 0, connection_handle = 0;
 	char data[128];
+	size_t datalen = 0;
 
 	libccs_handle = find_libccs_handle(handle);
 	if (libccs_handle == -1)
@@ -113,7 +114,7 @@ static int get_running_config_version(confdb_handle_t handle, int *config_versio
 {
 	hdb_handle_t cluster_handle;
 	char data[128];
-	int datalen = 0;
+	size_t datalen = 0;
 	int ret = -1;
 
 	if (confdb_object_find_start(handle, OBJECT_PARENT_HANDLE) != CS_OK) {
@@ -145,7 +146,7 @@ static int get_stored_config_version(confdb_handle_t handle,
 				     hdb_handle_t connection_handle, int *config_version)
 {
 	char data[128];
-	int datalen = 0;
+	size_t datalen = 0;
 	int ret = -1;
 
 	if (confdb_key_get
@@ -165,7 +166,7 @@ static int set_stored_config_version(confdb_handle_t handle,
 			      hdb_handle_t connection_handle, int new_version)
 {
 	char temp[PATH_MAX];
-	int templen = 0;
+	size_t templen = 0;
 	char data[128];
 
 	memset(data, 0, sizeof(data));
@@ -303,7 +304,7 @@ static hdb_handle_t get_ccs_handle(confdb_handle_t handle, int *ccs_handle,
 int get_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 		       char *previous_query, hdb_handle_t *query_handle)
 {
-	int datalen;
+	size_t datalen = 0;
 
 	if (confdb_key_get
 	    (handle, connection_handle, "previous_query",
@@ -323,7 +324,7 @@ int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 		       char *previous_query, hdb_handle_t query_handle)
 {
 	char temp[PATH_MAX];
-	int templen;
+	size_t templen = 0;
 	unsigned int temphandle;
 
 	if (confdb_key_get
@@ -409,7 +410,8 @@ static int check_cluster_name(int ccs_handle, const char *cluster_name)
 	confdb_handle_t handle = 0;
 	hdb_handle_t cluster_handle;
 	char data[128];
-	int found = 0, datalen = 0;
+	int found = 0;
+	size_t datalen = 0;
 
 	handle = confdb_connect();
 	if (handle < 0)
@@ -464,7 +466,7 @@ static int _ccs_get(int desc, const char *query, char **rtn, int list)
 	confdb_handle_t handle = 0;
 	hdb_handle_t connection_handle = 0;
 	char data[128];
-	int datalen = 0;
+	size_t datalen = 0;
 	int fullxpathint = 0;
 
 	*rtn = NULL;
@@ -580,7 +582,7 @@ int ccs_disconnect(int desc)
 	hdb_handle_t connection_handle = 0;
 	int ret;
 	char data[128];
-	int datalen = 0;
+	size_t datalen = 0;
 	int fullxpathint = 0;
 
 	handle = confdb_connect();

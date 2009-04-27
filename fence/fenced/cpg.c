@@ -1079,9 +1079,12 @@ void process_fd_changes(void)
 }
 
 static int add_change(struct fd *fd,
-		      struct cpg_address *member_list, int member_list_entries,
-		      struct cpg_address *left_list, int left_list_entries,
-		      struct cpg_address *joined_list, int joined_list_entries,
+		      const struct cpg_address *member_list,
+		      size_t member_list_entries,
+		      const struct cpg_address *left_list,
+		      size_t left_list_entries,
+		      const struct cpg_address *joined_list,
+		      size_t joined_list_entries,
 		      struct change **cg_out)
 {
 	struct change *cg;
@@ -1195,7 +1198,7 @@ static void add_victims_init(struct fd *fd, struct change *cg)
 	}
 }
 
-static int we_left(struct cpg_address *left_list, int left_list_entries)
+static int we_left(const struct cpg_address *left_list, size_t left_list_entries)
 {
 	int i;
 
@@ -1206,10 +1209,14 @@ static int we_left(struct cpg_address *left_list, int left_list_entries)
 	return 0;
 }
 
-static void confchg_cb(cpg_handle_t handle, struct cpg_name *group_name,
-		       struct cpg_address *member_list, int member_list_entries,
-		       struct cpg_address *left_list, int left_list_entries,
-		       struct cpg_address *joined_list, int joined_list_entries)
+static void confchg_cb(cpg_handle_t handle,
+		       const struct cpg_name *group_name,
+		       const struct cpg_address *member_list,
+		       size_t member_list_entries,
+		       const struct cpg_address *left_list,
+		       size_t left_list_entries,
+		       const struct cpg_address *joined_list,
+		       size_t joined_list_entries)
 {
 	struct fd *fd;
 	struct change *cg;
@@ -1267,8 +1274,10 @@ static void fd_header_in(struct fd_header *hd)
 	hd->msgdata     = le32_to_cpu(hd->msgdata);
 }
 
-static void deliver_cb(cpg_handle_t handle, struct cpg_name *group_name,
-		       uint32_t nodeid, uint32_t pid, void *data, int len)
+static void deliver_cb(cpg_handle_t handle,
+		       const struct cpg_name *group_name,
+		       uint32_t nodeid, uint32_t pid,
+		       void *data, size_t len)
 {
 	struct fd *fd;
 	struct fd_header *hd;
@@ -1742,8 +1751,10 @@ int set_protocol(void)
    kernel state and they can skip fencing us if we're a victim.  (We have
    to check for that uncontrolled state before calling setup_cpg, obviously.) */
 
-static void deliver_cb_daemon(cpg_handle_t handle, struct cpg_name *group_name,
-		uint32_t nodeid, uint32_t pid, void *data, int len)
+static void deliver_cb_daemon(cpg_handle_t handle,
+			      const struct cpg_name *group_name,
+			      uint32_t nodeid, uint32_t pid,
+			      void *data, size_t len)
 {
 	struct fd_header *hd;
 
@@ -1764,10 +1775,14 @@ static void deliver_cb_daemon(cpg_handle_t handle, struct cpg_name *group_name,
 	}
 }
 
-static void confchg_cb_daemon(cpg_handle_t handle, struct cpg_name *group_name,
-		struct cpg_address *member_list, int member_list_entries,
-		struct cpg_address *left_list, int left_list_entries,
-		struct cpg_address *joined_list, int joined_list_entries)
+static void confchg_cb_daemon(cpg_handle_t handle,
+			      const struct cpg_name *group_name,
+			      const struct cpg_address *member_list,
+			      size_t member_list_entries,
+			      const struct cpg_address *left_list,
+			      size_t left_list_entries,
+			      const struct cpg_address *joined_list,
+			      size_t joined_list_entries)
 {
 	int i;
 

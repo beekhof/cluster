@@ -20,7 +20,11 @@
 #include <sys/errno.h>
 #include <dlfcn.h>
 
-#include <corosync/ipc_gen.h>
+#include <corosync/corotypes.h>
+#include <corosync/coroipc_types.h>
+#include <corosync/coroipcc.h>
+#include <corosync/corodefs.h>
+#include <corosync/mar_gen.h>
 #include <corosync/engine/coroapi.h>
 #include <corosync/engine/logsys.h>
 #include "list.h"
@@ -37,7 +41,7 @@
 #include "ais.h"
 
 #define max(a,b) (((a) > (b)) ? (a) : (b))
-LOGSYS_DECLARE_SUBSYS (CMAN_NAME, LOG_INFO);
+LOGSYS_DECLARE_SUBSYS (CMAN_NAME);
 
 /* Reference counting for cluster applications */
 static int use_count;
@@ -1143,7 +1147,7 @@ static int do_cmd_unregister_quorum_device(char *cmdbuf, int *retlen)
 static int reread_config(int new_version)
 {
 	int read_err;
-	char *reload_err = NULL;
+	const char *reload_err = NULL;
 
 	wanted_config_version = new_version;
 
@@ -1530,9 +1534,9 @@ int send_to_userport(unsigned char fromport, unsigned char toport,
 	return ret;
 }
 
-void cman_send_confchg(unsigned int *member_list, int member_list_entries,
-		       unsigned int *left_list, int left_list_entries,
-		       unsigned int *joined_list, int joined_list_entries)
+void cman_send_confchg(const unsigned int *member_list, size_t member_list_entries,
+		       const unsigned int *left_list, size_t left_list_entries,
+		       const unsigned int *joined_list, size_t joined_list_entries)
 {
 	char buf[sizeof(struct sock_confchg_message) +
 		 (member_list_entries+left_list_entries+joined_list_entries) * sizeof(int)];

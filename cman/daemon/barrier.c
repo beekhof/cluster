@@ -16,7 +16,11 @@
 #include <netinet/in.h>
 #include <sys/errno.h>
 
-#include <corosync/ipc_gen.h>
+#include <corosync/corotypes.h>
+#include <corosync/coroipc_types.h>
+#include <corosync/coroipcc.h>
+#include <corosync/corodefs.h>
+#include <corosync/mar_gen.h>
 #include <corosync/engine/coroapi.h>
 #include <corosync/engine/logsys.h>
 #include "list.h"
@@ -31,7 +35,7 @@
 
 extern int we_are_a_cluster_member;
 
-LOGSYS_DECLARE_SUBSYS (CMAN_NAME, LOG_INFO);
+LOGSYS_DECLARE_SUBSYS (CMAN_NAME);
 
 /* A barrier */
 struct cl_barrier {

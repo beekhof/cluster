@@ -609,8 +609,10 @@ group_t *find_group_by_handle(cpg_handle_t h)
 	return NULL;
 }
 
-void deliver_cb(cpg_handle_t handle, struct cpg_name *group_name,
-		uint32_t nodeid, uint32_t pid, void *data, int data_len)
+void deliver_cb(cpg_handle_t handle,
+		const struct cpg_name *group_name,
+		uint32_t nodeid, uint32_t pid,
+		void *data, size_t data_len)
 {
 	group_t *g;
 	struct save_msg *save;
@@ -742,10 +744,14 @@ void process_confchg(void)
 	}
 }
 
-void confchg_cb(cpg_handle_t handle, struct cpg_name *group_name,
-		struct cpg_address *member_list, int member_list_entries,
-		struct cpg_address *left_list, int left_list_entries,
-		struct cpg_address *joined_list, int joined_list_entries)
+void confchg_cb(cpg_handle_t handle,
+	        const struct cpg_name *group_name,
+		const struct cpg_address *member_list,
+		size_t member_list_entries,
+		const struct cpg_address *left_list,
+		size_t left_list_entries,
+		const struct cpg_address *joined_list,
+		size_t joined_list_entries)
 {
 	group_t *g;
 	char *name = "unknown";

@@ -59,11 +59,11 @@ static void print_config_tree(confdb_handle_t handle, hdb_handle_t parent_object
 {
 	hdb_handle_t object_handle;
 	char object_name[1024];
-	int object_name_len;
+	size_t object_name_len;
 	char key_name[1024];
-	int key_name_len;
+	size_t key_name_len;
 	char key_value[1024];
-	int key_value_len;
+	size_t key_value_len;
 	char cumulative_dn[4096];
 	int res;
 	int i;

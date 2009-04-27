@@ -18,9 +18,9 @@ extern void add_ais_node(int nodeid, uint64_t incarnation, int total_members);
 extern void del_ais_node(int nodeid);
 extern void add_ccs_node(char *name, int nodeid, int votes, int expected_votes);
 extern void override_expected(int expected);
-extern void cman_send_confchg(unsigned int *member_list, int member_list_entries,
-			      unsigned int *left_list, int left_list_entries,
-			      unsigned int *joined_list, int joined_list_entries);
+extern void cman_send_confchg(const unsigned int *member_list, size_t member_list_entries,
+			      const unsigned int *left_list, size_t left_list_entries,
+			      const unsigned int *joined_list, size_t joined_list_entries);
 
 
 extern void clear_reread_flags(void);

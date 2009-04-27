@@ -89,7 +89,7 @@ static int path_dive(confdb_handle_t handle, hdb_handle_t *query_handle,
 
 			char *start = NULL, *middle = NULL, *end = NULL;
 			char data[PATH_MAX];
-			int datalen;
+			size_t datalen = 0;
 
 			/*
 			 * those ones should be always good because
@@ -222,13 +222,13 @@ static int get_data(confdb_handle_t handle, hdb_handle_t connection_handle,
 		    hdb_handle_t query_handle, hdb_handle_t *list_handle,
 		    char **rtn, char *curpos, int list, int is_oldlist)
 {
-	int datalen, cmp;
+	int cmp;
 	char data[PATH_MAX];
 	char resval[PATH_MAX];
 	char keyval[PATH_MAX];
-	int keyvallen = PATH_MAX;
 	hdb_handle_t new_obj_handle;
 	unsigned int value = 0;
+	size_t datalen = 0, keyvallen = PATH_MAX;
 
 	memset(data, 0, PATH_MAX);
 	memset(resval, 0, PATH_MAX);

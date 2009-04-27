@@ -16,7 +16,11 @@
 
 /* corosync headers */
 #include <corosync/corotypes.h>
-#include <corosync/ipc_gen.h>
+#include <corosync/corotypes.h>
+#include <corosync/coroipc_types.h>
+#include <corosync/coroipcc.h>
+#include <corosync/corodefs.h>
+#include <corosync/mar_gen.h>
 #include <corosync/engine/coroapi.h>
 #include <corosync/engine/logsys.h>
 #include <corosync/engine/quorum.h>
@@ -62,7 +66,7 @@ static struct corosync_tpg_group cman_group[1] = {
         { .group          = "CMAN", .group_len      = 4},
 };
 
-LOGSYS_DECLARE_SUBSYS (CMAN_NAME, LOG_INFO);
+LOGSYS_DECLARE_SUBSYS (CMAN_NAME);
 
 /* This structure is tacked onto the start of a cluster message packet for our
  * own nefarious purposes. */
@@ -82,11 +86,11 @@ struct cl_protheader {
 static int cman_exit_fn(void *conn_info);
 static int cman_exec_init_fn(struct corosync_api_v1 *api);
 static void cman_confchg_fn(enum totem_configuration_type configuration_type,
-			    unsigned int *member_list, int member_list_entries,
-			    unsigned int *left_list, int left_list_entries,
-			    unsigned int *joined_list, int joined_list_entries,
-			    struct memb_ring_id *ring_id);
-static void cman_deliver_fn(unsigned int nodeid, struct iovec *iovec, int iov_len,
+			    const unsigned int *member_list, size_t member_list_entries,
+			    const unsigned int *left_list, size_t left_list_entries,
+			    const unsigned int *joined_list, size_t joined_list_entries,
+			    const struct memb_ring_id *ring_id);
+static void cman_deliver_fn(unsigned int nodeid, const struct iovec *iovec, unsigned int iov_len,
 			    int endian_conversion_required);
 static void cman_quorum_init(struct corosync_api_v1 *api, quorum_set_quorate_fn_t report);
 
@@ -246,7 +250,7 @@ int comms_send_message(void *buf, int len,
 }
 
 // This assumes the iovec has only one element ... is it true ??
-static void cman_deliver_fn(unsigned int nodeid, struct iovec *iovec, int iov_len,
+static void cman_deliver_fn(unsigned int nodeid, const struct iovec *iovec, unsigned int iov_len,
 			    int endian_conversion_required)
 {
 	struct cl_protheader *header = iovec->iov_base;
@@ -272,15 +276,15 @@ static void cman_deliver_fn(unsigned int nodeid, struct iovec *iovec, int iov_le
 }
 
 static void cman_confchg_fn(enum totem_configuration_type configuration_type,
-			    unsigned int *member_list, int member_list_entries,
-			    unsigned int *left_list, int left_list_entries,
-			    unsigned int *joined_list, int joined_list_entries,
-			    struct memb_ring_id *ring_id)
+			    const unsigned int *member_list, size_t member_list_entries,
+			    const unsigned int *left_list, size_t left_list_entries,
+			    const unsigned int *joined_list, size_t joined_list_entries,
+			    const struct memb_ring_id *ring_id)
 {
 	int i;
 	static int last_memb_count = 0;
-	static int saved_left_list_entries;
-	static int saved_left_list_size;
+	static size_t saved_left_list_entries;
+	static size_t saved_left_list_size;
 	static unsigned int *saved_left_list = NULL;
 
 	P_AIS("confchg_fn called type = %d, seq=%lld\n", configuration_type, ring_id->seq);
@@ -303,7 +307,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 			saved_left_list_size = left_list_entries*2;
 			saved_left_list = malloc(sizeof(int) * saved_left_list_size);
 			if (!saved_left_list) {
-				log_printf(LOG_LEVEL_CRIT, "cannot allocate memory for confchg message");
+				log_printf(LOGSYS_LEVEL_CRIT, "cannot allocate memory for confchg message");
 				exit(3);
 			}
 		}
@@ -311,7 +315,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 			saved_left_list_size = left_list_entries*2;
 			saved_left_list = realloc(saved_left_list, sizeof(int) * saved_left_list_size);
 			if (!saved_left_list) {
-				log_printf(LOG_LEVEL_CRIT, "cannot reallocate memory for confchg message");
+				log_printf(LOGSYS_LEVEL_CRIT, "cannot reallocate memory for confchg message");
 				exit(3);
 			}
 		}

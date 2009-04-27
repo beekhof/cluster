@@ -398,7 +398,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 		return -1;
 
 	for (ifa = ifa_list; ifa; ifa = ifa->ifa_next) {
-		socklen_t salen;
+		socklen_t salen = 0;
 
 		/* Restore this */
 		strcpy(nodename2, nodename);
@@ -964,11 +964,11 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, hdb_handle_t source_
 	hdb_handle_t new_object;
 	hdb_handle_t find_handle;
 	char object_name[1024];
-	int object_name_len;
+	size_t object_name_len;
 	void *key_name;
-	int key_name_len;
+	size_t key_name_len;
 	void *key_value;
-	int key_value_len;
+	size_t key_value_len;
 	int res;
 
 	/* Create new parent object if necessary */

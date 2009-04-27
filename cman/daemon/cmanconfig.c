@@ -7,7 +7,11 @@
 #include <errno.h>
 #include <netdb.h>
 
-#include <corosync/ipc_gen.h>
+#include <corosync/corotypes.h>
+#include <corosync/coroipc_types.h>
+#include <corosync/coroipcc.h>
+#include <corosync/corodefs.h>
+#include <corosync/mar_gen.h>
 #include <corosync/engine/coroapi.h>
 #include <corosync/engine/logsys.h>
 
@@ -22,7 +26,7 @@
 #include "nodelist.h"
 #include "ais.h"
 
-LOGSYS_DECLARE_SUBSYS (CMAN_NAME, LOG_INFO);
+LOGSYS_DECLARE_SUBSYS (CMAN_NAME);
 
 /* Local vars - things we get from ccs */
        int two_node;

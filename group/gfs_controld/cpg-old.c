@@ -168,7 +168,7 @@ static void notify_mount_client(struct mountgroup *mg)
 /* we can receive recovery_status messages from other nodes doing start before
    we actually process the corresponding start callback ourselves */
 
-void save_message_old(struct mountgroup *mg, char *buf, int len, int from,
+void save_message_old(struct mountgroup *mg, char *buf, size_t len, int from,
 		      int type)
 {
 	struct save_msg *sm;
@@ -250,7 +250,7 @@ void send_withdraw_old(struct mountgroup *mg)
 	free(buf);
 }
 
-static void receive_withdraw(struct mountgroup *mg, char *buf, int len, int from)
+static void receive_withdraw(struct mountgroup *mg, char *buf, size_t len, int from)
 {
 	struct mg_member *memb;
 
@@ -316,7 +316,7 @@ static void send_recovery_status(struct mountgroup *mg)
    the journal for a failed node.  The first has really recovered it,
    the rest have found the fs clean and report success. */
 
-static void _receive_recovery_status(struct mountgroup *mg, char *buf, int len,
+static void _receive_recovery_status(struct mountgroup *mg, char *buf, size_t len,
 			      int from)
 {
 	struct mg_member *memb;
@@ -437,7 +437,7 @@ void send_mount_status_old(struct mountgroup *mg)
 	free(buf);
 }
 
-static void _receive_mount_status(struct mountgroup *mg, char *buf, int len,
+static void _receive_mount_status(struct mountgroup *mg, char *buf, size_t len,
 				  int from)
 {
 	struct mg_member *memb, *us;
@@ -503,7 +503,7 @@ static void _receive_mount_status(struct mountgroup *mg, char *buf, int len,
 	}
 }
 
-static void receive_mount_status(struct mountgroup *mg, char *buf, int len,
+static void receive_mount_status(struct mountgroup *mg, char *buf, size_t len,
 				 int from)
 {
 	log_group(mg, "receive_mount_status from %d len %d last_cb %d",
@@ -546,7 +546,7 @@ static void process_saved_mount_status(struct mountgroup *mg)
 	}
 }
 
-static void receive_recovery_status(struct mountgroup *mg, char *buf, int len,
+static void receive_recovery_status(struct mountgroup *mg, char *buf, size_t len,
 			     int from)
 {
 	switch (mg->last_callback) {
@@ -588,7 +588,7 @@ static void send_recovery_done(struct mountgroup *mg)
 	free(buf);
 }
 
-static void receive_recovery_done(struct mountgroup *mg, char *buf, int len,
+static void receive_recovery_done(struct mountgroup *mg, char *buf, size_t len,
 				  int from)
 {
 	struct mg_member *memb, *safe;
@@ -637,7 +637,7 @@ void send_remount_old(struct mountgroup *mg, struct gfsc_mount_args *ma)
 	free(buf);
 }
 
-static void receive_remount(struct mountgroup *mg, char *buf, int len, int from)
+static void receive_remount(struct mountgroup *mg, char *buf, size_t len, int from)
 {
 	struct mg_member *memb;
 	char *options;
@@ -879,7 +879,7 @@ static int assign_journal(struct mountgroup *mg, struct mg_member *new)
 	return 0;
 }
 
-static void _receive_options(struct mountgroup *mg, char *buf, int len,
+static void _receive_options(struct mountgroup *mg, char *buf, size_t len,
 			     int from)
 {
 	struct mg_member *memb;
@@ -912,7 +912,7 @@ static void _receive_options(struct mountgroup *mg, char *buf, int len,
 	assign_journal(mg, memb);
 }
 
-static void receive_options(struct mountgroup *mg, char *buf, int len, int from)
+static void receive_options(struct mountgroup *mg, char *buf, size_t len, int from)
 {
 	struct gdlm_header *hd = (struct gdlm_header *)buf;
 	struct mg_member *memb;
@@ -1046,7 +1046,7 @@ static void received_our_jid(struct mountgroup *mg)
 	notify_mount_client(mg);
 }
 
-static void _receive_journals(struct mountgroup *mg, char *buf, int len,
+static void _receive_journals(struct mountgroup *mg, char *buf, size_t len,
 			      int from)
 {
 	struct mg_member *memb, *memb2;
@@ -1114,7 +1114,7 @@ static void _receive_journals(struct mountgroup *mg, char *buf, int len,
 	received_our_jid(mg);
 }
 
-static void receive_journals(struct mountgroup *mg, char *buf, int len,
+static void receive_journals(struct mountgroup *mg, char *buf, size_t len,
 			     int from)
 {
 	struct gdlm_header *hd = (struct gdlm_header *)buf;
@@ -2229,7 +2229,7 @@ int do_terminate(struct mountgroup *mg)
 	return 0;
 }
 
-static void do_deliver(int nodeid, char *data, int len)
+static void do_deliver(int nodeid, char *data, size_t len)
 {
 	struct mountgroup *mg;
 	struct gdlm_header *hd;
@@ -2325,8 +2325,10 @@ static void do_deliver(int nodeid, char *data, int len)
 	}
 }
 
-static void deliver_cb(cpg_handle_t handle, struct cpg_name *group_name,
-		uint32_t nodeid, uint32_t pid, void *data, int data_len)
+static void deliver_cb(cpg_handle_t handle,
+		       const struct cpg_name *group_name,
+		       uint32_t nodeid, uint32_t pid,
+		       void *data, size_t data_len)
 {
 	do_deliver(nodeid, data, data_len);
 }
@@ -2336,10 +2338,14 @@ static void deliver_cb(cpg_handle_t handle, struct cpg_name *group_name,
    Is it possible for a node to have been cleared from the members_gone list
    before this confchg is processed? */
 
-static void confchg_cb(cpg_handle_t handle, struct cpg_name *group_name,
-		struct cpg_address *member_list, int member_list_entries,
-		struct cpg_address *left_list, int left_list_entries,
-		struct cpg_address *joined_list, int joined_list_entries)
+static void confchg_cb(cpg_handle_t handle,
+		       const struct cpg_name *group_name,
+		       const struct cpg_address *member_list,
+		       size_t member_list_entries,
+		       const struct cpg_address *left_list,
+		       size_t left_list_entries,
+		       const struct cpg_address *joined_list,
+		       size_t joined_list_entries)
 {
 	struct mountgroup *mg;
 	int i, nodeid;

@@ -51,11 +51,9 @@ static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_han
 	hdb_handle_t object_handle;
 	char temp[PATH_MAX];
 	char object_name[PATH_MAX];
-	int object_name_len;
 	char key_name[PATH_MAX];
-	int key_name_len;
 	char key_value[PATH_MAX];
-	int key_value_len;
+	size_t key_value_len = 0, key_name_len = 0, object_name_len = 0;
 	int res;
 
 	res = confdb_key_iter_start(dump_handle, parent_object_handle);

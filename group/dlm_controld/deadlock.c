@@ -1076,9 +1076,9 @@ static void node_left(struct lockspace *ls, int nodeid, int reason)
 static void purge_locks(struct lockspace *ls, int nodeid);
 
 void deadlk_confchg(struct lockspace *ls,
-		struct cpg_address *member_list, int member_list_entries,
-		struct cpg_address *left_list, int left_list_entries,
-		struct cpg_address *joined_list, int joined_list_entries)
+		const struct cpg_address *member_list, int member_list_entries,
+		const struct cpg_address *left_list, int left_list_entries,
+		const struct cpg_address *joined_list, int joined_list_entries)
 {
 	int i;
 

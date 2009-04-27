@@ -248,7 +248,7 @@ void process_cpg_old(int ci);
 int gfs_join_mountgroup_old(struct mountgroup *mg, struct gfsc_mount_args *ma);
 void do_leave_old(char *name, int mnterr);
 int send_group_message_old(struct mountgroup *mg, int len, char *buf);
-void save_message_old(struct mountgroup *mg, char *buf, int len, int from,
+void save_message_old(struct mountgroup *mg, char *buf, size_t len, int from,
 	int type);
 void send_withdraw_old(struct mountgroup *mg);
 int process_recovery_uevent_old(char *name, int jid, int status, int first);
