@@ -261,7 +261,6 @@ void deadlk_confchg(struct lockspace *ls,
 	const struct cpg_address *left_list, int left_list_entries,
 	const struct cpg_address *joined_list, int joined_list_entries);
 
-
 /* main.c */
 int do_read(int fd, void *buf, size_t count);
 int do_write(int fd, void *buf, size_t count);
@@ -341,10 +340,12 @@ int inline void set_group_mode(void) { return 0; }
 #endif
 
 /* logging.c */
-
 void init_logging(void);
 void setup_logging();
 void close_logging(void);
+
+/* crc.c */
+uint32_t cpgname_to_crc(const char *data, int len);
 
 #endif
 

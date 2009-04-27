@@ -325,9 +325,11 @@ void update_flow_control_status(void);
 int check_uncontrolled_filesystems(void);
 
 /* logging.c */
-
 void init_logging(void);
 void setup_logging();
 void close_logging(void);
+
+/* crc.c */
+uint32_t cpgname_to_crc(const char *data, int len);
 
 #endif

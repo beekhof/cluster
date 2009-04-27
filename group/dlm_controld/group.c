@@ -97,6 +97,16 @@ static char *str_members(void)
 	return str_members_buf;
 }
 
+static unsigned int replace_zero_global_id(char *name)
+{
+	unsigned int new_id;
+
+	new_id = cpgname_to_crc(name, strlen(name));
+
+	log_error("replace zero id for %s with %u", name, new_id);
+	return new_id;
+}
+
 void process_groupd(int ci)
 {
 	struct lockspace *ls;
@@ -158,6 +168,8 @@ void process_groupd(int ci)
 
 	case DO_SETID:
 		log_debug("groupd callback: set_id %s %x", cb_name, cb_id);
+		if (!cb_id)
+			cb_id = replace_zero_global_id(cb_name);
 		set_sysfs_id(cb_name, cb_id);
 		ls->global_id = cb_id;
 		break;
