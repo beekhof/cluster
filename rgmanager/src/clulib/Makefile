@@ -1,8 +1,7 @@
 TARGET1= libclulib.a
-TARGET2= liblalloc.a
-TARGET3= msgtest
+TARGET2= msgtest
 
-all: ${TARGET1} ${TARGET2} ${TARGET3}
+all: ${TARGET1} ${TARGET2}
 
 include ../../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -15,9 +14,7 @@ OBJS1=	logging.o daemon_init.o signals.o msgsimple.o \
 	lock.o cman.o vft.o msg_cluster.o msg_socket.o \
 	wrap_lock.o sets.o
 
-OBJS2= alloc.o
-
-OBJS3= msgtest.o
+OBJS2= msgtest.o
 
 CFLAGS += -Werror -Wstrict-prototypes -Wshadow -fPIC -D_GNU_SOURCE
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir}
@@ -35,15 +32,10 @@ ${TARGET1}: ${OBJS1}
 	${AR} cru $@ $^
 	${RANLIB} $@
 
-${TARGET2}: ${OBJS2}
-	${AR} cru $@ $^
-	${RANLIB} $@
-
-${TARGET3}: ${OBJS3} ${TARGET1}
+${TARGET2}: ${OBJS2} ${TARGET1}
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean: generalclean
 
 -include $(OBJS1:.o=.d)
 -include $(OBJS2:.o=.d)
--include $(OBJS3:.o=.d)
