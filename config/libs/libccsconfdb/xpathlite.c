@@ -12,7 +12,7 @@
 
 static int tokenizer(char *current_query)
 {
-	int index = 0;
+	int tokens = 0;
 	char *curpos = current_query;
 	char *next = NULL;
 	char *end;
@@ -20,7 +20,7 @@ static int tokenizer(char *current_query)
 	end = current_query + strlen(current_query);
 
 	while (curpos <= end) {
-		index++;
+		tokens++;
 
 		if (strncmp(curpos, "/", 1)) {
 			errno = EINVAL;
@@ -37,7 +37,7 @@ static int tokenizer(char *current_query)
 		}
 
 		if (!next)
-			return index;
+			return tokens;
 
 		if ((strstr(curpos, "[") > next) || !strstr(curpos, "["))
 			curpos = next;
@@ -109,7 +109,7 @@ static int path_dive(confdb_handle_t handle, hdb_handle_t *query_handle,
 			memset(end, 0, 1);
 
 			if (!strcmp(pos, "child::*")) {
-				int val, i;
+				int val, j;
 
 				val = atoi(middle);
 
@@ -120,7 +120,7 @@ static int path_dive(confdb_handle_t handle, hdb_handle_t *query_handle,
 				    (handle, *query_handle) != CS_OK)
 					goto fail;
 
-				for (i = 1; i <= val; i++) {
+				for (j = 1; j <= val; j++) {
 					if (confdb_object_iter
 					    (handle, *query_handle,
 					     &new_obj_handle, data,
@@ -135,14 +135,14 @@ static int path_dive(confdb_handle_t handle, hdb_handle_t *query_handle,
 
 			} else if (!strstr(middle, "@")) {
 				/* lookup something with index num = int */
-				int val, i;
+				int val, j;
 
 				val = atoi(middle);
 
 				if (val < 1)
 					goto fail;
 
-				for (i = 1; i <= val; i++) {
+				for (j = 1; j <= val; j++) {
 					if (confdb_object_find
 					    (handle, *query_handle, pos,
 					     strlen(pos),

@@ -223,7 +223,7 @@ static int priority_id_get(char *name)
 }
 
 /* requires string buffer to be PATH_MAX */
-static void read_string(int fd, char *path, char *string)
+static void read_string(int fd, const char *path, char *string)
 {
 	char *str;
 	int error;
@@ -239,7 +239,7 @@ static void read_string(int fd, char *path, char *string)
 	free(str);
 }
 
-static void read_yesno(int fd, char *path, int *yes, int *no)
+static void read_yesno(int fd, const char *path, int *yes, int *no)
 {
 	char *str;
 	int error;
@@ -259,7 +259,7 @@ static void read_yesno(int fd, char *path, int *yes, int *no)
 	free(str);
 }
 
-static void read_onoff(int fd, char *path, int *on, int *off)
+static void read_onoff(int fd, const char *path, int *on, int *off)
 {
 	char *str;
 	int error;
@@ -280,7 +280,7 @@ static void read_onoff(int fd, char *path, int *on, int *off)
 }
 
 /* requires path buffer to be PATH_MAX */
-static void create_daemon_path(char *name, char *field, char *path)
+static void create_daemon_path(const char *name, const char *field, char *path)
 {
 	memset(path, 0, PATH_MAX);
 	snprintf(path, PATH_MAX,

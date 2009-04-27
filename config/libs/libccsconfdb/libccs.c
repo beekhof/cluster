@@ -219,7 +219,7 @@ static int config_reload(confdb_handle_t handle,
 }
 
 static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
-				      int fullxpath)
+				      int xpath)
 {
 	hdb_handle_t libccs_handle = 0, connection_handle = 0;
 	char buf[128];
@@ -260,7 +260,7 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 	}
 
 	memset(buf, 0, sizeof(buf));
-	snprintf(buf, sizeof(buf), "%d", fullxpath);
+	snprintf(buf, sizeof(buf), "%d", xpath);
 	if (confdb_key_create
 	    (handle, connection_handle, "fullxpath", strlen("fullxpath"), buf,
 	     strlen(buf) + 1) != CS_OK) {
@@ -273,7 +273,7 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 }
 
 static hdb_handle_t get_ccs_handle(confdb_handle_t handle, int *ccs_handle,
-				   int fullxpath)
+				   int xpath)
 {
 	unsigned int next_handle;
 	hdb_handle_t libccs_handle = 0;
@@ -286,7 +286,7 @@ static hdb_handle_t get_ccs_handle(confdb_handle_t handle, int *ccs_handle,
 	if (confdb_key_increment
 	    (handle, libccs_handle, "next_handle", strlen("next_handle"),
 	     &next_handle) == CS_OK) {
-		ret = create_ccs_handle(handle, (int)next_handle, fullxpath);
+		ret = create_ccs_handle(handle, (int)next_handle, xpath);
 		if (ret == -1) {
 			*ccs_handle = -1;
 			return ret;
@@ -321,7 +321,7 @@ int get_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 }
 
 int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
-		       char *previous_query, hdb_handle_t query_handle)
+		       const char *previous_query, hdb_handle_t query_handle)
 {
 	char temp[PATH_MAX];
 	size_t templen = 0;
