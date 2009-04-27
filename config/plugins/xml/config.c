@@ -10,7 +10,7 @@
 static int xml_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
 static int xml_reloadconfig(struct objdb_iface_ver0 *objdb, int flush,
 			    const char **error_string);
-static int init_config(struct objdb_iface_ver0 *objdb, char *configfile,
+static int init_config(struct objdb_iface_ver0 *objdb, const char *configfile,
 		       const char *error_string);
 static char error_reason[1024];
 
@@ -93,7 +93,7 @@ static int xml_reloadconfig(struct objdb_iface_ver0 *objdb, int flush,
 static int xml_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string)
 {
 	int ret = 0;
-	char *configfile = DEFAULT_CONFIG;
+	const char *configfile = DEFAULT_CONFIG;
 
 	/* We need to set this up to internal defaults too early */
 	openlog("corosync", LOG_CONS | LOG_PID, SYSLOGFACILITY);
@@ -114,7 +114,7 @@ static int xml_readconfig(struct objdb_iface_ver0 *objdb, const char **error_str
 	return ret;
 }
 
-static int init_config(struct objdb_iface_ver0 *objdb, char *configfile,
+static int init_config(struct objdb_iface_ver0 *objdb, const char *configfile,
 		       const char *error_string)
 {
 	int err = 0;
