@@ -24,6 +24,7 @@ my %options = (
 	debug => \$debug,
 	cflags => \$cflags,
 	extracflags => \$extracflags,
+	enable_paranoia_cflags => \$enable_paranoia_cflags,
 	ldflags => \$ldflags,
 	extraldflags => \$extraldflags,
 	objdir => \$objdir,
@@ -114,6 +115,7 @@ my $err = &GetOptions (\%options,
 		    'debug',
 		    'cflags=s',
 		    'extracflags=s',
+		    'enable_paranoia_cflags',
 		    'ldflags=s',
 		    'extraldflags=s',
 		    'objdir=s',
@@ -230,6 +232,7 @@ if ($help || !$err) {
   print "--debug\t\tEnable debugging build. Changes default CFLAGS to -Wall -O0 -DDEBUG -g.\n";
   print "--cflags=\toverride default CFLAGS settings.  (Default: -Wall -O2 -g)\n";
   print "--extracflags=\tadd extra compiler options to default CFLAGS setting.  (Default: none)\n";
+  print "--enable_paranoia_cflags=\tadd paranoia compiler options to default CFLAGS setting.  (Default: tons)\n";
   print "--ldflags=\toverride default LDFLAGS settings.  (Default: none)\n";
   print "--extraldflags=\tadd extra linking options to default LDFLAGS settings.  (Default: none)\n";
   print "--objdir=\tspecify directory where to store object files.  (Defaults: current build dir)\n";
@@ -376,6 +379,14 @@ if (!$cflags) {
 }
 if ($extracflags) {
   $cflags="${cflags} ${extracflags}";
+}
+if ($enable_paranoia_cflags) {
+  $cflags="${cflags} -Wshadow -Wmissing-prototypes -Wmissing-declarations";
+  $cflags="${cflags} -Wstrict-prototypes -Wdeclaration-after-statement";
+  $cflags="${cflags} -Wpointer-arith -Wwrite-strings -Wcast-align";
+  $cflags="${cflags} -Wbad-function-cast -Wmissing-format-attribute";
+  $cflags="${cflags} -Wformat-security -Wformat-nonliteral -Wno-long-long";
+  $cflags="${cflags} -Wno-strict-aliasing";
 }
 if (!$ldflags) {
   $ldflags="";
