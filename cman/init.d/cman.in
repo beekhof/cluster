@@ -321,9 +321,8 @@ groupd_enabled()
 	groupd_compat="$(ccs_tool query /cluster/group/@groupd_compat \
 			2>/dev/null || true)"
 
-	if [ -z "$groupd_compat" ] || [ $groupd_compat == 0 ]; then
-		return 1
-	fi
+	[ -z "$groupd_compat" ] && return 1
+	[ "$groupd_compat" == 0 ] && return 1
 }
 
 cmannotifyd_enabled()
