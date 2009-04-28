@@ -20,6 +20,7 @@
 #define DEFAULT_LDAP_BASEDN "dc=chrissie,dc=net"
 
 static int ldap_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
+static int ldap_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const char **error_string);
 static int init_config(struct objdb_iface_ver0 *objdb);
 static char error_reason[1024];
 static const char *ldap_url = DEFAULT_LDAP_URL;
@@ -30,7 +31,8 @@ static const char *ldap_basedn = DEFAULT_LDAP_BASEDN;
  */
 
 static struct config_iface_ver0 ldapconfig_iface_ver0 = {
-	.config_readconfig        = ldap_readconfig
+	.config_readconfig        = ldap_readconfig,
+	.config_reloadconfig        = ldap_reloadconfig
 };
 
 static struct lcr_iface ifaces_ver0[2] = {
@@ -70,6 +72,11 @@ static int ldap_readconfig(struct objdb_iface_ver0 *objdb, const char **error_st
         *error_string = error_reason;
 
 	return ret;
+}
+
+static int ldap_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const char **error_string)
+{
+	return ldap_readconfig(objdb, error_string);
 }
 
 /*
