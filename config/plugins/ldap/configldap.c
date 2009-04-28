@@ -22,8 +22,8 @@
 static int ldap_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
 static int init_config(struct objdb_iface_ver0 *objdb);
 static char error_reason[1024];
-static char *ldap_url = DEFAULT_LDAP_URL;
-static char *ldap_basedn = DEFAULT_LDAP_BASEDN;
+static const char *ldap_url = DEFAULT_LDAP_URL;
+static const char *ldap_basedn = DEFAULT_LDAP_BASEDN;
 
 /*
  * Exports the interface for the service
@@ -99,7 +99,7 @@ static void convert_dn_underscores(LDAPDN dn)
  * Return the parent object of a DN.
  * Actually, this returns the LAST parent with that name. which should (!) be correct.
  */
-static hdb_handle_t find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int startdn, char *parent)
+static hdb_handle_t find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int startdn, const char *parent)
 {
 	int i=startdn;
 	int gotstart=0;
@@ -139,7 +139,7 @@ static hdb_handle_t find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int s
 
 
 static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, hdb_handle_t parent,
-			   char *object, char *sub_dn, int always_create)
+			   const char *object, const char *sub_dn, int always_create)
 {
 	char search_dn[4096];
 	int rc;
