@@ -362,6 +362,7 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 						/* Endianness doesn't matter
 						   in this case because it's
 						   a single byte. */
+						write_buf(sdp, bh, 0);
 						return -1;
 					}
 					log_err("The bad EA was not fixed.\n");
@@ -410,12 +411,11 @@ static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
 			relse_buf(ip->i_sbd, bh);
 			return 1;
 		}
+		check_eattr_entries(ip, bh, pass);
+
+		if (bh)
+			relse_buf(ip->i_sbd, bh);
 	}
-
-	check_eattr_entries(ip, bh, pass);
-
-	if (bh)
-		relse_buf(ip->i_sbd, bh);
 
 	return 0;
 }

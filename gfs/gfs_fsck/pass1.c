@@ -246,6 +246,12 @@ static int clear_eas(struct fsck_inode *ip, struct block_count *bc,
 			return 0;
 		}
 		gfs_dinode_out(&ip->i_di, BH_DATA(dibh));
+		if (write_buf(sdp, dibh, 0) < 0) {
+			stack;
+			log_crit("Bad EA reference remains.\n");
+		} else {
+			log_warn("Bad EA reference cleared.\n");
+		}
 		relse_buf(sdp, dibh);
 		return 1;
 	} else {
