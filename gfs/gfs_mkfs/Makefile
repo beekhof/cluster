@@ -1,8 +1,8 @@
-TARGET1= mkfs.gfs
+TARGET= mkfs.gfs
 
-SBINDIRT=$(TARGET1)
+FORCESBINT= $(TARGET)
 
-all: depends ${TARGET1}
+all: depends ${TARGET}
 
 include ../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -28,7 +28,7 @@ LDFLAGS += -L${libdir}
 
 LDDEPS += ../libgfs/libgfs.a
 
-${TARGET1}: ${OBJS} ${LDDEPS}
+${TARGET}: ${OBJS} ${LDDEPS}
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 depends:

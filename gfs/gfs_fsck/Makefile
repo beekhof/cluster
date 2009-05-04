@@ -1,8 +1,8 @@
-TARGET1= fsck.gfs
+TARGET= fsck.gfs
 
-SBINDIRT=$(TARGET1)
+FORCESBINT= $(TARGET)
 
-all: ${TARGET1}
+all: ${TARGET}
 
 include ../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -47,7 +47,7 @@ CFLAGS += -I${incdir}
 
 LDFLAGS += -L${libdir}
 
-${TARGET1}: $(OBJS)
+${TARGET}: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 test_block_list: block_list.o bitmap.o log.o test_block_list.o
@@ -59,9 +59,9 @@ test_bitmap: bitmap.o test_bitmap.o log.o
 clean: generalclean
 	rm -f test_block_list test_bitmap
 
-${TARGET1}.pot: $(OBJS:.o=.c)
+${TARGET}.pot: $(OBJS:.o=.c)
 	xgettext -C -F --keyword=print_log --keyword=log_debug --keyword=log_info --keyword=_ \
 	 --keyword=log_notice --keyword=log_warn --keyword=log_err --keyword=log_crit \
-	 --keyword=log_debug --keyword=log_err --keyword=log_print -d - $(OBJS:.o=.c) > ${TARGET1}.pot
+	 --keyword=log_debug --keyword=log_err --keyword=log_print -d - $(OBJS:.o=.c) > ${TARGET}.pot
 
 -include $(OBJS:.o=.d)
