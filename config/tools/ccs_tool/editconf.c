@@ -11,9 +11,11 @@
 
 #include <libxml/tree.h>
 
+#include "editconf.h"
+
 #define MAX_NODES 256
 
-char *prog_name = "ccs_tool";
+const char *prog_name = "ccs_tool";
 
 #define die(fmt, args...) \
 do { \
@@ -25,14 +27,14 @@ do { \
 
 struct option_info
 {
-	char *name;
-	char *altname;
-	char *votes;
-	char *nodeid;
-	char *mcast_addr;
-	char *fence_type;
-	char *configfile;
-	char *outputfile;
+	const char *name;
+	const char *altname;
+	const char *votes;
+	const char *nodeid;
+	const char *mcast_addr;
+	const char *fence_type;
+	const char *configfile;
+	const char *outputfile;
 	int  do_delete;
 	int  tell_ccsd;
 	int  force_ccsd;
@@ -180,8 +182,8 @@ static int valid_mcast_addr(char *mcast)
 
 static void save_file(xmlDoc *doc, struct option_info *ninfo)
 {
-	char tmpfile[strlen(ninfo->outputfile)+5];
-	char oldfile[strlen(ninfo->outputfile)+5];
+	char tmpconffile[strlen(ninfo->outputfile)+5];
+	char oldconffile[strlen(ninfo->outputfile)+5];
 	int using_stdout = 0;
 	mode_t old_mode;
 	int ret;
@@ -196,30 +198,30 @@ static void save_file(xmlDoc *doc, struct option_info *ninfo)
 	 */
 	if (!using_stdout)
 	{
-		snprintf(tmpfile, sizeof(tmpfile), "%s.tmp", ninfo->outputfile);
-		snprintf(oldfile, sizeof(oldfile), "%s.old", ninfo->outputfile);
+		snprintf(tmpconffile, sizeof(tmpconffile), "%s.tmp", ninfo->outputfile);
+		snprintf(oldconffile, sizeof(oldconffile), "%s.old", ninfo->outputfile);
 	}
 	else
 	{
-		strcpy(tmpfile, ninfo->outputfile);
+		strcpy(tmpconffile, ninfo->outputfile);
 	}
 
 	xmlKeepBlanksDefault(0);
-	ret = xmlSaveFormatFile(tmpfile, doc, 1);
+	ret = xmlSaveFormatFile(tmpconffile, doc, 1);
 	if (ret == -1)
 		die("Error writing new config file %s", ninfo->outputfile);
 
 	if (!using_stdout)
 	{
-		if (rename(ninfo->outputfile, oldfile) == -1 && errno != ENOENT)
+		if (rename(ninfo->outputfile, oldconffile) == -1 && errno != ENOENT)
 			die("Can't move old config file out of the way\n");
 
-		if (rename(tmpfile, ninfo->outputfile))
+		if (rename(tmpconffile, ninfo->outputfile))
 		{
 			perror("Error renaming new file to its real filename");
 
 			/* Drat, that failed, try to put the old one back */
-			if (rename(oldfile, ninfo->outputfile))
+			if (rename(oldconffile, ninfo->outputfile))
 				die("Can't move old config fileback in place - clean up after me please\n");
 		}
 	}
@@ -285,7 +287,7 @@ static void increment_version(xmlNode *root_element)
 	xmlSetProp(root_element, BAD_CAST "config_version", BAD_CAST newver);
 }
 
-static xmlNode *findnode(xmlNode *root, char *name)
+static xmlNode *findnode(xmlNode *root, const char *name)
 {
 	xmlNode *cur_node;
 
@@ -319,7 +321,7 @@ static xmlChar *get_fence_type(xmlNode *clusternode, xmlNode **fencenode)
 }
 
 /* Check the fence type exists under <fencedevices> */
-static xmlNode *valid_fence_type(xmlNode *root, char *fencetype)
+static xmlNode *valid_fence_type(xmlNode *root, const char *fencetype)
 {
 	xmlNode *devs;
 	xmlNode *cur_node;
@@ -376,7 +378,7 @@ static xmlNode *find_multicast_addr(xmlNode *clusternodes)
 	return NULL;
 }
 
-static xmlNode *find_node(xmlNode *clusternodes, char *nodename)
+static xmlNode *find_node(xmlNode *clusternodes, const char *nodename)
 {
 	xmlNode *cur_node;
 
@@ -395,7 +397,7 @@ static xmlNode *find_node(xmlNode *clusternodes, char *nodename)
 /* Print name=value pairs for a (n XML) node.
  * "ignore" is a string to ignore if present as a property (probably already printed on the main line)
  */
-static int print_properties(xmlNode *node, char *prefix, char *ignore, char *ignore2)
+static int print_properties(xmlNode *node, const char *prefix, const char *ignore, const char *ignore2)
 {
 	xmlAttr *attr;
 	int done_prefix = 0;
@@ -422,11 +424,11 @@ static int print_properties(xmlNode *node, char *prefix, char *ignore, char *ign
 }
 
 /* Add name=value pairs from the commandline as properties to a node */
-static void add_fence_args(xmlNode *fencenode, int argc, char **argv, int optind)
+static void add_fence_args(xmlNode *fencenode, int argc, char **argv, int optindex)
 {
 	int i;
 
-	for (i = optind; i<argc; i++)
+	for (i = optindex; i<argc; i++)
 	{
 		char *prop;
 		char *value;
@@ -453,7 +455,7 @@ static void add_fence_args(xmlNode *fencenode, int argc, char **argv, int optind
 }
 
 static void add_clusternode(xmlNode *root_element, struct option_info *ninfo,
-			    int argc, char **argv, int optind)
+			    int argc, char **argv, int optindex)
 {
 	xmlNode *clusternodes;
 	xmlNode *newnode;
@@ -506,7 +508,7 @@ static void add_clusternode(xmlNode *root_element, struct option_info *ninfo,
 	xmlSetProp(newfencedevice, BAD_CAST "name", BAD_CAST ninfo->fence_type);
 
 	/* Add name=value options */
-	add_fence_args(newfencedevice, argc, argv, optind+1);
+	add_fence_args(newfencedevice, argc, argv, optindex+1);
 
 	xmlAddChild(newnode, newfence);
 	xmlAddChild(newfence, newfencemethod);
