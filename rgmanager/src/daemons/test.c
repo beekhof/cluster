@@ -82,7 +82,6 @@ out_unlock:
 
 
 void _no_op_mode(int);
-void malloc_dump_table(void);
 char *agentpath = RESOURCE_ROOTDIR;
 
 
@@ -480,11 +479,9 @@ main(int argc, char **argv)
 
 	usage(arg0);
 	xmlCleanupParser();
-	malloc_dump_table();
 	return 1;
 
 out:
 	xmlCleanupParser();
-	malloc_dump_table();
 	return ret;
 }

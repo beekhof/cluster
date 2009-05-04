@@ -23,7 +23,7 @@ CFLAGS += -I$(S)/../../include
 CFLAGS += -I${incdir}
 
 LDFLAGS += -L${cmanlibdir} -lcman 
-LDFLAGS += -L. -lclulib -llalloc
+LDFLAGS += -L. -lclulib
 LDFLAGS += -lpthread
 LDFLAGS += -L${logtlibdir} -llogthread
 LDFLAGS += -L${libdir}

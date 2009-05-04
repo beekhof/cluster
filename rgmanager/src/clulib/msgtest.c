@@ -160,11 +160,6 @@ side_message(msgctx_t *ctx)
 	return 0;
 }
 
-
-void
-malloc_dump_table(int, int);
-
-
 void
 sigusr2_handler(int sig)
 {
@@ -273,8 +268,6 @@ main(int argc, char **argv)
 	msg_shutdown();	
 
 	cman_finish(clu);
-
-	malloc_dump_table(0, 1024);
 
 	exit(0);
 }
