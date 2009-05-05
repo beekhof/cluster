@@ -545,9 +545,9 @@ static int show_services(void)
 }
 
 
-char *cman_error(int err)
+const char *cman_error(int err)
 {
-	char *die_error;
+	const char *die_error;
 
 	switch (errno) {
 	case ENOTCONN:
@@ -752,8 +752,6 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 	int optchar, i;
 	int show_help = 0;
 
-	comline->config_lcrso=DEFAULT_CONFIG_MODULE;
-
 	while (cont) {
 		optchar = getopt(argc, argv, OPTION_STRING);
 
@@ -888,6 +886,9 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 			break;
 		};
 	}
+
+	if (comline->config_lcrso == NULL)
+		comline->config_lcrso = strdup(DEFAULT_CONFIG_MODULE);
 
 	while (optind < argc) {
 		if (strcmp(argv[optind], "join") == 0) {

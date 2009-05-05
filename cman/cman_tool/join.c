@@ -40,7 +40,7 @@ static void be_daemon(int close_stderr)
 }
 
 
-static char *corosync_exit_reason(signed char status)
+static const char *corosync_exit_reason(signed char status)
 {
 	static char reason[256];
 	switch (status) {
@@ -200,10 +200,12 @@ int join(commandline_t *comline, char *main_envp[])
 
 	/* Always run corosync -f because we have already forked twice anyway, and
 	   we want to return any exit code that might happen */
-	argv[0] = "corosync";
-	argv[++argvptr] = "-f";
+	/* also strdup strings because it's otherwise virtually impossible to fix
+	 * build warnings due to the way argv C implementation is done */
+	argv[0] = strdup("corosync");
+	argv[++argvptr] = strdup("-f");
 	if (comline->nosetpri_opt)
-		argv[++argvptr] = "-p";
+		argv[++argvptr] = strdup("-p");
 	argv[++argvptr] = NULL;
 
 	/* Fork/exec cman */
