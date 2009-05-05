@@ -1,6 +1,7 @@
 /* General cman bits */
-extern int write_cman_pipe(char *message);
+extern int write_cman_pipe(const char *message);
 extern void close_cman_pipe(void);
+extern int our_nodeid(void);
 
 /* How we announce ourself in syslog */
 #define CMAN_NAME "CMAN"

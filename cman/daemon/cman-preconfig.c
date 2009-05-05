@@ -138,7 +138,7 @@ static int ipaddr_equal(struct sockaddr_storage *addr1, struct sockaddr_storage 
 /* Build a localhost ip_address */
 static int get_localhost(int family, struct sockaddr_storage *localhost)
 {
-	char *addr_text;
+	const char *addr_text;
 	struct addrinfo *ainfo;
 	struct addrinfo ahints;
 	int ret;
@@ -226,7 +226,7 @@ static hdb_handle_t find_cman_logger(struct objdb_iface_ver0 *objdb, hdb_handle_
 }
 
 
-static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr, int portnum)
+static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr, int port)
 {
 	hdb_handle_t totem_object_handle;
 	hdb_handle_t find_handle;
@@ -278,7 +278,7 @@ static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr,
 		objdb->object_key_create(interface_object_handle, "mcastaddr", strlen("mcastaddr"),
 					 mcast, strlen(mcast)+1);
 
-		sprintf(tmp, "%d", portnum);
+		sprintf(tmp, "%d", port);
 		objdb->object_key_create(interface_object_handle, "mcastport", strlen("mcastport"),
 					 tmp, strlen(tmp)+1);
 
@@ -300,7 +300,7 @@ static uint16_t generate_cluster_id(char *name)
 	return value & 0xFFFF;
 }
 
-static char *default_mcast(char *nodename, uint16_t cluster_id)
+static char *default_mcast(char *node, uint16_t clusterid)
 {
         struct addrinfo *ainfo;
         struct addrinfo ahints;
@@ -312,9 +312,9 @@ static char *default_mcast(char *nodename, uint16_t cluster_id)
 
         /* Lookup the the nodename address and use it's IP type to
 	   default a multicast address */
-        ret = getaddrinfo(nodename, NULL, &ahints, &ainfo);
+        ret = getaddrinfo(node, NULL, &ahints, &ainfo);
 	if (ret) {
-		sprintf(error_reason, "Can't determine address family of nodename %s\n", nodename);
+		sprintf(error_reason, "Can't determine address family of nodename %s\n", node);
 		write_cman_pipe("Can't determine address family of nodename");
 		return NULL;
 	}
@@ -323,18 +323,18 @@ static char *default_mcast(char *nodename, uint16_t cluster_id)
 	freeaddrinfo(ainfo);
 
 	if (family == AF_INET) {
-		snprintf(addr, sizeof(addr), "239.192.%d.%d", cluster_id >> 8, cluster_id % 0xFF);
+		snprintf(addr, sizeof(addr), "239.192.%d.%d", clusterid >> 8, clusterid % 0xFF);
 		return addr;
 	}
 	if (family == AF_INET6) {
-		snprintf(addr, sizeof(addr), "ff15::%x", cluster_id);
+		snprintf(addr, sizeof(addr), "ff15::%x", clusterid);
 		return addr;
 	}
 
 	return NULL;
 }
 
-static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
+static int verify_nodename(struct objdb_iface_ver0 *objdb, char *node)
 {
 	char nodename2[MAX_CLUSTER_MEMBER_NAME_LEN+1];
 	char nodename3[MAX_CLUSTER_MEMBER_NAME_LEN+1];
@@ -346,17 +346,17 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 	int error;
 
 	/* nodename is either from commandline or from uname */
-	if (nodelist_byname(objdb, cluster_parent_handle, nodename))
+	if (nodelist_byname(objdb, cluster_parent_handle, node))
 		return 0;
 
 	/* If nodename was from uname, try a domain-less version of it */
-	strcpy(nodename2, nodename);
+	strcpy(nodename2, node);
 	dot = strchr(nodename2, '.');
 	if (dot) {
 		*dot = '\0';
 
 		if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
-			strcpy(nodename, nodename2);
+			strcpy(node, nodename2);
 			return 0;
 		}
 	}
@@ -382,7 +382,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 
 		if (strlen(nodename2) == len &&
 		    !strncmp(nodename2, nodename3, len)) {
-			strcpy(nodename, str);
+			strcpy(node, str);
 			return 0;
 		}
 		nodes_handle = nodeslist_next(objdb, find_handle);
@@ -401,7 +401,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 		socklen_t salen = 0;
 
 		/* Restore this */
-		strcpy(nodename2, nodename);
+		strcpy(nodename2, node);
 		sa = ifa->ifa_addr;
 		if (!sa)
 			continue;
@@ -418,7 +418,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 		if (!error) {
 
 			if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
-				strcpy(nodename, nodename2);
+				strcpy(node, nodename2);
 				goto out;
 			}
 
@@ -428,7 +428,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 				*dot = '\0';
 
 				if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
-					strcpy(nodename, nodename2);
+					strcpy(node, nodename2);
 					goto out;
 				}
 			}
@@ -441,7 +441,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 			continue;
 
 		if (nodelist_byname(objdb, cluster_parent_handle, nodename2)) {
-			strcpy(nodename, nodename2);
+			strcpy(node, nodename2);
 			goto out;
 		}
 	}
@@ -453,7 +453,7 @@ static int verify_nodename(struct objdb_iface_ver0 *objdb, char *nodename)
 }
 
 /* Get any environment variable overrides */
-static int get_env_overrides()
+static int get_env_overrides(void)
 {
 	if (getenv("CMAN_CLUSTER_NAME")) {
 		cluster_name = strdup(getenv("CMAN_CLUSTER_NAME"));
@@ -617,10 +617,10 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 	objdb->object_find_create(node_object_handle,"altname", strlen("altname"), &find_handle);
 	while (objdb->object_find_next(find_handle, &alt_object) == 0) {
 		unsigned int port;
-		char *nodename;
+		char *node;
 		char *mcast;
 
-		if (objdb_get_string(objdb, alt_object, "name", &nodename)) {
+		if (objdb_get_string(objdb, alt_object, "name", &node)) {
 			continue;
 		}
 
@@ -630,7 +630,7 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 			mcast = mcast_name;
 		}
 
-		if (add_ifaddr(objdb, mcast, nodename, portnum))
+		if (add_ifaddr(objdb, mcast, node, portnum))
 			return -1;
 
 		num_nodenames++;
@@ -856,10 +856,21 @@ static int set_noccs_defaults(struct objdb_iface_ver0 *objdb)
 	hdb_handle_t find_handle;
 
 	/* Enforce key */
-	key_filename = NOCCS_KEY_FILENAME;
+	key_filename = strdup(NOCCS_KEY_FILENAME);
+	if (!key_filename) {
+		sprintf(error_reason, "cannot allocate memory for key file name");
+		write_cman_pipe("cannot allocate memory for key file name");
+		return -1;
+	}
 
 	if (!cluster_name)
-		cluster_name = DEFAULT_CLUSTER_NAME;
+		cluster_name = strdup(DEFAULT_CLUSTER_NAME);
+
+	if (!cluster_name) {
+		sprintf(error_reason, "cannot allocate memory for cluster_name");
+		write_cman_pipe("cannot allocate memory for cluster_name");
+		return -1;
+	}
 
 	if (!cluster_id)
 		cluster_id = generate_cluster_id(cluster_name);
@@ -1010,7 +1021,7 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, hdb_handle_t source_
  * Copy trees from /cluster where they live in cluster.conf, into the root
  * of the config tree where corosync expects to find them.
  */
-static int copy_tree_to_root(struct objdb_iface_ver0 *objdb, char *name, int always_create)
+static int copy_tree_to_root(struct objdb_iface_ver0 *objdb, const char *name, int always_create)
 {
 	hdb_handle_t find_handle;
 	hdb_handle_t object_handle;
@@ -1185,7 +1196,7 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
 
 /* Write an error message down the CMAN startup pipe so
    that cman_tool can display it */
-int write_cman_pipe(char *message)
+int write_cman_pipe(const char *message)
 {
 	if (startup_pipe)
 		return write(startup_pipe, message, strlen(message)+1);

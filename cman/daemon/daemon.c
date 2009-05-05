@@ -255,7 +255,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 		}
 
 		if (msg->command == CMAN_CMD_DATA) {
-			char *buf = (char *)msg;
+			char *databuf = (char *)msg;
 			int ret;
 			uint8_t port;
 			struct sock_data_header *dmsg = (struct sock_data_header *)msg;
@@ -263,7 +263,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 			P_DAEMON("sending %lu bytes of data to node %d, port %d\n",
 				 (unsigned long)(msg->length - sizeof(struct sock_data_header)), dmsg->nodeid, dmsg->port);
 
-			buf += sizeof(struct sock_data_header);
+			databuf += sizeof(struct sock_data_header);
 
 			if (dmsg->port > 255) {
 				send_status_return(con, msg->command, -EINVAL);
@@ -275,7 +275,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 			else
 				port = con->port;
 
-			ret = comms_send_message(buf, msg->length - sizeof(struct sock_data_header),
+			ret = comms_send_message(databuf, msg->length - sizeof(struct sock_data_header),
 						 port, con->port,
 						 dmsg->nodeid,
 						 msg->flags);
@@ -476,12 +476,6 @@ void notify_confchg(struct sock_header *message)
 			send_reply_message(thiscon, message);
 	}
 }
-
-void wake_daemon(void)
-{
-	P_DAEMON("Wake daemon called\n");
-}
-
 
 int num_listeners(void)
 {

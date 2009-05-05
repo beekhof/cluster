@@ -93,7 +93,7 @@ static int send_port_enquire(int nodeid);
 static void process_internal_message(char *data, int nodeid, int byteswap);
 static void recalculate_quorum(int allow_decrease, int by_current_nodes);
 static void send_kill(int nodeid, uint16_t reason);
-static char *killmsg_reason(int reason);
+static const char *killmsg_reason(int reason);
 static void ccsd_timer_fn(void *arg);
 static int reread_config(int new_version);
 
@@ -978,7 +978,7 @@ static int do_cmd_leave_cluster(char *cmdbuf, int *retlen)
 	return 0;
 }
 
-static void check_shutdown_status()
+static void check_shutdown_status(void)
 {
 	int reply;
 	int leaveflags = CLUSTER_LEAVEFLAG_DOWN;
@@ -1634,7 +1634,7 @@ static void post_port_event(int reason, unsigned char port, int nodeid)
 		notify_listeners(con, reason, nodeid);
 }
 
-int our_nodeid()
+int our_nodeid(void)
 {
 	if (us)
 		return us->node_id;
@@ -1962,15 +1962,15 @@ static void do_process_transition(int nodeid, char *data)
 	if (node->fence_time && !msg->fence_time &&
 	    node->fence_agent && !msg->fence_agent[0])
 	{
-		char msg[sizeof(struct cl_fencemsg)+strlen(node->fence_agent)+1];
-		struct cl_fencemsg *fence_msg = (struct cl_fencemsg *)msg;
+		char fencemsg[sizeof(struct cl_fencemsg)+strlen(node->fence_agent)+1];
+		struct cl_fencemsg *fence_msg = (struct cl_fencemsg *)fencemsg;
 
 		fence_msg->cmd = CLUSTER_MSG_FENCESTATUS;
 		fence_msg->nodeid = nodeid;
 		fence_msg->timesec = node->fence_time;
 		fence_msg->fenced = 0;
 		strcpy(fence_msg->agent, node->fence_agent);
-		comms_send_message(msg, sizeof(msg), 0,0, nodeid, 0);
+		comms_send_message(fencemsg, sizeof(fencemsg), 0,0, nodeid, 0);
 	}
 }
 
@@ -2124,17 +2124,17 @@ void remove_unread_nodes()
 }
 
 /* Add a node from CCS, note that it may already exist if user has simply updated the config file */
-void add_ccs_node(char *nodename, int nodeid, int votes, int expected_votes)
+void add_ccs_node(char *node, int nodeid, int votes, int expected_votes)
 {
 	/* Update node entry */
-	add_new_node(nodename, nodeid, votes, expected_votes, NODESTATE_DEAD);
+	add_new_node(node, nodeid, votes, expected_votes, NODESTATE_DEAD);
 }
 
-void add_ais_node(int nodeid, uint64_t incarnation, int total_members)
+void add_ais_node(int nodeid, uint64_t incar, int total_members)
 {
 	struct cluster_node *node;
 
-	P_MEMB("add_ais_node ID=%d, incarnation = %" PRIu64 "\n",nodeid, incarnation);
+	P_MEMB("add_ais_node ID=%d, incarnation = %" PRIu64 "\n",nodeid, incar);
 
 	node = find_node_by_nodeid(nodeid);
 	if (!node && total_members == 1) {
@@ -2154,7 +2154,7 @@ void add_ais_node(int nodeid, uint64_t incarnation, int total_members)
 
 	if (node->state == NODESTATE_DEAD || node->state == NODESTATE_LEAVING) {
 		gettimeofday(&node->join_time, NULL);
-		node->incarnation = incarnation;
+		node->incarnation = incar;
 		node->state = NODESTATE_MEMBER;
 		cluster_members++;
 		recalculate_quorum(0, 0);
@@ -2261,7 +2261,7 @@ static struct cluster_node *find_node_by_name(char *name)
 	return NULL;
 }
 
-static char *killmsg_reason(int reason)
+static const char *killmsg_reason(int reason)
 {
 	static char msg[1024];
 

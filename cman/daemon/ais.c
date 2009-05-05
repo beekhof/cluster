@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <inttypes.h>
 
 /* corosync headers */
 #include <corosync/corotypes.h>
@@ -39,7 +40,6 @@
 #include "cmanconfig.h"
 #include "daemon.h"
 
-extern int our_nodeid();
 extern char cluster_name[MAX_CLUSTER_NAME_LEN+1];
 extern unsigned int quorumdev_poll;
 extern unsigned int ccsd_poll_interval;
@@ -324,7 +324,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 	}
 
 	if (configuration_type == TOTEM_CONFIGURATION_REGULAR) {
-		P_AIS("last memb_count = %d, current = %d\n", last_memb_count, member_list_entries);
+		P_AIS("last memb_count = %d, current = %"PRIuFAST32"\n", last_memb_count, member_list_entries);
 		send_transition_msg(last_memb_count, first_trans);
 		last_memb_count = member_list_entries;
 		if (member_list_entries > 1)
@@ -338,7 +338,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 
 /* Write an error message down the CMAN startup pipe so
    that cman_tool can display it */
-int write_cman_pipe(char *message)
+int write_cman_pipe(const char *message)
 {
 	if (startup_pipe)
 		return write(startup_pipe, message, strlen(message)+1);

@@ -1,6 +1,6 @@
 /* These just make the access a little neater */
 static inline int objdb_get_string(OBJDB_API *corosync, hdb_handle_t object_service_handle,
-				   char *key, char **value)
+				   const char *key, char **value)
 {
 	int res;
 
@@ -17,7 +17,7 @@ static inline int objdb_get_string(OBJDB_API *corosync, hdb_handle_t object_serv
 }
 
 static inline void objdb_get_int(OBJDB_API *corosync, hdb_handle_t object_service_handle,
-				 char *key, unsigned int *intvalue, unsigned int default_value)
+				 const char *key, unsigned int *intvalue, unsigned int default_value)
 {
 	char *value = NULL;
 

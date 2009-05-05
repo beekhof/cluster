@@ -46,7 +46,6 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
     int error;
     unsigned int expected = 0;
     unsigned int votes = 0;
-    int nodeid;
     hdb_handle_t object_handle;
     hdb_handle_t nodes_handle;
     hdb_handle_t find_handle;
@@ -182,18 +181,18 @@ static int get_cman_join_info(struct corosync_api_v1 *corosync)
 	   later */
 	nodes_handle = nodeslist_init(corosync, cluster_parent_handle, &find_handle);
 	do {
-		int votes;
+		int nodevotes;
 
 		node_count++;
 
-		objdb_get_int(corosync, nodes_handle, "votes", (unsigned int *)&votes, 1);
-		if (votes < 0) {
+		objdb_get_int(corosync, nodes_handle, "votes", (unsigned int *)&nodevotes, 1);
+		if (nodevotes < 0) {
 			log_printf(LOG_ERR, "negative votes not allowed");
 			write_cman_pipe("Found negative votes for this node in CCS");
 			error = -EINVAL;
 			goto out;
 		}
-		vote_sum += votes;
+		vote_sum += nodevotes;
 		nodes_handle = nodeslist_next(corosync, find_handle);
 	} while (nodes_handle);
 	corosync->object_find_destroy(find_handle);
