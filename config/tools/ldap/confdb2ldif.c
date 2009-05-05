@@ -15,8 +15,8 @@ confdb_callbacks_t callbacks = {
 /* This structure maps object parent names to object classes */
 struct objectclasses
 {
-	char *name;
-	char *class;
+	const char *name;
+	const char *class;
 } objectclasses[] =
 {
 	{ "cluster", "rhcsCluster" },
@@ -55,7 +55,7 @@ static char *ldap_attr_name(char *attrname)
 
 
 /* Recursively dump the object tree */
-static void print_config_tree(confdb_handle_t handle, hdb_handle_t parent_object_handle, char *dn, char *fulldn)
+static void print_config_tree(confdb_handle_t handle, hdb_handle_t parent_object_handle, const char *dn, char *fulldn)
 {
 	hdb_handle_t object_handle;
 	char object_name[1024];
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 	confdb_handle_t handle;
 	int result;
 	hdb_handle_t cluster_handle;
-	char *clusterroot = "cluster";
+	const char *clusterroot = "cluster";
 	char basedn[1024];
 
 	if (argc == 1) {
