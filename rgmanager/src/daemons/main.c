@@ -53,6 +53,7 @@ static char *rgmanager_lsname = "rgmanager"; /* XXX default */
 static int status_poll_interval = DEFAULT_CHECK_INTERVAL;
 
 int next_node_id(cluster_member_list_t *membership, int me);
+void malloc_dump_table(FILE *, size_t, size_t);
 
 void
 segfault(int __attribute__ ((unused)) sig)
@@ -689,6 +690,7 @@ dump_internal_state(char *loc)
 	dump_thread_states(fp);
 #endif
 	dump_cluster_ctx(fp);
+	//malloc_dump_table(fp, 1, 16384); /* Only works if alloc.c us used */
  	fclose(fp);
 }
 
@@ -818,6 +820,9 @@ statedump(int __attribute__ ((unused)) sig)
 {
 	signalled++;
 }
+
+
+void malloc_dump_table(FILE *, size_t, size_t);
 
 
 /*
@@ -1127,6 +1132,7 @@ out:
 	cman_finish(clu);
 	
 	close_logging();
+	/*malloc_dump_table(); */ /* Only works if alloc.c us used */
 	/*malloc_stats();*/
 
 	daemon_cleanup();
