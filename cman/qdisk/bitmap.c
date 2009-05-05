@@ -3,6 +3,9 @@
  */
 #include <stdint.h>
 
+int clear_bit(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
+int set_bit(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
+int is_bit_set(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
 
 /**
  * Clear a bit in a bitmap / bitmask.

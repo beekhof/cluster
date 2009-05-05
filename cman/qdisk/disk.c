@@ -37,7 +37,7 @@ static int diskRawRead(target_info_t *disk, char *buf, int len);
  * @param count		Size of data set, in bytes.
  * @return 		CRC32 of data set.
  */
-uint32_t clu_crc32(const char *data, size_t count)
+static uint32_t clu_crc32(const char *data, size_t count)
 {
 	return (uint32_t)crc32(0L, (const Bytef *)data, (uInt)count);
 }
@@ -553,13 +553,14 @@ diskRawWriteShadow(target_info_t *disk, __off64_t writeOffset, char *buf, int le
 
 
 int
-qdisk_read(target_info_t *disk, __off64_t offset, void *buf, int count)
+qdisk_read(target_info_t *disk, __off64_t offset, void *bufin, int count)
 {
 	shared_header_t *hdrp;
 	void *ptr;
 	char *data;
 	size_t total;
 	int rv;
+	char *buf = (char *)bufin;
 
 	/*
 	 * Calculate the total length of the buffer, including the header.

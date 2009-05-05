@@ -29,13 +29,16 @@
 #define LOG_DAEMON_NAME  "qdiskd"
 #define LOG_MODE_DEFAULT LOG_MODE_OUTPUT_SYSLOG|LOG_MODE_OUTPUT_FILE
 
+/* from main.c */
+void set_priority(int queue, int prio);
+
 /* from daemon_init.c */
-int daemon_init(char *);
-void daemon_cleanup(void);
-int check_process_running(char *, pid_t *);
+extern int daemon_init(char *);
+extern void daemon_cleanup(void);
+extern int check_process_running(char *, pid_t *);
 
 /* from proc.c */
-char *state_str(disk_node_state_t s);
+extern const char *state_str(disk_node_state_t s);
 
 /*
   TODO:
@@ -46,11 +49,13 @@ char *state_str(disk_node_state_t s);
  */
 
 /* From bitmap.c */
-int clear_bit(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
-int set_bit(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
-int is_bit_set(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
-inline int get_time(struct timeval *tv, int use_uptime);
-inline void _diff_tv(struct timeval *dest, struct timeval *start,
+extern int clear_bit(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
+extern int set_bit(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
+extern int is_bit_set(uint8_t *mask, uint32_t bitidx, uint32_t masklen);
+
+/* From disk_utils.c */
+extern inline int get_time(struct timeval *tv, int use_uptime);
+extern inline void _diff_tv(struct timeval *dest, struct timeval *start,
 		     struct timeval *end);
 
 static int _running = 1, _reconfig = 0, _cman_shutdown = 0;
@@ -150,7 +155,7 @@ check_self(qd_ctx *ctx, status_block_t *sb)
   or has not updated their timestamp recently.  See check_transitions as
   well.
  */
-int
+static int
 read_node_blocks(qd_ctx *ctx, node_info_t *ni, int max)
 {
 	int x, errors = 0;
@@ -800,7 +805,7 @@ set_priority(int queue, int prio)
 {
 	struct sched_param s;
 	int ret;
-	char *func = "nice";
+	const char *func = "nice";
 	
 	if (queue == SCHED_OTHER) {
 		s.sched_priority = 0;
@@ -1160,7 +1165,7 @@ quorum_logout(qd_ctx *ctx)
 }
 
 
-void
+static void
 conf_logging(int debug, int logmode, int facility, int loglevel,
 	     int filelevel, char *fname)
 {
@@ -1188,7 +1193,7 @@ conf_logging(int debug, int logmode, int facility, int loglevel,
 }
 
 
-int
+static int
 ccs_read_old_logging(int ccsfd, int *facility, int *priority)
 {
 	char query[256];

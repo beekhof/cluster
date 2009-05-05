@@ -12,6 +12,8 @@
 #include <liblogthread.h>
 #include "scandisk.h"
 
+const char *state_str(disk_node_state_t s);
+
 struct device_args {
 	char *label;
 	struct devnode *devnode;
@@ -103,7 +105,7 @@ filter_devs(struct devnode *node, void *v_args)
 }
 
 
-char *
+const char *
 state_str(disk_node_state_t s)
 {
 	switch (s) {

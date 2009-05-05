@@ -20,7 +20,7 @@
 static pthread_mutex_t sc_lock = PTHREAD_MUTEX_INITIALIZER;
 static int _score = 0, _maxscore = 0, _score_thread_running = 0;
 static pthread_t score_thread = (pthread_t)0;
-void set_priority(int, int);
+extern void set_priority(int, int);
 
 struct h_arg {
 	struct h_data *h;
@@ -116,14 +116,17 @@ fork_heuristic(struct h_data *h)
 	munlockall();
 	restore_signals();
 
-	argv[0] = "/bin/sh";
-	argv[1] = "-c";
+	argv[0] = strdup("/bin/sh");
+	argv[1] = strdup("-c");
 	argv[2] = h->program;
 	argv[3] = NULL;
 
 	nullify();
 
 	execv("/bin/sh", argv);
+
+	free(argv[0]);
+	free(argv[1]);
 
 	logt_print(LOG_ERR, "Execv failed\n");
 	return 0;

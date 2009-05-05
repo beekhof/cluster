@@ -17,6 +17,9 @@
 #include <time.h>
 #include <liblogthread.h>
 
+inline void _diff_tv(struct timeval *dest, struct timeval *start, struct timeval *end);
+inline int get_time(struct timeval *tv, int use_uptime);
+
 inline void
 _diff_tv(struct timeval *dest, struct timeval *start, struct timeval *end)
 {

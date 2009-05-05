@@ -29,6 +29,7 @@
  * This should ultimately go in a header file.
  */
 void daemon_init(char *prog);
+void daemon_cleanup(void);
 int check_process_running(char *prog, pid_t * pid);
 
 /*
