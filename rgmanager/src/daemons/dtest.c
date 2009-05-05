@@ -26,7 +26,6 @@
 #endif
 
 void malloc_stats(void);
-void malloc_dump_table(void);
  
 
 resource_rule_t	*rules = NULL;
@@ -679,11 +678,7 @@ dep_check_operation(char *res, int operation, int target,
 				continue;
 			}
 			
-			if (!strcmp(curr, "table")) {
-				malloc_dump_table();
-			} else {
-				printf("Unknown command '%s %s'\n", tmp , curr);
-			}
+			printf("Unknown command '%s %s'\n", tmp , curr);
 		} else {
 			printf("Unknown command '%s'\n", curr);
 		}
@@ -808,8 +803,6 @@ out:
 	destroy_resources(&resources);
 	deconstruct_domains(&domains);
 	destroy_resource_rules(&rules);
-	
-	malloc_dump_table();
 
 	return ret;
 }
