@@ -16,8 +16,8 @@ static int verbose;
 static int unfence;
 
 #define FL_SIZE 32
-static struct fence_log log[FL_SIZE];
-static int log_count;
+static struct fence_log flog[FL_SIZE];
+static int flog_count;
 static char *action = "fence";
 
 #define OPTION_STRING "UvhV"
@@ -175,36 +175,36 @@ int main(int argc, char *argv[])
 	if (!victim && unfence)
 		victim = our_name;
 
-	memset(&log, 0, sizeof(log));
-	log_count = 0;
+	memset(&flog, 0, sizeof(flog));
+	flog_count = 0;
 
 	if (unfence)
-		error = unfence_node(victim, log, FL_SIZE, &log_count);
+		error = unfence_node(victim, flog, FL_SIZE, &flog_count);
 	else
-		error = fence_node(victim, log, FL_SIZE, &log_count);
+		error = fence_node(victim, flog, FL_SIZE, &flog_count);
 
 	if (!verbose)
 		goto skip;
 
-	if (log_count > FL_SIZE) {
-		fprintf(stderr, "%s_node log overflow %d", action, log_count);
-		log_count = FL_SIZE;
+	if (flog_count > FL_SIZE) {
+		fprintf(stderr, "%s_node log overflow %d", action, flog_count);
+		flog_count = FL_SIZE;
 	}
 
-	for (i = 0; i < log_count; i++) {
+	for (i = 0; i < flog_count; i++) {
 		fprintf(stderr, "%s %s dev %d.%d agent %s result: %s\n",
-			action, victim, log[i].method_num, log[i].device_num,
-			log[i].agent_name[0] ?  log[i].agent_name : "none",
-			fe_str(log[i].error));
+			action, victim, flog[i].method_num, flog[i].device_num,
+			flog[i].agent_name[0] ? flog[i].agent_name : "none",
+			fe_str(flog[i].error));
 
 		if (verbose < 2)
 			continue;
 
-		for (c = 0; c < strlen(log[i].agent_args); c++) {
-			if (log[i].agent_args[c] == '\n')
-				log[i].agent_args[c] = ' ';
+		for (c = 0; c < strlen(flog[i].agent_args); c++) {
+			if (flog[i].agent_args[c] == '\n')
+				flog[i].agent_args[c] = ' ';
 		}
-		fprintf(stderr, "agent args: %s\n", log[i].agent_args);
+		fprintf(stderr, "agent args: %s\n", flog[i].agent_args);
 	}
 
  skip:
