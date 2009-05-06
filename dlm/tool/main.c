@@ -109,7 +109,7 @@ struct summary {
 	unsigned int expect_replies;
 };
 
-char *mode_str(int mode)
+const char *mode_str(int mode)
 {
 	switch (mode) {
 	case -1:
@@ -130,7 +130,7 @@ char *mode_str(int mode)
 	return "??";
 }
 
-char *msg_str(int type)
+const char *msg_str(int type)
 {
 	switch (type) {
 	case DLM_MSG_REQUEST:
@@ -568,7 +568,7 @@ struct lkb {
 	int nodeid, ownpid, status, grmode, rqmode, highbast, rsb_lookup, wait_type;
 };
 
-char *pr_grmode(struct lkb *lkb)
+const char *pr_grmode(struct lkb *lkb)
 {
 	if (lkb->status == DLM_LKSTS_GRANTED || lkb->status == DLM_LKSTS_CONVERT)
 		return mode_str(lkb->grmode);
@@ -578,7 +578,7 @@ char *pr_grmode(struct lkb *lkb)
 		return "XX";
 }
 
-char *pr_rqmode(struct lkb *lkb)
+const char *pr_rqmode(struct lkb *lkb)
 {
 	static char buf[5];
 
@@ -596,7 +596,7 @@ char *pr_rqmode(struct lkb *lkb)
 	}
 }
 
-char *pr_remote(struct lkb *lkb, struct rinfo *ri)
+const char *pr_remote(struct lkb *lkb, struct rinfo *ri)
 {
 	static char buf[64];
 
@@ -613,7 +613,7 @@ char *pr_remote(struct lkb *lkb, struct rinfo *ri)
 	}
 }
 
-char *pr_wait(struct lkb *lkb)
+const char *pr_wait(struct lkb *lkb)
 {
 	static char buf[16];
 
@@ -1041,7 +1041,7 @@ static char *dlmc_lf_str(uint32_t flags)
 	return str;
 }
 
-static char *nf_check_str(uint32_t flags)
+static const char *nf_check_str(uint32_t flags)
 {
 	if (flags & DLMC_NF_CHECK_FENCING)
 		return "fence";
@@ -1055,7 +1055,7 @@ static char *nf_check_str(uint32_t flags)
 	return "none";
 }
 
-static char *condition_str(int cond)
+static const char *condition_str(int cond)
 {
 	switch (cond) {
 	case 0:
