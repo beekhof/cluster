@@ -109,7 +109,7 @@ struct summary {
 	unsigned int expect_replies;
 };
 
-const char *mode_str(int mode)
+static const char *mode_str(int mode)
 {
 	switch (mode) {
 	case -1:
@@ -130,7 +130,7 @@ const char *mode_str(int mode)
 	return "??";
 }
 
-const char *msg_str(int type)
+static const char *msg_str(int type)
 {
 	switch (type) {
 	case DLM_MSG_REQUEST:
@@ -393,7 +393,7 @@ static char *flag_str(uint32_t flags)
 	return join_flags;
 }
 
-void do_join(char *name)
+static void do_join(char *name)
 {
 	dlm_lshandle_t *dh;
 	uint32_t flags = 0;
@@ -423,7 +423,7 @@ void do_join(char *name)
 	printf("done\n");
 }
 
-void do_leave(char *name)
+static void do_leave(char *name)
 {
 	dlm_lshandle_t *dh;
 
@@ -441,7 +441,7 @@ void do_leave(char *name)
 	printf("done\n");
 }
 
-char *pr_master(int nodeid)
+static char *pr_master(int nodeid)
 {
 	static char buf[64];
 
@@ -457,7 +457,7 @@ char *pr_master(int nodeid)
 	return buf;
 }
 
-char *pr_extra(uint32_t flags, int root_list, int recover_list,
+static char *pr_extra(uint32_t flags, int root_list, int recover_list,
 	       int recover_locks_count, char *first_lkid)
 {
 	static char buf[128];
@@ -476,7 +476,7 @@ char *pr_extra(uint32_t flags, int root_list, int recover_list,
 	return buf;
 }
 
-void print_rsb(char *line, struct rinfo *ri)
+static void print_rsb(char *line, struct rinfo *ri)
 {
 	char type[4], namefmt[4], *p;
 	char addr[64];
@@ -532,7 +532,7 @@ void print_rsb(char *line, struct rinfo *ri)
 	fprintf(stderr, "print_rsb error rv %d line \"%s\"\n", rv, line);
 }
 
-void print_lvb(char *line)
+static void print_lvb(char *line)
 {
 	char lvb[1024];
 	char type[4];
@@ -568,7 +568,7 @@ struct lkb {
 	int nodeid, ownpid, status, grmode, rqmode, highbast, rsb_lookup, wait_type;
 };
 
-const char *pr_grmode(struct lkb *lkb)
+static const char *pr_grmode(struct lkb *lkb)
 {
 	if (lkb->status == DLM_LKSTS_GRANTED || lkb->status == DLM_LKSTS_CONVERT)
 		return mode_str(lkb->grmode);
@@ -578,7 +578,7 @@ const char *pr_grmode(struct lkb *lkb)
 		return "XX";
 }
 
-const char *pr_rqmode(struct lkb *lkb)
+static const char *pr_rqmode(struct lkb *lkb)
 {
 	static char buf[5];
 
@@ -596,7 +596,7 @@ const char *pr_rqmode(struct lkb *lkb)
 	}
 }
 
-const char *pr_remote(struct lkb *lkb, struct rinfo *ri)
+static const char *pr_remote(struct lkb *lkb, struct rinfo *ri)
 {
 	static char buf[64];
 
@@ -613,7 +613,7 @@ const char *pr_remote(struct lkb *lkb, struct rinfo *ri)
 	}
 }
 
-const char *pr_wait(struct lkb *lkb)
+static const char *pr_wait(struct lkb *lkb)
 {
 	static char buf[16];
 
@@ -627,7 +627,7 @@ const char *pr_wait(struct lkb *lkb)
 	}
 }
 
-char *pr_verbose(struct lkb *lkb)
+static char *pr_verbose(struct lkb *lkb)
 {
 	static char buf[128];
 
@@ -641,7 +641,7 @@ char *pr_verbose(struct lkb *lkb)
 	return buf;
 }
 
-void print_lkb(char *line, struct rinfo *ri)
+static void print_lkb(char *line, struct rinfo *ri)
 {
 	struct lkb lkb;
 	char type[4];
@@ -779,7 +779,7 @@ static void print_summary(struct summary *s)
 
 #define LOCK_LINE_MAX 1024
 
-void do_waiters(char *name, struct summary *sum)
+static void do_waiters(char *name, struct summary *sum)
 {
 	FILE *file;
 	char path[PATH_MAX];
@@ -835,7 +835,7 @@ void do_waiters(char *name, struct summary *sum)
 	fclose(file);
 }
 
-void do_lockdebug(char *name)
+static void do_lockdebug(char *name)
 {
 	struct summary summary;
 	struct rinfo info;
@@ -899,7 +899,7 @@ void do_lockdebug(char *name)
 	}
 }
 
-void parse_r_name(char *line, char *name)
+static void parse_r_name(char *line, char *name)
 {
 	char *p;
 	int i = 0;
@@ -917,7 +917,7 @@ void parse_r_name(char *line, char *name)
 	}
 }
 
-void do_lockdump(char *name)
+static void do_lockdump(char *name)
 {
 	FILE *file;
 	char path[PATH_MAX];
