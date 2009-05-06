@@ -207,7 +207,7 @@ static void decode_arguments(int argc, char **argv)
 #define EST_FAIL_START_WAIT   14
 #define EST_FAIL_ALL_STARTED  15
 
-const char *ev_state_str(int state)
+static const char *ev_state_str(int state)
 {
 	switch (state) {
 	case EST_JOIN_BEGIN:
@@ -245,7 +245,7 @@ const char *ev_state_str(int state)
 	}
 }
 
-const char *state_str(group_data_t *data)
+static const char *state_str(group_data_t *data)
 {
 	static char buf[128];
 
