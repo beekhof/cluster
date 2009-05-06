@@ -172,7 +172,7 @@ struct group_handle
 	char prog_name[32];
 };
 
-static int _joinleave(group_handle_t handle, char *name, char *cmd)
+static int _joinleave(group_handle_t handle, const char *name, const char *cmd)
 {
 	char buf[GROUPD_MSGLEN];
 	struct group_handle *h = (struct group_handle *) handle;
@@ -259,7 +259,7 @@ static int connect_groupd(void)
 	return fd;
 }
 
-group_handle_t group_init(void *private, char *prog_name, int level,
+group_handle_t group_init(void *private, const char *prog_name, int level,
 			  group_callbacks_t *cbs, int timeout)
 {
 	struct group_handle *h;
