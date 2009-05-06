@@ -286,7 +286,7 @@ int set_mountgroups_group(int *count, struct gfsc_mountgroup **mgs_out)
 	return 0;
 }
 
-int list_count(struct list_head *head)
+static int list_count(struct list_head *head)
 {
 	struct list_head *tmp;
 	int count = 0;

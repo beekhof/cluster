@@ -1615,12 +1615,6 @@ void process_saved_plocks(struct mountgroup *mg)
 	}
 }
 
-void plock_exit(void)
-{
-	if (cfgd_enable_plock)
-		saCkptFinalize(ckpt_handle);
-}
-
 /* locks still marked SYNCING should not go into the ckpt; the new node
    will get those locks by receiving PLOCK_SYNC messages */
 

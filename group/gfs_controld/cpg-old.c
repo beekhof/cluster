@@ -209,7 +209,7 @@ static int local_first_mounter_recovery(struct mountgroup *mg)
 	return 0;
 }
 
-int remote_first_mounter_recovery(struct mountgroup *mg)
+static int remote_first_mounter_recovery(struct mountgroup *mg)
 {
 	int nodeid;
 
