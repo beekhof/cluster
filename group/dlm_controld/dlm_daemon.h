@@ -344,7 +344,7 @@ int inline void set_group_mode(void) { return 0; }
 
 /* logging.c */
 void init_logging(void);
-void setup_logging();
+void setup_logging(void);
 void close_logging(void);
 
 /* crc.c */
