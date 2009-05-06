@@ -124,7 +124,7 @@ void read_ccs_int(const char *path, int *config_val)
 #define GROUPD_WAIT_PATH "/cluster/group/@groupd_wait"
 #define GROUPD_MODE_DELAY_PATH "/cluster/group/@groupd_mode_delay"
 
-int setup_ccs(void)
+static int setup_ccs(void)
 {
 	int cd;
 
@@ -150,7 +150,7 @@ int setup_ccs(void)
 	return 0;
 }
 
-void close_ccs(void)
+static void close_ccs(void)
 {
 	ccs_disconnect(ccs_handle);
 }
@@ -297,7 +297,7 @@ enum {
 	DO_GET_VERSION,
 };
 
-int get_action(char *buf)
+static int get_action(char *buf)
 {
 	char act[16];
 	int i;

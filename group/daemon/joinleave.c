@@ -38,7 +38,7 @@ int create_group(const char *name, int level, group_t **g_out)
 	return 0;
 }
 
-void free_group_memb(group_t *g)
+static void free_group_memb(group_t *g)
 {
 	node_t *node, *n;
 

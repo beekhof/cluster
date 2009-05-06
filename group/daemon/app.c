@@ -51,7 +51,7 @@ void msg_bswap_in(msg_t *msg)
 	msg->ms_event_id	= le64_to_cpu(msg->ms_event_id);
 }
 
-uint64_t make_event_id(group_t *g, int state, int nodeid)
+static uint64_t make_event_id(group_t *g, int state, int nodeid)
 {
 	uint64_t id;
 	uint32_t n = nodeid;
@@ -79,7 +79,7 @@ uint64_t make_event_id(group_t *g, int state, int nodeid)
 	return id;
 }
 
-void free_event(event_t *ev)
+static void free_event(event_t *ev)
 {
 	struct nodeid *id, *id_safe;
 
@@ -90,7 +90,7 @@ void free_event(event_t *ev)
 	free(ev);
 }
 
-int event_id_to_nodeid(uint64_t id)
+static int event_id_to_nodeid(uint64_t id)
 {
 	int nodeid;
 	uint64_t n = id >> 32;
@@ -98,7 +98,7 @@ int event_id_to_nodeid(uint64_t id)
 	return nodeid;
 }
 
-int event_id_to_type(uint64_t id)
+static int event_id_to_type(uint64_t id)
 {
 	uint64_t n;
 	n = id & 0x000000000000FFFF;
@@ -296,7 +296,7 @@ struct recovery_set *add_recovery_set_cpg(int nodeid, int procdown)
 	return rs;
 }
 
-void _del_recovery_set(group_t *g, int nodeid, int purge)
+static void _del_recovery_set(group_t *g, int nodeid, int purge)
 {
 	struct recovery_set *rs, *rs2;
 	struct recovery_entry *re, *re2;
@@ -352,7 +352,7 @@ void _del_recovery_set(group_t *g, int nodeid, int purge)
    one failed nodeid).  Remove this group from recovery sets for those nodeids
    and free any recovery sets that are now completed. */
 
-void del_recovery_set(group_t *g, event_t *ev, int purge)
+static void del_recovery_set(group_t *g, event_t *ev, int purge)
 {
 	struct nodeid *id;
 
@@ -374,7 +374,7 @@ void del_recovery_set(group_t *g, event_t *ev, int purge)
    callbacks, not cman callbacks, so that's why we might be trying
    to do recovery without having heard from cman yet.] */
 
-int cman_quorum_updated(void)
+static int cman_quorum_updated(void)
 {
 	struct recovery_set *rs;
 
@@ -388,7 +388,7 @@ int cman_quorum_updated(void)
 	return 1;
 }
 
-int is_recovery_event(event_t *ev)
+static int is_recovery_event(event_t *ev)
 {
 	if (event_id_to_type(ev->id) == 3)
 		return 1;
@@ -600,7 +600,7 @@ static void add_event_nodes(group_t *g, event_t *ev)
 	}
 }
 
-event_t *search_event(group_t *g, int nodeid)
+static event_t *search_event(group_t *g, int nodeid)
 {
 	event_t *ev;
 
@@ -611,7 +611,7 @@ event_t *search_event(group_t *g, int nodeid)
 	return NULL;
 }
 
-void dump_queued_events(group_t *g)
+static void dump_queued_events(group_t *g)
 {
 	event_t *ev;
 
@@ -755,7 +755,7 @@ static int is_our_leave(event_t *ev)
    groupd_down() will fill in stops for us for nodes that fail before
    sending stopped for our leave. */
 
-void finalize_our_leave(group_t *g)
+static void finalize_our_leave(group_t *g)
 {
 	struct recovery_set *rs;
 	struct recovery_entry *re, *re2;
@@ -927,7 +927,7 @@ static int count_nodes_not_stopped(app_t *a)
 	return i;
 }
 
-int event_state_begin(app_t *a)
+static int event_state_begin(app_t *a)
 {
 	if (a->current_event->state == EST_JOIN_BEGIN ||
 	    a->current_event->state == EST_LEAVE_BEGIN ||
@@ -963,7 +963,7 @@ int event_state_all_stopped(app_t *a)
 	return FALSE;
 }
 
-int event_state_all_started(app_t *a)
+static int event_state_all_started(app_t *a)
 {
 	if (a->current_event->state == EST_JOIN_ALL_STARTED ||
 	    a->current_event->state == EST_LEAVE_ALL_STARTED ||
@@ -1498,7 +1498,7 @@ void dump_all_groups(void)
 /* handle a node failure while processing an event. returning > 0 means
    we want process_current_event() to be called for the group */
 
-int recover_current_event(group_t *g)
+static int recover_current_event(group_t *g)
 {
 	app_t *a = g->app;
 	event_t *ev, *rev;

@@ -476,7 +476,7 @@ static int send_gid(uint32_t gid)
 	return send_message_groupd(&g, &msg, sizeof(msg), MSG_GLOBAL_ID);
 }
 
-void process_groupd_confchg(void)
+static void process_groupd_confchg(void)
 {
 	group_t *g;
 	struct recovery_set *rs;
@@ -598,7 +598,7 @@ int in_groupd_cpg(int nodeid)
 	return 0;
 }
 
-group_t *find_group_by_handle(cpg_handle_t h)
+static group_t *find_group_by_handle(cpg_handle_t h)
 {
 	group_t *g;
 
@@ -609,7 +609,7 @@ group_t *find_group_by_handle(cpg_handle_t h)
 	return NULL;
 }
 
-void deliver_cb(cpg_handle_t handle,
+static void deliver_cb(cpg_handle_t handle,
 		const struct cpg_name *group_name,
 		uint32_t nodeid, uint32_t pid,
 		void *data, size_t data_len)
@@ -696,7 +696,7 @@ void deliver_cb(cpg_handle_t handle,
 	queue_app_message(g, save);
 }
 
-void process_confchg(void)
+static void process_confchg(void)
 {
 	group_t *g;
 	int i;
@@ -744,7 +744,7 @@ void process_confchg(void)
 	}
 }
 
-void confchg_cb(cpg_handle_t handle,
+static void confchg_cb(cpg_handle_t handle,
 	        const struct cpg_name *group_name,
 		const struct cpg_address *member_list,
 		size_t member_list_entries,
@@ -812,7 +812,7 @@ cpg_callbacks_t callbacks = {
 	.cpg_confchg_fn = confchg_cb,
 };
 
-void process_cpg(int ci)
+static void process_cpg(int ci)
 {
 	group_t *g = NULL;
 	cpg_error_t error;
