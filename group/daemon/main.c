@@ -441,7 +441,7 @@ static void copy_group_data(group_t *g, group_data_t *data)
 	data->id = g->global_id;
 
 	if (g->app && g->app->current_event) {
-		event_t *ev = g->app->current_event;
+		ev = g->app->current_event;
 		data->event_state = ev->state;
 		data->event_nodeid = ev->nodeid;
 		data->event_id = ev->id;
