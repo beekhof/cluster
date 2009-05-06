@@ -18,7 +18,7 @@ static int unfence;
 #define FL_SIZE 32
 static struct fence_log flog[FL_SIZE];
 static int flog_count;
-static char *action = "fence";
+static const char *action = "fence";
 
 #define OPTION_STRING "UvhV"
 
@@ -81,7 +81,7 @@ static int setup_cman(void)
 	return 0;
 }
 
-static char *fe_str(int r)
+static const char *fe_str(int r)
 {
 	switch (r) {
 	case FE_AGENT_SUCCESS:
