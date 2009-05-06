@@ -266,7 +266,7 @@ void fence_victims(struct fd *fd);
 /* logging.c */
 
 void init_logging(void);
-void setup_logging();
+void setup_logging(void);
 void close_logging(void);
 
 #endif				/*  __FD_DOT_H__  */
