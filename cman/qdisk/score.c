@@ -144,7 +144,6 @@ total_score(struct h_data *h, int max, int *score, int *maxscore)
 	*score = 0;
 	*maxscore = 0;
 	
-	logt_print(LOG_DEBUG, "max = %d\n", max);
 	/* Allow operation w/o any heuristics */
 	if (!max) {
 		*score = *maxscore = 1;
