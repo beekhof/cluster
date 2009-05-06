@@ -222,7 +222,7 @@ static int loopy_writev(int fd, struct iovec *iovptr, size_t iovlen)
 		if ((ssize_t)iovlen <=0 )
 			break;
 
-		iovptr->iov_base += len;
+		iovptr->iov_base = (char *)iovptr->iov_base + len;
 		iovptr->iov_len -= len;
 	}
 	return byte_cnt;
