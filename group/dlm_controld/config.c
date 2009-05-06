@@ -127,7 +127,7 @@ int get_weight(int nodeid, char *lockspace)
 	return w;
 }
 
-void read_ccs_name(char *path, char *name)
+void read_ccs_name(const char *path, char *name)
 {
 	char *str;
 	int error;
@@ -141,7 +141,7 @@ void read_ccs_name(char *path, char *name)
 	free(str);
 }
 
-void read_ccs_yesno(char *path, int *yes, int *no)
+void read_ccs_yesno(const char *path, int *yes, int *no)
 {
 	char *str;
 	int error;
@@ -162,7 +162,7 @@ void read_ccs_yesno(char *path, int *yes, int *no)
 	free(str);
 }
 
-int read_ccs_int(char *path, int *config_val)
+int read_ccs_int(const char *path, int *config_val)
 {
 	char *str;
 	int val;
@@ -185,7 +185,7 @@ int read_ccs_int(char *path, int *config_val)
 	return 0;
 }
 
-static void read_ccs_protocol(char *path, int *config_val)
+static void read_ccs_protocol(const char *path, int *config_val)
 {
 	char *str;
 	int val;
