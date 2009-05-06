@@ -155,7 +155,7 @@ static int do_write(int fd, void *buf, size_t count)
 	return 0;
 }
 
-void do_leave(char *table)
+static void do_leave(char *table)
 {
 	struct gfsc_mount_args ma;
 	int rv;
@@ -169,7 +169,7 @@ void do_leave(char *table)
 		fprintf(stderr, "gfs_controld leave error %d\n", rv);
 }
 
-char *mg_flags_str(uint32_t flags)
+static char *mg_flags_str(uint32_t flags)
 {
 	static char str[128];
 	int i = 0;
@@ -214,7 +214,7 @@ char *mg_flags_str(uint32_t flags)
 	return str;
 }
 
-char *node_mount_str(uint32_t flags)
+static char *node_mount_str(uint32_t flags)
 {
 	static char str[128];
 	int i = 0;
@@ -246,7 +246,7 @@ char *node_mount_str(uint32_t flags)
 	return str;
 }
 
-int member_int(struct gfsc_node *n)
+static int member_int(struct gfsc_node *n)
 {
 	if (n->flags & GFSC_NF_DISALLOWED)
 		return -1;
@@ -255,7 +255,7 @@ int member_int(struct gfsc_node *n)
 	return 0;
 }
 
-const char *condition_str(int cond)
+static const char *condition_str(int cond)
 {
 	switch (cond) {
 	case 0:
