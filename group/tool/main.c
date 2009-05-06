@@ -207,7 +207,7 @@ static void decode_arguments(int argc, char **argv)
 #define EST_FAIL_START_WAIT   14
 #define EST_FAIL_ALL_STARTED  15
 
-char *ev_state_str(state)
+const char *ev_state_str(state)
 {
 	switch (state) {
 	case EST_JOIN_BEGIN:
@@ -245,10 +245,10 @@ char *ev_state_str(state)
 	}
 }
 
-char *state_str(group_data_t *data)
+const char *state_str(group_data_t *data)
 {
 	static char buf[128];
-	
+
 	memset(buf, 0, sizeof(buf));
 
 	if (!data->event_state && !data->event_nodeid)
@@ -283,7 +283,8 @@ static int groupd_list(int argc, char **argv)
 {
 	group_data_t data[MAX_GROUPS];
 	int i, j, rv, count = 0, level, ret = 0;
-	char *name, *state_header;
+	char *name;
+	const char *state_header;
 	int type_width = 16;
 	int level_width = 5;
 	int name_width = 32;
@@ -557,7 +558,7 @@ static void gfs_controld_list(void)
 }
 #endif
 
-static int connect_daemon(char *path)
+static int connect_daemon(const char *path)
 {
 	struct sockaddr_un sun;
 	socklen_t addrlen;
