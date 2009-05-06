@@ -326,7 +326,7 @@ int check_uncontrolled_filesystems(void);
 
 /* logging.c */
 void init_logging(void);
-void setup_logging();
+void setup_logging(void);
 void close_logging(void);
 
 /* crc.c */
