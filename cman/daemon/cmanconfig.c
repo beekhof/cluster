@@ -50,6 +50,7 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
     hdb_handle_t nodes_handle;
     hdb_handle_t find_handle;
     char *nodename;
+    int this_nodeid;
     hdb_handle_t cluster_parent_handle;
 
     corosync->object_find_create(OBJECT_PARENT_HANDLE,
@@ -86,8 +87,8 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
 	    }
 
 	    objdb_get_int(corosync, nodes_handle, "votes", (unsigned int *)&votes, 1);
-	    objdb_get_int(corosync, nodes_handle, "nodeid", (unsigned int *)&nodeid, 0);
-	    if (check_nodeids && nodeid == 0) {
+	    objdb_get_int(corosync, nodes_handle, "nodeid", (unsigned int *)&this_nodeid, 0);
+	    if (check_nodeids && this_nodeid == 0) {
 		    char message[132];
 
 		    snprintf(message, sizeof(message),
@@ -99,8 +100,8 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
 		    goto out_err;
 	    }
 
-	    P_MEMB("Got node %s from ccs (id=%d, votes=%d)\n", nodename, nodeid, votes);
-	    add_ccs_node(nodename, nodeid, votes, expected);
+	    P_MEMB("Got node %s from ccs (id=%d, votes=%d)\n", nodename, this_nodeid, votes);
+	    add_ccs_node(nodename, this_nodeid, votes, expected);
 	    nodes_handle = nodeslist_next(corosync, find_handle);
     } while (nodes_handle);
     corosync->object_find_destroy(find_handle);
