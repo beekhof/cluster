@@ -288,7 +288,7 @@ check_transitions(qd_ctx *ctx, node_info_t *ni, int max, memb_mask_t mask)
 			ni[x].ni_state = S_EVICT;
 			ni[x].ni_status.ps_state = S_EVICT;
 			ni[x].ni_evil_incarnation = 
-				ni[x].ni_status.ps_incarnation;
+				ni[x].ni_incarnation;
 			
 			/*
 			   Write eviction notice if we're the master.
@@ -323,12 +323,14 @@ check_transitions(qd_ctx *ctx, node_info_t *ni, int max, memb_mask_t mask)
 		 */
 		if (ni[x].ni_evil_incarnation &&
                     (ni[x].ni_evil_incarnation == 
-		     ni[x].ni_status.ps_incarnation)) {
+ 		     ni[x].ni_status.ps_incarnation) &&
+ 		    (ni[x].ni_status.ps_updatenode ==
+ 		     ni[x].ni_status.ps_nodeid)) {
 			logt_print(LOG_CRIT, "Node %d is undead.\n",
 			       ni[x].ni_status.ps_nodeid);
 
 			logt_print(LOG_ALERT,
-			       "Writing eviction notice for node %d\n",
+ 			       "Writing eviction notice (again) for node %d\n",
 			       ni[x].ni_status.ps_nodeid);
 			qd_write_status(ctx, ni[x].ni_status.ps_nodeid,
 					S_EVICT, NULL, NULL, NULL);
@@ -363,6 +365,8 @@ check_transitions(qd_ctx *ctx, node_info_t *ni, int max, memb_mask_t mask)
 			       ni[x].ni_status.ps_nodeid);
 			ni[x].ni_incarnation =
 			    ni[x].ni_status.ps_incarnation;
+			ni[x].ni_evil_incarnation = 0;
+
 			if (mask)
 				set_bit(mask, (ni[x].ni_status.ps_nodeid-1),
 					sizeof(memb_mask_t));
@@ -385,6 +389,23 @@ check_transitions(qd_ctx *ctx, node_info_t *ni, int max, memb_mask_t mask)
 			continue;
 		}
 
+  		/*
+ 		   Case 6:  Check for a node which has changed its
+ 		   incarnation # quickly (e.g. killall -9 qdiskd;
+ 		   qdiskd).  Not a transition.
+ 		 */
+ 		if (state_run(ni[x].ni_state) &&
+ 		    ni[x].ni_incarnation != ni[x].ni_status.ps_incarnation) {
+ 
+ 			logt_print(LOG_DEBUG, "Node %d incarnation # changed\n",
+ 			       ni[x].ni_status.ps_nodeid);
+ 			ni[x].ni_incarnation =
+ 			    ni[x].ni_status.ps_incarnation;
+ 			ni[x].ni_evil_incarnation = 0;
+ 
+ 			continue;
+ 		}
+ 
 		/*
 		   All other cases: Believe the node's reported state
 		 */
