@@ -45,7 +45,7 @@ static unsigned int protocol_active[3];
 static void send_journals(struct mountgroup *mg, int nodeid);
 
 
-static char *msg_name(int type)
+static const char *msg_name(int type)
 {
 	switch (type) {
 	case MSG_JOURNAL:
@@ -1611,7 +1611,7 @@ int process_recovery_uevent_old(char *name, int jid_done, int status, int first)
 {
 	struct mountgroup *mg;
 	struct mg_member *memb;
-	char *ss;
+	const char *ss;
 	int rv, found = 0;
 
 	mg = find_mg(name);
