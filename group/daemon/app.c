@@ -447,6 +447,7 @@ static int all_levels_all_stopped(group_t *g, event_t *rev)
 	return 1;
 }
 
+#if 0
 void dump_recovery_sets(void)
 {
 	struct recovery_set *rs;
@@ -461,6 +462,7 @@ void dump_recovery_sets(void)
 		}
 	}
 }
+#endif
 
 static int group_in_recovery_set(struct recovery_set *rs, group_t *g)
 {
@@ -954,6 +956,7 @@ int event_state_starting(app_t *a)
 	return FALSE;
 }
 
+#if 0
 int event_state_all_stopped(app_t *a)
 {
 	if (a->current_event->state == EST_JOIN_ALL_STOPPED ||
@@ -962,6 +965,7 @@ int event_state_all_stopped(app_t *a)
 		return TRUE;
 	return FALSE;
 }
+#endif
 
 static int event_state_all_started(app_t *a)
 {
