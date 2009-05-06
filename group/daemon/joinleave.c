@@ -15,7 +15,7 @@ group_t *find_group_level(char *name, int level)
 	return NULL;
 }
 
-int create_group(char *name, int level, group_t **g_out)
+int create_group(const char *name, int level, group_t **g_out)
 {
 	group_t *g;
 

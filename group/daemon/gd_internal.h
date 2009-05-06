@@ -256,7 +256,7 @@ int queue_app_leave(group_t *g, int nodeid);
 int queue_app_message(group_t *g, struct save_msg *save);
 int do_stopdone(char *name, int level);
 int do_startdone(char *name, int level, int event_nr);
-char *ev_state_str(event_t *ev);
+const char *ev_state_str(event_t *ev);
 event_t *find_queued_recover_event(group_t *g);
 void extend_recover_event(group_t *g, event_t *ev, int nodeid);
 int process_apps(void);
@@ -270,15 +270,15 @@ void msg_bswap_out(msg_t *msg);
 void msg_bswap_in(msg_t *msg);
 struct recovery_set *get_recovery_set(int nodeid);
 void groupd_down(int nodeid);
-char *msg_type(int type);
+const char *msg_type(int type);
 int process_app(group_t *g);
 int is_our_join(event_t *ev);
 void purge_node_messages(group_t *g, int nodeid);
 
 /* main.c */
-void read_ccs_name(char *path, char *name);
-void read_ccs_yesno(char *path, int *yes, int *no);
-void read_ccs_int(char *path, int *config_val);
+void read_ccs_name(const char *path, char *name);
+void read_ccs_yesno(const char *path, int *yes, int *no);
+void read_ccs_int(const char *path, int *config_val);
 void app_stop(app_t *a);
 void app_setid(app_t *a);
 void app_start(app_t *a);
@@ -312,7 +312,7 @@ int do_join(char *name, int level, int ci);
 int do_leave(char *name, int level);
 node_t *new_node(int nodeid);
 group_t *find_group_level(char *name, int level);
-int create_group(char *name, int level, group_t **g_out);
+int create_group(const char *name, int level, group_t **g_out);
 app_t *create_app(group_t *g);
 
 /* logging.c */

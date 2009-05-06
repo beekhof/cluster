@@ -10,7 +10,7 @@ struct nodeid {
 	int nodeid;
 };
 
-char *msg_type(int type)
+const char *msg_type(int type)
 {
 	switch (type) {
 	case MSG_APP_STOPPED:
@@ -119,7 +119,7 @@ static void purge_messages(group_t *g)
 	struct save_msg *save, *tmp;
 	node_t *node;
 	int nodeid, type;
-	char *state_str;
+	const char *state_str;
 
 	list_for_each_entry_safe(save, tmp, &g->messages, list) {
 		if (save->msg.ms_type == MSG_APP_INTERNAL)
@@ -851,7 +851,7 @@ int do_startdone(char *name, int level, int event_nr)
 {
 	group_t *g;
 	event_t *ev;
-	char *state;
+	const char *state;
 
 	g = find_group_level(name, level);
 	if (!g) {
@@ -877,7 +877,7 @@ int do_startdone(char *name, int level, int event_nr)
 	return send_started(g);
 }
 
-char *ev_state_str(event_t *ev)
+const char *ev_state_str(event_t *ev)
 {
 	switch (ev->state) {
 	case EST_JOIN_BEGIN:

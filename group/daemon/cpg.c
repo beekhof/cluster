@@ -48,7 +48,7 @@ struct group_node {
 
 static void block_old_nodes(void);
 
-static char *mode_str(int m)
+static const char *mode_str(int m)
 {
 	switch (m) {
 	case GROUP_PENDING:
@@ -754,7 +754,7 @@ void confchg_cb(cpg_handle_t handle,
 		size_t joined_list_entries)
 {
 	group_t *g;
-	char *name = "unknown";
+	const char *name = "unknown";
 	int i, level = -1;
 
 	if (handle == groupd_handle)
@@ -1047,7 +1047,7 @@ int send_message(group_t *g, void *buf, int len)
 	return _send_message(g->cpg_handle, g, buf, len);
 }
 
-static void block_old_group(char *name, int level)
+static void block_old_group(const char *name, int level)
 {
 	group_t *g;
 	app_t *a;

@@ -63,7 +63,7 @@ static int do_write(int fd, void *buf, size_t count)
 	return 0;
 }
 
-void read_ccs_name(char *path, char *name)
+void read_ccs_name(const char *path, char *name)
 {
 	char *str;
 	int error;
@@ -77,7 +77,7 @@ void read_ccs_name(char *path, char *name)
 	free(str);
 }
 
-void read_ccs_yesno(char *path, int *yes, int *no)
+void read_ccs_yesno(const char *path, int *yes, int *no)
 {
 	char *str;
 	int error;
@@ -98,7 +98,7 @@ void read_ccs_yesno(char *path, int *yes, int *no)
 	free(str);
 }
 
-void read_ccs_int(char *path, int *config_val)
+void read_ccs_int(const char *path, int *config_val)
 {
 	char *str;
 	int val;
@@ -697,7 +697,7 @@ static void process_listener(int ci)
 	log_debug("client connection %d fd %d", i, fd);
 }
 
-static int setup_listener(char *sock_path)
+static int setup_listener(const char *sock_path)
 {
 	struct sockaddr_un addr;
 	socklen_t addrlen;
