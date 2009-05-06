@@ -128,7 +128,7 @@ static int check_gfs(void)
 	return count;
 }
 
-static int check_controlled_dir(char *path)
+static int check_controlled_dir(const char *path)
 {
 	DIR *d;
 	struct dirent *de;
@@ -485,7 +485,7 @@ static int node_compare(const void *va, const void *vb)
 #define CGST_WAIT_MESSAGES	2
 #define CGST_WAIT_FENCING	3
 
-static char *wait_str(int state)
+static const char *wait_str(int state)
 {
 	switch (state) {
 	case 0:
@@ -506,7 +506,7 @@ static char *wait_str(int state)
 #define VIC_DONE_OVERRIDE       3
 #define VIC_DONE_EXTERNAL       4
 
-static char *how_str(int how)
+static const char *how_str(int how)
 {
 	switch (how) {
 	case 0:
