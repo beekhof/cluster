@@ -276,12 +276,12 @@ static char *fe_str(int r)
 }
 
 #define FL_SIZE 32
-static struct fence_log log[FL_SIZE];
+static struct fence_log flog[FL_SIZE];
 
 void fence_victims(struct fd *fd)
 {
 	struct node *node;
-	int error, i, ll, log_count;
+	int error, i, ll, flog_count;
 	int override = -1;
 	int cman_member, cpg_member, ext;
 
@@ -309,29 +309,29 @@ void fence_victims(struct fd *fd)
 			continue;
 		}
 
-		memset(&log, 0, sizeof(log));
-		log_count = 0;
+		memset(&flog, 0, sizeof(flog));
+		flog_count = 0;
 
 		log_level(LOG_INFO, "fencing node %s", node->name);
 
 		query_unlock();
-		error = fence_node(node->name, log, FL_SIZE, &log_count);
+		error = fence_node(node->name, flog, FL_SIZE, &flog_count);
 		query_lock();
 
-		if (log_count > FL_SIZE) {
-			log_error("fence_node log overflow %d", log_count);
-			log_count = FL_SIZE;
+		if (flog_count > FL_SIZE) {
+			log_error("fence_node log overflow %d", flog_count);
+			flog_count = FL_SIZE;
 		}
 
-		for (i = 0; i < log_count; i++) {
-			ll = (log[i].error == FE_AGENT_SUCCESS) ? LOG_DEBUG:
+		for (i = 0; i < flog_count; i++) {
+			ll = (flog[i].error == FE_AGENT_SUCCESS) ? LOG_DEBUG:
 								  LOG_ERR;
 			log_level(ll, "fence %s dev %d.%d agent %s result: %s",
 				  node->name,
-				  log[i].method_num, log[i].device_num,
-				  log[i].agent_name[0] ?
-				  	log[i].agent_name : "none",
-				  fe_str(log[i].error));
+				  flog[i].method_num, flog[i].device_num,
+				  flog[i].agent_name[0] ?
+				  	flog[i].agent_name : "none",
+				  fe_str(flog[i].error));
 		}
 
 		log_error("fence %s %s", node->name,
