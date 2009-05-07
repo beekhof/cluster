@@ -760,7 +760,7 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 
 	if (objdb_get_string(objdb, object_handle, "logfile", &logstr)) {
 		objdb->object_key_create(object_handle, "logfile", strlen("logfile"),
-					    LOGDIR "/cman.log", strlen(LOGDIR "/cman.log")+1);
+					    LOGDIR "/corosync.log", strlen(LOGDIR "/corosync.log")+1);
 	}
 
 	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
