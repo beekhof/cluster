@@ -273,9 +273,9 @@ static const char *condition_str(int cond)
 	}
 }
 
-static void show_nodeids(int count, struct gfsc_node *nodes)
+static void show_nodeids(int count, struct gfsc_node *nodes_in)
 {
-	struct gfsc_node *n = nodes;
+	struct gfsc_node *n = nodes_in;
 	int i;
 
 	for (i = 0; i < count; i++) {
@@ -346,9 +346,9 @@ static void show_mg(struct gfsc_mountgroup *mg)
 	show_nodeids(node_count, nodes);
 }
 
-static void show_all_nodes(int count, struct gfsc_node *nodes)
+static void show_all_nodes(int count, struct gfsc_node *nodes_in)
 {
-	struct gfsc_node *n = nodes;
+	struct gfsc_node *n = nodes_in;
 	int i;
 
 	for (i = 0; i < count; i++) {
