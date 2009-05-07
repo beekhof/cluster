@@ -947,8 +947,10 @@ void do_lockdump(char *name)
 	}
 
 	/* skip the header on the first line */
-	if(!fgets(line, LOCK_LINE_MAX, file)) {
-		fprintf(stderr, "can't read %s: %s\n", path, strerror(errno));
+	if(! (rv = fgets(line, LOCK_LINE_MAX, file))) {
+		if (rv) {
+			fprintf(stderr, "can't read %s: %s\n", path, strerror(errno));
+		}
 		return;
 	}
 
