@@ -1036,7 +1036,7 @@ int main(int argc, char **argv)
 	}
 	lockfile();
 	init_logging();
-	log_level(LOG_INFO, "fenced %s", RELEASE_VERSION);
+	log_level(LOG_INFO, "fenced %s started", RELEASE_VERSION);
 	signal(SIGTERM, sigterm_handler);
 	set_oom_adj(-16);
 
