@@ -27,6 +27,7 @@
 #include <linux/fs.h>
 #include <liblogthread.h>
 #include <zlib.h>
+#include "iostate.h"
 
 static int diskRawRead(target_info_t *disk, char *buf, int len);
 
@@ -229,7 +230,9 @@ qdisk_open(char *name, target_info_t *disk)
 	disk->d_pagesz = sysconf(_SC_PAGESIZE);
 
 	/* Check to verify that the partition is large enough.*/
+	io_state(STATE_LSEEK);
 	ret = lseek(disk->d_fd, END_OF_DISK(disk->d_blksz), SEEK_SET);
+	io_state(STATE_NONE);
 	if (ret < 0) {
 		logt_print(LOG_DEBUG, "open_partition: seek");
 		close(disk->d_fd);
@@ -332,7 +335,9 @@ diskRawReadShadow(target_info_t *disk, off_t readOffset, char *buf, int len)
 	shared_header_t *hdrp;
 	char *data;
 
+	io_state(STATE_LSEEK);
 	ret = lseek(disk->d_fd, readOffset, SEEK_SET);
+	io_state(STATE_NONE);
 	if (ret != readOffset) {
 		logt_print(LOG_DEBUG,
 		       "diskRawReadShadow: can't seek to offset %d.\n",
@@ -391,7 +396,10 @@ diskRawRead(target_info_t *disk, char *buf, int len)
 	if (bounceNeeded == 0) {
 		/* Already aligned and even multiple of 512, no bounceio
 		 * required. */
-		return (read(disk->d_fd, buf, len));
+		io_state(STATE_READ);
+		readret = read(disk->d_fd, buf, len);
+		io_state(STATE_NONE);
+		return readret;
 	}
 
 	if (len > disk->d_blksz) {
@@ -420,7 +428,9 @@ diskRawRead(target_info_t *disk, char *buf, int len)
 		return -1;
 	}
 
+	io_state(STATE_READ);
 	readret = read(disk->d_fd, alignedBuf, readlen);
+	io_state(STATE_NONE);
 	if (readret > 0) {
 		if (readret > len) {
 			memcpy(alignedBuf, buf, len);
@@ -463,7 +473,10 @@ diskRawWrite(target_info_t *disk, char *buf, int len)
 	if (bounceNeeded == 0) {
 		/* Already aligned and even multiple of 512, no bounceio
 		 * required. */
-		return (write(disk->d_fd, buf, len));
+		io_state(STATE_WRITE);
+		ret = write(disk->d_fd, buf, len);
+		io_state(STATE_NONE);
+		return ret;
 	}
 
 	if (len > disk->d_blksz) {
@@ -500,7 +513,9 @@ diskRawWrite(target_info_t *disk, char *buf, int len)
 	}
 
 	memcpy(buf, alignedBuf, len);
+	io_state(STATE_WRITE);
 	ret = write(disk->d_fd, alignedBuf, writelen);
+	io_state(STATE_NONE);
 	if (ret > len) {
 		ret = len;
 	}
@@ -528,7 +543,9 @@ diskRawWriteShadow(target_info_t *disk, __off64_t writeOffset, char *buf, int le
 		return (-1);
 	}
 
+	io_state(STATE_LSEEK);
 	retval_seek = lseek(disk->d_fd, writeOffset, SEEK_SET);
+	io_state(STATE_NONE);
 	if (retval_seek != writeOffset) {
 		logt_print(LOG_ERR,
 		       "diskRawWriteShadow: can't seek to offset %d\n",

@@ -18,7 +18,7 @@ CFLAGS += -I$(S)
 CFLAGS += -I${incdir}
 
 LDFLAGS += -L${logtlibdir} -llogthread -lpthread
-LDFLAGS += -L${zliblibdir} -lz
+LDFLAGS += -L${zliblibdir} -lz -lrt
 LDFLAGS += -L${libdir}
 
 EXTRA_LDFLAGS += -L${cmanlibdir} -L${ccslibdir} -lcman -lccs
@@ -33,7 +33,8 @@ OBJS2=	mkqdisk.o
 SHAREDOBJS= disk.o \
 	    disk_util.o \
 	    proc.o \
-	    scandisk.o
+	    scandisk.o \
+	    iostate.o
 
 ${TARGET1}: ${SHAREDOBJS} ${OBJS1}
 	$(CC) -o $@ $^ $(EXTRA_LDFLAGS) $(LDFLAGS)

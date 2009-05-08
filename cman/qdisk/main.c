@@ -28,6 +28,8 @@
 
 #define LOG_DAEMON_NAME  "qdiskd"
 #define LOG_MODE_DEFAULT LOG_MODE_OUTPUT_SYSLOG|LOG_MODE_OUTPUT_FILE
+#include "iostate.h"
+
 
 /* from main.c */
 void set_priority(int queue, int prio);
@@ -1793,8 +1795,13 @@ main(int argc, char **argv)
 		goto out;
 	}
 	*/
+
+	io_nanny_start(ctx.qc_tko * ctx.qc_interval);
+
 	if (quorum_loop(&ctx, ni, MAX_NODES_DISK) == 0)
 		cman_unregister_quorum_device(ctx.qc_cman_admin);
+
+	io_nanny_stop();
 
 	quorum_logout(&ctx);
 out:
