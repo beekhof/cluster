@@ -1511,13 +1511,21 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 
 int send_to_userport(unsigned char fromport, unsigned char toport,
 		     int nodeid, int tgtid,
-		     char *recv_buf, int len,
+		     const char *recv_buf, int len,
 		     int endian_conv)
 {
 	int ret = -1;
 
 	if (toport == 0) {
-		process_internal_message(recv_buf, nodeid, endian_conv);
+
+	  /* We need to make a private copy here so that the internal command
+	   * processors can do byteswapping.
+	   */
+	        char *newmsg = alloca(len);
+		if (!newmsg)
+		    return -1;
+		memcpy(newmsg, recv_buf, len);
+		process_internal_message(newmsg, nodeid, endian_conv);
 		ret = 0;
 	}
 	else {

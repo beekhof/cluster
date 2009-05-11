@@ -425,7 +425,7 @@ int send_status_return(struct connection *con, uint32_t cmd, int status)
 	return send_reply_message(con, (struct sock_header *)&msg);
 }
 
-int send_data_reply(struct connection *con, int nodeid, int port, char *data, int len)
+int send_data_reply(struct connection *con, int nodeid, int port, const char *data, int len)
 {
 	char buf[len + sizeof(struct sock_data_header)];
 	struct sock_data_header *msg = (struct sock_data_header *)buf;

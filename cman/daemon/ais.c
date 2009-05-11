@@ -90,7 +90,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 			    const unsigned int *left_list, size_t left_list_entries,
 			    const unsigned int *joined_list, size_t joined_list_entries,
 			    const struct memb_ring_id *ring_id);
-static void cman_deliver_fn(unsigned int nodeid, const struct iovec *iovec, unsigned int iov_len,
+static void cman_deliver_fn(unsigned int nodeid, const void *msg, unsigned int msg_len,
 			    int endian_conversion_required);
 static void cman_quorum_init(struct corosync_api_v1 *api, quorum_set_quorate_fn_t report);
 
@@ -249,28 +249,31 @@ int comms_send_message(void *buf, int len,
 	return corosync->tpg_joined_mcast(group_handle, iov, 2, totem_flags);
 }
 
-// This assumes the iovec has only one element ... is it true ??
-static void cman_deliver_fn(unsigned int nodeid, const struct iovec *iovec, unsigned int iov_len,
+static void cman_deliver_fn(unsigned int nodeid, const void *msg, unsigned int msg_len,
 			    int endian_conversion_required)
 {
-	struct cl_protheader *header = iovec->iov_base;
-	char *buf = iovec->iov_base;
+	const struct cl_protheader *original_header = msg;
+	struct cl_protheader header;
+	const char *buf = msg;
 
 	P_AIS("deliver_fn source nodeid = %d, len=%d, endian_conv=%d\n",
-	      nodeid, (int)iovec->iov_len, endian_conversion_required);
+	      nodeid, msg_len, endian_conversion_required);
 
 	if (endian_conversion_required) {
-		header->srcid = swab32(header->srcid);
-		header->tgtid = swab32(header->tgtid);
-		header->flags = swab32(header->flags);
+		header.srcid = swab32(original_header->srcid);
+		header.tgtid = swab32(original_header->tgtid);
+		header.flags = swab32(original_header->flags);
+	} 
+	else {
+	        memcpy(&header, original_header, sizeof(header));
 	}
 
 	/* Only pass on messages for us or everyone */
-	if (header->tgtid == our_nodeid() ||
-	    header->tgtid == 0) {
-		send_to_userport(header->srcport, header->tgtport,
-				 header->srcid, header->tgtid,
-				 buf + sizeof(struct cl_protheader), iovec->iov_len - sizeof(struct cl_protheader),
+	if (header.tgtid == our_nodeid() ||
+	    header.tgtid == 0) {
+		send_to_userport(header.srcport, header.tgtport,
+				 header.srcid, header.tgtid,
+				 buf + sizeof(struct cl_protheader), msg_len - sizeof(struct cl_protheader),
 				 endian_conversion_required);
 	}
 }

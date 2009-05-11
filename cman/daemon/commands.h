@@ -5,7 +5,7 @@ extern void process_cnxman_message(char *data, char *addr, int addrlen,
 
 extern int send_to_userport(unsigned char fromport, unsigned char toport,
 			    int nodeid, int tgtnodeid,
-			    char *recv_buf, int len,
+			    const char *recv_buf, int len,
 			    int endian_conv);
 extern void clean_dead_listeners(void);
 extern void unbind_con(struct connection *con);
