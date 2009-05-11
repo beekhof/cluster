@@ -423,8 +423,11 @@ static void query_domain_nodes(int f, int option, int max)
 static void process_connection(int ci)
 {
 	struct fenced_header h;
+	char default_name[8];
 	char *extra = NULL;
 	int rv, extra_len;
+
+	strcpy(default_name, "default");
 
 	rv = do_read(client[ci].fd, &h, sizeof(h));
 	if (rv < 0) {
@@ -460,13 +463,13 @@ static void process_connection(int ci)
 
 	switch (h.command) {
 	case FENCED_CMD_JOIN:
-		do_join("default");
+		do_join(default_name);
 		break;
 	case FENCED_CMD_LEAVE:
-		do_leave("default");
+		do_leave(default_name);
 		break;
 	case FENCED_CMD_EXTERNAL:
-		do_external("default", extra, extra_len);
+		do_external(default_name, extra, extra_len);
 		break;
 	case FENCED_CMD_DUMP_DEBUG:
 	case FENCED_CMD_NODE_INFO:
