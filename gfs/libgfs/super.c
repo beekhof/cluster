@@ -258,7 +258,6 @@ int hexdump(uint64 startaddr, const unsigned char *lpBuffer, int len)
 	return (len);
 }
 
-
 /**
  * rgrplength2bitblocks - blerg - Stolen by Bob from gfs_mkfs.  Good 
  * candidate for gfslib.

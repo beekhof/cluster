@@ -170,7 +170,9 @@ mp2cookie(char *mp, int ioctl_ok)
 
 	if (ioctl_ok) {
 		struct gfs_ioctl gi;
-		char *argv[] = { "get_cookie" };
+		char *argv[] = {
+			(char *)"get_cookie"
+		};
 		int fd;
 
 		gi.gi_argc = 1;
@@ -206,7 +208,7 @@ mp2cookie(char *mp, int ioctl_ok)
  */
 
 char *
-name2value(char *str_in, char *name)
+name2value(char *str_in, const char *name)
 {
 	char str[strlen(str_in) + 1];
 	static char value[256];
@@ -240,7 +242,7 @@ name2value(char *str_in, char *name)
  */
 
 uint32_t
-name2u32(char *str, char *name)
+name2u32(char *str, const char *name)
 {
 	char *value = name2value(str, name);
 	uint32_t x = 0;
@@ -259,7 +261,7 @@ name2u32(char *str, char *name)
  */
 
 uint64_t
-name2u64(char *str, char *name)
+name2u64(char *str, const char *name)
 {
 	char *value = name2value(str, name);
 	uint64_t x = 0;

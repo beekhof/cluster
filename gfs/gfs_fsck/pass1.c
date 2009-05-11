@@ -528,7 +528,7 @@ static int check_eattr_entries(struct fsck_inode *ip,
 	return 0;
 }
 
-int clear_metalist(struct fsck_inode *ip, uint64_t block,
+static int clear_metalist(struct fsck_inode *ip, uint64_t block,
 		   osi_buf_t **bh, void *private)
 {
 	struct fsck_sb *sdp = ip->i_sbd;
@@ -547,7 +547,7 @@ int clear_metalist(struct fsck_inode *ip, uint64_t block,
 	return 0;
 }
 
-int clear_data(struct fsck_inode *ip, uint64_t block, void *private)
+static int clear_data(struct fsck_inode *ip, uint64_t block, void *private)
 {
 	struct fsck_sb *sdp = ip->i_sbd;
 	struct block_query q = {0};
@@ -564,7 +564,7 @@ int clear_data(struct fsck_inode *ip, uint64_t block, void *private)
 
 }
 
-int clear_leaf(struct fsck_inode *ip, uint64_t block,
+static int clear_leaf(struct fsck_inode *ip, uint64_t block,
 	       osi_buf_t *bh, void *private)
 {
 
@@ -621,7 +621,7 @@ int add_to_dir_list(struct fsck_sb *sbp, uint64_t block)
 }
 
 
-int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfree)
+static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfree)
 {
 	struct block_query q = {0};
 	struct fsck_inode *ip;
@@ -878,7 +878,7 @@ int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfree)
 }
 
 
-int scan_meta(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfree)
+static int scan_meta(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfree)
 {
 
 	if (check_meta(bh, 0)) {

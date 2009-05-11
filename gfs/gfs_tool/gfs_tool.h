@@ -86,9 +86,9 @@ void check_for_gfs(int fd, char *path);
 char *get_list(void);
 char **str2lines(char *str);
 char *mp2cookie(char *mp, int ioctl_ok);
-char *name2value(char *str, char *name);
-uint32_t name2u32(char *str, char *name);
-uint64_t name2u64(char *str, char *name);
+char *name2value(char *str, const char *name);
+uint32_t name2u32(char *str, const char *name);
+uint64_t name2u64(char *str, const char *name);
 
 
 #endif /* __GFS_TOOL_DOT_H__ */

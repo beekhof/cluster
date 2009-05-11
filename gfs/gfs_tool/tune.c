@@ -29,7 +29,9 @@ void
 get_tune(int argc, char **argv)
 {
 	int fd;
-	char *gi_argv[] = { "get_tune" };
+	char *gi_argv[] = {
+		(char *)"get_tune"
+	};
 	struct gfs_ioctl gi;
 	char str[SIZE], str2[SIZE];
 	char **lines, **l;
@@ -121,10 +123,14 @@ set_tune(int argc, char **argv)
 	}
 
 	{
-		char *argv[] = { "set_tune", param, value };
+		char *local_argv[] = {
+			(char *)"set_tune",
+			(char *)param,
+			(char *)value
+		};
 
 		gi.gi_argc = 3;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 
 		if (ioctl(fd, GFS_IOCTL_SUPER, &gi))
 			die("can't change tunable parameter %s: %s\n",

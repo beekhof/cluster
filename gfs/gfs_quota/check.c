@@ -195,7 +195,10 @@ read_quota_file(commandline_t *comline, osi_list_t *uid, osi_list_t *gid)
 	hidden_blocks = compute_hidden_blocks(comline, fd);
 
 	do {
-		char *argv[] = { "do_hfile_read", "quota" };
+		char *argv[] = {
+			(char *)"do_hfile_read",
+			(char *)"quota"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;
@@ -238,7 +241,7 @@ read_quota_file(commandline_t *comline, osi_list_t *uid, osi_list_t *gid)
  */
 
 static void
-print_list(char *str, osi_list_t *list)
+print_list(const char *str, osi_list_t *list)
 {
 #if 0
 	osi_list_t *tmp;
@@ -261,7 +264,7 @@ print_list(char *str, osi_list_t *list)
  */
 
 static int
-do_compare(char *type, osi_list_t *fs_list, osi_list_t *qf_list)
+do_compare(const char *type, osi_list_t *fs_list, osi_list_t *qf_list)
 {
 	osi_list_t *tmp1, *tmp2;
 	values_t *v1, *v2;
@@ -444,7 +447,10 @@ set_list(commandline_t *comline, int user, osi_list_t *list, int64_t multiplier)
 		value = cpu_to_gfs64(value);
 
 		{
-			char *argv[] = { "do_hfile_write", "quota"};
+			char *argv[] = {
+				(char *)"do_hfile_write",
+				(char *)"quota"
+			};
 
 			gi.gi_argc = 2;
 			gi.gi_argv = argv;
@@ -463,7 +469,10 @@ set_list(commandline_t *comline, int user, osi_list_t *list, int64_t multiplier)
 			v->v_id);
 
 		{
-			char *argv[] = { "do_quota_refresh", buf };
+			char *argv[] = {
+				(char *)"do_quota_refresh",
+				(char *)buf
+			};
 
 			gi.gi_argc = 2;
 			gi.gi_argv = argv;
@@ -507,7 +516,10 @@ add_hidden(commandline_t *comline)
 
 	for (;;) {
 		{
-			char *argv[] = { "do_hfile_read", "quota" };
+			char *argv[] = {
+				(char *)"do_hfile_read",
+				(char *)"quota"
+			};
 
 			gi.gi_argc = 2;
 			gi.gi_argv = argv;
@@ -526,7 +538,10 @@ add_hidden(commandline_t *comline)
 		value = cpu_to_gfs64(value);
 
 		{
-			char *argv[] = { "do_hfile_write", "quota" };
+			char *argv[] = {
+				(char *)"do_hfile_write",
+				(char *)"quota"
+			};
 
 			gi.gi_argc = 2;
 			gi.gi_argv = argv;
@@ -545,7 +560,10 @@ add_hidden(commandline_t *comline)
 			0);
 
 		{
-			char *argv[] = { "do_quota_refresh", buf };
+			char *argv[] = {
+				(char *)"do_quota_refresh",
+				(char *)buf
+			};
 
 			gi.gi_argc = 2;
 			gi.gi_argv = argv;

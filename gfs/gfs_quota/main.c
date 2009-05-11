@@ -36,7 +36,7 @@ char *prog_name;
  */
 
 static void
-print_usage()
+print_usage(void)
 {
 	printf("Usage:\n");
 	printf("\n");
@@ -96,7 +96,9 @@ void
 do_get_super(int fd, struct gfs_sb *sb)
 {
 	struct gfs_ioctl gi;
-	char *argv[] = { "get_super" };
+	char *argv[] = {
+		(char *)"get_super"
+	};
 	int error;
 
 	gi.gi_argc = 1;
@@ -260,7 +262,10 @@ compute_hidden_blocks(commandline_t *comline, int fd)
 	int error;
 
 	{
-		char *argv[] = { "get_hfile_stat", "jindex" };
+		char *argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"jindex"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;	
@@ -275,7 +280,10 @@ compute_hidden_blocks(commandline_t *comline, int fd)
 	}
 
 	{
-		char *argv[] = { "get_hfile_stat", "rindex" };
+		char *argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"rindex"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;	
@@ -290,7 +298,10 @@ compute_hidden_blocks(commandline_t *comline, int fd)
 	}
 
 	{
-		char *argv[] = { "get_hfile_stat", "quota" };
+		char *argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"quota"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;	
@@ -305,7 +316,10 @@ compute_hidden_blocks(commandline_t *comline, int fd)
 	}
 
 	{
-		char *argv[] = { "get_hfile_stat", "license" };
+		char *argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"license"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;	
@@ -402,7 +416,9 @@ static void
 do_sync_one(char *filesystem)
 {
 	int fd;
-	char *argv[] = { "do_quota_sync" };
+	char *argv[] = {
+		(char *)"do_quota_sync"
+	};
 	struct gfs_ioctl gi;
 	int error;
 
@@ -485,7 +501,10 @@ do_get_one(commandline_t *comline, char *filesystem)
 		comline->id);
 
 	{
-		char *argv[] = { "do_quota_read", buf };
+		char *argv[] = {
+			(char *)"do_quota_read",
+			(char *)buf
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;
@@ -639,7 +658,10 @@ do_set(commandline_t *comline)
 	new_value = cpu_to_gfs64(new_value);
 
 	{
-		char *argv[] = { "do_hfile_write", "quota" };
+		char *argv[] = {
+			(char *)"do_hfile_write",
+			(char *)"quota"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;
@@ -658,7 +680,10 @@ do_set(commandline_t *comline)
 		comline->id);
 
 	{
-		char *argv[] = { "do_quota_refresh", buf };
+		char *argv[] = {
+			(char *)"do_quota_refresh",
+			(char *)buf
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;

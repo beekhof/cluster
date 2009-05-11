@@ -365,7 +365,7 @@ void write_jindex(commandline_t *comline, osi_list_t *jlist)
 
 static char *fill_rindex(commandline_t *comline, osi_list_t *rlist)
 {
-	struct gfs_rindex *ri, rindex;
+	struct gfs_rindex *ri, grindex;
 	rgrp_list_t *rl;
 	osi_list_t *tmp;
 	char *buf;
@@ -402,10 +402,10 @@ static char *fill_rindex(commandline_t *comline, osi_list_t *rlist)
 		printf("\nResource Index data:\n");
 
 		for (r = 0; r < comline->rgrps; r++) {
-			gfs_rindex_in(&rindex, buf + r * sizeof(struct gfs_rindex));
+			gfs_rindex_in(&grindex, buf + r * sizeof(struct gfs_rindex));
 
 			printf("\n  Resource index %d\n", r);
-			gfs_rindex_print(&rindex);
+			gfs_rindex_print(&grindex);
 		}
 	}
 	return buf;

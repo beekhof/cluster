@@ -77,6 +77,10 @@ void check_for_gfs(int fd, char *path);
 void do_get_super(int fd, struct gfs_sb *sb);
 void do_sync(commandline_t *comline);
 uint64_t compute_hidden_blocks(commandline_t *comline, int fd);
+void print_quota(commandline_t *comline,
+            int user, uint32_t id,
+            struct gfs_quota *q,
+            struct gfs_sb *sb);
 
 /*  check.c  */
 

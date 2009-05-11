@@ -34,7 +34,7 @@
  *
  */
 
-static void print_usage()
+static void print_usage(void)
 {
   printf("Usage:\n");
   printf("\n");
@@ -204,7 +204,7 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
  *
  */
 
-void are_you_sure(commandline_t *comline)
+static void are_you_sure(commandline_t *comline)
 {
 	char input[32];
 	struct volume_id *vid = NULL;
@@ -250,7 +250,7 @@ void are_you_sure(commandline_t *comline)
  *
  */
 
-void check_mount(char *device)
+static void check_mount(char *device)
 {
 	struct stat st_buf;
 	int fd;
@@ -281,7 +281,7 @@ void check_mount(char *device)
  *
  */
 
-void print_results(commandline_t *comline)
+static void print_results(commandline_t *comline)
 {
   if (comline->quiet)
     return;

@@ -119,7 +119,7 @@ int count_bmaps(struct fsck_rgrp *rgp)
 }
 #endif /* DEBUG */
 
-int convert_mark(enum mark_block mark, uint32_t *count)
+static int convert_mark(enum mark_block mark, uint32_t *count)
 {
 	switch(mark) {
 
@@ -163,7 +163,7 @@ int convert_mark(enum mark_block mark, uint32_t *count)
 }
 
 
-int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int buflen,
+static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int buflen,
 		       uint64_t *rg_block, uint64_t rg_data, uint32_t *count)
 {
 	unsigned char *byte, *end;
@@ -240,7 +240,7 @@ int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int buflen,
 #define FREE_META_COUNT  16
 #define CONVERT_FREEMETA_TO_FREE (FREE_COUNT | FREE_META_COUNT)
 
-int update_rgrp(struct fsck_rgrp *rgp, uint32_t *count, int rgcount)
+static int update_rgrp(struct fsck_rgrp *rgp, uint32_t *count, int rgcount)
 {
 	uint32_t i;
 	fs_bitmap_t *bits;

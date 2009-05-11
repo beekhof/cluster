@@ -64,7 +64,7 @@ int dirent_first(osi_buf_t *bh, struct gfs_dirent **dent)
  *
  * Returns: 0 on success, error code otherwise
  */
-int dirent_next(osi_buf_t *bh, struct gfs_dirent **dent)
+static int dirent_next(osi_buf_t *bh, struct gfs_dirent **dent)
 {
 	struct gfs_dirent *tmp, *cur;
 	char *bh_end;
@@ -208,18 +208,18 @@ static int get_leaf(struct fsck_inode *dip, uint64 leaf_no, osi_buf_t **bhp)
 /**
  * get_first_leaf - Get first leaf
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @bh_out:
  *
  * Returns: 0 on success, error code otherwise
  */
 
-static int get_first_leaf(struct fsck_inode *dip, uint32 index, osi_buf_t **bh_out)
+static int get_first_leaf(struct fsck_inode *dip, uint32 lindex, osi_buf_t **bh_out)
 {
 	uint64 leaf_no;
 	int error;
 
-	error = get_leaf_nr(dip, index, &leaf_no);
+	error = get_leaf_nr(dip, lindex, &leaf_no);
 	if (!error)
 		error = get_leaf(dip, leaf_no, bh_out);
 
@@ -356,7 +356,7 @@ static int linked_leaf_search(struct fsck_inode *dip, identifier_t *id,
 			      struct gfs_dirent **dent_prev, osi_buf_t **bh_out)
 {
 	osi_buf_t *bh = NULL, *bh_next;
-	uint32 hsize, index;
+	uint32 hsize, lindex;
 	uint32 hash;
 	int error = 0;
 
@@ -370,9 +370,9 @@ static int linked_leaf_search(struct fsck_inode *dip, identifier_t *id,
 
 	if(id->type == ID_FILENAME){
 		hash = dir_hash(id->filename);
-		index = hash >> (32 - dip->i_di.di_depth);
+		lindex = hash >> (32 - dip->i_di.di_depth);
 
-		error = get_first_leaf(dip, index, &bh_next);
+		error = get_first_leaf(dip, lindex, &bh_next);
 		if (error){
 			return error;
 		}
@@ -403,8 +403,8 @@ static int linked_leaf_search(struct fsck_inode *dip, identifier_t *id,
 
 		relse_buf(dip->i_sbd, bh);
 	} else if(id->type == ID_INUM){
-		for(index=0; index < (1 << dip->i_di.di_depth); index++){
-			error = get_first_leaf(dip, index, &bh_next);
+		for(lindex=0; lindex < (1 << dip->i_di.di_depth); lindex++){
+			error = get_first_leaf(dip, lindex, &bh_next);
 			if (error){
 				return error;
 			}
@@ -732,12 +732,12 @@ static int dir_make_exhash(struct fsck_inode *dip)
 /**
  * dir_split_leaf - Split a leaf block into two
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @leaf_no:
  *
  * Returns: 0 on success, error code on failure
  */
-static int dir_split_leaf(struct fsck_inode *dip, uint32 index, uint64 leaf_no)
+static int dir_split_leaf(struct fsck_inode *dip, uint32 lindex, uint64 leaf_no)
 {
 	struct fsck_sb *sdp = dip->i_sbd;
 	osi_buf_t *nbh, *obh, *dibh;
@@ -795,7 +795,7 @@ static int dir_split_leaf(struct fsck_inode *dip, uint32 index, uint64 leaf_no)
 	}
 	half_len = len >> 1;
 
-	start = (index & ~(len - 1));
+	start = (lindex & ~(len - 1));
 
 	log_debug("Splitting leaf: len = %u, half_len = %u\n", len, half_len);
 
@@ -1071,7 +1071,7 @@ static int dir_double_exhash(struct fsck_inode *dip)
 
 
 static int dir_e_del(struct fsck_inode *dip, osi_filename_t *filename){
-	int index;
+	int lindex;
 	int error;
 	int found = 0;
 	uint64 leaf_no;
@@ -1083,10 +1083,10 @@ static int dir_e_del(struct fsck_inode *dip, osi_filename_t *filename){
 	id.filename = filename;
 	id.inum = NULL;
 
-	index = (1 << (dip->i_di.di_depth))-1;
+	lindex = (1 << (dip->i_di.di_depth))-1;
 
-	for(; (index >= 0) && !found; index--){
-		error = get_leaf_nr(dip, index, &leaf_no);
+	for(; (lindex >= 0) && !found; lindex--){
+		error = get_leaf_nr(dip, lindex, &leaf_no);
 		if (error){
 			log_err("dir_e_del:  Unable to get leaf number.\n");
 			return error;
@@ -1230,7 +1230,7 @@ static int dir_e_add(struct fsck_inode *dip, osi_filename_t *filename,
 	osi_buf_t *bh, *nbh, *dibh;
 	struct gfs_leaf *leaf, *nleaf;
 	struct gfs_dirent *dent;
-	uint32 hsize, index;
+	uint32 hsize, lindex;
 	uint32 hash;
 	uint64 leaf_no, bn;
 	int error;
@@ -1248,10 +1248,10 @@ static int dir_e_add(struct fsck_inode *dip, osi_filename_t *filename,
 	/*  Figure out the address of the leaf node.  */
 
 	hash = dir_hash(filename);
-	index = hash >> (32 - dip->i_di.di_depth);
+	lindex = hash >> (32 - dip->i_di.di_depth);
 
 
-	error = get_leaf_nr(dip, index, &leaf_no);
+	error = get_leaf_nr(dip, lindex, &leaf_no);
 	if (error){
 		log_err("dir_e_add:  Unable to get leaf number.\n");
 		return error;
@@ -1275,7 +1275,7 @@ static int dir_e_add(struct fsck_inode *dip, osi_filename_t *filename,
 				/*  Can we split the leaf?  */
 				relse_buf(sdp, bh);
 
-				error = dir_split_leaf(dip, index, leaf_no);
+				error = dir_split_leaf(dip, lindex, leaf_no);
 				if (error){
 					log_err("dir_e_add:  Unable to split leaf.\n");
 					return error;
@@ -1598,20 +1598,20 @@ int fs_dirent_alloc(struct fsck_inode *dip, osi_buf_t *bh,
 
 
 /**
- * get_leaf_nr - Get a leaf number associated with the index
+ * get_leaf_nr - Get a leaf number associated with the lindex
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @leaf_out:
  *
  * Returns: 0 on success, error code otherwise
  */
 
-int get_leaf_nr(struct fsck_inode *dip, uint32 index, uint64 *leaf_out)
+int get_leaf_nr(struct fsck_inode *dip, uint32 lindex, uint64 *leaf_out)
 {
 	uint64 leaf_no;
 	int error = -1;
 	error = readi(dip, (char *)&leaf_no,
-		      index * sizeof(uint64), sizeof(uint64));
+		      lindex * sizeof(uint64), sizeof(uint64));
 	if (error != sizeof(uint64)){
 		log_debug("get_leaf_nr:  Bad internal read.  (rtn = %d)\n",
 			  error);
@@ -1625,15 +1625,15 @@ int get_leaf_nr(struct fsck_inode *dip, uint32 index, uint64 *leaf_out)
 
 
 /**
- * put_leaf_nr - Put a leaf number associated with the index
+ * put_leaf_nr - Put a leaf number associated with the lindex
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @leaf_out:
  *
  * Returns: 0 on success, error code otherwise
  */
 
-int put_leaf_nr(struct fsck_inode *dip, uint32 index, uint64 leaf_out)
+int put_leaf_nr(struct fsck_inode *dip, uint32 lindex, uint64 leaf_out)
 {
 	uint64 leaf_no;
 	int error = -1;
@@ -1641,7 +1641,7 @@ int put_leaf_nr(struct fsck_inode *dip, uint32 index, uint64 leaf_out)
 	leaf_no = cpu_to_gfs64(leaf_out);
 
 	error = writei(dip, (char *)&leaf_no,
-		       index * sizeof(uint64), sizeof(uint64));
+		       lindex * sizeof(uint64), sizeof(uint64));
 	if (error != sizeof(uint64)){
 		log_debug("put_leaf_nr:  Bad internal write.  (rtn = %d)\n",
 			  error);

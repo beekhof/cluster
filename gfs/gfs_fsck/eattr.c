@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include "fsck_incore.h"
-
+#include "eattr.h"
 
 static int clear_blk_nodup(struct fsck_sb *sbp, uint64_t block)
 {

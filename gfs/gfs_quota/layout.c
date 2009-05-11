@@ -22,12 +22,6 @@
 
 #define LAYOUT_DATA_QUANTUM (4194304)
 
-extern void
-print_quota(commandline_t *comline,
-            int user, uint32_t id,
-            struct gfs_quota *q,
-            struct gfs_sb *sb);
-
 struct extent {
         osi_list_t list;
 
@@ -143,7 +137,7 @@ check_list(world_t *w)
         osi_list_t *tmp;
         buffer_t *b;
         struct gfs_meta_header mh;
-        char *type;
+        const char *type;
 
         for (tmp = w->blist.next; tmp != &w->blist; tmp = tmp->next) {
                 b = osi_list_entry(tmp, buffer_t, list);
@@ -391,7 +385,7 @@ get_dblk_ranges(world_t *w)
  *
  */
 
-void
+static void
 compute_layout(char *path)
 {
         world_t w;
@@ -413,7 +407,9 @@ compute_layout(char *path)
         check_for_gfs(fd, path);
 
         {
-                char *argv[] = { "get_super" };
+                char *argv[] = {
+			(char *)"get_super"
+		};
 
                 gi.gi_argc = 1;
                 gi.gi_argv = argv;
@@ -436,7 +432,9 @@ compute_layout(char *path)
         w.hash_ptrs = w.hash_bsize / sizeof(uint64_t);
 
         for (;;) {
-                char *argv[] = { "get_file_meta_quota" };
+                char *argv[] = {
+			(char *)"get_file_meta_quota"
+		};
 
                 w.buf_data = malloc(w.buf_size);
                 if (!w.buf_data)
@@ -479,7 +477,7 @@ compute_layout(char *path)
  * @argv:
  *
  */
-void 
+static void 
 print_quota_range(commandline_t *comline, int type, uint64_t start, 
                   unsigned int len)
 {
@@ -529,7 +527,10 @@ print_quota_range(commandline_t *comline, int type, uint64_t start,
                 hidden_blocks = compute_hidden_blocks(comline, fd);
 
         do {
-                char *argv[] = { "do_hfile_read", "quota" };
+                char *argv[] = {
+			(char *)"do_hfile_read",
+			(char *)"quota"
+		};
 
                 gi.gi_argc = 2;
                 gi.gi_argv = argv;

@@ -202,7 +202,7 @@ do { \
 
 void increase_verbosity(void);
 void decrease_verbosity(void);
-void print_log_level(int iif, int priority, char *file, int line, const char *format, ...);
+void print_log_level(int iif, int priority, const char *file, int line, const char *format, ...);
 int query(struct options *opts, const char *format, ...);
 
 /* ------------------------------------------------------------------------- */
@@ -380,13 +380,16 @@ int get_leaf(int disk_fd, struct gfs_inode *dip, uint64 leaf_no,
 /* ------------------------------------------------------------------------- */
 /* formerly super.h:                                                         */
 /* ------------------------------------------------------------------------- */
+int hexdump(uint64 startaddr, const unsigned char *lpBuffer, int len);
 int read_sb(int disk_fd, struct gfs_sbd *sdp);
 int ji_update(int disk_fd, struct gfs_sbd *sdp);
 int ri_update(int disk_fd, struct gfs_sbd *sdp);
+void ri_cleanup(osi_list_t *rglist);
 int write_sb(int disk_fd, struct gfs_sbd *sdp);
 int set_block_ranges(int disk_fd, struct gfs_sbd *sdp);
 int read_super_block(int disk_fd, struct gfs_sbd *sdp);
 int compute_constants(struct gfs_sbd *sdp);
+uint32 rgrplength2bitblocks(struct gfs_sbd *sdp, uint32 length);
 
 /* ------------------------------------------------------------------------- */
 /* formerly rgrp.h:                                                          */

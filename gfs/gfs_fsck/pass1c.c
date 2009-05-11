@@ -15,9 +15,11 @@ static int remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 	if(!prev){
 		curr->ea_type = GFS_EATYPE_UNUSED;
 	} else {
+		gfs32_to_cpu(curr->ea_rec_len);
+		gfs32_to_cpu(prev->ea_rec_len);
+
 		prev->ea_rec_len =
-			cpu_to_gfs32(gfs32_to_cpu(curr->ea_rec_len) +
-				     gfs32_to_cpu(prev->ea_rec_len));
+			cpu_to_gfs32(curr->ea_rec_len + prev->ea_rec_len);
 		if (curr->ea_flags & GFS_EAFLAG_LAST)
 			prev->ea_flags |= GFS_EAFLAG_LAST;	
 	}
@@ -29,7 +31,7 @@ static int remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 	return 0;
 }
 
-int check_eattr_indir(struct fsck_inode *ip, uint64_t block,
+static int check_eattr_indir(struct fsck_inode *ip, uint64_t block,
 		      uint64_t parent, osi_buf_t **bh,
 		      void *private)
 {
@@ -65,7 +67,8 @@ int check_eattr_indir(struct fsck_inode *ip, uint64_t block,
 	*bh = indir_bh;
 	return 0;
 }
-int check_eattr_leaf(struct fsck_inode *ip, uint64_t block,
+
+static int check_eattr_leaf(struct fsck_inode *ip, uint64_t block,
 		     uint64_t parent, osi_buf_t **bh, void *private)
 {
 	int *update = (int *) private;
@@ -198,7 +201,7 @@ static int check_eattr_entry(struct fsck_inode *ip,
 	return 0;
 }
 
-int check_eattr_extentry(struct fsck_inode *ip, uint64_t *ea_ptr,
+static int check_eattr_extentry(struct fsck_inode *ip, uint64_t *ea_ptr,
 			 osi_buf_t *leaf_bh,
 			 struct gfs_ea_header *ea_hdr,
 			 struct gfs_ea_header *ea_hdr_prev,

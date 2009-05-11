@@ -220,7 +220,7 @@ int ji_update(struct fsck_sb *sdp)
 }
 
 /* Print out debugging information in same format as gfs_edit. */
-int hexdump(uint64 startaddr, const unsigned char *lpBuffer, int len)
+static int hexdump(uint64 startaddr, const unsigned char *lpBuffer, int len)
 {
 	const unsigned char *pointer, *ptr2;
 	int i;
@@ -264,7 +264,7 @@ int hexdump(uint64 startaddr, const unsigned char *lpBuffer, int len)
  * Returns: the number of bitmap blocks
  */
 
-uint32 rgrplength2bitblocks(struct fsck_sb *sdp, uint32 length)
+static uint32 rgrplength2bitblocks(struct fsck_sb *sdp, uint32 length)
 {
 	uint32 bitbytes;
 	uint32 old_blocks = 0, blocks;
@@ -342,7 +342,7 @@ uint32 rgrplength2bitblocks(struct fsck_sb *sdp, uint32 length)
  * will have the same number of RGs as the second original subdevice.
  * Other RGs found after that will be considered "extra."
  */
-int gfs_rgindex_rebuild(struct fsck_sb *sdp, osi_list_t *ret_list,
+static int gfs_rgindex_rebuild(struct fsck_sb *sdp, osi_list_t *ret_list,
 			unsigned int *num_rgs)
 {
 	osi_buf_t *bh; /* buffer handle */
@@ -959,7 +959,7 @@ int gfs_rgindex_rebuild(struct fsck_sb *sdp, osi_list_t *ret_list,
  * Sets:    ret_list to a linked list of fsck_rgrp structs representing
  *          what we think the rgindex should really look like.
  */
-int gfs_rgindex_calculate(struct fsck_sb *sdp, osi_list_t *ret_list,
+static int gfs_rgindex_calculate(struct fsck_sb *sdp, osi_list_t *ret_list,
 			  unsigned int *num_rgs)
 {
 	osi_buf_t *bh; /* buffer handle */
@@ -1105,7 +1105,7 @@ int gfs_rgindex_calculate(struct fsck_sb *sdp, osi_list_t *ret_list,
 /*
  * ri_cleanup - free up the memory we previously allocated.
  */
-void ri_cleanup(osi_list_t *rglist)
+static void ri_cleanup(osi_list_t *rglist)
 {
 	struct fsck_rgrp *rgd;
 
@@ -1144,7 +1144,7 @@ int ri_update(struct fsck_sb *sdp)
 	osi_list_t expected_rglist; /* List of expected resource groups */
 	osi_list_t *tmp;
 	struct gfs_rindex buf;
-	unsigned int rg, calc_rg_count;
+	unsigned int rg, calc_rg_count = 0;
 	int error, count1 = 0, count2 = 0;
 	int fix_grow_problems = 0, grow_problems = 0;
 	enum rgindex_trust_level { /* how far can we trust our RG index? */

@@ -25,7 +25,7 @@ struct dir_status {
 
 /* Set children's parent inode in dir_info structure - ext2 does not set
  * dotdot inode here, but instead in pass3 - should we? */
-int set_parent_dir(struct fsck_sb *sbp, uint64_t childblock,
+static int set_parent_dir(struct fsck_sb *sbp, uint64_t childblock,
 		   uint64_t parentblock)
 {
 	struct dir_info *di;
@@ -51,7 +51,7 @@ int set_parent_dir(struct fsck_sb *sbp, uint64_t childblock,
 }
 
 /* Set's the child's '..' directory inode number in dir_info structure */
-int set_dotdot_dir(struct fsck_sb *sbp, uint64_t childblock,
+static int set_dotdot_dir(struct fsck_sb *sbp, uint64_t childblock,
 		   uint64_t parentblock)
 {
 	struct dir_info *di;
@@ -142,7 +142,7 @@ static int check_file_type(uint16_t de_type, uint8_t block_type) {
 
 /* FIXME: should maybe refactor this a bit - but need to deal with
  * FIXMEs internally first */
-int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
+static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 		 struct gfs_dirent *prev_de,
 		 osi_buf_t *bh, char *filename, int *update,
 		 uint16_t *count, void *priv)
@@ -501,7 +501,7 @@ struct metawalk_fxns pass2_fxns = {
 
 
 
-int build_rooti(struct fsck_sb *sbp)
+static int build_rooti(struct fsck_sb *sbp)
 {
 	struct fsck_inode *ip;
 	osi_buf_t *bh;
@@ -553,7 +553,7 @@ int build_rooti(struct fsck_sb *sbp)
 }
 
 /* Check root inode and verify it's in the bitmap */
-int check_root_dir(struct fsck_sb *sbp)
+static int check_root_dir(struct fsck_sb *sbp)
 {
 	uint64_t rootblock;
 	struct dir_status ds = {0};
@@ -730,11 +730,12 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 	osi_buf_t b, *bh = &b;
 	osi_filename_t filename;
 	char tmp_name[256];
+	int error = 0;
+
 	if(check_root_dir(sbp)) {
 		stack;
 		return -1;
 	}
-	int error = 0;
 
 	log_info("Checking directory inodes.\n");
 	/* Grab each directory inode, and run checks on it */

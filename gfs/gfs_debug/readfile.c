@@ -189,7 +189,7 @@ readfile(void)
 
 static void
 do_readdir(struct gfs_dinode *di, char *data,
-	   uint32_t index, uint32_t len, uint64_t leaf_no,
+	   uint32_t lindex, uint32_t len, uint64_t leaf_no,
 	   void *opaque)
 {
 	struct gfs_leaf leaf;

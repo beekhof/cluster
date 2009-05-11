@@ -8,7 +8,7 @@
 
 #include "metawalk.h"
 
-int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int index,
+static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int lindex,
 		  int type, int *update, uint16_t *count,
 		  struct metawalk_fxns *pass)
 {
@@ -114,8 +114,8 @@ int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int index,
 /* so that they replace the bad ones.  We have to hack up the old    */
 /* leaf a bit, but it's better than deleting the whole directory,    */
 /* which is what used to happen before.                              */
-void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no, 
-		    uint64_t *bad_leaf, uint64_t old_leaf, int index,
+static void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no, 
+		    uint64_t *bad_leaf, uint64_t old_leaf, int lindex,
 		    const char *msg)
 {
 	if (*bad_leaf != *leaf_no) {
@@ -125,7 +125,7 @@ void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no,
 	}
 	if (*leaf_no == *bad_leaf ||
 	    query(ip->i_sbd, "Attempt to patch around it? (y/n) ")) {
-		put_leaf_nr(ip, index, old_leaf);
+		put_leaf_nr(ip, lindex, old_leaf);
 	}
 	else
 		log_err("Bad leaf left in place.\n");
@@ -134,28 +134,28 @@ void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no,
 }
 
 /* Checks exthash directory entries */
-int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
+static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
 {
 	int error;
 	struct gfs_leaf leaf, oldleaf;
 	uint64_t leaf_no, old_leaf, bad_leaf = -1;
 	osi_buf_t *lbh;
-	int index;
+	int lindex;
 	struct fsck_sb *sbp = ip->i_sbd;
 	uint16_t count;
 	int ref_count = 0, exp_count = 0;
 
 	old_leaf = 0;
 	memset(&oldleaf, 0, sizeof(oldleaf));
-	for(index = 0; index < (1 << ip->i_di.di_depth); index++) {
-		if(get_leaf_nr(ip, index, &leaf_no)) {
+	for(lindex = 0; lindex < (1 << ip->i_di.di_depth); lindex++) {
+		if(get_leaf_nr(ip, lindex, &leaf_no)) {
 			log_err("Unable to get leaf block number in dir %"
 				PRIu64"\n"
 				"\tDepth = %u\n"
-				"\tindex = %u\n",
+				"\tlindex = %u\n",
 				ip->i_num.no_addr,
 				ip->i_di.di_depth,
-				index);
+				lindex);
 			return -1;
 		}
 
@@ -163,7 +163,7 @@ int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
 		 * until those extra pointers are needed, so skip the
 		 * dups */
 		if (leaf_no == bad_leaf) {
-			put_leaf_nr(ip, index, old_leaf); /* fill w/old leaf */
+			put_leaf_nr(ip, lindex, old_leaf); /* fill w/old leaf */
 			ref_count++;
 			continue;
 		}
@@ -208,7 +208,7 @@ int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
 					"range for directory #%"PRIu64".\n",
 					leaf_no, ip->i_di.di_num.no_addr);
 				warn_and_patch(ip, &leaf_no, &bad_leaf,
-					       old_leaf, index,
+					       old_leaf, lindex,
 					       "that is out of range");
 				memcpy(&leaf, &oldleaf, sizeof(oldleaf));
 				break;
@@ -220,7 +220,7 @@ int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
 					"directory #%"PRIu64".\n",
 					leaf_no, ip->i_di.di_num.no_addr);
 				warn_and_patch(ip, &leaf_no, &bad_leaf,
-					       old_leaf, index,
+					       old_leaf, lindex,
 					       "that cannot be read");
 				memcpy(&leaf, &oldleaf, sizeof(oldleaf));
 				relse_buf(sbp, lbh);
@@ -229,7 +229,7 @@ int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
 			/* Make sure it's really a valid leaf block. */
 			if (check_meta(lbh, GFS_METATYPE_LF)) {
 				warn_and_patch(ip, &leaf_no, &bad_leaf,
-					       old_leaf, index,
+					       old_leaf, lindex,
 					       "that is not really a leaf");
 				memcpy(&leaf, &oldleaf, sizeof(oldleaf));
 				relse_buf(sbp, lbh);
@@ -246,7 +246,7 @@ int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
 				  ip->i_di.di_depth, leaf.lf_depth);
 			if(pass->check_dentry && 
 			   ip->i_di.di_type == GFS_FILE_DIR) {
-				error = check_entries(ip, lbh, index,
+				error = check_entries(ip, lbh, lindex,
 						      DIR_EXHASH, update,
 						      &count,
 						      pass);
@@ -696,7 +696,7 @@ end:
 
 
 /* Checks stuffed inode directories */
-int check_linear_dir(struct fsck_inode *ip, osi_buf_t *bh, int *update,
+static int check_linear_dir(struct fsck_inode *ip, osi_buf_t *bh, int *update,
 		     struct metawalk_fxns *pass)
 {
 	int error = 0;

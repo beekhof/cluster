@@ -26,7 +26,7 @@ void decrease_verbosity(void)
 	_state.print_level--;
 }
 
-void print_msg(int priority, char *file, int line, const char *format, va_list args) {
+static void print_msg(int priority, const char *file, int line, const char *format, va_list args) {
 
 	switch (priority) {
 
@@ -48,7 +48,7 @@ void print_msg(int priority, char *file, int line, const char *format, va_list a
 	return;
 }
 
-void print_log_level(int iif, int priority, char *file, int line, const char *format, ...)
+void print_log_level(int iif, int priority, const char *file, int line, const char *format, ...)
 {
 
 	va_list args;

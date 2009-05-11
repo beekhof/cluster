@@ -317,7 +317,7 @@ static int clear_eattr_extentry(struct fsck_inode *ip, uint64_t *ea_data_ptr,
 }
 
 /* Finds all references to duplicate blocks in the metadata */
-int find_block_ref(struct fsck_sb *sbp, uint64_t inode, struct blocks *b)
+static int find_block_ref(struct fsck_sb *sbp, uint64_t inode, struct blocks *b)
 {
 	struct fsck_inode *ip;
 	struct fxn_info myfi = {b->block_no, 0, 1};
@@ -371,7 +371,7 @@ int find_block_ref(struct fsck_sb *sbp, uint64_t inode, struct blocks *b)
 }
 
 /* Finds all blocks marked in the duplicate block bitmap */
-int find_dup_blocks(struct fsck_sb *sbp)
+static int find_dup_blocks(struct fsck_sb *sbp)
 {
 	uint64_t block_no = 0;
 	struct blocks *b;
@@ -396,7 +396,7 @@ int find_dup_blocks(struct fsck_sb *sbp)
 
 
 
-int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
+static int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
 {
 	osi_list_t *tmp;
 	struct inode_with_dups *id;
@@ -462,8 +462,9 @@ int pass1b(struct fsck_sb *sbp)
 	struct block_query q;
 	osi_list_t *tmp;
 	struct metawalk_fxns find_dirents = {0};
-	find_dirents.check_dentry = &find_dentry;
 	int rc = 0;
+
+	find_dirents.check_dentry = &find_dentry;
 
 	osi_list_init(&sbp->dup_list);
 	/* Shove all blocks marked as duplicated into a list */

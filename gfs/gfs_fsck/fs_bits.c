@@ -32,7 +32,7 @@ static void fs_setbit(unsigned char *buffer, unsigned int buflen,
 	*byte |= new_state << bit;
 }
 
-uint32_t fs_bitfit_core(struct fsck_sb *sbp, uint64_t goal, uint64_t start, uint64_t len,
+static uint32_t fs_bitfit_core(struct fsck_sb *sbp, uint64_t goal, uint64_t start, uint64_t len,
 		   unsigned char old_state)
 {
 	uint64_t block;

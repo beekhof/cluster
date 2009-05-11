@@ -106,7 +106,7 @@ check_list(world_t *w)
 	osi_list_t *tmp;
 	buffer_t *b;
 	struct gfs_meta_header mh;
-	char *type;
+	const char *type;
 
 	for (tmp = w->blist.next; tmp != &w->blist; tmp = tmp->next) {
 		b = osi_list_entry(tmp, buffer_t, list);
@@ -321,7 +321,7 @@ foreach_leaf(world_t *w, leaf_call_t lc, void *data)
 	struct gfs_leaf leaf;
 	uint32_t hsize, len;
 	uint32_t ht_offset, lp_offset, ht_offset_cur = -1;
-	uint32_t index = 0;
+	uint32_t lindex = 0;
 	uint64_t lp[w->hash_ptrs];
 	uint64_t leaf_no;
 
@@ -329,9 +329,9 @@ foreach_leaf(world_t *w, leaf_call_t lc, void *data)
 	if (hsize * sizeof(uint64_t) != w->di.di_size)
 		die("bad hash table size\n");
 
-	while (index < hsize) {
-		lp_offset = index % w->hash_ptrs;
-		ht_offset = index - lp_offset;
+	while (lindex < hsize) {
+		lp_offset = lindex % w->hash_ptrs;
+		ht_offset = lindex - lp_offset;
 
 		if (ht_offset_cur != ht_offset) {
 			journaled_read(w, (char *) lp,
@@ -349,12 +349,12 @@ foreach_leaf(world_t *w, leaf_call_t lc, void *data)
 
 		len = 1 << (w->di.di_depth - leaf.lf_depth);
 
-		lc(w, index, len, leaf_no, data);
+		lc(w, lindex, len, leaf_no, data);
 
-		index += len;
+		lindex += len;
 	}
 
-	if (index != hsize)
+	if (lindex != hsize)
 		die("screwed up directory\n");
 }
 
@@ -461,7 +461,7 @@ print_file(world_t *w)
 {
 	do_pf_t pf;
 	unsigned int h;
-	char *type;
+	const char *type;
 
 	switch (w->di.di_type) {
 	case GFS_FILE_REG:
@@ -540,7 +540,7 @@ print_file(world_t *w)
  */
 
 static void
-do_lc(world_t *w, uint32_t index, uint32_t len, uint64_t leaf_no, void *data)
+do_lc(world_t *w, uint32_t lindex, uint32_t len, uint64_t leaf_no, void *data)
 {
 	buffer_t *b;
 	struct gfs_leaf leaf;
@@ -551,8 +551,8 @@ do_lc(world_t *w, uint32_t index, uint32_t len, uint64_t leaf_no, void *data)
 		gfs_leaf_in(&leaf, b->data);
 
 		printf("  %.8X             %.8X             %-20" PRIu64
-		       " %u\n", index << (32 - w->di.di_depth),
-		       ((index + len) << (32 - w->di.di_depth)) - 1, blk,
+		       " %u\n", lindex << (32 - w->di.di_depth),
+		       ((lindex + len) << (32 - w->di.di_depth)) - 1, blk,
 		       leaf.lf_entries);
 	}
 
@@ -598,17 +598,16 @@ print_leaves(world_t *w)
 			  sizeof(struct gfs_meta_header)))
 
 static void
-print_eattr_data(world_t *w, uint64_t blkno, int *first)
+print_eattr_data(world_t *w, uint64_t eblkno, int *first)
 {
-	buffer_t *b = getbuf(w, blkno);
 	struct gfs_ea_header *ea;
 
-	ea = GFS_EA_BH2FIRST(b);
+	ea = GFS_EA_BH2FIRST(getbuf(w, eblkno));
 	for (;;) {
 		if (!GFS_EA_IS_STUFFED(ea)) {
 			char name[300];
 			uint64_t *p, blkno;
-			uint64_t b;
+			uint64_t d;
 			unsigned int l;
 			unsigned int x;
 			int c;
@@ -623,7 +622,6 @@ print_eattr_data(world_t *w, uint64_t blkno, int *first)
 			if (ea->ea_type == GFS_EATYPE_UNUSED)
 				strcpy(name, "unused");
 			else {
-				unsigned int x;
 				switch (ea->ea_type) {
 				case GFS_EATYPE_USR:
 					strcpy(name, "user.");
@@ -641,31 +639,32 @@ print_eattr_data(world_t *w, uint64_t blkno, int *first)
 				name[x + ea->ea_name_len] = 0;
 			}
 
-			b = 0;
+			d = 0;
 			l = 0;
+			x = 0;
 			c = FALSE;
 
 			p = GFS_EA2DATAPTRS(ea);
 			for (x = 0; x < ea->ea_num_ptrs; x++) {
 				blkno = gfs64_to_cpu(*p);
-				if (b + l == blkno)
+				if (d + l == blkno)
 					l++;
 				else {
-					if (b) {
+					if (d) {
 						printf("  %-20" PRIu64
-						       " %-10u %s\n", b, l,
+						       " %-10u %s\n", d, l,
 						       name);
 						if (!c) {
 							strcat(name, " (cont)");
 							c = TRUE;
 						}
 					}
-					b = blkno;
+					d = blkno;
 					l = 1;
 				}
 				p++;
 			}
-			printf("  %-20" PRIu64 " %-10u %s\n", b, l, name);
+			printf("  %-20" PRIu64 " %-10u %s\n", d, l, name);
 		}
 		if (GFS_EA_IS_LAST(ea))
 			break;
@@ -775,10 +774,12 @@ print_layout(int argc, char **argv)
 	check_for_gfs(fd, path);
 
 	{
-		char *argv[] = { "get_super" };
+		char *local_argv[] = {
+			(char *)"get_super"
+		};
 
 		gi.gi_argc = 1;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = (char *)&w.sb;
 		gi.gi_size = sizeof(struct gfs_sb);
 
@@ -797,14 +798,16 @@ print_layout(int argc, char **argv)
 	w.hash_ptrs = w.hash_bsize / sizeof(uint64_t);
 
 	for (;;) {
-		char *argv[] = { "get_file_meta" };
+		char *local_argv[] = {
+			(char *)"get_file_meta"
+		};
 
 		w.buf_data = malloc(w.buf_size);
 		if (!w.buf_data)
 			die("out of memory\n");
 
 		gi.gi_argc = 1;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = w.buf_data;
 		gi.gi_size = w.buf_size;
 

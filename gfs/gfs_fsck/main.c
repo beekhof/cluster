@@ -14,7 +14,8 @@ uint64_t last_fs_block, last_reported_block = -1;
 int skip_this_pass = FALSE, fsck_abort = FALSE, fsck_query = FALSE;
 const char *pass = "";
 
-void print_map(struct block_list *il, int count)
+#if 0
+static void print_map(struct block_list *il, int count)
 {
 	int i, j;
 	struct block_query k;
@@ -36,20 +37,21 @@ void print_map(struct block_list *il, int count)
 	}
 	log_info("\n");
 }
+#endif
 
-void usage(char *name)
+static void usage(char *name)
 {
 	printf("Usage: %s [-hnqvVy] <device> \n", basename(name));
 }
 
-void version(void)
+static void version(void)
 {
 	printf("GFS fsck %s (built %s %s)\n",
 	       RELEASE_VERSION, __DATE__, __TIME__);
 	printf("%s\n", REDHAT_COPYRIGHT);
 }
 
-int read_cmdline(int argc, char **argv, struct options *opts)
+static int read_cmdline(int argc, char **argv, struct options *opts)
 {
 	int c;
 
@@ -102,7 +104,7 @@ int read_cmdline(int argc, char **argv, struct options *opts)
 	return 0;
 }
 
-void interrupt(int sig)
+static void interrupt(int sig)
 {
 	fd_set rfds;
 	struct timeval tv;

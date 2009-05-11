@@ -307,7 +307,7 @@ static int fs_lookupi(struct fsck_inode *dip, osi_filename_t *name,
 	return error;
 }
 
-int fs_createi(struct fsck_inode *dip, osi_filename_t *name,
+static int fs_createi(struct fsck_inode *dip, osi_filename_t *name,
 	       unsigned int type, unsigned int mode, osi_cred_t *cred,
 	       int *new, struct fsck_inode **ipp)
 {
@@ -492,7 +492,7 @@ int fs_createi(struct fsck_inode *dip, osi_filename_t *name,
  *
  * Returns: 0 on success, -1 on failure.
  */
-int fs_mkdir(struct fsck_inode *dip, char *new_dir, int mode, struct fsck_inode **nip){
+int fs_mkdir(struct fsck_inode *dip, const char *new_dir, int mode, struct fsck_inode **nip){
 	int error;
 	osi_cred_t creds;
 	osi_buf_t *dibh;
@@ -501,7 +501,7 @@ int fs_mkdir(struct fsck_inode *dip, char *new_dir, int mode, struct fsck_inode 
 	struct fsck_inode *ip= NULL;
 	struct fsck_sb *sdp = dip->i_sbd;
 	osi_filename_t name;
-	int new;
+	int new = 0;
 
 	name.name = (unsigned char *)new_dir;
 	name.len = strlen(new_dir);

@@ -80,7 +80,7 @@ do { \
 
 void increase_verbosity(void);
 void decrease_verbosity(void);
-void print_fsck_log(int iif, int priority, char *file, int line, const char *format, ...);
+void print_fsck_log(int iif, int priority, const char *file, int line, const char *format, ...);
 int query(struct fsck_sb *sbp, const char *format, ...);
 
 

@@ -172,12 +172,14 @@ print_counters(int argc, char **argv)
 
 	for (;;) {
 		struct gfs_ioctl gi;
-		char *argv[] = { "get_counters" };
+		char *local_argv[] = {
+			(char *)"get_counters"
+		};
 		char data[SIZE];
 		int error;
 
 		gi.gi_argc = 1;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = data;
 		gi.gi_size = SIZE;
 

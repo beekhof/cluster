@@ -89,7 +89,7 @@ foreach_leaf(struct gfs_dinode *di,
 	struct gfs_leaf leaf;
 	uint32_t hsize, len;
 	uint32_t ht_offset, lp_offset, ht_offset_cur = -1;
-	uint32_t index = 0;
+	uint32_t lindex = 0;
 	uint64_t lp[sd_hash_ptrs];
 	uint64_t leaf_no;
 	int error;
@@ -98,9 +98,9 @@ foreach_leaf(struct gfs_dinode *di,
 	if (hsize * sizeof(uint64_t) != di->di_size)
 		die("bad hash table size\n");
 
-	while (index < hsize) {
-		lp_offset = index % sd_hash_ptrs;
-		ht_offset = index - lp_offset;
+	while (lindex < hsize) {
+		lp_offset = lindex % sd_hash_ptrs;
+		ht_offset = lindex - lp_offset;
 
 		if (ht_offset_cur != ht_offset) {
 			error = gfs_readi(di, (char *)lp, ht_offset * sizeof(uint64_t), sd_hash_bsize);
@@ -117,13 +117,13 @@ foreach_leaf(struct gfs_dinode *di,
 		gfs_leaf_in(&leaf, data);
 		len = 1 << (di->di_depth - leaf.lf_depth);
 
-		lc(di, data, index, len, leaf_no, opaque);
+		lc(di, data, lindex, len, leaf_no, opaque);
 
 		free(data);
-		index += len;
+		lindex += len;
 	}
 
-	if (index != hsize)
+	if (lindex != hsize)
 		die("screwed up directory\n");
 }
 

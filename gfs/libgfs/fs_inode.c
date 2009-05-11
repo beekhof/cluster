@@ -173,7 +173,7 @@ static int fs_lookupi(int disk_fd, struct gfs_inode *dip,
 	return error;
 }
 
-int fs_createi(int disk_fd, struct gfs_inode *dip, osi_filename_t *name,
+static int fs_createi(int disk_fd, struct gfs_inode *dip, osi_filename_t *name,
 	       unsigned int type, unsigned int mode, osi_cred_t *cred,
 	       int *new, struct gfs_inode **ipp)
 {
@@ -369,7 +369,7 @@ int fs_mkdir(int disk_fd, struct gfs_inode *dip, char *new_dir,
 	struct gfs_inode *ip= NULL;
 	struct gfs_sbd *sdp = dip->i_sbd;
 	osi_filename_t name;
-	int new;
+	int new = 0;
 
 	name.name = (unsigned char *)new_dir;
 	name.len = strlen(new_dir);

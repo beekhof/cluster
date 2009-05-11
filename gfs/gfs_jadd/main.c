@@ -76,7 +76,7 @@ static osi_list_decl(jilist_new);
  */
 
 static uint64_t
-device_geometry(char *device)
+device_geometry(char *device_g)
 {
 	int fd;
 	uint64_t bytes;
@@ -85,10 +85,10 @@ device_geometry(char *device)
 	if (override_device_size)
 		bytes = override_device_size;
 	else {
-		fd = open(device, O_RDONLY);
+		fd = open(device_g, O_RDONLY);
 		if (fd < 0) {
 			fprintf(stderr, "gfs_jadd: can't open %s: %s\n",
-				device, strerror(errno));
+				device_g, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
@@ -96,7 +96,7 @@ device_geometry(char *device)
 		if (error) {
 			fprintf(stderr,
 				"gfs_grow: can't determine size of %s: %s\n",
-				device, strerror(errno));
+				device_g, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
@@ -117,11 +117,14 @@ device_geometry(char *device)
  * Returns: Error code, or amount of data read
  */
 
-int
-jread(int fd, char *file, void *buf, uint64_t size, uint64_t *offset)
+static int
+jread(int fd, const char *file, void *buf, uint64_t size, uint64_t *offset)
 {
 	struct gfs_ioctl gi;
-	char *argv[] = { "do_hfile_read", file };
+	char *argv[] = {
+		(char *)"do_hfile_read",
+		(char *)file
+	};
 	int error;
 
 	gi.gi_argc = 2;
@@ -148,11 +151,14 @@ jread(int fd, char *file, void *buf, uint64_t size, uint64_t *offset)
  * Returns: Error code, or the amount of data written
  */
 
-int
-jwrite(int fd, char *file, void *buf, uint64_t size, uint64_t *offset)
+static int
+jwrite(int fd, const char *file, void *buf, uint64_t size, uint64_t *offset)
 {
 	struct gfs_ioctl gi;
-	char *argv[] = { "do_hfile_write", file };
+	char *argv[] = {
+		(char *)"do_hfile_write",
+		(char *)file
+	};
 	int error;
 
 	gi.gi_argc = 2;
@@ -389,10 +395,13 @@ write_whole_journal(struct jilist_entry *jil)
  */
 
 static uint64_t
-get_length(int fd, char *file)
+get_length(int fd, const char *file)
 {
 	struct gfs_ioctl gi;
-	char *argv[] = { "get_hfile_stat", file };
+	char *argv[] = {
+		(char *)"get_hfile_stat",
+		(char *)file
+	};
 	struct gfs_dinode di;
 	int error;
 
@@ -500,7 +509,9 @@ gather_info(void)
 {
 	int fd;
 	struct gfs_ioctl gi;
-	char *argv[] = { "get_super" };
+	char *argv[] = {
+		(char *)"get_super"
+	};
 	int error;
 
 	fd = open(fspath, O_RDONLY);
@@ -620,7 +631,7 @@ print_info(void)
  *
  */
 
-uint64_t
+static uint64_t
 make_journal(uint64_t offset, uint64_t size)
 {
 	struct jilist_entry *jil = malloc(sizeof(struct jilist_entry));

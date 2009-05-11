@@ -40,28 +40,28 @@ static const char *anthropomorphize(uint64_t inhuman_value)
  * printit - parse out and print values according to the output type
  */
 static void printit(char *stat_gfs, const char *label, uint64_t used,
-		    uint64_t free, unsigned int percentage)
+		    uint64_t free_space, unsigned int percentage)
 {
 	uint64_t block_size = name2u64(stat_gfs, "bsize");
 
 	switch (output_type) {
 	case OUTPUT_BLOCKS:
 		printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
-		       label, used + free, used, free, percentage);
+		       label, used + free_space, used, free_space, percentage);
 		break;
 	case OUTPUT_K:
 		printf("  %-15s%-15"PRIu64"%-15"PRIu64"%-15"PRIu64"%u%%\n",
-		       label, ((used + free) * block_size) / 1024,
-		       (used * block_size) / 1024, (free * block_size) / 1024,
+		       label, ((used + free_space) * block_size) / 1024,
+		       (used * block_size) / 1024, (free_space * block_size) / 1024,
 		       percentage);
 		break;
 	case OUTPUT_HUMAN:
 		/* Need to do three separate printfs here because function
 		   anthropomorphize re-uses the same static space. */
 		printf("  %-15s%-15s", label,
-		       anthropomorphize((used + free) * block_size));
+		       anthropomorphize((used + free_space) * block_size));
 		printf("%-15s", anthropomorphize(used * block_size));
-		printf("%-15s%u%%\n", anthropomorphize(free * block_size),
+		printf("%-15s%u%%\n", anthropomorphize(free_space * block_size),
 		       percentage);
 		break;
 	}
@@ -96,7 +96,9 @@ do_df_one(char *path)
 
 
 	{
-		char *argv[] = { "get_stat_gfs" };
+		char *argv[] = {
+			(char *)"get_stat_gfs"
+		};
 
 		gi.gi_argc = 1;
 		gi.gi_argv = argv;
@@ -109,7 +111,9 @@ do_df_one(char *path)
 			    error, strerror(errno));
 	}
 	{
-		char *argv[] = { "get_super" };
+		char *argv[] = {
+			(char *)"get_super"
+		};
 
 		gi.gi_argc = 1;
 		gi.gi_argv = argv;
@@ -122,7 +126,9 @@ do_df_one(char *path)
 			    error, strerror(errno));
 	}
 	{
-		char *argv[] = { "get_args" };
+		char *argv[] = {
+			(char *)"get_args"
+		};
 
 		gi.gi_argc = 1;
 		gi.gi_argv = argv;
@@ -135,7 +141,9 @@ do_df_one(char *path)
 			    error, strerror(errno));
 	}
 	{
-		char *argv[] = { "get_lockstruct" };
+		char *argv[] = {
+			(char *)"get_lockstruct"
+		};
 
 		gi.gi_argc = 1;
 		gi.gi_argv = argv;
@@ -148,8 +156,10 @@ do_df_one(char *path)
 			    error, strerror(errno));
 	}
 	{
-		char *argv[] = { "get_hfile_stat",
-				 "jindex" };
+		char *argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"jindex"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;
@@ -162,8 +172,10 @@ do_df_one(char *path)
 			    error, strerror(errno));
 	}
 	{
-		char *argv[] = { "get_hfile_stat",
-				 "rindex" };
+		char *argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"rindex"
+		};
 
 		gi.gi_argc = 2;
 		gi.gi_argv = argv;

@@ -90,13 +90,13 @@ int set_meta(osi_buf_t *bh, int type, int format){
  */
 int check_meta(osi_buf_t *bh, int type){
   uint32 check_magic = ((struct gfs_meta_header *)BH_DATA((bh)))->mh_magic;
-  uint32 check_type = ((struct gfs_meta_header *)BH_DATA((bh)))->mh_type;
+  uint32 check_metatype = ((struct gfs_meta_header *)BH_DATA((bh)))->mh_type;
  
   check_magic = gfs32_to_cpu(check_magic);
-  check_type = gfs32_to_cpu(check_type);
-  if((check_magic != GFS_MAGIC) || (type && (check_type != type))){
+  check_metatype = gfs32_to_cpu(check_metatype);
+  if((check_magic != GFS_MAGIC) || (type && (check_metatype != type))){
 	  log_debug("For %"PRIu64" Expected %X:%X - got %X:%X\n", BH_BLKNO(bh), GFS_MAGIC, type,
-		    check_magic, check_type);
+		    check_magic, check_metatype);
     return -1;
   }
   return 0;
@@ -111,11 +111,11 @@ int check_meta(osi_buf_t *bh, int type){
  */
 int check_type(osi_buf_t *bh, int type){
   uint32 check_magic = ((struct gfs_meta_header *)BH_DATA((bh)))->mh_magic;
-  uint32 check_type = ((struct gfs_meta_header *)BH_DATA((bh)))->mh_type;
+  uint32 check_metatype = ((struct gfs_meta_header *)BH_DATA((bh)))->mh_type;
  
   check_magic = gfs32_to_cpu(check_magic);
-  check_type = gfs32_to_cpu(check_type);
-  if((check_magic != GFS_MAGIC) || (check_type != type)){
+  check_metatype = gfs32_to_cpu(check_metatype);
+  if((check_magic != GFS_MAGIC) || (check_metatype != type)){
     return -1;
   }
   return 0;

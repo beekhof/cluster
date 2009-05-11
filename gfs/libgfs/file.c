@@ -11,7 +11,7 @@
  *
  * Returns: The amount of data actually copied or the error
  */
-int readi(int disk_fd, struct gfs_inode *ip, void *buf, uint64 offset,
+int readi(int disk_fd, struct gfs_inode *ip, void *bufin, uint64 offset,
 		  unsigned int size)
 {
 	struct gfs_sbd *sdp = ip->i_sbd;
@@ -23,6 +23,7 @@ int readi(int disk_fd, struct gfs_inode *ip, void *buf, uint64 offset,
 	int journaled = fs_is_jdata(ip);
 	int copied = 0;
 	int error = 0;
+	char *buf = bufin;
 
 	if (offset >= ip->i_di.di_size){
 		log_debug("readi:  Offset (%"PRIu64") is >= "
@@ -109,7 +110,7 @@ int readi(int disk_fd, struct gfs_inode *ip, void *buf, uint64 offset,
  *
  * Returns: The number of bytes correctly written or error code
  */
-int writei(int disk_fd, struct gfs_inode *ip, void *buf, uint64_t offset,
+int writei(int disk_fd, struct gfs_inode *ip, void *bufin, uint64_t offset,
 		   unsigned int size)
 {
 	struct gfs_sbd *sdp = ip->i_sbd;
@@ -122,6 +123,7 @@ int writei(int disk_fd, struct gfs_inode *ip, void *buf, uint64_t offset,
 	const uint64_t start = offset;
 	int copied = 0;
 	int error = 0;
+	char *buf = bufin;
 
 	/*  Bomb out on writing nothing.
 	    Posix says we can't change the time here.  */

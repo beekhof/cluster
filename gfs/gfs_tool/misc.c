@@ -27,7 +27,9 @@
 void
 do_file_flush(int argc, char **argv)
 {
-	char *gi_argv[] = { "do_file_flush" };
+	char *gi_argv[] = {
+		(char *)"do_file_flush"
+	};
 	struct gfs_ioctl gi;
 	int fd;
 	int error;
@@ -250,7 +252,7 @@ void
 set_flag(int argc, char **argv)
 {
 	struct gfs_dinode di;
-	char *set;
+	const char *set;
 	char *flag;
 	struct gfs_ioctl gi;
 	int fd;
@@ -273,9 +275,11 @@ set_flag(int argc, char **argv)
 		check_for_gfs(fd, argv[optind]);
 
 		{
-			char *gi_argv[] = { "set_file_flag",
-					    set,
-					    flag };
+			char *gi_argv[] = {
+				(char *)"set_file_flag",
+				(char *)set,
+				(char *)flag
+			};
 			gi.gi_argc = 3;
 			gi.gi_argv = gi_argv;
 
@@ -299,7 +303,9 @@ void
 print_stat(int argc, char **argv)
 {
 	int fd;
-	char *gi_argv[] = { "get_file_stat" };
+	char *gi_argv[] = {
+		(char *)"get_file_stat"
+	};
 	struct gfs_ioctl gi;
 	struct gfs_dinode di;
 	int error;
@@ -341,7 +347,9 @@ void
 print_sb(int argc, char **argv)
 {
 	int fd;
-	char *gi_argv[] = { "get_super" };
+	char *gi_argv[] = {
+		(char *)"get_super"
+	};
 	struct gfs_ioctl gi;
 	struct gfs_sb sb;
 	int error;
@@ -398,12 +406,14 @@ print_jindex(int argc, char **argv)
 
 
 	{
-		char *argv[] = { "get_hfile_stat",
-				 "jindex" };
+		char *local_argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"jindex"
+		};
 		struct gfs_dinode di;
 
 		gi.gi_argc = 2;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = (char *)&di;
 		gi.gi_size = sizeof(struct gfs_dinode);
 
@@ -417,13 +427,15 @@ print_jindex(int argc, char **argv)
 
 
 	for (offset = 0, x = 0; ; offset += sizeof(struct gfs_jindex), x++) {
-		char *argv[] = { "do_hfile_read",
-				 "jindex" };
+		char *local_argv[] = {
+			(char *)"do_hfile_read",
+			(char *)"jindex"
+		};
 		char buf[sizeof(struct gfs_jindex)];
 		struct gfs_jindex ji;
 		
 		gi.gi_argc = 2;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = buf;
 		gi.gi_size = sizeof(struct gfs_jindex);
 		gi.gi_offset = offset;
@@ -473,12 +485,14 @@ print_rindex(int argc, char **argv)
 
 
 	{
-		char *argv[] = { "get_hfile_stat",
-				 "rindex" };
+		char *local_argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"rindex"
+		};
 		struct gfs_dinode di;
 
 		gi.gi_argc = 2;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = (char *)&di;
 		gi.gi_size = sizeof(struct gfs_dinode);
 
@@ -492,13 +506,15 @@ print_rindex(int argc, char **argv)
 
 
 	for (offset = 0, x = 0; ; offset += sizeof(struct gfs_rindex), x++) {
-		char *argv[] = { "do_hfile_read",
-				 "rindex" };
+		char *local_argv[] = {
+			(char *)"do_hfile_read",
+			(char *)"rindex"
+		};
 		char buf[sizeof(struct gfs_rindex)];
 		struct gfs_rindex ri;
 		
 		gi.gi_argc = 2;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = buf;
 		gi.gi_size = sizeof(struct gfs_rindex);
 		gi.gi_offset = offset;
@@ -548,12 +564,14 @@ print_quota(int argc, char **argv)
 
 
 	{
-		char *argv[] = { "get_hfile_stat",
-				 "quota" };
+		char *local_argv[] = {
+			(char *)"get_hfile_stat",
+			(char *)"quota"
+		};
 		struct gfs_dinode di;
 
 		gi.gi_argc = 2;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = (char *)&di;
 		gi.gi_size = sizeof(struct gfs_dinode);
 
@@ -567,13 +585,15 @@ print_quota(int argc, char **argv)
 
 
 	for (offset = 0, x = 0; ; offset += sizeof(struct gfs_quota), x++) {
-		char *argv[] = { "do_hfile_read",
-				 "quota" };
+		char *local_argv[] = {
+			(char *)"do_hfile_read",
+			(char *)"quota"
+		};
 		char buf[sizeof(struct gfs_quota)];
 		struct gfs_quota q;
 		
 		gi.gi_argc = 2;
-		gi.gi_argv = argv;
+		gi.gi_argv = local_argv;
 		gi.gi_data = buf;
 		gi.gi_size = sizeof(struct gfs_quota);
 		gi.gi_offset = offset;
@@ -624,7 +644,9 @@ void
 reclaim_metadata(int argc, char **argv)
 {
 	int fd;
-	char *gi_argv[] = { "do_reclaim" };
+	char *gi_argv[] = {
+		(char *)"do_reclaim"
+	};
 	struct gfs_ioctl gi;
 	char buf[256];
 
@@ -671,7 +693,9 @@ void
 do_shrink(int argc, char **argv)
 {
 	int fd;
-	char *gi_argv[] = { "do_shrink" };
+	char *gi_argv[] = {
+		(char *)"do_shrink"
+	};
 	struct gfs_ioctl gi;
 
 	if (optind == argc)

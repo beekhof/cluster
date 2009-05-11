@@ -199,19 +199,19 @@ int get_leaf(int disk_fd, struct gfs_inode *dip, uint64 leaf_no,
 /**
  * get_first_leaf - Get first leaf
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @bh_out:
  *
  * Returns: 0 on success, error code otherwise
  */
 
-int get_first_leaf(int disk_fd, struct gfs_inode *dip, uint32 index,
+int get_first_leaf(int disk_fd, struct gfs_inode *dip, uint32 lindex,
 				   osi_buf_t **bh_out)
 {
 	uint64 leaf_no;
 	int error;
 
-	error = get_leaf_nr(disk_fd, dip, index, &leaf_no);
+	error = get_leaf_nr(disk_fd, dip, lindex, &leaf_no);
 	if (!error)
 		error = get_leaf(disk_fd, dip, leaf_no, bh_out);
 
@@ -348,7 +348,7 @@ static int linked_leaf_search(int disk_fd, struct gfs_inode *dip,
 			      struct gfs_dirent **dent_prev, osi_buf_t **bh_out)
 {
 	osi_buf_t *bh = NULL, *bh_next;
-	uint32 hsize, index;
+	uint32 hsize, lindex;
 	uint32 hash;
 	int error = 0;
 
@@ -362,9 +362,9 @@ static int linked_leaf_search(int disk_fd, struct gfs_inode *dip,
 
 	if(id->type == ID_FILENAME){
 		hash = dir_hash(id->filename);
-		index = hash >> (32 - dip->i_di.di_depth);
+		lindex = hash >> (32 - dip->i_di.di_depth);
 
-		error = get_first_leaf(disk_fd, dip, index, &bh_next);
+		error = get_first_leaf(disk_fd, dip, lindex, &bh_next);
 		if (error){
 			return error;
 		}
@@ -395,8 +395,8 @@ static int linked_leaf_search(int disk_fd, struct gfs_inode *dip,
 
 		relse_buf(bh);
 	} else if(id->type == ID_INUM){
-		for(index=0; index < (1 << dip->i_di.di_depth); index++){
-			error = get_first_leaf(disk_fd, dip, index, &bh_next);
+		for(lindex=0; lindex < (1 << dip->i_di.di_depth); lindex++){
+			error = get_first_leaf(disk_fd, dip, lindex, &bh_next);
 			if (error){
 				return error;
 			}
@@ -728,12 +728,12 @@ static int dir_make_exhash(int disk_fd, struct gfs_inode *dip)
 /**
  * dir_split_leaf - Split a leaf block into two
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @leaf_no:
  *
  * Returns: 0 on success, error code on failure
  */
-static int dir_split_leaf(int disk_fd, struct gfs_inode *dip, uint32 index,
+static int dir_split_leaf(int disk_fd, struct gfs_inode *dip, uint32 lindex,
 						  uint64 leaf_no)
 {
 	struct gfs_sbd *sdp = dip->i_sbd;
@@ -792,7 +792,7 @@ static int dir_split_leaf(int disk_fd, struct gfs_inode *dip, uint32 index,
 	}
 	half_len = len >> 1;
 
-	start = (index & ~(len - 1));
+	start = (lindex & ~(len - 1));
 
 	log_debug("Splitting leaf: len = %u, half_len = %u\n", len, half_len);
 
@@ -1070,7 +1070,7 @@ static int dir_double_exhash(int disk_fd, struct gfs_inode *dip)
 
 
 static int dir_e_del(int disk_fd, struct gfs_inode *dip, osi_filename_t *filename){
-	int index;
+	int lindex;
 	int error;
 	int found = 0;
 	uint64 leaf_no;
@@ -1082,10 +1082,10 @@ static int dir_e_del(int disk_fd, struct gfs_inode *dip, osi_filename_t *filenam
 	id.filename = filename;
 	id.inum = NULL;
 
-	index = (1 << (dip->i_di.di_depth))-1;
+	lindex = (1 << (dip->i_di.di_depth))-1;
 
-	for(; (index >= 0) && !found; index--){
-		error = get_leaf_nr(disk_fd, dip, index, &leaf_no);
+	for(; (lindex >= 0) && !found; lindex--){
+		error = get_leaf_nr(disk_fd, dip, lindex, &leaf_no);
 		if (error){
 			log_err("dir_e_del:  Unable to get leaf number.\n");
 			return error;
@@ -1230,7 +1230,7 @@ static int dir_e_add(int disk_fd, struct gfs_inode *dip,
 	osi_buf_t *bh, *nbh, *dibh;
 	struct gfs_leaf *leaf, *nleaf;
 	struct gfs_dirent *dent;
-	uint32 hsize, index;
+	uint32 hsize, lindex;
 	uint32 hash;
 	uint64 leaf_no, bn;
 	int error;
@@ -1248,10 +1248,10 @@ static int dir_e_add(int disk_fd, struct gfs_inode *dip,
 	/*  Figure out the address of the leaf node.  */
 
 	hash = dir_hash(filename);
-	index = hash >> (32 - dip->i_di.di_depth);
+	lindex = hash >> (32 - dip->i_di.di_depth);
 
 
-	error = get_leaf_nr(disk_fd, dip, index, &leaf_no);
+	error = get_leaf_nr(disk_fd, dip, lindex, &leaf_no);
 	if (error){
 		log_err("dir_e_add:  Unable to get leaf number.\n");
 		return error;
@@ -1275,7 +1275,7 @@ static int dir_e_add(int disk_fd, struct gfs_inode *dip,
 				/*  Can we split the leaf?  */
 				relse_buf(bh);
 
-				error = dir_split_leaf(disk_fd, dip, index, leaf_no);
+				error = dir_split_leaf(disk_fd, dip, lindex, leaf_no);
 				if (error){
 					log_err("dir_e_add:  Unable to split leaf.\n");
 					return error;
@@ -1600,21 +1600,21 @@ int fs_dirent_alloc(int disk_fd, struct gfs_inode *dip, osi_buf_t *bh,
 
 
 /**
- * get_leaf_nr - Get a leaf number associated with the index
+ * get_leaf_nr - Get a leaf number associated with the lindex
  * @dip: The GFS inode
- * @index:
+ * @lindex:
  * @leaf_out:
  *
  * Returns: 0 on success, error code otherwise
  */
 
-int get_leaf_nr(int disk_fd, struct gfs_inode *dip, uint32 index,
+int get_leaf_nr(int disk_fd, struct gfs_inode *dip, uint32 lindex,
 				uint64 *leaf_out)
 {
 	uint64 leaf_no;
 	int error = -1;
 	error = readi(disk_fd, dip, (char *)&leaf_no,
-				  index * sizeof(uint64), sizeof(uint64));
+				  lindex * sizeof(uint64), sizeof(uint64));
 	if (error != sizeof(uint64)){
 		log_debug("get_leaf_nr:  Bad internal read.  (rtn = %d)\n",
 			  error);

@@ -171,7 +171,7 @@ print_bitmaps(char *data, unsigned int offset)
 	unsigned int bn = 0;
 	unsigned int bit;
 	unsigned char value;
-	char *type;
+	const char *type;
 
 	printf("\n");
 

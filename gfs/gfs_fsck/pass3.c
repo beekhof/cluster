@@ -56,7 +56,7 @@ static int attach_dotdot_to(struct fsck_sb *sbp, uint64_t newdotdot,
 	return 0;
 }
 
-struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
+static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 					struct dir_info *di)
 {
 	struct dir_info *pdi;

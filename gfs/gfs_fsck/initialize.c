@@ -18,7 +18,7 @@
  *
  * Go through journals and replay them - then clear them
  */
-int init_journals(struct fsck_sb *sbp)
+static int init_journals(struct fsck_sb *sbp)
 {
 
 	if(!sbp->opts->no) {
