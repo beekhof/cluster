@@ -176,7 +176,7 @@ void delay_fencing(struct fd *fd, int node_join)
 	struct timeval first, last, start, now;
 	int victim_count, last_count = 0, delay = 0;
 	struct node *node;
-	char *delay_type;
+	const char *delay_type;
 
 	if (list_empty(&fd->victims))
 		return;
@@ -247,7 +247,7 @@ void defer_fencing(struct fd *fd)
 	log_level(LOG_INFO, "fencing deferred to %s", master_name);
 }
 
-static char *fe_str(int r)
+static const char *fe_str(int r)
 {
 	switch (r) {
 	case FE_AGENT_SUCCESS:
