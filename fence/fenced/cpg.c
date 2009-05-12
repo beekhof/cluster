@@ -107,7 +107,7 @@ static void ids_in(struct fd_info *fi, struct id_info *ids)
         }
 }
 
-static char *msg_name(int type)
+static const char *msg_name(int type)
 {
 	switch (type) {
 	case FD_MSG_PROTOCOL:
