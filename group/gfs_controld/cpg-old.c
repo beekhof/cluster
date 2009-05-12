@@ -183,7 +183,7 @@ void save_message_old(struct mountgroup *mg, char *buf, size_t len, int from,
 	sm->len = len;
 	sm->nodeid = from;
 
-	log_group(mg, "save %s from %d len %d", msg_name(type), from, len);
+	log_group(mg, "save %s from %d len %zd", msg_name(type), from, len);
 
 	list_add_tail(&sm->list, &mg->saved_messages);
 }
@@ -345,7 +345,7 @@ static void _receive_recovery_status(struct mountgroup *mg, char *buf, size_t le
 			break;
 		}
 
-		log_group(mg, "receive_recovery_status from %d len %d "
+		log_group(mg, "receive_recovery_status from %d len %zd "
 			  "nodeid %d jid %d status %d found %d",
 			  from, len, nodeid, jid, status, found);
 	}
@@ -506,7 +506,7 @@ static void _receive_mount_status(struct mountgroup *mg, char *buf, size_t len,
 static void receive_mount_status(struct mountgroup *mg, char *buf, size_t len,
 				 int from)
 {
-	log_group(mg, "receive_mount_status from %d len %d last_cb %d",
+	log_group(mg, "receive_mount_status from %d len %zd last_cb %d",
 		  from, len, mg->last_callback);
 
 	if (!mg->got_our_options) {
@@ -917,7 +917,7 @@ static void receive_options(struct mountgroup *mg, char *buf, size_t len, int fr
 	struct gdlm_header *hd = (struct gdlm_header *)buf;
 	struct mg_member *memb;
 
-	log_group(mg, "receive_options from %d len %d last_cb %d",
+	log_group(mg, "receive_options from %d len %zd last_cb %d",
 		  from, len, mg->last_callback);
 
 	if (hd->nodeid == our_nodeid) {
@@ -1123,7 +1123,7 @@ static void receive_journals(struct mountgroup *mg, char *buf, size_t len,
 
 	count = (len - sizeof(struct gdlm_header)) / (NUM * sizeof(int));
 
-	log_group(mg, "receive_journals from %d to %d len %d count %d cb %d",
+	log_group(mg, "receive_journals from %d to %d len %zd count %d cb %d",
 		  from, hd->to_nodeid, len, count, mg->last_callback);
 
 	/* just like we can receive an options msg from a newly added node
@@ -2268,7 +2268,7 @@ static void do_deliver(int nodeid, char *data, size_t len)
 	   discard them since they're only relevant to the app group. */
 
 	if (!mg->last_callback) {
-		log_group(mg, "discard %s len %d from %d",
+		log_group(mg, "discard %s len %zd from %d",
 			  msg_name(hd->type), len, nodeid);
 		return;
 	}

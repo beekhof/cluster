@@ -650,7 +650,7 @@ static void deliver_cb(cpg_handle_t handle,
 		g = find_group_level(name, msg->ms_level);
 		if (!g) {
 			if (daemon_debug_verbose > 1) {
-				log_print("%d:%s RECV len %d %s from %d, "
+				log_print("%d:%s RECV len %zd %s from %d, "
 					  "no group",
 				  	  msg->ms_level, name, data_len,
 				  	  msg_type(msg->ms_type), nodeid);
@@ -675,7 +675,7 @@ static void deliver_cb(cpg_handle_t handle,
 	}
 
 	if (daemon_debug_verbose > 1)
-		log_group(g, "RECV len %d %s from %d", data_len,
+		log_group(g, "RECV len %zd %s from %d", data_len,
 			  msg_type(msg->ms_type), nodeid);
 
 	save = malloc(sizeof(struct save_msg));
@@ -775,15 +775,15 @@ static void confchg_cb(cpg_handle_t handle,
 	saved_handle = handle;
 
 	if (left_list_entries > MAX_GROUP_MEMBERS) {
-		log_debug("left_list_entries %d", left_list_entries);
+		log_debug("left_list_entries %zd", left_list_entries);
 		left_list_entries = MAX_GROUP_MEMBERS;
 	}
 	if (joined_list_entries > MAX_GROUP_MEMBERS) {
-		log_debug("joined_list_entries %d", joined_list_entries);
+		log_debug("joined_list_entries %zd", joined_list_entries);
 		joined_list_entries = MAX_GROUP_MEMBERS;
 	}
 	if (member_list_entries > MAX_GROUP_MEMBERS) {
-		log_debug("member_list_entries %d", joined_list_entries);
+		log_debug("member_list_entries %zd", joined_list_entries);
 		member_list_entries = MAX_GROUP_MEMBERS;
 	}
 
