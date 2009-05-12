@@ -26,7 +26,7 @@ extern int cfgd_skip_undefined;
 extern int cfgd_post_join_delay;
 extern int cfgd_post_fail_delay;
 extern int cfgd_override_time;
-extern char *cfgd_override_path;
+extern const char *cfgd_override_path;
 
 #endif
 

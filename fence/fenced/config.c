@@ -24,7 +24,7 @@ int cfgd_skip_undefined  = DEFAULT_SKIP_UNDEFINED;
 int cfgd_post_join_delay = DEFAULT_POST_JOIN_DELAY;
 int cfgd_post_fail_delay = DEFAULT_POST_FAIL_DELAY;
 int cfgd_override_time   = DEFAULT_OVERRIDE_TIME;
-char *cfgd_override_path = DEFAULT_OVERRIDE_PATH;
+const char *cfgd_override_path = DEFAULT_OVERRIDE_PATH;
 
 void read_ccs_name(const char *path, char *name)
 {

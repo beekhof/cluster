@@ -80,7 +80,7 @@ static int reduce_victims(struct fd *fd)
 	return num_victims;
 }
 
-static inline void close_override(int *fd, char *path)
+static inline void close_override(int *fd, const char *path)
 {
 	unlink(path);
 	if (fd) {
@@ -90,7 +90,7 @@ static inline void close_override(int *fd, char *path)
 	}
 }
 
-static int open_override(char *path)
+static int open_override(const char *path)
 {
 	int ret;
 	mode_t om;
@@ -244,7 +244,8 @@ void defer_fencing(struct fd *fd)
 
 	master_name = nodeid_to_name(fd->master);
 
-	log_level(LOG_INFO, "fencing deferred to %s", master_name);
+	log_level(LOG_INFO, "fencing deferred to %s",
+		  master_name ? master_name : "unknown");
 }
 
 static const char *fe_str(int r)

@@ -97,7 +97,7 @@ char *nodeid_to_name(int nodeid)
 	if (cn)
 		return cn->cn_name;
 
-	return "unknown";
+	return NULL;
 }
 
 int name_to_nodeid(char *name)

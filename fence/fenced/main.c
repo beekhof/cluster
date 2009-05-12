@@ -13,6 +13,7 @@ static struct pollfd *pollfd = NULL;
 static pthread_t query_thread;
 static pthread_mutex_t query_mutex;
 static struct list_head controlled_entries;
+static char default_name[8];
 
 struct client {
 	int fd;
@@ -335,7 +336,7 @@ static void query_node_info(int f, int data_nodeid)
 	struct fenced_node node;
 	int nodeid, rv;
 
-	fd = find_fd("default");
+	fd = find_fd(default_name);
 	if (!fd) {
 		rv = -ENOENT;
 		goto out;
@@ -360,7 +361,7 @@ static void query_domain_info(int f)
 	struct fenced_domain domain;
 	int rv;
 
-	fd = find_fd("default");
+	fd = find_fd(default_name);
 	if (!fd) {
 		rv = -ENOENT;
 		goto out;
@@ -384,7 +385,7 @@ static void query_domain_nodes(int f, int option, int max)
 	struct fenced_node *nodes = NULL;
 	int rv, result;
 
-	fd = find_fd("default");
+	fd = find_fd(default_name);
 	if (!fd) {
 		result = -ENOENT;
 		node_count = 0;
@@ -423,11 +424,9 @@ static void query_domain_nodes(int f, int option, int max)
 static void process_connection(int ci)
 {
 	struct fenced_header h;
-	char default_name[8];
 	char *extra = NULL;
 	int rv, extra_len;
 
-	strcpy(default_name, "default");
 
 	rv = do_read(client[ci].fd, &h, sizeof(h));
 	if (rv < 0) {
@@ -624,7 +623,7 @@ struct controlled_entry {
 	char path[PATH_MAX+1];
 };
 
-static void register_controlled_dir(char *path)
+static void register_controlled_dir(const char *path)
 {
 	struct controlled_entry *ce;
 
@@ -1027,6 +1026,8 @@ int main(int argc, char **argv)
 {
 	INIT_LIST_HEAD(&domains);
 	INIT_LIST_HEAD(&controlled_entries);
+
+	strcpy(default_name, "default");
 
 	read_arguments(argc, argv);
 
