@@ -30,7 +30,6 @@
 #include "cnxman-socket.h"
 #include "cnxman-private.h"
 #include "daemon.h"
-#include "logging.h"
 #include "commands.h"
 #include "barrier.h"
 #include "ais.h"
@@ -64,7 +63,7 @@ static int send_reply_message(struct connection *con, struct sock_header *msg)
 {
 	int ret;
 
-	P_DAEMON("sending reply %x to fd %d\n", msg->command, con->fd);
+	log_printf(LOGSYS_LEVEL_DEBUG, "daemon: sending reply %x to fd %d\n", msg->command, con->fd);
 
 	/* If there are already queued messages then don't send this one
 	   out of order */
@@ -82,7 +81,7 @@ static int send_reply_message(struct connection *con, struct sock_header *msg)
 
 		/* Have we exceeded the allowed number of queued messages ? */
 		if (con->num_write_msgs > max_outstanding_messages) {
-			P_DAEMON("Disconnecting. client has more that %d replies outstanding (%d)\n", max_outstanding_messages, con->num_write_msgs);
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: Disconnecting. client has more that %d replies outstanding (%d)\n", max_outstanding_messages, con->num_write_msgs);
 			remove_client(cs_poll_handle, con);
 			return -1;
 		}
@@ -101,7 +100,7 @@ static int send_reply_message(struct connection *con, struct sock_header *msg)
 			qm->offset = 0;
 		list_add(&con->write_msgs, &qm->list);
 		con->num_write_msgs++;
-		P_DAEMON("queued last message, count is %d\n", con->num_write_msgs);
+		log_printf(LOGSYS_LEVEL_DEBUG, "daemon: queued last message, count is %d\n", con->num_write_msgs);
 		poll_dispatch_modify(cs_poll_handle, con->fd, POLLIN | POLLOUT, process_client);
 	}
 	return 0;
@@ -129,7 +128,7 @@ static void remove_client(hdb_handle_t handle, struct connection *con)
 		msgs++;
 	}
 
-	P_DAEMON("Freed %d queued messages\n", msgs);
+	log_printf(LOGSYS_LEVEL_DEBUG, "daemon: Freed %d queued messages\n", msgs);
 	free(con);
 	num_connections--;
 }
@@ -161,7 +160,7 @@ static void send_queued_reply(struct connection *con)
 	}
 	if (list_empty(&con->write_msgs)) {
 		/* Remove POLLOUT callback */
-		P_DAEMON("Removing POLLOUT from fd %d\n", con->fd);
+		log_printf(LOGSYS_LEVEL_DEBUG, "daemon: Removing POLLOUT from fd %d\n", con->fd);
 		poll_dispatch_modify(cs_poll_handle, con->fd, POLLIN, process_client);
 	}
 }
@@ -183,7 +182,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 
 		len = read(fd, buf, sizeof(struct sock_header));
 
-		P_DAEMON("read %d bytes from fd %d\n", len, fd);
+		log_printf(LOGSYS_LEVEL_DEBUG, "daemon: read %d bytes from fd %d\n", len, fd);
 
 		if (len == 0) {
 			remove_client(handle, con);
@@ -200,17 +199,17 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 		}
 
 		if (msg->magic != CMAN_MAGIC) {
-			P_DAEMON("bad magic in client command %x\n", msg->magic);
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: bad magic in client command %x\n", msg->magic);
 			send_status_return(con, msg->command, -EINVAL);
 			return 0;
 		}
 		if (msg->version != CMAN_VERSION) {
-			P_DAEMON("bad version in client command. msg = 0x%x, us = 0x%x\n", msg->version, CMAN_VERSION);
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: bad version in client command. msg = 0x%x, us = 0x%x\n", msg->version, CMAN_VERSION);
 			send_status_return(con, msg->command, -EINVAL);
 			return 0;
 		}
 		if ((msg->length-len) > MAX_CLUSTER_MESSAGE) {
-			P_DAEMON("message on socket is too big\n");
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: message on socket is too big\n");
 			send_status_return(con, msg->command, -EINVAL);
 			return 0;
 		}
@@ -234,11 +233,11 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 			totallen += len;
 		}
 
-		P_DAEMON("client command is %x\n", msg->command);
+		log_printf(LOGSYS_LEVEL_DEBUG, "daemon: client command is %x\n", msg->command);
 
 		/* Privileged functions can only be done on ADMIN sockets */
 		if (msg->command & CMAN_CMDFLAG_PRIV && con->type != CON_ADMIN) {
-			P_DAEMON("command disallowed from non-admin client\n");
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: command disallowed from non-admin client\n");
 			send_status_return(con, msg->command, -EPERM);
 			return 0;
 		}
@@ -249,7 +248,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 		*/
 		if ((msg->command == CMAN_CMD_DATA || msg->command == CMAN_CMD_BIND ||
 		     msg->command == CMAN_CMD_NOTIFY) && con->type == CON_ADMIN) {
-			P_DAEMON("can't send data down an admin socket, sorry\n");
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: can't send data down an admin socket, sorry\n");
 			send_status_return(con, msg->command, -EINVAL);
 			return 0;
 		}
@@ -260,7 +259,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 			uint8_t port;
 			struct sock_data_header *dmsg = (struct sock_data_header *)msg;
 
-			P_DAEMON("sending %lu bytes of data to node %d, port %d\n",
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: sending %lu bytes of data to node %d, port %d\n",
 				 (unsigned long)(msg->length - sizeof(struct sock_data_header)), dmsg->nodeid, dmsg->port);
 
 			databuf += sizeof(struct sock_data_header);
@@ -291,7 +290,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 			int ret;
 			int retlen = 0;
 
-			P_DAEMON("About to process command\n");
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: About to process command\n");
 
 			cmdbuf += sizeof(struct sock_header);
 
@@ -311,7 +310,7 @@ static int process_client(hdb_handle_t handle, int fd, int revent, void *data)
 			reply->header.length = retlen + sizeof(struct sock_reply_header);
 			reply->status = ret;
 
-			P_DAEMON("Returning command data. length = %d\n", retlen);
+			log_printf(LOGSYS_LEVEL_DEBUG, "daemon: Returning command data. length = %d\n", retlen);
 			send_reply_message(con, (struct sock_header *)reply);
 
 			if (retbuf != small_retbuf)
@@ -415,7 +414,7 @@ int send_status_return(struct connection *con, uint32_t cmd, int status)
 {
 	struct sock_reply_header msg;
 
-	P_DAEMON("send status return: %d\n", status);
+	log_printf(LOGSYS_LEVEL_DEBUG, "daemon: send status return: %d\n", status);
 	msg.header.magic = CMAN_MAGIC;
 	msg.header.command = cmd | CMAN_CMDFLAG_REPLY;
 	msg.header.length = sizeof(msg);

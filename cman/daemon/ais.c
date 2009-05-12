@@ -31,7 +31,6 @@
 #include "cnxman-socket.h"
 #include "cnxman-private.h"
 #include "commands.h"
-#include "logging.h"
 
 #include "ais.h"
 #include "cman.h"
@@ -57,7 +56,6 @@ extern unsigned int config_version;
 static hdb_handle_t cluster_parent_handle;
 
 static int startup_pipe;
-static unsigned int debug_mask;
 static int first_trans = 1;
 struct corosync_api_v1 *corosync;
 
@@ -185,13 +183,10 @@ static int cman_exec_init_fn(struct corosync_api_v1 *api)
 		objdb_get_int(api, object_handle, "quorum_dev_poll", &quorumdev_poll, DEFAULT_QUORUMDEV_POLL);
 		objdb_get_int(api, object_handle, "shutdown_timeout", &shutdown_timeout, DEFAULT_SHUTDOWN_TIMEOUT);
 		objdb_get_int(api, object_handle, "ccsd_poll", &ccsd_poll_interval, DEFAULT_CCSD_POLL);
-		objdb_get_int(api, object_handle, "debug_mask", &debug_mask, 0);
 
-		/* All other debugging options should already have been set in preconfig */
-		set_debuglog(debug_mask);
 	}
 	corosync->object_find_destroy(find_handle);
-	P_DAEMON(CMAN_NAME " starting");
+	log_printf(LOGSYS_LEVEL_DEBUG, CMAN_NAME " starting");
 
 	/* Open local sockets and initialise I/O queues */
 	if (read_cman_config(api, &config_version)) {
@@ -231,7 +226,7 @@ int comms_send_message(void *buf, int len,
 	struct cl_protheader header;
 	int totem_flags = TOTEM_AGREED;
 
-	P_AIS("comms send message %p len = %d\n", buf,len);
+	log_printf(LOGSYS_LEVEL_DEBUG, "ais: comms send message %p len = %d\n", buf,len);
 	header.tgtport = toport;
 	header.srcport = fromport;
 	header.flags   = flags;
@@ -256,7 +251,7 @@ static void cman_deliver_fn(unsigned int nodeid, const void *msg, unsigned int m
 	struct cl_protheader header;
 	const char *buf = msg;
 
-	P_AIS("deliver_fn source nodeid = %d, len=%d, endian_conv=%d\n",
+	log_printf(LOGSYS_LEVEL_DEBUG, "ais: deliver_fn source nodeid = %d, len=%d, endian_conv=%d\n",
 	      nodeid, msg_len, endian_conversion_required);
 
 	if (endian_conversion_required) {
@@ -290,7 +285,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 	static size_t saved_left_list_size;
 	static unsigned int *saved_left_list = NULL;
 
-	P_AIS("confchg_fn called type = %d, seq=%lld\n", configuration_type, ring_id->seq);
+	log_printf(LOGSYS_LEVEL_DEBUG, "ais: confchg_fn called type = %d, seq=%lld\n", configuration_type, ring_id->seq);
 
 	memcpy(&cman_ring_id, ring_id, sizeof(*ring_id));
 	incarnation = ring_id->seq;
@@ -327,7 +322,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 	}
 
 	if (configuration_type == TOTEM_CONFIGURATION_REGULAR) {
-		P_AIS("last memb_count = %d, current = %"PRIuFAST32"\n", last_memb_count, member_list_entries);
+		log_printf(LOGSYS_LEVEL_DEBUG, "ais: last memb_count = %d, current = %"PRIuFAST32"\n", last_memb_count, member_list_entries);
 		send_transition_msg(last_memb_count, first_trans);
 		last_memb_count = member_list_entries;
 		if (member_list_entries > 1)

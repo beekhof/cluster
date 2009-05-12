@@ -33,7 +33,6 @@
 #include "cnxman-private.h"
 #include "daemon.h"
 #include "barrier.h"
-#include "logging.h"
 #define OBJDB_API struct corosync_api_v1
 #include "cmanconfig.h"
 #include "nodelist.h"
@@ -287,7 +286,7 @@ static struct cluster_node *add_new_node(char *name, int nodeid, int votes, int 
 
 		newname = strdup(name);
 		if (newname) {
-			P_MEMB("replacing old node name %s with %s\n", newnode->name, name);
+			log_printf(LOGSYS_LEVEL_DEBUG, "memb: replacing old node name %s with %s\n", newnode->name, name);
 			free(newnode->name);
 			newnode->name = newname;
 		}
@@ -298,7 +297,7 @@ static struct cluster_node *add_new_node(char *name, int nodeid, int votes, int 
 
 	newnode->flags |= NODE_FLAGS_REREAD;
 
-	P_MEMB("add_new_node: %s, (id=%d, votes=%d) newalloc=%d\n",
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: add_new_node: %s, (id=%d, votes=%d) newalloc=%d\n",
 	       name, nodeid, votes, newalloc);
 
 	return newnode;
@@ -542,7 +541,7 @@ static int do_cmd_get_extrainfo(char *cmdbuf, char **retbuf, int retsize, int *r
 		outbuf = *retbuf + offset;
 		einfo = (struct cl_extra_info *)outbuf;
 
-		P_MEMB("get_extrainfo: allocated new buffer\n");
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: get_extrainfo: allocated new buffer\n");
 	}
 
 	einfo->node_state = us->state;
@@ -634,7 +633,7 @@ static int do_cmd_get_all_members(char *cmdbuf, char **retbuf, int retsize, int 
 		if ((retsize / sizeof(struct cl_cluster_node)) < total_nodes) {
 			*retbuf = malloc(sizeof(struct cl_cluster_node) * total_nodes + offset);
 			outbuf = *retbuf + offset;
-			P_MEMB("get_all_members: allocated new buffer (retsize=%d)\n", retsize);
+			log_printf(LOGSYS_LEVEL_DEBUG, "memb: get_all_members: allocated new buffer (retsize=%d)\n", retsize);
 		}
 	}
 	user_node = (struct cl_cluster_node *)outbuf;
@@ -656,7 +655,7 @@ static int do_cmd_get_all_members(char *cmdbuf, char **retbuf, int retsize, int 
 	}
 
 	*retlen = sizeof(struct cl_cluster_node) * num_nodes;
-	P_MEMB("get_all_members: retlen = %d\n", *retlen);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: get_all_members: retlen = %d\n", *retlen);
 	return num_nodes;
 }
 
@@ -698,7 +697,7 @@ static int do_cmd_get_node(char *cmdbuf, char *retbuf, int *retlen)
 			node = find_node_by_name(u_node->name);
 
 		if (!node) {
-			P_MEMB("cmd_get_node failed: id=%d, name='%s'\n", u_node->node_id, u_node->name);
+			log_printf(LOGSYS_LEVEL_DEBUG, "memb: cmd_get_node failed: id=%d, name='%s'\n", u_node->node_id, u_node->name);
 			return -ENOENT;
 		}
 	}
@@ -780,7 +779,7 @@ static void send_kill(int nodeid, uint16_t reason)
 {
 	struct cl_killmsg msg;
 
-	P_MEMB("Sending KILL to node %d\n", nodeid);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Sending KILL to node %d\n", nodeid);
 
 	msg.cmd = CLUSTER_MSG_KILLNODE;
 	msg.reason = reason;
@@ -796,7 +795,7 @@ static void send_leave(uint16_t reason)
 {
 	struct cl_leavemsg msg;
 
-	P_MEMB("Sending LEAVE, reason %d\n", reason);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Sending LEAVE, reason %d\n", reason);
 
 	msg.cmd = CLUSTER_MSG_LEAVE;
 	msg.reason = reason;
@@ -868,14 +867,14 @@ static int do_cmd_islistening(struct connection *con, char *cmdbuf, int *retlen)
 	   a cluster that has been running for a while
 	*/
        	if (!get_port_bit(rem_node, 0)) {
-		P_MEMB("islistening, no data for node %d, sending PORTENQ\n", nodeid);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: islistening, no data for node %d, sending PORTENQ\n", nodeid);
 		send_port_enquire(rem_node->node_id);
 
 		/* Admit our ignorance */
 		return -EBUSY;
 	}
 	else {
-		P_MEMB("islistening, for node %d, low bytes are %x %x\n", nodeid, rem_node->port_bits[0], rem_node->port_bits[1]);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: islistening, for node %d, low bytes are %x %x\n", nodeid, rem_node->port_bits[0], rem_node->port_bits[1]);
 		return get_port_bit(rem_node, rq.port);
 	}
 }
@@ -897,7 +896,7 @@ static int do_cmd_set_votes(char *cmdbuf, int *retlen)
 	if (!arg.nodeid)
 		arg.nodeid = us->node_id;
 
-	P_MEMB("Setting votes for node %d to %d\n", arg.nodeid, arg.newvotes);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Setting votes for node %d to %d\n", arg.nodeid, arg.newvotes);
 
 	node = find_node_by_nodeid(arg.nodeid);
 	if (!node)
@@ -928,7 +927,7 @@ static int do_cmd_bind(struct connection *con, char *cmdbuf)
 
 	memcpy(&port, cmdbuf, sizeof(int));
 
-	P_MEMB("requested bind to port %d, (us=%p)\n", port, con);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: requested bind to port %d, (us=%p)\n", port, con);
 
 	if (port == 0 || port > 255)
 		return -EINVAL;
@@ -1004,14 +1003,14 @@ static void check_shutdown_status(void)
 			shutdown_con = NULL;
 		}
 
-		P_MEMB("shutdown decision is: %d (yes=%d, no=%d) flags=%x\n", reply, shutdown_yes, shutdown_no, shutdown_flags);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: shutdown decision is: %d (yes=%d, no=%d) flags=%x\n", reply, shutdown_yes, shutdown_no, shutdown_flags);
 	}
 }
 
 /* Not all nodes responded to the shutdown */
 static void shutdown_timer_fn(void *arg)
 {
-	P_MEMB("Shutdown timer fired. flags = %x\n", shutdown_flags);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Shutdown timer fired. flags = %x\n", shutdown_flags);
 
 	/* Mark undecideds as "NO" */
 	shutdown_no = shutdown_expected;
@@ -1027,7 +1026,7 @@ static int do_cmd_shutdown_reply(struct connection *con, char *cmdbuf)
 	if (!shutdown_con)
 		return -EWOULDBLOCK;
 
-	P_MEMB("Shutdown reply is %d\n", response);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Shutdown reply is %d\n", response);
 
 	/* We only need to keep a track of a client's response in
 	   case it pulls the connection before the shutdown process
@@ -1200,7 +1199,7 @@ static void quorum_device_timer_fn(void *arg)
 	if (!quorum_device || quorum_device->state == NODESTATE_DEAD)
 		return;
 
-	P_MEMB("quorum_device_timer_fn\n");
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: quorum_device_timer_fn\n");
 	gettimeofday(&now, NULL);
 	if (quorum_device->last_hello.tv_sec + quorumdev_poll/1000 < now.tv_sec) {
 		quorum_device->state = NODESTATE_DEAD;
@@ -1270,7 +1269,7 @@ static int do_cmd_update_fence_info(char *cmdbuf)
 	strcpy(fence_msg->agent, f->fence_agent);
 	comms_send_message(msg, sizeof(msg), 0,0, 0, 0);
 
-	P_MEMB("node %d fenced by %s\n", f->nodeid, f->fence_agent);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: node %d fenced by %s\n", f->nodeid, f->fence_agent);
 	return 0;
 }
 
@@ -1350,7 +1349,7 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 	char *outbuf = *retbuf;
 	int value;
 
-	P_MEMB("command to process is %x\n", cmd);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: command to process is %x\n", cmd);
 
 	switch (cmd) {
 
@@ -1376,7 +1375,11 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 
 	case CMAN_CMD_SET_DEBUGLOG:
 		memcpy(&value, cmdbuf, sizeof(int));
-		set_debuglog(value);
+		/* sanitize input value */
+		if (value > 0)
+			value = 1;
+
+		logsys_config_debug_set(CMAN_NAME, value);
 		err = 0;
 		break;
 	case CMAN_CMD_START_CONFCHG:
@@ -1504,7 +1507,7 @@ int process_command(struct connection *con, int cmd, char *cmdbuf,
 		err = do_cmd_get_node_addrs(cmdbuf, retbuf, retsize, retlen, offset);
 		break;
 	}
-	P_MEMB("command return code is %d\n", err);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: command return code is %d\n", err);
 	return err;
 }
 
@@ -1533,7 +1536,7 @@ int send_to_userport(unsigned char fromport, unsigned char toport,
 		if (port_array[toport]) {
 			struct connection *c = port_array[toport];
 
-			P_MEMB("send_to_userport. cmd=%d,  endian_conv=%d\n", recv_buf[0],endian_conv);
+			log_printf(LOGSYS_LEVEL_DEBUG, "memb: send_to_userport. cmd=%d,  endian_conv=%d\n", recv_buf[0],endian_conv);
 
 			send_data_reply(c, nodeid, fromport, recv_buf, len);
 			ret = 0;
@@ -1604,7 +1607,7 @@ static int send_port_open_msg(unsigned char port)
 void unbind_con(struct connection *con)
 {
 	if (con->port) {
-		P_MEMB("Unbinding con for port %d\n", con->port);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: Unbinding con for port %d\n", con->port);
 		port_array[con->port] = NULL;
 		send_port_close_msg(con->port);
 		clear_port_bit(us, con->port);
@@ -1705,7 +1708,7 @@ void send_transition_msg(int last_memb_count, int first_trans)
 
 	we_are_a_cluster_member = 1;
 
-	P_MEMB("sending TRANSITION message. cluster_name = %s\n", cluster_name);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: sending TRANSITION message. cluster_name = %s\n", cluster_name);
 	msg->cmd = CLUSTER_MSG_TRANSITION;
 	msg->first_trans = first_trans;
 	msg->votes = us->votes;
@@ -1842,7 +1845,7 @@ static void do_fence_msg(void *data)
 	struct cl_fencemsg *msg = data;
 	struct cluster_node *node;
 
-	P_DAEMON("got FENCE message, node %d fenced by %s\n", msg->nodeid, msg->agent);
+	log_printf(LOGSYS_LEVEL_DEBUG, "daemon: got FENCE message, node %d fenced by %s\n", msg->nodeid, msg->agent);
 
 	node = find_node_by_nodeid(msg->nodeid);
 	if (!node)
@@ -1869,7 +1872,7 @@ static void do_process_transition(int nodeid, char *data)
 	nodestate_t old_state;
 
 	if (valid_transition_msg(nodeid, msg) != 0) {
-		P_MEMB("Transition message from %d does not match current config - should quit ?\n", nodeid);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: Transition message from %d does not match current config - should quit ?\n", nodeid);
 		// Now what ??
 		return;
 	}
@@ -1893,7 +1896,7 @@ static void do_process_transition(int nodeid, char *data)
 	old_expected = node->expected_votes;
 	old_state = node->state;
 
-	P_MEMB("Got TRANSITION message. msg->flags=%x, node->flags=%x, first_trans=%d\n",
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Got TRANSITION message. msg->flags=%x, node->flags=%x, first_trans=%d\n",
 	       msg->flags, node->flags, msg->first_trans);
 
 	/* Newer nodes 6.1.0 onwards, set the DIRTY flag if they have state. If the new node has been down
@@ -1903,13 +1906,11 @@ static void do_process_transition(int nodeid, char *data)
 		/* Don't duplicate messages */
 		if (node->state != NODESTATE_AISONLY) {
 			if (cluster_is_quorate) {
-				P_MEMB("Killing node %s because it has rejoined the cluster with existing state", node->name);
 				log_printf(LOG_CRIT, "Killing node %s because it has rejoined the cluster with existing state", node->name);
 				node->state = NODESTATE_AISONLY;
 				send_kill(nodeid, CLUSTER_KILL_REJOIN);
 			}
 			else {
-				P_MEMB("Node %s not joined to cman because it has existing state", node->name);
 				log_printf(LOG_CRIT, "Node %s not joined to cman because it has existing state", node->name);
 				node->state = NODESTATE_AISONLY;
 			}
@@ -1924,13 +1925,11 @@ static void do_process_transition(int nodeid, char *data)
 		/* Don't duplicate messages */
 		if (node->state != NODESTATE_AISONLY) {
 			if (cluster_is_quorate) {
-				P_MEMB("Killing node %s because it has rejoined the cluster without cman_tool join", node->name);
 				log_printf(LOG_CRIT, "Killing node %s because it has rejoined the cluster without cman_tool join", node->name);
 				node->state = NODESTATE_AISONLY;
 				send_kill(nodeid, CLUSTER_KILL_REJOIN);
 			}
 			else {
-				P_MEMB("Node %s not joined to cman because it has rejoined an inquorate cluster", node->name);
 				log_printf(LOG_CRIT, "Node %s not joined to cman because it has rejoined an inquorate cluster", node->name);
 				node->state = NODESTATE_AISONLY;
 			}
@@ -1992,7 +1991,7 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 	struct cluster_node *node = find_node_by_nodeid(nodeid);
 	unsigned char portresult[PORT_BITS_SIZE+1];
 
-	P_MEMB("Message on port 0 is %d\n", msg->cmd);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: Message on port 0 is %d\n", msg->cmd);
 
 	/* Byteswap messages if needed */
 	if (need_byteswap)
@@ -2016,7 +2015,7 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 	case CLUSTER_MSG_PORTENQ:
 		portresult[0] = CLUSTER_MSG_PORTSTATUS;
 		memcpy(portresult+1, us->port_bits, PORT_BITS_SIZE);
-		P_MEMB("Sending PORTRESULT, low bytes = %x %x\n", us->port_bits[0], us->port_bits[1]);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: Sending PORTRESULT, low bytes = %x %x\n", us->port_bits[0], us->port_bits[1]);
 
 		/* Broadcast reply as other new nodes may be interested */
 		comms_send_message(portresult, PORT_BITS_SIZE+1, 0,0, 0, 0);
@@ -2024,20 +2023,20 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 
 	case CLUSTER_MSG_PORTSTATUS:
 		if (nodeid != us->node_id) {
-			P_MEMB("got PORTRESULT from %d, low bytes = %x %x\n", nodeid, data[1], data[2]);
+			log_printf(LOGSYS_LEVEL_DEBUG, "memb: got PORTRESULT from %d, low bytes = %x %x\n", nodeid, data[1], data[2]);
 			if (node)
 				memcpy(node->port_bits, data+1, PORT_BITS_SIZE);
 		}
 		break;
 
 	case CLUSTER_MSG_TRANSITION:
-		P_MEMB("got TRANSITION from node %d\n", nodeid);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: got TRANSITION from node %d\n", nodeid);
 		do_process_transition(nodeid, data);
 		break;
 
 	case CLUSTER_MSG_KILLNODE:
 		killmsg = (struct cl_killmsg *)data;
-		P_MEMB("got KILL for node %d\n", killmsg->nodeid);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: got KILL for node %d\n", killmsg->nodeid);
 		if (killmsg->nodeid == wanted_nodeid) {
 			/* Must use syslog directly here or the message will never arrive */
 			syslog(LOG_CRIT, "cman killed by node %d because %s\n", nodeid,
@@ -2049,7 +2048,7 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 
 	case CLUSTER_MSG_LEAVE:
 		leavemsg = (struct cl_leavemsg *)data;
-		P_MEMB("got LEAVE from node %d, reason = %d\n", nodeid, leavemsg->reason);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: got LEAVE from node %d, reason = %d\n", nodeid, leavemsg->reason);
 
 		/* We got our own leave message back. now quit */
 		if (node && node->node_id == us->node_id) {
@@ -2142,12 +2141,12 @@ void add_ais_node(int nodeid, uint64_t incar, int total_members)
 {
 	struct cluster_node *node;
 
-	P_MEMB("add_ais_node ID=%d, incarnation = %" PRIu64 "\n",nodeid, incar);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: add_ais_node ID=%d, incarnation = %" PRIu64 "\n",nodeid, incar);
 
 	node = find_node_by_nodeid(nodeid);
 	if (!node && total_members == 1) {
 		node = us;
-		P_MEMB("Adding AIS node for 'us'\n");
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: Adding AIS node for 'us'\n");
 	}
 
  	/* This really should exist!! */
@@ -2173,7 +2172,7 @@ void del_ais_node(int nodeid)
 {
 	struct cluster_node *node;
 	time_t t;
-	P_MEMB("del_ais_node %d\n", nodeid);
+	log_printf(LOGSYS_LEVEL_DEBUG, "memb: del_ais_node %d\n", nodeid);
 
 	node = find_node_by_nodeid(nodeid);
 	if (!node)
@@ -2209,7 +2208,7 @@ void del_ais_node(int nodeid)
 		memset(&node->port_bits, 0, sizeof(node->port_bits));
 		cluster_members--;
 
-		P_MEMB("del_ais_node %s, leave_reason=%x\n", node->name, node->leave_reason);
+		log_printf(LOGSYS_LEVEL_DEBUG, "memb: del_ais_node %s, leave_reason=%x\n", node->name, node->leave_reason);
 		if ((node->leave_reason & 0xF) == CLUSTER_LEAVEFLAG_REMOVED)
 			recalculate_quorum(1, 1);
 		else

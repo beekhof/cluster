@@ -18,7 +18,6 @@ CFLAGS += -I${incdir}
 LDFLAGS += -L${libdir}
 
 OBJS1=	daemon.o \
-	logging.o \
 	ais.o \
 	commands.o \
 	barrier.o \

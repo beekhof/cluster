@@ -18,7 +18,6 @@
 #include "list.h"
 #include "cnxman-socket.h"
 #include "cnxman-private.h"
-#include "logging.h"
 #include "commands.h"
 #include "cman.h"
 #define OBJDB_API struct corosync_api_v1
@@ -100,7 +99,7 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
 		    goto out_err;
 	    }
 
-	    P_MEMB("Got node %s from ccs (id=%d, votes=%d)\n", nodename, this_nodeid, votes);
+	    log_printf(LOGSYS_LEVEL_DEBUG, "memb: Got node %s from ccs (id=%d, votes=%d)\n", nodename, this_nodeid, votes);
 	    add_ccs_node(nodename, this_nodeid, votes, expected);
 	    nodes_handle = nodeslist_next(corosync, find_handle);
     } while (nodes_handle);

@@ -24,11 +24,10 @@
 #define OBJDB_API struct objdb_iface_ver0
 #include "cnxman-socket.h"
 #include "nodelist.h"
-#include "logging.h"
 
 #define MAX_PATH_LEN PATH_MAX
 
-static unsigned int debug_mask;
+static unsigned int debug;
 static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string);
 static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const char **error_string);
 
@@ -203,25 +202,17 @@ static hdb_handle_t find_cman_logger(struct objdb_iface_ver0 *objdb, hdb_handle_
 	char *str;
 
 	objdb->object_find_create(object_handle, "logger_subsys", strlen("logger_subsys"), &find_handle);
-	while (!objdb->object_find_next(object_handle, &subsys_handle)) {
-
-		if (objdb_get_string(objdb, subsys_handle, "subsys", &str)) {
-			continue;
+	while (!objdb->object_find_next(find_handle, &subsys_handle)) {
+		if (!objdb_get_string(objdb, subsys_handle, "subsys", &str)) {
+			if (strncmp(str, CMAN_NAME, 4) == 0) {
+				objdb->object_find_destroy(find_handle);
+				return subsys_handle;
+			}
 		}
-		if (strcmp(str, CMAN_NAME) == 0)
-			return subsys_handle;
 	}
 	objdb->object_find_destroy(find_handle);
 
-	/* We can't find it ... create one */
-	if (objdb->object_create(object_handle, &subsys_handle,
-				    "logger_subsys", strlen("logger_subsys")) == 0) {
-
-		objdb->object_key_create(subsys_handle, "subsys", strlen("subsys"),
-					    CMAN_NAME, strlen(CMAN_NAME)+1);
-	}
-
-	return subsys_handle;
+	return -1;
 
 }
 
@@ -503,7 +494,9 @@ static int get_env_overrides(void)
 		votes = 1;
 	}
 	if (getenv("CMAN_DEBUG")) {
-		debug_mask = atoi(getenv("CMAN_DEBUG"));
+		debug = atoi(getenv("CMAN_DEBUG"));
+		if (debug > 0)
+			debug = 1;
 	}
 
 	return 0;
@@ -644,9 +637,9 @@ out:
 /* These are basically cman overrides to the totem config bits */
 static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 {
-	hdb_handle_t logger_object_handle;
 	char *logstr;
 	char *logfacility;
+	char *loglevel;
 	hdb_handle_t object_handle;
 	hdb_handle_t find_handle;
 	char tmp[256];
@@ -745,16 +738,17 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	objdb->object_find_destroy(find_handle);
 
 	logfacility = facility_name_get(SYSLOGFACILITY);
+	loglevel = priority_name_get(SYSLOGLEVEL);
 
-	logger_object_handle = find_cman_logger(objdb, object_handle);
-
-	if (objdb_get_string(objdb, object_handle, "syslog_facility", &logstr)) {
-		objdb->object_key_create(object_handle, "syslog_facility", strlen("syslog_facility"),
-					    logfacility, strlen(logfacility)+1);
+	/* enable timestamps on logging */
+	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
+		objdb->object_key_create(object_handle, "timestamp", strlen("timestamp"),
+					    "on", strlen("on")+1);
 	}
 
-	if (objdb_get_string(objdb, object_handle, "to_file", &logstr)) {
-		objdb->object_key_create(object_handle, "to_file", strlen("to_file"),
+	/* configure logfile */
+	if (objdb_get_string(objdb, object_handle, "to_logfile", &logstr)) {
+		objdb->object_key_create(object_handle, "to_logfile", strlen("to_logfile"),
 					    "yes", strlen("yes")+1);
 	}
 
@@ -763,27 +757,53 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 					    LOGDIR "/corosync.log", strlen(LOGDIR "/corosync.log")+1);
 	}
 
-	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
-		objdb->object_key_create(object_handle, "timestamp", strlen("timestamp"),
-					    "on", strlen("on")+1);
-	}
-
-	if (debug_mask) {
-		objdb->object_key_create(object_handle, "to_stderr", strlen("to_stderr"),
-					    "yes", strlen("yes")+1);
-		objdb->object_key_create(logger_object_handle, "debug", strlen("debug"),
-					    "on", strlen("on")+1);
-		objdb->object_key_create(logger_object_handle, "syslog_level", strlen("syslog_level"),
-					    "debug", strlen("debug")+1);
-
-	}
-	else {
-		char *loglevel;
-		loglevel = priority_name_get(SYSLOGLEVEL);
-		objdb->object_key_create(logger_object_handle, "syslog_level", strlen("syslog_level"),
+	if (objdb_get_string(objdb, object_handle, "logfile_priority", &logstr)) {
+		objdb->object_key_create(object_handle, "logfile_priority", strlen("logfile_priority"),
 					    loglevel, strlen(loglevel)+1);
 	}
 
+	/* syslog */
+	if (objdb_get_string(objdb, object_handle, "to_syslog", &logstr)) {
+		objdb->object_key_create(object_handle, "to_syslog", strlen("to_syslog"),
+					    "yes", strlen("yes")+1);
+	}
+
+	if (objdb_get_string(objdb, object_handle, "syslog_facility", &logstr)) {
+		objdb->object_key_create(object_handle, "syslog_facility", strlen("syslog_facility"),
+					    logfacility, strlen(logfacility)+1);
+	}
+
+	if (objdb_get_string(objdb, object_handle, "syslog_priority", &logstr)) {
+		objdb->object_key_create(object_handle, "syslog_priority", strlen("syslog_priority"),
+					    loglevel, strlen(loglevel)+1);
+	}
+
+	if (!debug) {
+		hdb_handle_t logger_object_handle;
+
+		if (!objdb_get_string(objdb, object_handle, "debug", &logstr)) {
+			if (!strncmp(logstr, "on", 2)) {
+				debug=1;
+			}
+		}
+
+		logger_object_handle = find_cman_logger(objdb, object_handle);
+		if (logger_object_handle > -1) {
+			if (!objdb_get_string(objdb, logger_object_handle, "debug", &logstr)) {
+				if (!strncmp(logstr, "on", 2)) {
+					debug=1;
+				}
+				if (!strncmp(logstr, "off", 3)) {
+					debug=0;
+				}
+			}
+		}
+	}
+
+	if (debug) {
+		objdb->object_key_create(object_handle, "to_stderr", strlen("to_stderr"),
+					    "yes", strlen("yes")+1);
+	}
 
 	/* Make sure we allow connections from user/group "ais" */
 	objdb->object_find_create(OBJECT_PARENT_HANDLE, "aisexec", strlen("aisexec"), &find_handle);
@@ -810,11 +830,6 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 		if (two_node) {
 			sprintf(str, "%d", 1);
 			objdb->object_key_create(object_handle, "two_node", strlen("two_node"),
-						 str, strlen(str) + 1);
-		}
-		if (debug_mask) {
-			sprintf(str, "%d", debug_mask);
-			objdb->object_key_create(object_handle, "debug_mask", strlen("debug_mask"),
 						 str, strlen(str) + 1);
 		}
 	}

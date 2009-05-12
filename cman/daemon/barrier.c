@@ -28,7 +28,6 @@
 #include "cnxman-private.h"
 #include "daemon.h"
 #include "commands.h"
-#include "logging.h"
 #include "barrier.h"
 #include "cman.h"
 #include "ais.h"
@@ -104,7 +103,7 @@ static void check_barrier_complete_phase1(struct cl_barrier *barrier)
 		bmsg.subcmd = BARRIER_COMPLETE;
 		strcpy(bmsg.name, barrier->name);
 
-		P_BARRIER("Sending COMPLETE for %s\n", barrier->name);
+		log_printf(LOGSYS_LEVEL_DEBUG, "barrier: Sending COMPLETE for %s\n", barrier->name);
 		comms_send_message((char *) &bmsg, sizeof (bmsg),
 				   0, 0,
 				   0,
@@ -116,7 +115,7 @@ static void check_barrier_complete_phase1(struct cl_barrier *barrier)
 /* Return 1 if we deleted the barrier */
 static int barrier_complete_phase2(struct cl_barrier *barrier, int status)
 {
-	P_BARRIER("complete_phase2 for %s\n", barrier->name);
+	log_printf(LOGSYS_LEVEL_DEBUG, "barrier: complete_phase2 for %s\n", barrier->name);
 
 	barrier->endreason = status;
 
@@ -141,7 +140,7 @@ static void barrier_timer_fn(void *arg)
 {
 	struct cl_barrier *barrier = arg;
 
-	P_BARRIER("Barrier timer_fn called for %s\n", barrier->name);
+	log_printf(LOGSYS_LEVEL_DEBUG, "barrier: Barrier timer_fn called for %s\n", barrier->name);
 
 	/* Ignore any futher messages, they are too late. */
 	barrier->phase = 0;
@@ -186,7 +185,7 @@ void process_barrier_msg(struct cl_barriermsg *msg,
 	if (!barrier)
 		return;
 
-	P_BARRIER("Got %d for %s, from node %s\n", msg->subcmd, msg->name,
+	log_printf(LOGSYS_LEVEL_DEBUG, "barrier: Got %d for %s, from node %s\n", msg->subcmd, msg->name,
 		  node ? node->name : "unknown");
 
 	switch (msg->subcmd) {
@@ -228,7 +227,7 @@ static int barrier_register(struct connection *con, char *name, unsigned int fla
 	if (flags & BARRIER_ATTR_MULTISTEP)
 		return -EINVAL;
 
-	P_BARRIER("barrier_register %s, nodes = %d, flags =%x\n", name, nodes, flags);
+	log_printf(LOGSYS_LEVEL_DEBUG, "barrier: barrier_register %s, nodes = %d, flags =%x\n", name, nodes, flags);
 
 	/* See if it already exists */
 	if ((barrier = find_barrier(name))) {
@@ -282,7 +281,7 @@ static int barrier_setattr_enabled(struct cl_barrier *barrier,
 						   barrier_timer_fn, &barrier->timer);
 		}
 
-		P_BARRIER("Sending WAIT for %s\n", barrier->name);
+		log_printf(LOGSYS_LEVEL_DEBUG, "barrier: Sending WAIT for %s\n", barrier->name);
 		status = comms_send_message((char *)&bmsg, sizeof(bmsg), 0,0, 0, MSG_TOTEM_SAFE);
 		if (status < 0) {
 			return status;
