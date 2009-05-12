@@ -26,7 +26,7 @@ int cfgd_post_fail_delay = DEFAULT_POST_FAIL_DELAY;
 int cfgd_override_time   = DEFAULT_OVERRIDE_TIME;
 char *cfgd_override_path = DEFAULT_OVERRIDE_PATH;
 
-void read_ccs_name(char *path, char *name)
+void read_ccs_name(const char *path, char *name)
 {
 	char *str;
 	int error;
@@ -40,7 +40,7 @@ void read_ccs_name(char *path, char *name)
 	free(str);
 }
 
-void read_ccs_yesno(char *path, int *yes, int *no)
+void read_ccs_yesno(const char *path, int *yes, int *no)
 {
 	char *str;
 	int error;
@@ -61,7 +61,7 @@ void read_ccs_yesno(char *path, int *yes, int *no)
 	free(str);
 }
 
-void read_ccs_int(char *path, int *config_val)
+void read_ccs_int(const char *path, int *config_val)
 {
 	char *str;
 	int val;
