@@ -15,11 +15,14 @@ static int remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 	if(!prev){
 		curr->ea_type = GFS_EATYPE_UNUSED;
 	} else {
-		curr->ea_rec_len = gfs32_to_cpu(curr->ea_rec_len);
-		prev->ea_rec_len = gfs32_to_cpu(prev->ea_rec_len);
+		uint32_t curr_rec_len;
+		uint32_t prev_rec_len;
+
+		curr_rec_len = gfs32_to_cpu(curr->ea_rec_len);
+		prev_rec_len = gfs32_to_cpu(prev->ea_rec_len);
 
 		prev->ea_rec_len =
-			cpu_to_gfs32(curr->ea_rec_len + prev->ea_rec_len);
+			cpu_to_gfs32(curr_rec_len + prev_rec_len);
 		if (curr->ea_flags & GFS_EAFLAG_LAST)
 			prev->ea_flags |= GFS_EAFLAG_LAST;
 	}
