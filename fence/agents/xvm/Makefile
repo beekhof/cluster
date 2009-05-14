@@ -30,7 +30,6 @@ SHAREDOBJS=	mcast.o \
 		debug.o
 
 CFLAGS += -D_GNU_SOURCE
-CFLAGS += -Werror -Wstrict-prototypes -Wshadow
 CFLAGS += -I${ccsincdir} -I${cmanincdir}
 CFLAGS += -I${corosyncincdir} -I${openaisincdir}
 CFLAGS += -I${logtincdir}

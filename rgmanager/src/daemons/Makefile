@@ -47,7 +47,7 @@ SHAREDOBJS=	depends-noccs.o \
 		event_config-noccs.o
 
 CFLAGS += -DSHAREDIR=\"${sharedir}\"
-CFLAGS += -Werror -Wstrict-prototypes -Wshadow -fPIC
+CFLAGS += -fPIC
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir} -I${logtincdir}
 CFLAGS += `xml2-config --cflags` -I${readlineincdir} -I${slangincdir}
 CFLAGS += -I$(S)/../../include

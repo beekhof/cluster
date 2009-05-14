@@ -17,7 +17,7 @@ include $(OBJDIR)/make/uninstall.mk
 
 DISABLEDTARGETS= cluarp
 
-CFLAGS += -Werror -Wstrict-prototypes -Wshadow -fPIC -D_GNU_SOURCE
+CFLAGS += -fPIC -D_GNU_SOURCE
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir}
 CFLAGS += -I${logtincdir} -I${ncursesincdir}
 CFLAGS += -I$(S)/../../include

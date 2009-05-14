@@ -16,7 +16,7 @@ OBJS1=	logging.o daemon_init.o signals.o msgsimple.o \
 
 OBJS2= msgtest.o
 
-CFLAGS += -Werror -Wstrict-prototypes -Wshadow -fPIC -D_GNU_SOURCE
+CFLAGS += -fPIC -D_GNU_SOURCE
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir}
 CFLAGS += -I${logtincdir}
 CFLAGS += -I$(S)/../../include

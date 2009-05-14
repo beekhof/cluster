@@ -12,7 +12,6 @@ include $(OBJDIR)/make/install.mk
 include $(OBJDIR)/make/uninstall.mk
 
 CFLAGS += -D_GNU_SOURCE
-CFLAGS += -Werror -Wstrict-prototypes -Wshadow
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${logtincdir}
 CFLAGS += -I${zlibincdir} 
 CFLAGS += -I$(S)
