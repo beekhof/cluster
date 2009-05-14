@@ -8,7 +8,7 @@
 #include "fs_bits.h"
 #include "util.h"
 
-int convert_mark(struct gfs2_block_query *q, uint32_t *count)
+static int convert_mark(struct gfs2_block_query *q, uint32_t *count)
 {
 	if (q->eattr_block) {
 		count[2]++;
@@ -51,7 +51,7 @@ int convert_mark(struct gfs2_block_query *q, uint32_t *count)
 	return -1;
 }
 
-int check_block_status(struct gfs2_sbd *sbp, char *buffer, unsigned int buflen,
+static int check_block_status(struct gfs2_sbd *sbp, char *buffer, unsigned int buflen,
 					   uint64_t *rg_block, uint64_t rg_data, uint32_t *count)
 {
 	unsigned char *byte, *end;
@@ -119,7 +119,7 @@ int check_block_status(struct gfs2_sbd *sbp, char *buffer, unsigned int buflen,
 	return 0;
 }
 
-enum update_flags update_rgrp(struct gfs2_sbd *sbp, struct rgrp_list *rgp,
+static enum update_flags update_rgrp(struct gfs2_sbd *sbp, struct rgrp_list *rgp,
 							  uint32_t *count)
 {
 	uint32_t i;

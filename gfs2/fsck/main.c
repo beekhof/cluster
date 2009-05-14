@@ -24,7 +24,7 @@ int errors_found = 0, errors_corrected = 0;
 const char *pass = "";
 uint64_t last_data_block;
 uint64_t first_data_block;
-char *prog_name = "gfs2_fsck"; /* needed by libgfs2 */
+const char *prog_name = "gfs2_fsck"; /* needed by libgfs2 */
 
 /* This function is for libgfs2's sake.                                      */
 void print_it(const char *label, const char *fmt, const char *fmt2, ...)
@@ -37,19 +37,19 @@ void print_it(const char *label, const char *fmt, const char *fmt2, ...)
 	va_end(args);
 }
 
-void usage(char *name)
+static void usage(char *name)
 {
 	printf("Usage: %s [-hnqvVy] <device> \n", basename(name));
 }
 
-void version(void)
+static void version(void)
 {
 	printf("GFS2 fsck %s (built %s %s)\n",
 	       RELEASE_VERSION, __DATE__, __TIME__);
 	printf("%s\n", REDHAT_COPYRIGHT);
 }
 
-int read_cmdline(int argc, char **argv, struct gfs2_options *opts)
+static int read_cmdline(int argc, char **argv, struct gfs2_options *gopts)
 {
 	int c;
 
@@ -61,7 +61,7 @@ int read_cmdline(int argc, char **argv, struct gfs2_options *opts)
 			exit(FSCK_OK);
 			break;
 		case 'n':
-			opts->no = 1;
+			gopts->no = 1;
 			break;
 		case 'q':
 			decrease_verbosity();
@@ -74,7 +74,7 @@ int read_cmdline(int argc, char **argv, struct gfs2_options *opts)
 			exit(FSCK_OK);
 			break;
 		case 'y':
-			opts->yes = 1;
+			gopts->yes = 1;
 			break;
 		case ':':
 		case '?':
@@ -88,8 +88,8 @@ int read_cmdline(int argc, char **argv, struct gfs2_options *opts)
 		}
 	}
 	if(argc > optind) {
-		opts->device = (argv[optind]);
-		if(!opts->device) {
+		gopts->device = (argv[optind]);
+		if(!gopts->device) {
 			fprintf(stderr, "Please use '-h' for usage.\n");
 			return FSCK_USAGE;
 		}
@@ -100,7 +100,7 @@ int read_cmdline(int argc, char **argv, struct gfs2_options *opts)
 	return 0;
 }
 
-void interrupt(int sig)
+static void interrupt(int sig)
 {
 	char response;
 	char progress[PATH_MAX];
@@ -127,7 +127,7 @@ void interrupt(int sig)
 
 /* Check system inode and verify it's marked "in use" in the bitmap:       */
 /* Should work for all system inodes: root, master, jindex, per_node, etc. */
-int check_system_inode(struct gfs2_inode *sysinode, const char *filename,
+static int check_system_inode(struct gfs2_inode *sysinode, const char *filename,
 		       int builder(struct gfs2_sbd *sbp),
 		       enum gfs2_mark_block mark)
 {
@@ -197,7 +197,7 @@ int check_system_inode(struct gfs2_inode *sysinode, const char *filename,
 	return 0;
 }
 
-int check_system_inodes(struct gfs2_sbd *sdp)
+static int check_system_inodes(struct gfs2_sbd *sdp)
 {
 	/*******************************************************************
 	 *******  Check the system inode integrity             *************

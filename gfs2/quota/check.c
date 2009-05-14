@@ -274,7 +274,7 @@ out:
  */
 
 static void
-print_list(char *str, osi_list_t *list)
+print_list(const char *str, osi_list_t *list)
 {
 #if 0
 	osi_list_t *tmp;
@@ -297,7 +297,7 @@ print_list(char *str, osi_list_t *list)
  */
 
 static int
-do_compare(char *type, osi_list_t *fs_list, osi_list_t *qf_list)
+do_compare(const char *type, osi_list_t *fs_list, osi_list_t *qf_list)
 {
 	osi_list_t *tmp1, *tmp2;
 	values_t *v1, *v2;
