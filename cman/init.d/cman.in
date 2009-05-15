@@ -122,7 +122,16 @@ fi
 #     The default script is "network-bridge".
 [ -z "$NETWORK_BRIDGE_SCRIPT" ] && NETWORK_BRIDGE_SCRIPT="network-bridge"
 
-[ -n "$CLUSTERNAME" ] && cman_join_opts="-c $CLUSTERNAME"
+# CMAN_JOIN_OPTS -- allows extra options to be passed to cman_tool when join
+#     operation is performed.
+#     NOTES:
+#	$CLUSTERNAME   automatically appends "-c $CLUSTERNAME"
+#	$NODENAME      automatically appends "-n $NODENAME"
+#	$CONFIG_LOADER automatically appends "-C $CONFIG_LOADER"
+
+[ -n "$CMAN_JOIN_OPTS" ] && cman_join_opts="$CMAN_JOIN_OPTS"
+
+[ -n "$CLUSTERNAME" ] && cman_join_opts+="-c $CLUSTERNAME"
 
 [ -n "$NODENAME" ] && cman_join_opts+=" -n $NODENAME"
 
@@ -138,6 +147,10 @@ fi
 # corosync_parser - use internal corosync config file parser.
 # openaisparser   - use internal openais config file parser.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
+
+# CMAN_LEAVE_OPTS -- allows extra options to be passed to cman_tool when leave
+#     operation is performed.
+[ -n "$CMAN_LEAVE_OPTS" ] && cman_leave_opts="$CMAN_LEAVE_OPTS"
 
 # INITLOGLEVEL -- select how verbose the init script should be
 # possible values:
@@ -477,7 +490,7 @@ start_cman()
 stop_cman()
 {
 	if cman_running; then
-		errmsg=$( cman_tool -t $CMAN_SHUTDOWN_TIMEOUT \
+		errmsg=$( cman_tool $cman_leave_opts -t $CMAN_SHUTDOWN_TIMEOUT \
 			-w leave $cmanremove 2>&1 ) || return 1
 	fi
 }
