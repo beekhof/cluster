@@ -2056,7 +2056,7 @@ static void process_internal_message(char *data, int nodeid, int need_byteswap)
 			if (shutdown_con)
 				send_status_return(shutdown_con, CMAN_CMD_TRY_SHUTDOWN, 0);
 			cman_finish();
-			exit(0);
+			corosync_shutdown();
 		}
 
 		/* Someone else, make a note of the reason for leaving */
