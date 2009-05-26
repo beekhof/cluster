@@ -12,7 +12,6 @@ include $(OBJDIR)/make/uninstall.mk
 
 CFLAGS += -fPIC -D_GNU_SOURCE
 CFLAGS += `xml2-config --cflags`
-CFLAGS += -I${cmanincdir}/../daemon
 CFLAGS += -I${incdir}
 
 LDFLAGS += `xml2-config --libs`
