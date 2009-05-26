@@ -172,12 +172,12 @@ int join(commandline_t *comline, char *main_envp[])
 	if (comline->noconfig_opt) {
 		envp[envptr++] = strdup("CMAN_NOCONFIG=true");
 		snprintf(scratch, sizeof(scratch), "COROSYNC_DEFAULT_CONFIG_IFACE=cmanpreconfig%s",
-			 comline->noopenais_opt?"":":openaisserviceenable");
+			 comline->noopenais_opt?"":":openaisserviceenablestable");
 		envp[envptr++] = strdup(scratch);
 	}
 	else {
 		snprintf(scratch, sizeof(scratch), "COROSYNC_DEFAULT_CONFIG_IFACE=%s:cmanpreconfig%s", comline->config_lcrso,
-			 comline->noopenais_opt?"":":openaisserviceenable");
+			 comline->noopenais_opt?"":":openaisserviceenablestable");
 		envp[envptr++] = strdup(scratch);
 	}
 
