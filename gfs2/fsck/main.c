@@ -91,7 +91,7 @@ static int read_cmdline(int argc, char **argv, struct gfs2_options *gopts)
 	}
 	if(argc > optind) {
 		gopts->device = (argv[optind]);
-		if(!opts->device) {
+		if(!gopts->device) {
 			fprintf(stderr, _("Please use '-h' for usage.\n"));
 			return FSCK_USAGE;
 		}
