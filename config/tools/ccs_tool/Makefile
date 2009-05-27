@@ -6,7 +6,7 @@ SBINSYMT = $(TARGET2)
 
 include ../../../make/defines.mk
 
-all: ${TARGET1} ${TARGET2}
+all: depends ${TARGET1} ${TARGET2}
 
 include $(OBJDIR)/make/cobj.mk
 include $(OBJDIR)/make/clean.mk
@@ -32,7 +32,7 @@ ${TARGET2}: ${TARGET1}
 	ln -sf ${TARGET1} ${TARGET2}
 
 depends:
-	$(MAKE) -C $(OBJDIR)/cman/lib all
+	$(MAKE) -C $(OBJDIR)/config/libs/libccsconfdb all
 
 clean: generalclean
 

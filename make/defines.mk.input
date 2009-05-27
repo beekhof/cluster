@@ -80,7 +80,6 @@ enable_pacemaker ?= @ENABLE_PACEMAKER@
 without_gfs-kernel/src/gfs ?= @DISABLE_GFSKERNEL@
 without_common ?= @DISABLE_COMMON@
 without_config ?= @DISABLE_CONFIG@
-without_cman/lib ?= @DISABLE_CMAN@
 without_cman ?= @DISABLE_CMAN@
 without_dlm ?= @DISABLE_DLM@
 without_group ?= @DISABLE_GROUP@
