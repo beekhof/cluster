@@ -27,4 +27,4 @@ uninstall:
 
 clean:
 	-${MAKE} -f Makefile clean
-	rm -f $(TARGET) Makefile.old
+	rm -f $(TARGET) Makefile.old *.d
