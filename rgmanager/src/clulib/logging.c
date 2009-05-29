@@ -47,7 +47,7 @@ init_logging(char *name, int foreground, int default_prio)
 }
 
 
-int
+static int
 ccs_read_old_logging(int ccsfd, int *facility, int *priority)
 {
 	char query[256];
