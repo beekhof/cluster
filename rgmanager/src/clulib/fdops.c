@@ -144,7 +144,7 @@ _read_retry(int sockfd, void *buf, int count, struct timeval * timeout)
 		/* 
 		 * Attempt to read off the socket 
 		 */
-		n = read(sockfd, buf + (off_t) total, remain);
+		n = read(sockfd, (char*)buf + (off_t) total, remain);
 
 		/*
 		 * When we know our socket was select()ed and we receive 0 bytes

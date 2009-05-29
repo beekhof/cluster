@@ -850,11 +850,12 @@ process_cman_msg(cman_handle_t h, void *priv, char *buf, int len,
 static int
 cluster_msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx)
 {
-	errno = EINVAL;
 	cluster_msg_hdr_t *m;
 	msg_q_t *n;
 	char foo;
 	int err = 0;
+
+	errno = EINVAL;
 
 	if (!listenctx || !acceptctx)
 		return -1;
@@ -1020,7 +1021,7 @@ process_cman_event(cman_handle_t handle, void *private, int reason, int arg)
 		break;
 	}
 
-	argp = ((void *)msg + sizeof(cluster_msg_hdr_t));
+	argp = ((char *)msg + sizeof(cluster_msg_hdr_t));
 	*argp = arg;
 
 	node->len = sizeof(cluster_msg_hdr_t) + sizeof(int);

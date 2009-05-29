@@ -34,7 +34,7 @@ void
 init_logging(char *name, int foreground, int default_prio)
 {
 	if (!name)
-		name = DAEMON_NAME;
+		name = (char *)DAEMON_NAME;
 
 	strncpy(daemon_name, name, PATH_MAX);
 

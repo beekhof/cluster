@@ -1163,8 +1163,9 @@ S_user_event(const char *file, const char *script, char *name,
 int
 slang_do_script(event_t *pattern, event_t *ev)
 {
-	_event_type = ev->ev_type;
 	int ret = 0;
+
+	_event_type = ev->ev_type;
 
 	switch(ev->ev_type) {
 	case EVENT_NODE:
