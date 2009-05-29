@@ -14,8 +14,7 @@ include $(OBJDIR)/make/clean.mk
 include $(OBJDIR)/make/install.mk
 include $(OBJDIR)/make/uninstall.mk
 
-OBJS1=	depends.o \
-	fo_domain.o \
+OBJS1=	fo_domain.o \
 	groups.o \
 	main.o \
 	reslist.o \
@@ -37,8 +36,7 @@ OBJS2=	test-noccs.o
 
 OBJS3=	dtest-noccs.o
 
-SHAREDOBJS=	depends-noccs.o \
-		fo_domain-noccs.o \
+SHAREDOBJS=	fo_domain-noccs.o \
 		restart_counter.o \
 		reslist-noccs.o \
 		resrules-noccs.o \
