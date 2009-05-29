@@ -18,6 +18,7 @@
 #include <cman-private.h>
 #include <event.h>
 #include <members.h>
+#include <daemon_init.h>
 
 #define L_SHUTDOWN (1<<2)
 #define L_SYS (1<<1)
@@ -31,7 +32,6 @@ void set_transition_throttling(int);
 
 void node_event(int, int, int, int);
 void node_event_q(int, int, int, int);
-int daemon_init(char *);
 void daemon_cleanup(void);
 void kill_resource_groups(void);
 void flag_shutdown(int sig);

@@ -25,13 +25,7 @@
 #include <sys/errno.h>
 #include <libgen.h>
 #include <signal.h>
-
-/*
- * This should ultimately go in a header file.
- */
-void daemon_init(char *prog);
-int check_pid_valid(pid_t pid, char *prog);
-int check_process_running(char *prog, pid_t * pid);
+#include <daemon_init.h>
 
 /*
  * Local prototypes.
