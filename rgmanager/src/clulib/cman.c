@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <cman-private.h>
 
 static cman_handle_t _chandle = NULL;
 static pthread_mutex_t _chandle_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -182,7 +183,7 @@ out_unlock:
 
 
 int
-cman_init_subsys(cman_handle_t *ch)
+cman_init_subsys(cman_handle_t ch)
 {
 	int ret = -1;
 
