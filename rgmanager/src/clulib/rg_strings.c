@@ -3,7 +3,7 @@
 
 struct string_val {
 	int val;
-	char *str;
+	const char *str;
 };
 
 
