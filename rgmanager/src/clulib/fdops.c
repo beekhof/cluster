@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <fdops.h>
 
 /**
  * This is a wrapper around select which will retry in the case we receive
@@ -71,7 +72,7 @@ _write_retry(int fd, void *buf, int count, struct timeval * timeout)
 		/* 
 		 * Attempt to write to fd
 		 */
-		n = write(fd, buf + (off_t) total, remain);
+		n = write(fd, (char *)buf + (off_t) total, remain);
 
 		/*
 		 * When we know our fd was select()ed and we receive 0 bytes
