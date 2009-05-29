@@ -12,6 +12,7 @@ typedef enum {
 
 int get_my_nodeid(cman_handle_t h);
 int my_id(void);
+int set_my_id(int);
 cluster_member_list_t * get_member_list(cman_handle_t h);
 void free_member_list(cluster_member_list_t *ml);
 void member_set_state(int nodeid, int state);

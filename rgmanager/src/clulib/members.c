@@ -244,50 +244,6 @@ member_set_state(int nodeid, int state)
 
 
 int
-member_low_id(void)
-{
-	int x = 0, low = -1;
-
-	pthread_rwlock_wrlock(&memblock);
-	if (!membership) {
-		pthread_rwlock_unlock(&memblock);
-		return low;
-	}
-
-	for (x = 0; x < membership->cml_count; x++) {
-		if ((membership->cml_members[x].cn_member) &&
-		    ((membership->cml_members[x].cn_nodeid < low) || (low == -1)))
-			low = membership->cml_members[x].cn_nodeid;
-	}
-	pthread_rwlock_unlock(&memblock);
-
-	return low;
-}
-
-
-int
-member_high_id(void)
-{
-	int x = 0, high = -1;
-
-	pthread_rwlock_wrlock(&memblock);
-	if (!membership) {
-		pthread_rwlock_unlock(&memblock);
-		return high;
-	}
-
-	for (x = 0; x < membership->cml_count; x++) {
-		if (membership->cml_members[x].cn_member &&
-		    (membership->cml_members[x].cn_nodeid > high))
-			high = membership->cml_members[x].cn_nodeid;
-	}
-	pthread_rwlock_unlock(&memblock);
-
-	return high;
-}
-
-
-int
 member_online(int nodeid)
 {
 	int x = 0, ret = 0;
@@ -308,28 +264,6 @@ member_online(int nodeid)
 
 	return ret;
 }
-
-
-
-char *
-member_name(int id, char *buf, int buflen)
-{
-	char *n;
-
-	if (!buf || !buflen)
-		return NULL;
-
-	pthread_rwlock_rdlock(&memblock);
-	n = memb_id_to_name(membership, id);
-	if (n) {
-		strncpy(buf, n, buflen);
-	} else {
-		buf[0] = 0;
-	}
-	pthread_rwlock_unlock(&memblock);
-	return buf;
-}
-
 
 
 cluster_member_list_t *

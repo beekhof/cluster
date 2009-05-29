@@ -34,7 +34,6 @@ void node_event_q(int, int, int, int);
 int daemon_init(char *);
 void daemon_cleanup(void);
 void kill_resource_groups(void);
-void set_my_id(int);
 void flag_shutdown(int sig);
 void hard_exit(void);
 int send_rg_states(msgctx_t *, int);
