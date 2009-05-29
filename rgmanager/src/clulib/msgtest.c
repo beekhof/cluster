@@ -16,14 +16,7 @@ int my_node_id = 0;
 int running = 1;
 
 
-void
-sighandler(int sig)
-{
-	running = 0;
-}
-
-
-void *
+static void *
 piggyback(void *arg)
 {
 	msgctx_t ctx;
@@ -52,7 +45,7 @@ piggyback(void *arg)
 }
 
 
-void *
+static void *
 private(void *arg)
 {
 	msgctx_t ctx;
@@ -102,7 +95,7 @@ private(void *arg)
 }
 
 
-void
+static void
 clu_initialize(cman_handle_t *ch)
 {
 	if (!ch)
@@ -134,7 +127,7 @@ clu_initialize(cman_handle_t *ch)
 }
 
 
-int
+static int
 side_message(msgctx_t *ctx)
 {
 	msgctx_t actx;
@@ -160,7 +153,7 @@ side_message(msgctx_t *ctx)
 	return 0;
 }
 
-void
+static void
 sigusr2_handler(int sig)
 {
 }
