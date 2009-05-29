@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <assert.h>
+#include <rg_locks.h>
 #ifdef NO_CCS
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
