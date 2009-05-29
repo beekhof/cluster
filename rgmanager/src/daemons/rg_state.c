@@ -407,7 +407,7 @@ get_rg_state_local(char *name, rg_state_t *svcblk)
 	int datalen;
 #else
 	void *data = NULL;
-	uint64_t viewno;
+	uint64_t viewno = 0;
 	uint32_t datalen;
 #endif
 

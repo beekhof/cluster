@@ -799,7 +799,7 @@ vf_try_commit(key_node_t *key_node)
 }
 
 
-void
+static void
 vf_event_loop(msgctx_t *ctx, int my_node_id)
 {
 	int n;
@@ -844,7 +844,7 @@ vf_wait_ready(void)
 }
 
 
-void *
+static void *
 vf_server(void *arg)
 {
 	int my_node_id;
@@ -1067,7 +1067,7 @@ vf_key_init(char *keyid, int timeout, vf_vote_cb_t vote_cb,
 }
 
 
-vf_msg_t *
+static vf_msg_t *
 build_vf_data_message(int cmd, char *keyid, void *data, uint32_t datalen,
 		      int viewno, int trans, uint32_t *retlen)
 {
@@ -1521,7 +1521,7 @@ vf_read(cluster_member_list_t *membership, char *keyid, uint64_t *view,
 
 
 int
-vf_read_local(char *keyid, int *view, void **data, uint32_t *datalen)
+vf_read_local(char *keyid, uint64_t *view, void **data, uint32_t *datalen)
 {
 	key_node_t *key_node = NULL;
 
