@@ -261,13 +261,6 @@ msg_shutdown(void)
 }
 
 
-inline int
-msgctx_size(void)
-{
-	return sizeof(msgctx_t);
-}
-
-
 msgctx_t *
 msg_new_ctx(void)
 {
