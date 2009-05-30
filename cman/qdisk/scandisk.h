@@ -13,10 +13,8 @@
 #define SYSBLOCKPATH	SYSFSPATH "/block"
 #endif
 
-#ifdef DEBUG
-#define	DEVCACHETIMEOUT	5	/* expressed in seconds */
-#else
-#define	DEVCACHETIMEOUT	30
+#ifndef	DEVCACHETIMEOUT
+#define	DEVCACHETIMEOUT	30	/* expressed in seconds */
 #endif
 
 /* each entry can be (generally):
