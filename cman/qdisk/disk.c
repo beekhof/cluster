@@ -359,11 +359,9 @@ diskRawReadShadow(target_info_t *disk, off_t readOffset, char *buf, int len)
 	data = (char *)buf + sizeof(*hdrp);
 
 	if (header_verify(hdrp, data, len)) {
-#ifdef DEBUG
 		logt_print(LOG_DEBUG, "diskRawReadShadow: bad CRC32, "
 		       "offset = %d len = %d\n",
 		       (int) readOffset, len);
-#endif
 		errno = EPROTO;
 		return -1;
 	}
