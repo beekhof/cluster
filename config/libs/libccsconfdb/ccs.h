@@ -1,7 +1,3 @@
-#ifdef __CCS_COMPAT_DOT_H__
-#error DO NOT INCLUDE libccscompat.h and ccs.h at the same time. it is BAD!
-#endif
-
 #ifndef __CCS_DOT_H__
 #define __CCS_DOT_H__
 
