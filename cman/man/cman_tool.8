@@ -264,9 +264,7 @@ failover cluster this might save you some effort.
 On each node using this configuration you will need to have the same authorization key
 installed. To create this key run
 .br
-mkdir /etc/ais
-.br
-ais-keygen
+corosync-keygen
 .br
 mv /etc/ais/authkey /etc/cluster/cman_authkey
 .br

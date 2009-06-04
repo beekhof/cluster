@@ -53,8 +53,8 @@ static void print_usage(int subcmd)
 		printf("  -w               Wait until node has joined a cluster\n");
 		printf("  -q               Wait until the cluster is quorate\n");
 		printf("  -t               Maximum time (in seconds) to wait\n");
-		printf("  -k <file>        Private key file for AIS communications\n");
-		printf("  -P               Don't set aisexec to realtime priority\n");
+		printf("  -k <file>        Private key file for Corosync communications\n");
+		printf("  -P               Don't set corosync to realtime priority\n");
 		printf("  -X               Use internal cman defaults for configuration\n");
 		printf("  -A               Don't load openais services\n");
 		printf("\n");
