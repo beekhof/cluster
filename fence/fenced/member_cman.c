@@ -1,5 +1,6 @@
 #include "fd.h"
 #include "config.h"
+#include <arpa/inet.h>
 #include <libcman.h>
 
 #define BUFLEN		MAX_NODENAME_LEN+1
@@ -33,6 +34,7 @@ void kick_node_from_cluster(int nodeid)
 static int name_equal(char *name1, char *name2)
 {
 	char name3[BUFLEN], name4[BUFLEN];
+	char addr1[INET6_ADDRSTRLEN];
 	int i, len1, len2;
 
 	len1 = strlen(name1);
@@ -40,6 +42,16 @@ static int name_equal(char *name1, char *name2)
 
 	if (len1 == len2 && !strncmp(name1, name2, len1))
 		return 1;
+
+	/*
+	 * If the names are IP addresses then don't compare
+	 * what is in front of the dots.
+	 */
+	if (inet_pton(AF_INET, name1, addr1) == 0)
+		return 0;
+
+	if (inet_pton(AF_INET6, name1, addr1) == 0)
+		return 0;
 
 	memset(name3, 0, BUFLEN);
 	memset(name4, 0, BUFLEN);
