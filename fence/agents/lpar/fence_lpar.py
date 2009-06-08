@@ -166,8 +166,13 @@ def main():
 	##
 	## Logout from system
 	######
-	conn.send("quit\r\n")
-	conn.close()
+	try:
+		conn.send("quit\r\n")
+		conn.close()
+	except exceptions.OSError:
+		pass
+	except pexpect.ExceptionPexpect:
+		pass	                                         
 
 if __name__ == "__main__":
 	main()
