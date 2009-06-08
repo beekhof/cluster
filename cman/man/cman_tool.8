@@ -272,7 +272,7 @@ then copy that file to all nodes you want to join the cluster.
 .br
 .TP
 .I -C
-Overrides the default configuration module. Usually cman uses ccsd to load its
+Overrides the default configuration module. Usually cman uses xmlconfig (cluster.conf) to load its
 configuration. If you have your configuration database held elsewhere (eg LDAP) and 
 have a configuration plugin for it, then you should specify the name of the module
 (see the documentation for the module for the name of it - it's not necessarily the 
@@ -282,7 +282,7 @@ It is possible to chain configuration modules by separating them with colons. So
 add two modules (eg) 'ldapconfig' and 'ldappreproc' to the chain start cman with
 -C ldapconfig:ldappreproc
 .br
-The default value for this is 'ccsconfig'. Note that if the -X is on the command-line
+The default value for this is 'xmlconfig'. Note that if the -X is on the command-line
 then -C will be ignored.
 .TP
 .I -A
@@ -396,7 +396,7 @@ In this scenario we should kill the node node-02 and node-03. Of course, the 3 n
 This section details how the configuration systems work in cman. You might need to know this if you are using the -C option
 to cman_tool, or writing your own configuration subsystem.
 .br
-By default cman uses two configuration plugins to corosync. The first, 'ccsconfig', reads the configuration information
+By default cman uses two configuration plugins to corosync. The first, 'xmlconfig', reads the configuration information
 stored in cluster.conf and stores it in an internal database, in the same schema as it finds in cluster.conf. 
 The second plugin, 'cmanpreconfig', takes the information in that the database, adds several cman defaults, determines 
 the corosync node name and nodeID
@@ -404,7 +404,7 @@ and formats the information in a similar manner to corosync.conf(5). Corosync th
 cmanpreconfig also reads several environment variables that might be set by cman_tool which can override information in the 
 configuration.
 .br
-In the absence of ccsconfig, ie when 'cman_tool join' is run with -X switch (this removes ccsconfig from the module list), 
+In the absence of xmlconfig, ie when 'cman_tool join' is run with -X switch (this removes xmlconfig from the module list), 
 cmanpreconfig also generates several defaults so that the cluster can be got running without any configuration information - see above
 for the details.
 .br
