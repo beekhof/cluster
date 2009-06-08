@@ -8,6 +8,7 @@
 #include <asm/uaccess.h>
 #include <linux/compat.h>
 #include <linux/cred.h>
+#include <linux/vmalloc.h>
 
 #include "gfs_ioctl.h"
 #include "gfs.h"
@@ -55,7 +56,7 @@ gi_skeleton(struct gfs_inode *ip, struct gfs_ioctl *gi,
 	if (size > gi->gi_size)
 		size = gi->gi_size;
 
-        buf = kmalloc(size, GFP_KERNEL);
+        buf = vmalloc(size);
         if (!buf)
                 return -ENOMEM;
 
@@ -69,7 +70,7 @@ gi_skeleton(struct gfs_inode *ip, struct gfs_ioctl *gi,
 		error = count + 1;
 
  out:
-	kfree(buf);
+	vfree(buf);
 
 	return error;
 }
