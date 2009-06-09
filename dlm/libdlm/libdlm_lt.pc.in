@@ -3,7 +3,7 @@ exec_prefix=${prefix}
 libdir=@LIBDIR@
 includedir=@INCDIR@
 
-Name: libdlm
+Name: libdlm_lt
 Version: @VERSION@
 Description: Cluster Distributed Lock Manager non-threaded library
 Requires:
