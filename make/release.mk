@@ -19,59 +19,65 @@ all:
 
 else
 
+ifdef RELEASE
+TEST=""
+else
+TEST="test"
+endif
+
 ## setup stuff
 
 MASTERPROJECT=cluster
+
+ifdef RELEASE
 MASTERPV=$(MASTERPROJECT)-$(VERSION)
-MASTERTGZ=$(MASTERPV).tar.gz
-TESTTGZ=TEST-$(MASTERTGZ)
+else
+MASTERPV=HEAD
+endif
+MASTERTGZ=$(TEST)$(MASTERPROJECT)-$(VERSION).tar.gz
 
 # fence-agents
 FENCEPROJECT=fence-agents
 FENCEPV=$(FENCEPROJECT)-$(VERSION)
-FENCETGZ=$(FENCEPV).tar.gz
+FENCETGZ=$(TEST)$(FENCEPV).tar.gz
 
 # resource-agents
 RASPROJECT=resource-agents
 RASPV=$(RASPROJECT)-$(VERSION)
-RASTGZ=$(RASPV).tar.gz
+RASTGZ=$(TEST)$(RASPV).tar.gz
 
-all: test-tarball
+all: tag tarballs
 
-test-tarball:
-	git archive \
-		--format=tar \
-		--prefix=$(MASTERPV)/ \
-		HEAD | \
-		gzip -9 \
-		> ../$(TESTTGZ)
-
-release: tag tarballs
-
+ifdef RELEASE
 tag:
 	git tag -a -m "$(MASTERPV) release" $(MASTERPV) HEAD
+
+else
+tag:
+
+endif
 
 tarballs: master-tarball fence-agents-tarball resource-agents-tarball
 
 master-tarball:
 	git archive \
 		--format=tar \
-		--prefix=$(MASTERPV)/ \
+		--prefix=$(MASTERPROJECT)-$(VERSION)/ \
 		$(MASTERPV) | \
 		tar xp
 	sed -i -e \
 		's#<CVS>#$(VERSION)#g' \
-		$(MASTERPV)/gfs-kernel/src/gfs/gfs.h
+		$(MASTERPROJECT)-$(VERSION)/gfs-kernel/src/gfs/gfs.h
 	echo "VERSION \"$(VERSION)\"" \
-		>> $(MASTERPV)/make/official_release_version
-	tar cp $(MASTERPV) | \
+		>> $(MASTERPROJECT)-$(VERSION)/make/official_release_version
+	tar cp $(MASTERPROJECT)-$(VERSION) | \
 		gzip -9 \
 		> ../$(MASTERTGZ)
-	rm -rf $(MASTERPV)
+	rm -rf $(MASTERPROJECT)-$(VERSION)
 
 fence-agents-tarball:
 	tar zxpf ../$(MASTERTGZ)
-	mv $(MASTERPV) $(FENCEPV)
+	mv $(MASTERPROJECT)-$(VERSION) $(FENCEPV)
 	cd $(FENCEPV) && \
 		rm -rf bindings cman common config contrib dlm gfs* group rgmanager && \
 		rm -rf fence/fenced fence/fence_node fence/fence_tool fence/include fence/libfence fence/libfenced && \
@@ -84,7 +90,7 @@ fence-agents-tarball:
 
 resource-agents-tarball:
 	tar zxpf ../$(MASTERTGZ)
-	mv $(MASTERPV) $(RASPV)
+	mv $(MASTERPROJECT)-$(VERSION) $(RASPV)
 	cd $(RASPV) && \
 		rm -rf bindings cman common config contrib dlm fence gfs* group && \
 		rm -rf rgmanager/ChangeLog rgmanager/errors.txt rgmanager/event-script.txt \
