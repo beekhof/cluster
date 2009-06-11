@@ -47,8 +47,6 @@ my %options = (
 	fencelibdir => \$fencelibdir,
 	logtincdir => \$logtincdir,
 	logtlibdir => \$logtlibdir,
-	volidincdir => \$volidincdir,
-	volidlibdir => \$volidlibdir,
 	ncursesincdir => \$ncursesincdir,
 	ncurseslibdir => \$ncurseslibdir,
 	slangincdir => \$slangincdir,
@@ -138,8 +136,6 @@ my $err = &GetOptions (\%options,
 		    'fencelibdir=s',
 		    'logtincdir=s',
 		    'logtlibdir=s',
-		    'volidincdir=s',
-		    'volidlibdir=s',
 		    'ncursesincdir=s',
 		    'ncurseslibdir=s',
 		    'slangincdir=s',
@@ -252,8 +248,6 @@ if ($help || !$err) {
   print "--fencelibdir=\tthe base directory for fence libraries.  (Default: ./fence/libfence)\n";
   print "--logtincdir=\tthe base directory for logthread include files.  (Default: ./common/liblogthread)\n";
   print "--logtlibdir=\tthe base directory for logthread libraries.  (Default: ./common/liblogthread)\n";
-  print "--volidincdir=\tthe base directory for volume_id include files.  (Default: {incdir})\n";
-  print "--volidlibdir=\tthe base directory for volume_id libraries.  (Default: {libdir})\n";
   print "--ncursesincdir=\tthe base directory for ncurses include files.  (Default: {incdir})\n";
   print "--ncurseslibdir=\tthe base directory for ncurses libraries.  (Default: {libdir})\n";
   print "--slangincdir=\tthe base directory for S-Lang include files.  (Default: {incdir})\n";
@@ -492,12 +486,6 @@ if (!$logtincdir) {
 }
 if (!$logtlibdir) {
   $logtlibdir="${objdir}/common/liblogthread";
-}
-if (!$volidincdir) {
-  $volidincdir="${incdir}";
-}
-if (!$volidlibdir) {
-  $volidlibdir="${libdir}";
 }
 if (!$readlineincdir) {
   $readlineincdir="${incdir}";
@@ -752,8 +740,6 @@ while (<IFILE>) {
   $_ =~ s/\@FENCELIBDIR\@/$fencelibdir/;
   $_ =~ s/\@LOGTINCDIR\@/$logtincdir/;
   $_ =~ s/\@LOGTLIBDIR\@/$logtlibdir/;
-  $_ =~ s/\@VOLIDINCDIR\@/$volidincdir/;
-  $_ =~ s/\@VOLIDLIBDIR\@/$volidlibdir/;
   $_ =~ s/\@READLINEINCDIR\@/$readlineincdir/;
   $_ =~ s/\@READLINELIBDIR\@/$readlinelibdir/;
   $_ =~ s/\@NCURSESINCDIR\@/$ncursesincdir/;

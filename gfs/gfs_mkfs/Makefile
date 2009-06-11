@@ -18,11 +18,10 @@ OBJS=	device_geometry.o \
 	structures.o
 
 CFLAGS += -DHELPER_PROGRAM -D_FILE_OFFSET_BITS=64
-CFLAGS += -I${gfskincdir} -I${volidincdir}
+CFLAGS += -I${gfskincdir}
 CFLAGS += -I$(S)/../include -I$(S)/../libgfs
 CFLAGS += -I${incdir}
 
-LDFLAGS += -L${volidlibdir} -lvolume_id
 LDFLAGS += -L../libgfs -lgfs
 LDFLAGS += -L${libdir}
 
