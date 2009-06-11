@@ -1157,12 +1157,20 @@ svc_status(char *svcName)
 		/* Don't check status for anything not owned */
 		return 0;
 
-	if (svcStatus.rs_state != RG_STATE_STARTED &&
-	    svcStatus.rs_state != RG_STATE_MIGRATE)
+	if (svcStatus.rs_state == RG_STATE_STARTED) {
+		/* Running locally and not migrating = normal status
+		 * check
+		 */
+		ret = group_op(svcName, RG_STATUS);
+	} else if (svcStatus.rs_state == RG_STATE_MIGRATE) {
+		/* Migrating resources need an inquiry check to avoid
+		 * setting NEEDSTOP/NEEDSTART in the resource tree.
+		 */
+		ret = group_op(svcName, RG_STATUS_INQUIRY);
+	} else {
 		/* Not-running RGs should not be checked either. */
 		return 0;
-
-	ret = group_op(svcName, RG_STATUS);
+	}
 
 	/* For running services, if the return code is 0, we're done*/
 	if (svcStatus.rs_state == RG_STATE_STARTED)

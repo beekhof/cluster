@@ -1083,18 +1083,20 @@ _res_op_by_level(resource_node_t **tree, resource_t *first, void *ret,
 
 
 void
-mark_nodes(resource_node_t *node, int state, int flags)
+mark_nodes(resource_node_t *node, int state, int setflags, int clearflags)
 {
 	int x;
 	resource_node_t *child;
 
 	list_for(&node->rn_child, child, x) {
 		if (child->rn_child)
-			mark_nodes(child->rn_child, state, flags);
+			mark_nodes(child->rn_child, state, setflags,
+				   clearflags);
 	}
 
 	node->rn_state = state;
-	node->rn_flags |= (RF_NEEDSTART | RF_NEEDSTOP);
+	node->rn_flags |= (setflags);
+	node->rn_flags &= ~(clearflags);
 }
 
 
@@ -1356,7 +1358,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			   node is independent or not.
 			 */
 			mark_nodes(node, RES_FAILED,
-				   RF_NEEDSTART | RF_NEEDSTOP);
+				   RF_NEEDSTART | RF_NEEDSTOP, 0);
 
 			/* If we're an independent subtree, return a flag
 			   stating that this section is recoverable apart
@@ -1369,6 +1371,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			return SFL_FAILURE;
 		}
 
+		mark_nodes(node, RES_STARTED, 0, RF_NEEDSTOP);
 	}
 
        if (node->rn_child) {
@@ -1383,7 +1386,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		if (op == RS_STATUS && (rv & SFL_FAILURE) &&
 		    (node->rn_flags & RF_INDEPENDENT)) {
 			mark_nodes(node, RES_FAILED,
-				   RF_NEEDSTART | RF_NEEDSTOP);
+				   RF_NEEDSTART | RF_NEEDSTOP, 0);
 			rv = SFL_RECOVERABLE;
 		}
 	}
