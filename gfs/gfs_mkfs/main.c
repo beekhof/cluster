@@ -10,11 +10,12 @@
 #include <assert.h>
 #include <time.h>
 #include <mntent.h>
+#include <poll.h>
+#include <signal.h>
 
 #include "global.h"
 #include "gfs_ondisk.h"
 #include "osi_list.h"
-#include "libvolume_id.h"
 #include "libgfs.h"
 #include "copyright.cf"
 
@@ -197,6 +198,103 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
   }
 }
 
+static int get_file_output(int fd, char *buffer, size_t buflen)
+{
+	struct pollfd pf = { .fd = fd, .events = POLLIN|POLLRDHUP };
+	int flags;
+	int pos = 0;
+	int rv;
+
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags < 0)
+		return flags;
+
+	flags |= O_NONBLOCK;
+	rv = fcntl(fd, F_SETFL, flags);
+	if (rv < 0)
+		return rv;
+
+	while (1) {
+		rv = poll(&pf, 1, 10 * 1000);
+		if (rv == 0)
+			break;
+		if (rv < 0)
+			return rv;
+		if (pf.revents & POLLIN) {
+			rv = read(fd, buffer + pos,
+				   buflen - pos);
+			if (rv < 0) {
+				if (errno == EAGAIN)
+					continue;
+				return rv;
+			}
+			if (rv == 0)
+				break;
+			pos += rv;
+			if (pos >= buflen)
+				return -1;
+			buffer[pos] = 0;
+			continue;
+		}
+		if (pf.revents & (POLLRDHUP | POLLHUP | POLLERR))
+			break;
+	}
+	return 0;
+}
+
+static void check_dev_content(const char *devname)
+{
+	struct sigaction sa;
+	char content[1024] = { 0, };
+	char * const args[] = {
+		(char *)"/usr/bin/file",
+		(char *)"-bs",
+		(char *)devname,
+		NULL };
+	int p[2];
+	int ret;
+	int pid;
+
+	ret = sigaction(SIGCHLD, NULL, &sa);
+	if  (ret)
+		return;
+	sa.sa_handler = SIG_IGN;
+	sa.sa_flags |= (SA_NOCLDSTOP | SA_NOCLDWAIT);
+	ret = sigaction(SIGCHLD, &sa, NULL);
+	if (ret)
+		goto fail;
+
+	ret = pipe(p);
+	if (ret)
+		goto fail;
+
+	pid = fork();
+
+	if (pid < 0) {
+		close(p[1]);
+		goto fail;
+	}
+
+	if (pid) {
+		close(p[1]);
+		ret = get_file_output(p[0], content, sizeof(content));
+		if (ret) {
+fail:
+			printf("Content of file or device unknown (do you have GNU fileutils installed?)\n");
+		} else {
+			if (*content == 0)
+				goto fail;
+			printf("It appears to contain: %s", content);
+		}
+		close(p[0]);
+		return;
+	}
+
+	close(p[0]);
+	dup2(p[1], STDOUT_FILENO);
+	close(STDIN_FILENO);
+	exit(execv(args[0], args));
+}
 
 /**
  * are_you_sure - protect lusers from themselves
@@ -207,34 +305,14 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 static void are_you_sure(commandline_t *comline)
 {
 	char input[32];
-	struct volume_id *vid = NULL;
 	int fd;
 
-	fd = open(comline->device, O_RDONLY);
+	fd = open(comline->device, O_RDONLY | O_CLOEXEC);
 	if (fd < 0)
 		die("Error: device %s not found.\n", comline->device);
-	vid = volume_id_open_fd(fd);
-	if (vid == NULL) {
-		close(fd);
-		die("error identifying the contents of %s: %s\n",
-		    comline->device, strerror(errno));
-	}
 	printf("This will destroy any data on %s.\n",
 	       comline->device);
-	if (volume_id_probe_all(vid, 0, MKFS_DEFAULT_BSIZE) == 0) {
-		const char *fstype, *fsusage;
-		int rc;
-
-		rc = volume_id_get_type(vid, &fstype);
-		if (rc) {
-			rc = volume_id_get_usage(vid, &fsusage);
-			if (!rc || strncmp(fsusage, "other", 5) == 0)
-				fsusage = "partition";
-			printf("  It appears to contain a %s %s.\n", fstype,
-			       fsusage);
-		}
-	}
-	volume_id_close(vid);
+	check_dev_content(comline->device);
 	close(fd);
 	printf("\nAre you sure you want to proceed? [y/n] ");
 	if (fgets(input, 32, stdin) == NULL || input[0] != 'y')
@@ -260,7 +338,7 @@ static void check_mount(char *device)
 	if (!S_ISBLK(st_buf.st_mode))
 		die("%s is not a block device\n", device);
 
-	fd = open(device, O_RDONLY | O_NONBLOCK | O_EXCL);
+	fd = open(device, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 
 	if (fd < 0) {
 		if (errno == EBUSY) {
@@ -392,7 +470,7 @@ int main(int argc, char *argv[])
 
 	/*  Start writing stuff out  */
 
-	comline.fd = open(comline.device, O_RDWR);
+	comline.fd = open(comline.device, O_RDWR | O_CLOEXEC);
 	if (comline.fd < 0)
 		die("can't open device %s\n", comline.device);
 

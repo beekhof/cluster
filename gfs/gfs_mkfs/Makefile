@@ -17,7 +17,7 @@ OBJS=	device_geometry.o \
 	ondisk.o \
 	structures.o
 
-CFLAGS += -DHELPER_PROGRAM -D_FILE_OFFSET_BITS=64
+CFLAGS += -DHELPER_PROGRAM -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 CFLAGS += -I${gfskincdir}
 CFLAGS += -I$(S)/../include -I$(S)/../libgfs
 CFLAGS += -I${incdir}

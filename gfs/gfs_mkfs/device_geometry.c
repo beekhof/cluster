@@ -30,7 +30,7 @@ void device_geometry(commandline_t *comline, mkfs_device_t *device)
 	uint64 bytes;
 	int error;
 
-	fd = open(comline->device, O_RDONLY);
+	fd = open(comline->device, O_RDONLY | O_CLOEXEC);
 	if (fd < 0)
 		die("can't open %s: %s\n", comline->device, strerror(errno));
 
