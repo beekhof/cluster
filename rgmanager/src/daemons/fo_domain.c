@@ -36,7 +36,7 @@
  */
 int group_property(char *, char *, char *, size_t);
 
-fod_node_t *
+static fod_node_t *
 #ifndef NO_CCS
 fod_get_node(int ccsfd, char *base, int idx, fod_t *domain)
 #else
@@ -102,7 +102,7 @@ fod_get_node(int __attribute__((unused)) ccsfd, char *base, int idx, fod_t *doma
 }
 
 
-fod_t *
+static fod_t *
 fod_get_domain(int ccsfd, char *base, int idx, fod_t **domains)
 {
 	fod_t *fod;
@@ -203,22 +203,6 @@ construct_domains(int ccsfd, fod_t **domains)
 }
 
 
-fod_t *
-fod_find_domain(fod_t **domains, char *name)
-{
-	fod_t *dom;
-	
-	list_do(domains, dom) {
-		
-		if (!strcasecmp(dom->fd_name, name))
-			return dom;
-	
-	} while (!list_done(domains,dom));
-	
-	return NULL;
-}
-
-
 void
 deconstruct_domains(fod_t **domains)
 {
@@ -288,7 +272,7 @@ print_domains(fod_t **domains)
  *				2 for Yes, Not lowest-ordered, online member.
  *				3 for Yes, Lowest-ordered, online member.
  */
-int
+static int
 node_in_domain(char *nodename, fod_t *domain,
 	       cluster_member_list_t *membership)
 {
@@ -454,7 +438,7 @@ node_should_start(int nodeid, cluster_member_list_t *membership,
 	nodename = memb_id_to_name(membership, nodeid);
 
 #ifndef NO_CCS /* XXX Testing only */
-	if (group_property(rg_name, "domain",
+	if (group_property(rg_name, (char *)"domain",
 			    domainname, sizeof(domainname))) {
 		/*
 		 * If no domain is present, then the node in question should
