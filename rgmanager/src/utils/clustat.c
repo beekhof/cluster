@@ -1,5 +1,4 @@
 #include <members.h>
-#include <message.h>
 #include <msgsimple.h>
 #include <resgroup.h>
 #include <platform.h>
@@ -11,6 +10,7 @@
 #include <ccs.h>
 #include <libcman.h>
 #include <signal.h>
+#include <message.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -34,7 +34,7 @@ int running = 1;
 int dimx = 80, dimy = 24, stdout_is_tty = 0;
 int rgmanager_master_present = 0;
 
-void
+static void
 term_handler(int sig)
 {
 	running = 0;
@@ -47,7 +47,7 @@ typedef struct {
 } rg_state_list_t;
 
 
-int
+static int
 rg_name_sort(const void *left, const void *right)
 {
 	return strcmp(((rg_state_t *)left)->rs_name,
@@ -55,7 +55,7 @@ rg_name_sort(const void *left, const void *right)
 }
 
 
-int
+static int
 member_id_sort(const void *left, const void *right)
 {
 	cman_node_t *l = (cman_node_t *)left;
@@ -69,7 +69,7 @@ member_id_sort(const void *left, const void *right)
 }
 
 
-void
+static void
 flag_rgmanager_nodes(cluster_member_list_t *cml)
 {
 	msgctx_t ctx;
@@ -163,7 +163,7 @@ flag_rgmanager_nodes(cluster_member_list_t *cml)
 }
 
 
-rg_state_list_t *
+static rg_state_list_t *
 rg_state_list(int local_node_id, int fast)
 {
 	msgctx_t ctx;
@@ -284,7 +284,7 @@ rg_state_list(int local_node_id, int fast)
 }
 
 
-cluster_member_list_t *ccs_member_list(void)
+static cluster_member_list_t *ccs_member_list(void)
 {
 	int desc;
 	int x;
@@ -361,7 +361,7 @@ cluster_member_list_t *ccs_member_list(void)
 }
 
 
-void
+static void
 flag_nodes(cluster_member_list_t *all, cluster_member_list_t *these,
 	   uint8_t flag)
 {
@@ -380,7 +380,7 @@ flag_nodes(cluster_member_list_t *all, cluster_member_list_t *these,
 }
 
 
-cluster_member_list_t *
+static cluster_member_list_t *
 add_missing(cluster_member_list_t *all, cluster_member_list_t *these)
 {
 	int x, y, addflag;
@@ -432,7 +432,7 @@ add_missing(cluster_member_list_t *all, cluster_member_list_t *these)
 }
 
 
-char *
+static const char *
 my_memb_id_to_name(cluster_member_list_t *members, int memb_id)
 {
 	int x;
@@ -449,7 +449,7 @@ my_memb_id_to_name(cluster_member_list_t *members, int memb_id)
 }
 
 
-void
+static void
 _txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags,
 	      int svcsize, int nodesize, int statsize)
 {
@@ -489,7 +489,7 @@ _txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags,
 }
 
 
-void
+static void
 _txt_rg_state_v(rg_state_t *rs, cluster_member_list_t *members, int flags)
 {
 	time_t t;
@@ -507,7 +507,7 @@ _txt_rg_state_v(rg_state_t *rs, cluster_member_list_t *members, int flags)
 }
 
 
-void
+static void
 txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags, int svcsize, 
 	     int nodesize, int statsize)
 {
@@ -518,7 +518,7 @@ txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags, int svcs
 }
 
 
-void
+static void
 xml_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags)
 {
 	char time_str[32];
@@ -549,14 +549,15 @@ xml_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags)
 }
 
 
-void
+static void
 build_service_field_sizes(int cols, int *svcsize, int *nodesize, int *statsize)
 {
+	int pad = 6;		/* Spaces and such; newline */
+
 	/* Based on 80 columns */
 	*svcsize = 30;
 	*nodesize = 30;
 	*statsize = 14;	/* uninitialized */
-	int pad = 6;		/* Spaces and such; newline */
 
 	*svcsize = (cols - (*statsize + pad)) / 2;
 	*nodesize = (cols - (*statsize + pad)) / 2;
@@ -567,7 +568,7 @@ build_service_field_sizes(int cols, int *svcsize, int *nodesize, int *statsize)
 }
 
 
-int
+static int
 txt_rg_states(rg_state_list_t *rgl, cluster_member_list_t *members, 
 	      char *svcname, int flags)
 {
@@ -619,7 +620,7 @@ txt_rg_states(rg_state_list_t *rgl, cluster_member_list_t *members,
 }
 
 
-int
+static int
 xml_rg_states(rg_state_list_t *rgl, cluster_member_list_t *members,
 	      char *svcname, int flags)
 {
@@ -653,7 +654,7 @@ xml_rg_states(rg_state_list_t *rgl, cluster_member_list_t *members,
 }
 
 
-void
+static void
 txt_quorum_state(int qs)
 {
 	printf("Member Status: ");
@@ -666,7 +667,7 @@ txt_quorum_state(int qs)
 }
 
 
-void
+static void
 txt_cluster_info(cman_cluster_t *ci) 
 {
 	time_t now = time(NULL);
@@ -676,7 +677,7 @@ txt_cluster_info(cman_cluster_t *ci)
 }
 
 
-void
+static void
 xml_cluster_info(cman_cluster_t *ci) 
 {
 	printf("  <cluster name=\"%s\" id=\"%d\" generation=\"%d\"/>\n",
@@ -684,7 +685,7 @@ xml_cluster_info(cman_cluster_t *ci)
 }
 
 
-void
+static void
 xml_quorum_state(int qs)
 {
 	/* XXX output groupmember attr (carry over from RHCS4) */
@@ -704,7 +705,7 @@ xml_quorum_state(int qs)
 	printf("/>\n");
 }
 
-void
+static void
 build_member_field_size(int cols, int *nodesize)
 {
 	/* Based on 80 columns */
@@ -716,7 +717,7 @@ build_member_field_size(int cols, int *nodesize)
 }
 
 
-void
+static void
 txt_member_state(cman_node_t *node, int nodesize)
 {
 	/* If it's down and not in cluster.conf, don't show it */
@@ -755,7 +756,7 @@ txt_member_state(cman_node_t *node, int nodesize)
 }
 
 
-void
+static void
 xml_member_state(cman_node_t *node)
 {
 	/* If it's down and not in cluster.conf, don't show it */
@@ -776,7 +777,7 @@ xml_member_state(cman_node_t *node)
 }
 
 
-int
+static int
 txt_member_states(cluster_member_list_t *membership, char *name)
 {
 	int x, ret = 0, nodesize;
@@ -805,7 +806,7 @@ txt_member_states(cluster_member_list_t *membership, char *name)
 }
 
 
-int
+static int
 xml_member_states(cluster_member_list_t *membership, char *name)
 {
 	int x, ret = 0;
@@ -829,7 +830,7 @@ xml_member_states(cluster_member_list_t *membership, char *name)
 }
 
 
-int 
+static int 
 txt_cluster_status(cman_cluster_t *ci,
 		   int qs, cluster_member_list_t *membership,
 		   rg_state_list_t *rgs, char *name, char *svcname, 
@@ -858,7 +859,7 @@ txt_cluster_status(cman_cluster_t *ci,
 }
 
 
-int
+static int
 xml_cluster_status(cman_cluster_t *ci, int qs,
 		   cluster_member_list_t *membership,
 		   rg_state_list_t *rgs, char *name, char *svcname,
@@ -904,7 +905,7 @@ xml_cluster_status(cman_cluster_t *ci, int qs,
 }
 
 
-cluster_member_list_t *
+static cluster_member_list_t *
 build_member_list(cman_handle_t ch, int *lid)
 {
 	cluster_member_list_t *all, *part;
@@ -953,7 +954,7 @@ build_member_list(cman_handle_t ch, int *lid)
 }
 
 
-void
+static void
 usage(char *arg0)
 {
 	printf(
@@ -1099,8 +1100,8 @@ main(int argc, char **argv)
 	if (isatty(STDOUT_FILENO)) {
 		stdout_is_tty = 1;
 		setupterm((char *) 0, STDOUT_FILENO, (int *) 0);
-		dimx = tigetnum("cols");
-		dimy = tigetnum("lines");
+		dimx = tigetnum((char *)"cols");
+		dimy = tigetnum((char *)"lines");
 	}
 
 	memset(&ci, 0, sizeof(ci));
