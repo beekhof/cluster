@@ -20,7 +20,7 @@
 #endif
 
 
-void
+static void
 build_message(SmMessageSt *msgp, int action, char *svcName, int target,
 		int arg1, int arg2)
 {
@@ -39,7 +39,7 @@ build_message(SmMessageSt *msgp, int action, char *svcName, int target,
 }
 
 
-int
+static int
 do_lock_req(int req)
 {
 	cman_handle_t ch;
@@ -90,7 +90,7 @@ out:
 }
 
 
-int
+static int
 do_lock(void)
 {
 	if (do_lock_req(RG_LOCK) != RG_SUCCESS) {
@@ -102,7 +102,7 @@ do_lock(void)
 }
 
 
-int
+static int
 do_unlock(void)
 {
 	if (do_lock_req(RG_UNLOCK) != RG_SUCCESS) {
@@ -114,7 +114,7 @@ do_unlock(void)
 }
 
 
-int
+static int
 do_query_lock(void)
 {
 	switch(do_lock_req(RG_QUERY_LOCK)) {
@@ -132,7 +132,7 @@ do_query_lock(void)
 }
 
 
-void
+static void
 usage(char *name)
 {
 printf("usage: %s [command]\n\n", name);
@@ -170,7 +170,7 @@ printf("  -u                     Unlock resource group managers.\n"
 }
 
 
-int
+static int
 find_closest_node(cluster_member_list_t *cml, char *name, size_t maxlen)
 {
 	int x, c = 0, cl = 0, nc = 0, ncl = 0, cur = 0;
@@ -224,7 +224,7 @@ main(int argc, char **argv)
 	int fod = 0;
 	int node_specified = 0;
        	int me, svctarget = 0;
-	char *actionstr = NULL;
+	const char *actionstr = NULL;
 	cluster_member_list_t *membership;
 
 	if (geteuid() != (uid_t) 0) {

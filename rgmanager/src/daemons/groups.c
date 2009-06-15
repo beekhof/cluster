@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <event.h>
 #include <sets.h>
+#include <fo_domain.h>
 
 /* Use address field in this because we never use it internally,
    and there is no extra space in the cman_node_t type.
