@@ -590,7 +590,10 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 
 		if (!mcast_name) {
 			mcast_name = default_mcast(nodename, cluster_id);
+
 		}
+		if (!mcast_name)
+			return -1;
 
 		/* See if the user wants our default set of openais services (default=yes) */
 		objdb_get_int(objdb, object_handle, "disable_openais", &disable_openais, 0);
