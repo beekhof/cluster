@@ -1,10 +1,10 @@
 #define _MESSAGE_BUILD
-#include <message.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
+#include <message.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -181,7 +181,7 @@ sock_msg_fd_isset(msgctx_t *ctx, fd_set *fds)
 }
 
 
-int
+static int
 sock_msg_fd_clr(msgctx_t *ctx, fd_set *fds)
 {
 	errno = EINVAL;
@@ -268,7 +268,7 @@ sock_msg_receive(msgctx_t *ctx, void *msg, size_t maxlen, int timeout)
   If the speficied node is 0, this connects via the socket in
   /var/run/cluster...
  */
-int
+static int
 sock_msg_open(int type, int nodeid, int port, msgctx_t *ctx, int timeout)
 {
 	errno = EINVAL;
@@ -289,7 +289,7 @@ sock_msg_open(int type, int nodeid, int port, msgctx_t *ctx, int timeout)
 /**
   With a socket, the O/S cleans up the buffers for us.
  */
-int
+static int
 sock_msg_close(msgctx_t *ctx)
 {
 	errno = EINVAL;
@@ -394,7 +394,7 @@ sock_msg_init(msgctx_t *ctx)
 }
 
 
-void
+static void
 sock_msg_print(msgctx_t *ctx)
 {
 	printf("Socket Message Context; fd = %d\n", ctx->u.local_info.sockfd);
