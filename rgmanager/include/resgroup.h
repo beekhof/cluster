@@ -225,22 +225,6 @@ int rg_unlock(struct dlm_lksb *p);
 
 const char *rg_strerror(int val);
 
-
-/*
- * Fail-over domain states
- */
-#define FOD_ILLEGAL		0
-#define FOD_GOOD		1
-#define FOD_BETTER		2
-#define FOD_BEST		3
-
-/* 
-   Fail-over domain flags
- */
-#define FOD_ORDERED		(1<<0)
-#define FOD_RESTRICTED		(1<<1)
-#define FOD_NOFAILBACK		(1<<2)
-
 /*
    Status tree flags
  */
@@ -256,23 +240,6 @@ const char *rg_strerror(int val);
 	printf(fmt, ##args);\
 	fflush(stdout);\
 }
-
-#if 0
-#define pthread_mutex_lock(mutex) \
-{\
-	printf("lock(%s) @ %s:%d\n", #mutex, __FUNCTION__, __LINE__);\
-	fflush(stdout);\
-	pthread_mutex_lock(mutex);\
-}
-
-
-#define pthread_mutex_unlock(mutex) \
-{\
-	printf("unlock(%s) @ %s:%d\n", #mutex, __FUNCTION__, __LINE__);\
-	fflush(stdout);\
-	pthread_mutex_unlock(mutex);\
-}
-#endif
 
 #else /* DEBUG */
 

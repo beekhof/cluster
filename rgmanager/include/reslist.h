@@ -118,21 +118,6 @@ typedef struct _rg_node {
 	int	rn_pad;
 } resource_node_t;
 
-typedef struct _fod_node {
-	list_head();
-	char	*fdn_name;
-	int	fdn_prio;
-	int	fdn_nodeid;
-} fod_node_t;
-
-typedef struct _fod {
-	list_head();
-	char	*fd_name;
-	fod_node_t	*fd_nodes;
-	int	fd_flags;
-	int	_pad_; /* align */
-} fod_t;
-
 
 /*
    Exported Functions
@@ -177,17 +162,6 @@ int build_resource_tree(int ccsfd, resource_node_t **tree,
 			resource_rule_t **rulelist, resource_t **reslist);
 void print_resource_tree(resource_node_t **tree);
 void destroy_resource_tree(resource_node_t **tree);
-
-/*
-   Construct/deconstruct failover domains
- */
-int construct_domains(int ccsfd, fod_t **domains);
-void deconstruct_domains(fod_t **domains);
-void print_domains(fod_t **domains);
-int node_should_start(int nodeid, cluster_member_list_t *membership,
-		      char *rg_name, fod_t **domains);
-int node_domain_set(fod_t **domains, char *name, int **ret, int *retlen, int *flags);
-int node_domain_set_safe(char *domainname, int **ret, int *retlen, int *flags);
 
 
 /*

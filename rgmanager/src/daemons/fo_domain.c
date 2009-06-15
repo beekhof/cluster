@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <members.h>
 #include <sets.h>
+#include <fo_domain.h>
 
 
 //#define DEBUG
