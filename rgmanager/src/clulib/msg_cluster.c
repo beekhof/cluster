@@ -1,10 +1,10 @@
 #define _MESSAGE_BUILD
-#include <message.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <libcman.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <message.h>
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
@@ -339,7 +339,7 @@ cluster_msg_fd_set(msgctx_t *ctx, fd_set *fds, int *max)
 }
 
 
-int
+static int
 cluster_msg_fd_isset(msgctx_t *ctx, fd_set *fds)
 {
 	errno = EINVAL;
@@ -361,7 +361,7 @@ cluster_msg_fd_isset(msgctx_t *ctx, fd_set *fds)
 }
 
 
-int
+static int
 cluster_msg_fd_clr(msgctx_t *ctx, fd_set *fds)
 {
 	errno = EINVAL;
@@ -1021,7 +1021,7 @@ process_cman_event(cman_handle_t handle, void *private, int reason, int arg)
 		break;
 	}
 
-	argp = ((char *)msg + sizeof(cluster_msg_hdr_t));
+	argp = (int*)((char *)msg + sizeof(cluster_msg_hdr_t));
 	*argp = arg;
 
 	node->len = sizeof(cluster_msg_hdr_t) + sizeof(int);

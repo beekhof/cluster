@@ -1,6 +1,5 @@
 #ifndef _MESSAGE_H
 #define _MESSAGE_H
-#include <arpa/inet.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <platform.h>
@@ -8,6 +7,7 @@
 #include <list.h>
 #include <rg_types.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
 #include <sys/select.h>
 
 typedef enum {
@@ -156,5 +156,19 @@ int msg_fd_isset(msgctx_t *ctx, fd_set *fds);
 int msg_fd_clr(msgctx_t *ctx, fd_set *fds);
 void msg_print(msgctx_t *ctx);
 int msg_shutdown(void);
+
+
+/* From msg_cluster */
+int cluster_msg_init(msgctx_t *ctx);
+int cluster_msg_listen(int me, void *, msgctx_t **ctx);
+int cluster_msg_shutdown(void);
+
+/* From msg_socket  */
+int sock_msg_init(msgctx_t *ctx);
+int sock_msg_listen(int me, void *, msgctx_t **ctx);
+int sock_msg_shutdown(void);
+
+/* Debugging */
+void dump_cluster_ctx(FILE *fp);
 
 #endif

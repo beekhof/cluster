@@ -1,24 +1,13 @@
 #define _MESSAGE_BUILD
-#include <message.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
+#include <message.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <errno.h>
-
-/* From msg_cluster */
-int cluster_msg_init(msgctx_t *ctx);
-int cluster_msg_listen(int me, void *, msgctx_t **ctx);
-int cluster_msg_shutdown(void);
-
-/* From msg_socket  */
-int sock_msg_init(msgctx_t *ctx);
-int sock_msg_listen(int me, void *, msgctx_t **ctx);
-int sock_msg_shutdown(void);
-
 
 /**
   Message sending API.  Sends to the cluster or a socket, depending on
