@@ -584,6 +584,8 @@ spawn_if_needed(const char *resgroupname)
 	int ret;
 	resthread_t *resgroup = NULL;
 
+retry:
+	resgroup = NULL;
 	pthread_mutex_lock(&reslist_mutex);
 	while (resgroup == NULL) {
 		resgroup = find_resthread_byname(resgroupname);
@@ -601,8 +603,8 @@ spawn_if_needed(const char *resgroupname)
 	ret = (resgroup->rt_status == RG_STATE_STOPPING);
 
 	pthread_mutex_unlock(&reslist_mutex);
-	if (wait_initialize(resgroupname) < 0) {
-		return -1;
+	if (!ret && wait_initialize(resgroupname) < 0) {
+		goto retry;
 	}
 
 	return ret;
