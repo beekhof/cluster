@@ -16,7 +16,7 @@
 #include <ccs.h>
 #include <logging.h>
 
-void
+static void
 usage(char *progname)
 {
 	fprintf(stdout, "%s -s severity \"message text\"\n", progname);
@@ -24,7 +24,7 @@ usage(char *progname)
 }
 
 
-char *
+static char *
 log_name(void)
 {
 	char lnk[PATH_MAX];
