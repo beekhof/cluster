@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-void
+static void
 usage(char *progname)
 {
 	fprintf(stderr, "Usage: %s [-i ip_addr] [-n ip_name]\n", progname);
