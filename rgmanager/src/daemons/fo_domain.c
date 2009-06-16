@@ -18,6 +18,7 @@
 #include <members.h>
 #include <sets.h>
 #include <fo_domain.h>
+#include <groups.h>
 
 
 //#define DEBUG
@@ -35,7 +36,6 @@
      </failoverdomain>
    </failoverdomains>
  */
-int group_property(char *, char *, char *, size_t);
 
 static fod_node_t *
 #ifndef NO_CCS
@@ -411,7 +411,7 @@ node_domain_set(fod_t **domains, char *name, int **ret, int *retlen, int *flags)
  */
 int
 node_should_start(int nodeid, cluster_member_list_t *membership,
-		  char *rg_name, fod_t **domains)
+		  const char *rg_name, fod_t **domains)
 {
 	char *nodename = NULL;
 	char domainname[128];

@@ -343,9 +343,6 @@ out:
 }
 
 
-
-void group_event(char *name, uint32_t state, int owner);
-
 /**
   Event handling function.  This only stays around as long as
   events are on the queue.

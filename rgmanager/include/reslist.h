@@ -167,15 +167,18 @@ void destroy_resource_tree(resource_node_t **tree);
 /*
    Handy functions
  */
-resource_t *find_resource_by_ref(resource_t **reslist, char *type, char *ref);
-resource_t *find_root_by_ref(resource_t **reslist, char *ref);
-resource_rule_t *find_rule_by_type(resource_rule_t **rulelist, char *type);
+resource_t *find_resource_by_ref(resource_t **reslist, const char *type,
+				 const char *ref);
+resource_t *find_root_by_ref(resource_t **reslist, const char *ref);
+resource_rule_t *find_rule_by_type(resource_rule_t **rulelist,
+				   const char *type);
 void res_build_name(char *, size_t, resource_t *);
 
 /*
    Internal functions; shouldn't be needed.
  */
-char *xpath_get_one(xmlDocPtr doc, xmlXPathContextPtr ctx, char *query);
+const char *xpath_get_one(xmlDocPtr doc, xmlXPathContextPtr ctx,
+			  const char *query);
 int store_attribute(resource_attr_t **attrsp, char *name, char *value,
 		    int flags);
 
@@ -183,10 +186,10 @@ resource_t *load_resource(int ccsfd, resource_rule_t *rule, char *base);
 int store_resource(resource_t **reslist, resource_t *newres);
 void destroy_resource(resource_t *res);
 
-char *attr_value(resource_node_t *node, char *attrname);
-char *rg_attr_value(resource_node_t *node, char *attrname);
-char *res_attr_value(resource_t *res, char *attrname);
-char *primary_attr_value(resource_t *);
+const char *attr_value(resource_node_t *node, const char *attrname);
+const char *rg_attr_value(resource_node_t *node, const char *attrname);
+const char *res_attr_value(resource_t *res, const char *attrname);
+const char *primary_attr_value(resource_t *);
 int rescmp(resource_t *l, resource_t *r);
 
 #ifdef NO_CCS

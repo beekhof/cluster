@@ -161,8 +161,6 @@ int svc_fail(char *svcName);
 int svc_freeze(char *svcName);
 int svc_unfreeze(char *svcName);
 int svc_migrate(char *svcName, int target);
-int check_restart(char *svcName);
-int add_restart(char *svcName);
 
 int rt_enqueue_request(const char *resgroupname, int request,
 		       msgctx_t *resp_ctx,
@@ -172,28 +170,22 @@ void send_response(int ret, int node, request_t *req);
 void send_ret(msgctx_t *ctx, char *name, int ret, int orig_request,
 	      int new_owner);
 
-/* do this op on all resource groups.  The handler for the request 
-   will sort out whether or not it's a valid request given the state */
-void rg_doall(int request, int block, char *debugfmt);
-void do_status_checks(void); /* Queue status checks for locally running
-				services */
-
 /* from rg_state.c */
-int set_rg_state(char *name, rg_state_t *svcblk);
-int get_rg_state(char *servicename, rg_state_t *svcblk);
-int get_rg_state_local(char *servicename, rg_state_t *svcblk);
+int set_rg_state(const char *name, rg_state_t *svcblk);
+int get_rg_state(const char *servicename, rg_state_t *svcblk);
+int get_rg_state_local(const char *servicename, rg_state_t *svcblk);
 uint32_t best_target_node(cluster_member_list_t *allowed, uint32_t owner,
-			  char *rg_name, int lock);
+			  const char *rg_name, int lock);
 
 #ifdef DEBUG
-int _rg_lock_dbg(char *, struct dlm_lksb *, char *, int);
+int _rg_lock_dbg(const char *, struct dlm_lksb *, const char *, int);
 #define rg_lock(name, p) _rg_lock_dbg(name, p, __FILE__, __LINE__)
 
-int _rg_unlock_dbg(struct dlm_lksb *, char *, int);
+int _rg_unlock_dbg(struct dlm_lksb *, const char *, int);
 #define rg_unlock(p) _rg_unlock_dbg(p, __FILE__, __LINE__)
 
 #else
-int rg_lock(char *name, struct dlm_lksb *p);
+int rg_lock(const char *name, struct dlm_lksb *p);
 int rg_unlock(struct dlm_lksb *p);
 #endif
 

@@ -40,9 +40,9 @@ int construct_domains(int ccsfd, fod_t **domains);
 void deconstruct_domains(fod_t **domains);
 void print_domains(fod_t **domains);
 int node_should_start(int nodeid, cluster_member_list_t *membership,
-	      	      char *rg_name, fod_t **domains);
+	      	      const char *rg_name, fod_t **domains);
 int node_domain_set(fod_t **domains, char *name, int **ret,
 		    int *retlen, int *flags);
 int node_domain_set_safe(char *domainname, int **ret, int *retlen, int *flags);
- 
+
 #endif

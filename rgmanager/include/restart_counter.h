@@ -8,7 +8,7 @@ typedef void *restart_counter_t;
 int restart_add(restart_counter_t arg);
 int restart_clear(restart_counter_t arg);
 int restart_count(restart_counter_t arg);
-int restart_treshold_exceeded(restart_counter_t arg);
+int restart_threshold_exceeded(restart_counter_t arg);
 restart_counter_t restart_init(time_t expire_timeout, int max_restarts);
 int restart_cleanup(restart_counter_t arg);
 

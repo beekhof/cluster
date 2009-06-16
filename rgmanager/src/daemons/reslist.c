@@ -35,7 +35,7 @@ res_build_name(char *buf, size_t buflen, resource_t *res)
    @return 		value of attribute or NULL if not found
  */
 char *
-res_attr_value(resource_t *res, char *attrname)
+res_attr_value(resource_t *res, const char *attrname)
 {
 	resource_attr_t *ra;
 	int x;
@@ -295,7 +295,7 @@ find_resource_by_ref(resource_t **reslist, char *type, char *ref)
    @return		Resource matching type/ref or NULL if none.
  */   
 resource_t *
-find_root_by_ref(resource_t **reslist, char *ref)
+find_root_by_ref(resource_t **reslist, const char *ref)
 {
 	resource_t *curr;
 	char ref_buf[128];

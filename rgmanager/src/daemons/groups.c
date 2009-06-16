@@ -14,6 +14,7 @@
 #include <event.h>
 #include <sets.h>
 #include <fo_domain.h>
+#include <groups.h>
 
 /* Use address field in this because we never use it internally,
    and there is no extra space in the cman_node_t type.
@@ -40,11 +41,8 @@ pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_rwlock_t resource_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 void res_build_name(char *, size_t, resource_t *);
-int get_rg_state_local(char *, rg_state_t *);
-int group_migratory(char *groupname, int lock);
-int _group_property(char *groupname, char *property, char *ret, size_t len);
-int restart_threshold_exceeded(restart_counter_t arg);
-
+static int _group_property(const char *groupname, const char *property,
+			   char *ret, size_t len);
 
 struct status_arg {
 	msgctx_t *ctx;
@@ -59,7 +57,7 @@ struct status_arg {
  */
 int
 node_should_start_safe(uint32_t nodeid, cluster_member_list_t *membership,
-		       char *rg_name)
+		       const char *rg_name)
 {
 	int ret;
 
@@ -133,7 +131,7 @@ count_resource_groups(cluster_member_list_t *ml)
 
 		++mp->cn_svccount;
 
-		val = res_attr_value(res, "exclusive");
+		val = (char *)res_attr_value(res, "exclusive");
 		if (val && ((!strcmp(val, "yes") ||
 				     (atoi(val)>0))) ) {
 			++mp->cn_svcexcl;
@@ -149,7 +147,7 @@ count_resource_groups(cluster_member_list_t *ml)
 static inline int 
 is_exclusive_res(resource_t *res)
 {
-	char *val;
+	const char *val;
 
 	val = res_attr_value(res, "exclusive");
 	if (val && ((!strcmp(val, "yes") ||
@@ -162,7 +160,7 @@ is_exclusive_res(resource_t *res)
 
 /* Locked exported function */
 int 
-is_exclusive(char *svcName)
+is_exclusive(const char *svcName)
 {
 	int ret = 0;
 	resource_t *res = NULL;
@@ -180,8 +178,8 @@ is_exclusive(char *svcName)
 }
 
 
-resource_node_t *
-node_by_ref(resource_node_t **tree, char *name)
+static resource_node_t *
+node_by_ref(resource_node_t **tree, const char *name)
 {
 	resource_t *res;
 	resource_node_t *node, *ret = NULL;
@@ -267,7 +265,8 @@ have_exclusive_resources(void)
 
 
 int
-check_exclusive_resources(cluster_member_list_t *membership, char *svcName)
+check_exclusive_resources(cluster_member_list_t *membership,
+			  const char *svcName)
 {
 	cman_node_t *mp;
 	int exclusive, count, excl; 
@@ -303,7 +302,7 @@ check_exclusive_resources(cluster_member_list_t *membership, char *svcName)
  */
 uint32_t
 best_target_node(cluster_member_list_t *allowed, uint32_t owner,
-		 char *rg_name, int lock)
+		 const char *rg_name, int lock)
 {
 	int x;
 	int highscore = 1;
@@ -343,7 +342,7 @@ best_target_node(cluster_member_list_t *allowed, uint32_t owner,
 		   it's an exclusive service and the target node already
 		   is running a service. */
 		res = find_root_by_ref(&_resources, rg_name);
-		val = res_attr_value(res, "exclusive");
+		val = (char *)res_attr_value(res, "exclusive");
 		exclusive = val && ((!strcmp(val, "yes") || (atoi(val)>0)));
 
 		if (lock)
@@ -377,7 +376,7 @@ best_target_node(cluster_member_list_t *allowed, uint32_t owner,
 int
 check_depend(resource_t *res)
 {
-	char *val;
+	const char *val;
 	rg_state_t rs;
 
 	val = res_attr_value(res, "depend");
@@ -393,7 +392,7 @@ check_depend(resource_t *res)
 
 
 int
-check_depend_safe(char *rg_name)
+check_depend_safe(const char *rg_name)
 {
 	resource_t *res;
 	int ret;
@@ -410,8 +409,8 @@ check_depend_safe(char *rg_name)
 }
 
 
-int
-check_rdomain_crash(char *svcName)
+static int
+check_rdomain_crash(const char *svcName)
 {
 	int *nodes = NULL, nodecount = 0;
 	int *fd_nodes = NULL, fd_nodecount = 0, fl = 0;
@@ -458,7 +457,7 @@ out_free:
   If it is running and we're a better member to run it, then ask for
   it.
  */
-void
+static void
 consider_start(resource_node_t *node, char *svcName, rg_state_t *svcStatus,
 	       cluster_member_list_t *membership)
 {
@@ -489,7 +488,7 @@ consider_start(resource_node_t *node, char *svcName, rg_state_t *svcStatus,
 	   autostart is disabled.  If it is, leave it stopped */
 	if (svcStatus->rs_state == RG_STATE_STOPPED &&
 		    svcStatus->rs_transition == 0) {
-		val = res_attr_value(node->rn_resource, "autostart");
+		val = (char *)res_attr_value(node->rn_resource, "autostart");
 		autostart = !(val && ((!strcmp(val, "no") ||
 				     (atoi(val)==0))));
 		if (!autostart) {
@@ -536,7 +535,7 @@ consider_start(resource_node_t *node, char *svcName, rg_state_t *svcStatus,
 		return;
 	}
 
-	val = res_attr_value(node->rn_resource, "exclusive");
+	val = (char *)res_attr_value(node->rn_resource, "exclusive");
 	exclusive = val && ((!strcmp(val, "yes") || (atoi(val)>0)));
 
 	if (exclusive && mp->cn_svccount) {
@@ -571,8 +570,8 @@ consider_start(resource_node_t *node, char *svcName, rg_state_t *svcStatus,
 }
 
 
-void
-consider_relocate(char *svcName, rg_state_t *svcStatus, uint32_t nodeid,
+static void
+consider_relocate(const char *svcName, rg_state_t *svcStatus, uint32_t nodeid,
 		  cluster_member_list_t *membership)
 {
 	int a, b, req = RG_RELOCATE;
@@ -727,7 +726,7 @@ eval_groups(int local, uint32_t nodeid, int nodeStatus)
 		rg_unlock(&lockp);
 
 		if (svcStatus.rs_owner == 0)
-			nodeName = "none";
+			nodeName = (char *)"none";
 		else
 			nodeName = memb_id_to_name(membership,
 						   svcStatus.rs_owner);
@@ -787,7 +786,7 @@ eval_groups(int local, uint32_t nodeid, int nodeStatus)
  * @see			eval_groups
  */
 int
-group_event(char __attribute__ ((unused)) *rg_name,
+group_event(const char __attribute__ ((unused)) *rg_name,
 	    uint32_t state,
 	    int __attribute__ ((unused)) owner)
 {
@@ -820,7 +819,7 @@ group_event(char __attribute__ ((unused)) *rg_name,
 			continue;
 
 		if (svcStatus.rs_owner == 0)
-			nodeName = "none";
+			nodeName = (char *)"none";
 		else
 			nodeName = memb_id_to_name(membership,
 						   svcStatus.rs_owner);
@@ -885,7 +884,7 @@ group_event(char __attribute__ ((unused)) *rg_name,
   Tells us if a resource group can be migrated.
  */
 int
-group_migratory(char *groupname, int lock)
+group_migratory(const char *groupname, int lock)
 {
 	resource_node_t *rn;
 	resource_t *res;
@@ -1086,8 +1085,9 @@ out:
    @param len		Length of buffer pointed to by ret
    @return		0 on success, -1 on failure.
  */
-int
-_group_property(char *groupname, char *property, char *ret, size_t len)
+static int
+_group_property(const char *groupname, const char *property,
+		char *ret, size_t len)
 {
 	resource_t *res = NULL;
 	int x = 0;
@@ -1109,7 +1109,8 @@ _group_property(char *groupname, char *property, char *ret, size_t len)
 
 
 int
-group_property(char *groupname, char *property, char *ret_val, size_t len)
+group_property(const char *groupname, const char *property,
+	       char *ret_val, size_t len)
 {
 	int ret = -1;
 	pthread_rwlock_rdlock(&resource_lock);
@@ -1126,7 +1127,7 @@ group_property(char *groupname, char *property, char *ret_val, size_t len)
   @param rgname		Resource group name whose state we want to send.
   @see send_rg_states
  */
-void
+static void
 send_rg_state(msgctx_t *ctx, char *rgname, int fast)
 {
 	rg_state_msg_t msg, *msgp = &msg;
@@ -1249,7 +1250,7 @@ send_rg_states(msgctx_t *ctx, int fast)
 
 
 int
-svc_exists(char *svcname)
+svc_exists(const char *svcname)
 {
 	resource_node_t *node;
 	int ret = 0;
@@ -1273,7 +1274,8 @@ svc_exists(char *svcname)
 
 
 void
-rg_doall(int request, int block, char __attribute__ ((unused)) *debugfmt)
+rg_doall(int request, int block,
+	 const char __attribute__ ((unused)) *debugfmt)
 {
 	resource_node_t *curr;
 	rg_state_t svcblk;
@@ -1317,7 +1319,7 @@ rg_doall(int request, int block, char __attribute__ ((unused)) *debugfmt)
 /**
   Stop changed resources.
  */
-void *
+static void *
 q_status_checks(void __attribute__ ((unused)) *arg)
 {
 	resource_node_t *curr;
@@ -1382,7 +1384,7 @@ do_status_checks(void)
 /**
   Stop changed resources.
  */
-void
+static void
 do_condstops(void)
 {
 	resource_node_t *curr;
@@ -1445,7 +1447,7 @@ cont:
 /**
   Start changed resources.
  */
-void
+static void
 do_condstarts(void)
 {
 	resource_node_t *curr;
@@ -1543,7 +1545,7 @@ do_condstarts(void)
 		}
 
 		/* Set it up for an auto-start */
-		val = res_attr_value(curr->rn_resource, "autostart");
+		val = (char *)res_attr_value(curr->rn_resource, "autostart");
 		autostart = !(val && ((!strcmp(val, "no") ||
 				     (atoi(val)==0))));
 		if (autostart)
@@ -1730,10 +1732,10 @@ init_resource_groups(int reconfigure, int do_init)
 
 
 void
-get_recovery_policy(char *rg_name, char *buf, size_t buflen)
+get_recovery_policy(const char *rg_name, char *buf, size_t buflen)
 {
 	resource_t *res;
-	char *val;
+	const char *val;
 
 	pthread_rwlock_rdlock(&resource_lock);
 
@@ -1751,11 +1753,12 @@ get_recovery_policy(char *rg_name, char *buf, size_t buflen)
 
 
 int
-get_service_property(char *rg_name, char *prop, char *buf, size_t buflen)
+get_service_property(const char *rg_name, const char *prop,
+		     char *buf, size_t buflen)
 {
 	int ret = 0;
 	resource_t *res;
-	char *val;
+	const char *val;
 
 	memset(buf, 0, buflen);
 
@@ -1805,7 +1808,7 @@ get_service_property(char *rg_name, char *prop, char *buf, size_t buflen)
 
 
 int
-add_restart(char *rg_name)
+add_restart(const char *rg_name)
 {
 	resource_node_t *node;
 	int ret = 1;
@@ -1822,7 +1825,7 @@ add_restart(char *rg_name)
 
 
 int
-check_restart(char *rg_name)
+check_restart(const char *rg_name)
 {
 	resource_node_t *node;
 	int ret = 0;

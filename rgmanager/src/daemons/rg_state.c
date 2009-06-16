@@ -19,30 +19,15 @@
 #include <msgsimple.h>
 #include <res-ocf.h>
 #include <event.h>
+#include <groups.h>
 
 /* XXX - copied :( */
 #define cn_svccount cn_address.cna_address[0] /* Theses are uint8_t size */
 #define cn_svcexcl  cn_address.cna_address[1]
 
-int node_should_start_safe(uint32_t, cluster_member_list_t *, char *);
-
-int next_node_id(cluster_member_list_t *membership, int me);
-
-int rg_exec_script(char *rgname, char *script, char *action);
-static int _svc_stop_finish(char *svcName, int failed, uint32_t newstate);
-
-int set_rg_state(char *servicename, rg_state_t *svcblk);
-int get_rg_state(char *servicename, rg_state_t *svcblk);
-void get_recovery_policy(char *rg_name, char *buf, size_t buflen);
-int check_depend_safe(char *servicename);
-int group_migratory(char *servicename, int lock);
-int have_exclusive_resources(void);
-int check_exclusive_resources(cluster_member_list_t *membership, char *svcName);
 static int msvc_check_cluster(char *svcName);
 static inline int handle_started_status(char *svcName, int ret, rg_state_t *svcStatus);
 static inline int handle_migrate_status(char *svcName, int ret, rg_state_t *svcStatus);
-int count_resource_groups_local(cman_node_t *mp);
-int is_exclusive(char *svcName);
 
 
 int 
@@ -156,9 +141,9 @@ svc_report_failure(char *svcName)
 
 int
 #ifdef DEBUG
-_rg_lock(char *name, struct dlm_lksb *p)
+_rg_lock(const char *name, struct dlm_lksb *p)
 #else
-rg_lock(char *name, struct dlm_lksb *p)
+rg_lock(const char *name, struct dlm_lksb *p)
 #endif
 {
 	char res[256];
@@ -170,7 +155,7 @@ rg_lock(char *name, struct dlm_lksb *p)
 
 #ifdef DEBUG
 int
-_rg_lock_dbg(char *name, struct dlm_lksb *p, char *file, int line)
+_rg_lock_dbg(const char *name, struct dlm_lksb *p, const char *file, int line)
 {
 	dbg_printf("rg_lock(%s) @ %s:%d\n", name, file, line);
 	return _rg_lock(name, p);
