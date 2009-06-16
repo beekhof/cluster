@@ -1,3 +1,7 @@
+#include <time.h>
+#include <restart_counter.h>
+#include <list.h>
+#include <reslist.h>
 #include <rg_queue.h>
 #include <malloc.h>
 #include <string.h>
