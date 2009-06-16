@@ -1,3 +1,7 @@
+#include <time.h>
+#include <list.h>
+#include <restart_counter.h>
+#include <reslist.h>
 #include <message.h>
 #include <resgroup.h>
 #include <rg_locks.h>
@@ -34,9 +38,7 @@ static pthread_mutex_t reslist_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static resthread_t *find_resthread_byname(const char *resgroupname);
 static int spawn_if_needed(const char *resgroupname);
-int rt_enqueue_request(const char *resgroupname, int request,
-		       msgctx_t *response_ctx, int max, uint32_t target,
-		       int arg0, int arg1);
+
 int central_events_enabled(void);
 
 

@@ -144,27 +144,29 @@ const char *rg_flags_str(char *flags_string, size_t size, int val, char *separat
 const char *agent_op_str(int val);
 
 int eval_groups(int local, uint32_t nodeid, int nodeStatus);
-int group_migrate(char *groupname, int target);
+int group_migrate(const char *groupname, int target);
 
 int rg_status(const char *resgroupname);
-int group_op(char *rgname, int op);
+int group_op(const char *rgname, int op);
 void rg_init(void);
 int init_resource_groups(int, int);
 
 /* Basic service operations */
-int svc_start(char *svcName, int req);
-int svc_stop(char *svcName, int error);
-int svc_status(char *svcName);
-int svc_status_inquiry(char *svcName);
-int svc_disable(char *svcName);
-int svc_fail(char *svcName);
-int svc_freeze(char *svcName);
-int svc_unfreeze(char *svcName);
-int svc_migrate(char *svcName, int target);
+int svc_start(const char *svcName, int req);
+int svc_stop(const char *svcName, int error);
+int svc_status(const char *svcName);
+int svc_status_inquiry(const char *svcName);
+int svc_disable(const char *svcName);
+int svc_fail(const char *svcName);
+int svc_freeze(const char *svcName);
+int svc_unfreeze(const char *svcName);
+int svc_migrate(const char *svcName, int target);
+int svc_start_remote(const char *svcName, int request, uint32_t target);
 
 int rt_enqueue_request(const char *resgroupname, int request,
 		       msgctx_t *resp_ctx,
        		       int max, uint32_t target, int arg0, int arg1);
+void dump_threads(FILE *fp);
 
 void send_response(int ret, int node, request_t *req);
 void send_ret(msgctx_t *ctx, char *name, int ret, int orig_request,

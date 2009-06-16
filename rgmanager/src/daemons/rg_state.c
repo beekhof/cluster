@@ -1,6 +1,9 @@
-//#define DEBUG
 #include <assert.h>
 #include <platform.h>
+#include <list.h>
+#include <time.h>
+#include <restart_counter.h>
+#include <reslist.h>
 #include <message.h>
 #include <members.h>
 #ifdef OPENAIS
@@ -20,58 +23,20 @@
 #include <res-ocf.h>
 #include <event.h>
 #include <groups.h>
+#include <fo_domain.h>
 
 /* XXX - copied :( */
 #define cn_svccount cn_address.cna_address[0] /* Theses are uint8_t size */
 #define cn_svcexcl  cn_address.cna_address[1]
 
-static int msvc_check_cluster(char *svcName);
-static inline int handle_started_status(char *svcName, int ret, rg_state_t *svcStatus);
-static inline int handle_migrate_status(char *svcName, int ret, rg_state_t *svcStatus);
+static int msvc_check_cluster(const char *svcName);
+static int handle_started_status(const char *svcName, int ret, rg_state_t *svcStatus);
+static int handle_migrate_status(const char *svcName, int ret, rg_state_t *svcStatus);
 
+static int _svc_stop_finish(const char *svcName, int failed, uint32_t newstate);
 
-int 
-next_node_id(cluster_member_list_t *membership, int me)
-{
-	int low = (int)(-1);
-	int next = me, curr;
-	int x;
-
-	for (x = 0; x < membership->cml_count; x++) {
-		curr = membership->cml_members[x].cn_nodeid;
-		if (curr < low)
-			low = curr;
-
-		if ((curr > me) && ((next == me) || (curr < next)))
-			next = curr;
-	}
-
-	/* I am highest ID; go to lowest */
-	if (next == me)
-		next = low;
-
-	return next;
-}
-
-
-char *
-c_name(char *svcName)
-{
-	char *ptr, *ret = svcName;
-
-	ptr = strchr(svcName,':');
-	if (!ptr)
-		return ret;
-	if ((int)(ptr - svcName) == 7 &&
-	    !memcmp(svcName, "service", 7)) /* strlen("service") */
-		ret = ptr + 1;
-
-	return ret;
-}
-
-
-void
-broadcast_event(char *svcName, uint32_t state, int owner, int last)
+static void
+broadcast_event(const char *svcName, uint32_t state, int owner, int last)
 {
 	SmMessageSt msgp;
 	msgctx_t everyone;
@@ -97,8 +62,8 @@ broadcast_event(char *svcName, uint32_t state, int owner, int last)
 }
 
 
-int
-svc_report_failure(char *svcName)
+static int
+svc_report_failure(const char *svcName)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
@@ -233,7 +198,7 @@ send_response(int ret, int nodeid, request_t *req)
 
 
 int
-set_rg_state(char *name, rg_state_t *svcblk)
+set_rg_state(const char *name, rg_state_t *svcblk)
 {
 	char res[256];
 	rg_state_t svcblk_store;
@@ -271,7 +236,7 @@ set_rg_state(char *name, rg_state_t *svcblk)
 
 
 static int
-init_rg(char *name, rg_state_t *svcblk)
+init_rg(const char *name, rg_state_t *svcblk)
 {
 	svcblk->rs_owner = 0;
 	svcblk->rs_last_owner = 0;
@@ -286,7 +251,7 @@ init_rg(char *name, rg_state_t *svcblk)
 
 
 int
-get_rg_state(char *name, rg_state_t *svcblk)
+get_rg_state(const char *name, rg_state_t *svcblk)
 {
 	char res[256];
 	int ret;
@@ -381,9 +346,8 @@ get_rg_state(char *name, rg_state_t *svcblk)
 }
 
 
-int vf_read_local(char *, uint64_t *, void *, uint32_t *);
 int
-get_rg_state_local(char *name, rg_state_t *svcblk)
+get_rg_state_local(const char *name, rg_state_t *svcblk)
 {
 	char res[256];
 	int ret;
@@ -450,8 +414,8 @@ get_rg_state_local(char *name, rg_state_t *svcblk)
  *			6 = DO NOT stop service, mark stopped and return
  *			    RG_SUCCESS (0)
  */
-int
-svc_advise_stop(rg_state_t *svcStatus, char *svcName, int req)
+static int
+svc_advise_stop(rg_state_t *svcStatus, const char *svcName, int req)
 {
 	cluster_member_list_t *membership = member_list();
 	int ret = 0;
@@ -581,8 +545,8 @@ svc_advise_stop(rg_state_t *svcStatus, char *svcName, int req)
  *			4 = DO NOT start service, return RG_ERUN
  *			5 = DO NOT start service, return RG_EFROZEN
  */
-int
-svc_advise_start(rg_state_t *svcStatus, char *svcName, int req)
+static int
+svc_advise_start(rg_state_t *svcStatus, const char *svcName, int req)
 {
 	cluster_member_list_t *membership = member_list();
 	int ret = 0;
@@ -739,7 +703,7 @@ svc_advise_start(rg_state_t *svcStatus, char *svcName, int req)
  * @return		FAIL, 0
  */
 int
-svc_start(char *svcName, int req)
+svc_start(const char *svcName, int req)
 {
 	struct dlm_lksb lockp;
 	int ret;
@@ -842,7 +806,7 @@ svc_start(char *svcName, int req)
  * Migrate a service to another node.
  */
 int
-svc_migrate(char *svcName, int target)
+svc_migrate(const char *svcName, int target)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
@@ -989,8 +953,8 @@ svc_migrate(char *svcName, int target)
  * Returns the node ID of the new owner, if any.  -1 if no one in the
  * cluster has seen the service.
  */
-int
-get_new_owner(char *svcName)
+static int
+get_new_owner(const char *svcName)
 {
 	SmMessageSt msgp, response;
 	msgctx_t ctx;
@@ -1059,7 +1023,7 @@ out:
    using the standard management tools for the service/virtual machine.
  */
 static int
-msvc_check_cluster(char *svcName)
+msvc_check_cluster(const char *svcName)
 {
 	struct dlm_lksb lockp;
 	int newowner;
@@ -1114,7 +1078,7 @@ msvc_check_cluster(char *svcName)
  * @return		RG_EFORWARD, RG_EFAIL, 0
  */
 int
-svc_status(char *svcName)
+svc_status(const char *svcName)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
@@ -1165,8 +1129,8 @@ svc_status(char *svcName)
 }
 
 
-static inline int
-handle_started_status(char *svcName, int ret,
+static int
+handle_started_status(const char *svcName, int ret,
 		      rg_state_t __attribute__((unused)) *svcStatus)
 {
 	int newowner;
@@ -1205,8 +1169,8 @@ handle_started_status(char *svcName, int ret,
 }
 
 
-static inline int
-handle_migrate_status(char *svcName, int ret, rg_state_t *svcStatus)
+static int
+handle_migrate_status(const char *svcName, int ret, rg_state_t *svcStatus)
 {
 	struct dlm_lksb lockp;
 	/* For service(s) migrating to the local node, ignore invalid
@@ -1239,7 +1203,7 @@ handle_migrate_status(char *svcName, int ret, rg_state_t *svcStatus)
 
 
 int
-svc_status_inquiry(char *svcName)
+svc_status_inquiry(const char *svcName)
 {
 	rg_state_t svcStatus;
 
@@ -1265,7 +1229,7 @@ svc_status_inquiry(char *svcName)
  * @return		FAIL, 0
  */
 static int
-_svc_stop(char *svcName, int req, int recover, uint32_t newstate)
+_svc_stop(const char *svcName, int req, int recover, uint32_t newstate)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
@@ -1371,7 +1335,7 @@ _svc_stop(char *svcName, int req, int recover, uint32_t newstate)
 
 
 static int
-_svc_stop_finish(char *svcName, int failed, uint32_t newstate)
+_svc_stop_finish(const char *svcName, int failed, uint32_t newstate)
 {
 	rg_state_t svcStatus;
 	struct dlm_lksb lockp;
@@ -1437,14 +1401,14 @@ _svc_stop_finish(char *svcName, int failed, uint32_t newstate)
  * @return		FAIL, 0
  */
 int
-svc_disable(char *svcName)
+svc_disable(const char *svcName)
 {
 	return _svc_stop(svcName, RG_DISABLE, 0, RG_STATE_DISABLED);
 }
 
 
 int
-svc_stop(char *svcName, int req)
+svc_stop(const char *svcName, int req)
 {
 	return _svc_stop(svcName, req, (req == RG_STOP_RECOVER),
 			 RG_STATE_STOPPED);
@@ -1458,7 +1422,7 @@ svc_stop(char *svcName, int req)
  * @return		FAIL, 0
  */
 int
-svc_fail(char *svcName)
+svc_fail(const char *svcName)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
@@ -1515,8 +1479,8 @@ svc_fail(char *svcName)
  * @param svcName	Service ID to flag/unflag as frozen.
  * @return		FAIL, 0
  */
-int
-_svc_freeze(char *svcName, int enabled)
+static int
+_svc_freeze(const char *svcName, int enabled)
 {
 	struct dlm_lksb lockp;
 	rg_state_t svcStatus;
@@ -1569,13 +1533,13 @@ _svc_freeze(char *svcName, int enabled)
 }
 
 int
-svc_freeze(char *svcName)
+svc_freeze(const char *svcName)
 {
 	return _svc_freeze(svcName, 1);
 }
 
 int
-svc_unfreeze(char *svcName)
+svc_unfreeze(const char *svcName)
 {
 	return _svc_freeze(svcName, 0);
 }
@@ -1585,7 +1549,7 @@ svc_unfreeze(char *svcName)
  * Send a message to the target node to start the service.
  */
 int
-svc_start_remote(char *svcName, int request, uint32_t target)
+svc_start_remote(const char *svcName, int request, uint32_t target)
 {
 	SmMessageSt msg_relo;
 	int msg_ret;

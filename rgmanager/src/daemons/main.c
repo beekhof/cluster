@@ -41,7 +41,6 @@ static uint8_t ALIGNED port = RG_PORT;
 static char *rgmanager_lsname = (char *)"rgmanager"; /* XXX default */
 static int status_poll_interval = DEFAULT_CHECK_INTERVAL;
 
-int next_node_id(cluster_member_list_t *membership, int me);
 
 static void
 segfault(int __attribute__ ((unused)) sig)

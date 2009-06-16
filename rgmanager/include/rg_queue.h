@@ -22,15 +22,15 @@ typedef struct _request {
 	uint32_t	rr_arg2;		/** Integer argument */
 	uint32_t	rr_line;		/** Line no */
 	msgctx_t *	rr_resp_ctx;		/** FD to send response */
-	char 		*rr_file;		/** Who made req */
+	const char 	*rr_file;		/** Who made req */
 	time_t		rr_when;		/** time to execute */
 } request_t;
 
 
 int _rq_queue_request(request_t **queue, char *name, uint32_t request,
     		     uint32_t err, uint32_t oldreq, msgctx_t *ctx, time_t when,
-    		     uint32_t target, uint32_t arg0, uint32_t arg1, char *file,
-		     int line);
+    		     uint32_t target, uint32_t arg0, uint32_t arg1,
+		     const char *file, int line);
 
 #define rq_queue_request(queue, name, request, err, oldreq,\
 			 fd, when, target, arg0, arg1) \

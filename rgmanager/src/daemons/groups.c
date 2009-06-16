@@ -943,7 +943,7 @@ out_unlock:
    @return 		0 on success, 1 on failure/error.
  */
 int
-group_op(char *groupname, int op)
+group_op(const char *groupname, int op)
 {
 	resource_t *res;
 	int ret = -1;
@@ -1003,7 +1003,7 @@ group_op(char *groupname, int op)
 
 
 int
-group_migrate(char *groupname, int target)
+group_migrate(const char *groupname, int target)
 {
 	resource_node_t *rn = NULL, *tmp;
 	resource_t *res;
