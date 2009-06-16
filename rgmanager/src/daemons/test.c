@@ -3,15 +3,18 @@
 #include <libxml/xpath.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <resgroup.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <time.h>
 #include <list.h>
 #include <restart_counter.h>
 #include <reslist.h>
+#include <resgroup.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <pthread.h>
 #include <libgen.h>
 #include <event.h>
+#include <groups.h>
+#include <fo_domain.h>
 
 #ifndef NO_CCS
 #error "Can not be built with CCS support."
@@ -21,10 +24,12 @@ void res_build_name(char *, size_t, resource_t *);
 
 
 /**
-  Tells us if a resource group can be migrated.
+  Tells us if a resource group can be migrated w/o the group.c definition
+  XXX replace!
  */
-int
-group_migratory(resource_t **resources, resource_node_t **tree, char *groupname)
+static int
+test_group_migratory(resource_t **resources, resource_node_t **tree,
+		     char *groupname)
 {
 	resource_node_t *rn;
 	resource_t *res;
@@ -81,10 +86,10 @@ out_unlock:
 
 
 void _no_op_mode(int);
-char *agentpath = RESOURCE_ROOTDIR;
+char *agentpath = (char *)RESOURCE_ROOTDIR;
 
 
-int
+static int
 rules_func(int __attribute__((unused)) argc,
 	   char __attribute__((unused)) **argv)
 {
@@ -109,7 +114,7 @@ rules_func(int __attribute__((unused)) argc,
 }
 
 
-int
+static int
 test_func(int argc, char **argv)
 {
 	fod_t *domains = NULL;
@@ -250,7 +255,7 @@ out:
 }
 
 
-int
+static int
 tree_delta_test(int argc, char **argv)
 {
 	resource_rule_t *rulelist = NULL, *currule, *rulelist2 = NULL;
@@ -329,7 +334,8 @@ tree_delta_test(int argc, char **argv)
 		}
 
 		if (!tn->rn_child && ((tn->rn_resource->r_rule->rr_flags &
-		    RF_DESTROY) == 0) && group_migratory(&reslist, &tree, rg) &&
+		    RF_DESTROY) == 0) && test_group_migratory(&reslist, &tree,
+							      rg) &&
 		    need_kill == 1) {
 			/* Do something smart here: flip state? */
 			printf("[no-op] %s was removed from the config, but I am not stopping it.\n",
@@ -353,7 +359,7 @@ tree_delta_test(int argc, char **argv)
 		}
 
 		if (!tn->rn_child && ((tn->rn_resource->r_rule->rr_flags &
-		    RF_INIT) == 0) && group_migratory(&reslist2, &tree2, rg) &&
+		    RF_INIT) == 0) && test_group_migratory(&reslist2, &tree2, rg) &&
 		    need_init == 1) {
 			/* Do something smart here? */
 			printf("[noop] %s was added, but I am not initializing it\n", rg);
@@ -380,7 +386,7 @@ out:
 }
 
 
-int
+static int
 usage(char *arg0)
 {
 	printf("usage: %s [agent_path] <args..>\n\n", arg0);

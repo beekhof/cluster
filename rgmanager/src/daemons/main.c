@@ -29,7 +29,7 @@ void dump_thread_states(FILE *);
 static int configure_rgmanager(int ccsfd, int debug);
 void set_transition_throttling(int);
 
-static void flag_shutdown(int sig);
+void flag_shutdown(int sig);
 
 int watchdog_init(void);
 
@@ -714,7 +714,7 @@ event_loop(msgctx_t *localctx, msgctx_t *clusterctx)
 }
 
 
-static void
+void
 flag_shutdown(int __attribute__ ((unused)) sig)
 {
 	shutdown_pending = 1;

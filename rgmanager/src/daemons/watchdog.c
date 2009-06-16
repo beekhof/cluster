@@ -8,6 +8,8 @@
 #include <signals.h>
 #include <logging.h>
 
+int watchdog_init(void);
+
 static pid_t child = 0;
 
 static void 
@@ -15,6 +17,8 @@ signal_handler(int signum)
 {
         kill(child, signum);
 }
+
+
 static void 
 redirect_signals(void)
 {
@@ -33,6 +37,7 @@ redirect_signals(void)
 		}
 	}
 }
+
 
 /**
  return watchdog's pid, or 0 on failure

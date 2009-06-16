@@ -48,6 +48,7 @@ const char *ocf_errors[] = {
 /* XXX MEGA HACK */
 #ifdef NO_CCS
 static int _no_op_mode_ = 0;
+void _no_op_mode(int arg);
 void
 _no_op_mode(int arg)
 {

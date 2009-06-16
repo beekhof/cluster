@@ -163,6 +163,7 @@ int build_resource_tree(int ccsfd, resource_node_t **tree,
 void print_resource_tree(resource_node_t **tree);
 void destroy_resource_tree(resource_node_t **tree);
 
+void *act_dup(resource_act_t *acts);
 
 /*
    Handy functions
@@ -191,10 +192,5 @@ const char *rg_attr_value(resource_node_t *node, const char *attrname);
 const char *res_attr_value(resource_t *res, const char *attrname);
 const char *primary_attr_value(resource_t *);
 int rescmp(resource_t *l, resource_t *r);
-
-#ifdef NO_CCS
-int conf_get(char *query, char **ret);
-int conf_setconfig(char *path);
-#endif
 
 #endif /* _RESLIST_H */

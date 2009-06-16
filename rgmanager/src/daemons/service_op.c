@@ -19,14 +19,9 @@
 #include <event.h>
 
 
-/*
- * Send a message to the target node to start the service.
- */
-int get_service_state_internal(char *svcName, rg_state_t *svcStatus);
-
-
 /**
- *
+ * Send a message to the target node list, one at a time, to start
+ * the service.  Of course, the target list can be just 1 node.
  */
 int
 service_op_start(char *svcName,

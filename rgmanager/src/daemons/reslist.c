@@ -602,7 +602,7 @@ print_resource(resource_t *res)
 }
 
 
-static void *
+void *
 act_dup(resource_act_t *acts)
 {
 	int x;

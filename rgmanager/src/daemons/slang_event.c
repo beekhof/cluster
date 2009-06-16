@@ -164,7 +164,7 @@ do { \
 } while(0)
 
 
-static int
+int
 get_service_state_internal(const char *svcName, rg_state_t *svcStatus)
 {
 	struct dlm_lksb lock;

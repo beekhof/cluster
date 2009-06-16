@@ -7,7 +7,10 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <string.h>
-char*xpath_get_one(xmlDocPtr, xmlXPathContextPtr, char *);
+#include <time.h>
+#include <list.h>
+#include <restart_counter.h>
+#include <reslist.h>
 #else
 #include <ccs.h>
 #endif
@@ -37,7 +40,7 @@ static pthread_mutex_t _ccs_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef NO_CCS
 static xmlDocPtr ccs_doc = NULL;
-static char *conffile = DEFAULT_CONFIG_DIR "/" DEFAULT_CONFIG_FILE;
+static const char *conffile = DEFAULT_CONFIG_DIR "/" DEFAULT_CONFIG_FILE;
 #endif
 
 int
@@ -146,7 +149,7 @@ ccs_unlock(int __attribute__((unused)) fd)
 
 
 void
-conf_setconfig(char *path)
+conf_setconfig(const char *path)
 {
 	pthread_mutex_lock(&_ccs_mutex);
 	conffile = path;
@@ -155,7 +158,7 @@ conf_setconfig(char *path)
 
 
 int
-conf_get(char *path, char **value)
+conf_get(const char *path, char **value)
 {
 	char *foo;
 	xmlXPathContextPtr ctx;

@@ -39,5 +39,9 @@ int rg_set_childmax(int max);
 int ccs_lock(void);
 int ccs_unlock(int fd);
 
+#ifdef NO_CCS
+int conf_get(const char *query, char **ret);
+void conf_setconfig(const char *path);
 #endif
 
+#endif

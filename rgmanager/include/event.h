@@ -133,5 +133,6 @@ int32_t master_event_callback(char *key, uint64_t viewno, void *data,
 
 int node_has_fencing(int nodeid);
 int fence_domain_joined(void);
+int get_service_state_internal(const char *svcName, rg_state_t *svcStatus);
 
 #endif
