@@ -16,7 +16,7 @@ struct fw_message {
 };
 
 
-void
+static void
 build_message(SmMessageSt *msgp, int action, char *svcName, int target,
 	      int arg1, int arg2)
 {
@@ -35,7 +35,7 @@ build_message(SmMessageSt *msgp, int action, char *svcName, int target,
 }
 
 
-void *
+static void *
 forwarding_thread(void *arg)
 {
 	rg_state_t rgs;
@@ -161,7 +161,7 @@ forward_request(request_t *req)
 
 
 
-void *
+static void *
 forwarding_thread_v2(void *arg)
 {
 	msgctx_t *ctx = NULL, *resp_ctx = NULL;
