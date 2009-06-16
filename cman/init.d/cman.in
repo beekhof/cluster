@@ -335,7 +335,8 @@ groupd_enabled()
 			2>/dev/null || true)"
 
 	[ -z "$groupd_compat" ] && return 1
-	[ "$groupd_compat" == 0 ] && return 1
+	[ "$groupd_compat" = 0 ] && return 1
+	return 0
 }
 
 cmannotifyd_enabled()
@@ -727,7 +728,7 @@ stop()
 		"Stopping fenced"
 
 	runwrap stop_groupd \
-		none \
+		groupd_enabled \
 		"Stopping groupd"
 
 	runwrap stop_qdiskd \
