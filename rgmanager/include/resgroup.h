@@ -162,6 +162,7 @@ int svc_freeze(const char *svcName);
 int svc_unfreeze(const char *svcName);
 int svc_migrate(const char *svcName, int target);
 int svc_start_remote(const char *svcName, int request, uint32_t target);
+int svc_report_failure(const char *svcName);
 
 int rt_enqueue_request(const char *resgroupname, int request,
 		       msgctx_t *resp_ctx,

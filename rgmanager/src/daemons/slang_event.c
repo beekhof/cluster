@@ -10,6 +10,8 @@
 #include <members.h>
 #include <assert.h>
 #include <event.h>
+#include <groups.h>
+#include <fo_domain.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +27,6 @@ static char **_service_list = NULL;
 static int _service_list_len = 0;
 
 char **get_service_names(int *len); /* from groups.c */
-int get_service_property(char *rg_name, char *prop, char *buf, size_t buflen);
 void push_int_array(int *stuff, int len);
 
 
@@ -75,7 +76,7 @@ static char
    *_node_name = NULL,
    *_service_name = NULL,
    *_service_state = NULL,
-   *_rg_err_str = "No Error";
+   *_rg_err_str = (char *)"No Error";
 
 static int
    _user_enable = RG_ENABLE,
@@ -93,64 +94,64 @@ SLang_Intrin_Var_Type rgmanager_vars[] =
 	/* Log levels (constants) */
 
 	/* Node state information */
-	MAKE_VARIABLE("NODE_ONLINE",	&_ns_online,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("NODE_OFFLINE",	&_ns_offline,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"NODE_ONLINE",	&_ns_online,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"NODE_OFFLINE",	&_ns_offline,	SLANG_INT_TYPE, 1),
 
 	/* Node event information */
-	MAKE_VARIABLE("node_self",	&_my_node_id,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("node_state",	&_node_state,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("node_id",	&_node_id,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("node_name",	&_node_name,	SLANG_STRING_TYPE,1),
-	MAKE_VARIABLE("node_clean",	&_node_clean,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"node_self",	&_my_node_id,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"node_state",	&_node_state,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"node_id",	&_node_id,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"node_name",	&_node_name,	SLANG_STRING_TYPE,1),
+	MAKE_VARIABLE((char *)"node_clean",	&_node_clean,	SLANG_INT_TYPE, 1),
 
 	/* Service event information */
-	MAKE_VARIABLE("service_name",	&_service_name,	SLANG_STRING_TYPE,1),
-	MAKE_VARIABLE("service_state",	&_service_state,SLANG_STRING_TYPE,1),
-	MAKE_VARIABLE("service_owner",	&_service_owner,SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("service_last_owner", &_service_last_owner,
+	MAKE_VARIABLE((char *)"service_name",	&_service_name,	SLANG_STRING_TYPE,1),
+	MAKE_VARIABLE((char *)"service_state",	&_service_state,SLANG_STRING_TYPE,1),
+	MAKE_VARIABLE((char *)"service_owner",	&_service_owner,SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"service_last_owner", &_service_last_owner,
 		      					SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("service_restarts_exceeded", &_service_restarts_exceeded,
+	MAKE_VARIABLE((char *)"service_restarts_exceeded", &_service_restarts_exceeded,
 		      					SLANG_INT_TYPE, 1),
 
 	/* User event information */
-	MAKE_VARIABLE("user_request",	&_user_request,	SLANG_INT_TYPE,1),
-	MAKE_VARIABLE("user_arg1",	&_user_arg1,	SLANG_INT_TYPE,1),
-	MAKE_VARIABLE("user_arg2",	&_user_arg2,	SLANG_INT_TYPE,1),
-	MAKE_VARIABLE("user_service",	&_service_name, SLANG_STRING_TYPE,1),
-	MAKE_VARIABLE("user_target",	&_service_owner,SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"user_request",	&_user_request,	SLANG_INT_TYPE,1),
+	MAKE_VARIABLE((char *)"user_arg1",	&_user_arg1,	SLANG_INT_TYPE,1),
+	MAKE_VARIABLE((char *)"user_arg2",	&_user_arg2,	SLANG_INT_TYPE,1),
+	MAKE_VARIABLE((char *)"user_service",	&_service_name, SLANG_STRING_TYPE,1),
+	MAKE_VARIABLE((char *)"user_target",	&_service_owner,SLANG_INT_TYPE, 1),
 	/* Return code to user requests; i.e. clusvcadm */
-	MAKE_VARIABLE("user_return",	&_user_return,	SLANG_INT_TYPE, 0),
+	MAKE_VARIABLE((char *)"user_return",	&_user_return,	SLANG_INT_TYPE, 0),
 
 	/* General event information */
-	MAKE_VARIABLE("event_type",	&_event_type,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("EVENT_NONE",	&_ev_none,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("EVENT_NODE",	&_ev_node,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("EVENT_CONFIG",	&_ev_config,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("EVENT_SERVICE",	&_ev_service,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("EVENT_USER",	&_ev_user,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"event_type",	&_event_type,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"EVENT_NONE",	&_ev_none,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"EVENT_NODE",	&_ev_node,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"EVENT_CONFIG",	&_ev_config,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"EVENT_SERVICE",	&_ev_service,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"EVENT_USER",	&_ev_user,	SLANG_INT_TYPE, 1),
 
 	/* User request constants */
-	MAKE_VARIABLE("USER_ENABLE",	&_user_enable,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_DISABLE",	&_user_disable,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_STOP",	&_user_stop,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_RELOCATE",	&_user_relo,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_RESTART",	&_user_restart,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_MIGRATE",	&_user_migrate,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_FREEZE",	&_user_freeze,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("USER_UNFREEZE",	&_user_unfreeze,SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_ENABLE",	&_user_enable,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_DISABLE",	&_user_disable,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_STOP",	&_user_stop,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_RELOCATE",	&_user_relo,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_RESTART",	&_user_restart,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_MIGRATE",	&_user_migrate,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_FREEZE",	&_user_freeze,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_UNFREEZE",	&_user_unfreeze,SLANG_INT_TYPE, 1),
 
 	/* Errors */
-	MAKE_VARIABLE("rg_error",	&_rg_err,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("rg_error_string",&_rg_err_str,	SLANG_STRING_TYPE,1),
+	MAKE_VARIABLE((char *)"rg_error",	&_rg_err,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"rg_error_string",&_rg_err_str,	SLANG_STRING_TYPE,1),
 
 	/* From constants.c */
-	MAKE_VARIABLE("FAIL",		&_rg_fail,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("SUCCESS",	&_rg_success,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("ERR_ABORT",	&_rg_eabort,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("ERR_INVALID",	&_rg_einval,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("ERR_DEPEND",	&_rg_edepend,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("ERR_DOMAIN",	&_rg_edomain,	SLANG_INT_TYPE, 1),
-	MAKE_VARIABLE("ERR_RUNNING",	&_rg_erun,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"FAIL",		&_rg_fail,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"SUCCESS",	&_rg_success,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"ERR_ABORT",	&_rg_eabort,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"ERR_INVALID",	&_rg_einval,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"ERR_DEPEND",	&_rg_edepend,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"ERR_DOMAIN",	&_rg_edomain,	SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"ERR_RUNNING",	&_rg_erun,	SLANG_INT_TYPE, 1),
 
 	SLANG_END_INTRIN_VAR_TABLE
 };
@@ -163,8 +164,8 @@ do { \
 } while(0)
 
 
-int
-get_service_state_internal(char *svcName, rg_state_t *svcStatus)
+static int
+get_service_state_internal(const char *svcName, rg_state_t *svcStatus)
 {
 	struct dlm_lksb lock;
 	char buf[32];
@@ -203,8 +204,8 @@ get_service_state_internal(char *svcName, rg_state_t *svcStatus)
 /*
    (restarts, last_owner, owner, state) = get_service_status(servicename)
  */
-void
-sl_service_status(char *svcName)
+static void
+sl_service_status(const char *svcName)
 {
 	rg_state_t svcStatus;
 	int restarts_exceeded = 0;
@@ -212,7 +213,7 @@ sl_service_status(char *svcName)
 
 	if (get_service_state_internal(svcName, &svcStatus) < 0) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to get status for %s",
+			     (char *)"%s: Failed to get status for %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -221,7 +222,7 @@ sl_service_status(char *svcName)
 	restarts_exceeded = check_restart(svcName);
 	if (SLang_push_integer(restarts_exceeded) < 0) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to push restarts_exceeded %s",
+			     (char *)"%s: Failed to push restarts_exceeded %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -229,7 +230,7 @@ sl_service_status(char *svcName)
 
 	if (SLang_push_integer(svcStatus.rs_restarts) < 0) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to push restarts for %s",
+			     (char *)"%s: Failed to push restarts for %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -237,7 +238,7 @@ sl_service_status(char *svcName)
 
 	if (SLang_push_integer(svcStatus.rs_last_owner) < 0) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to push last owner of %s",
+			     (char *)"%s: Failed to push last owner of %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -255,7 +256,7 @@ sl_service_status(char *svcName)
 
 	if (SLang_push_integer(svcStatus.rs_owner) < 0) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to push owner of %s",
+			     (char *)"%s: Failed to push owner of %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -271,7 +272,7 @@ sl_service_status(char *svcName)
 
 	if (!state_str) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to duplicate state of %s",
+			     (char *)"%s: Failed to duplicate state of %s",
 			     __FUNCTION__,
 			     svcName);
 		return;
@@ -279,7 +280,7 @@ sl_service_status(char *svcName)
 
 	if (SLang_push_malloced_string(state_str) < 0) {
 		SLang_verror(SL_RunTime_Error,
-			     "%s: Failed to push state of %s",
+			     (char *)"%s: Failed to push state of %s",
 			     __FUNCTION__,
 			     svcName);
 		free(state_str);
@@ -288,15 +289,15 @@ sl_service_status(char *svcName)
 
 
 /* These can be done by the master node */
-int
+static int
 sl_service_freeze(char *svcName)
 {
 	return svc_freeze(svcName);
 }
 
 
-int
-sl_service_unfreeze(char *svcName)
+static int
+sl_service_unfreeze(const char *svcName)
 {
 	return svc_unfreeze(svcName);
 }
@@ -305,8 +306,8 @@ sl_service_unfreeze(char *svcName)
 /**
   (nofailback, restricted, ordered, nodelist) = service_domain_info(svcName);
  */
-void
-sl_domain_info(char *svcName)
+static void
+sl_domain_info(const char *svcName)
 {
 	int *nodelist = NULL, listlen;
 	char buf[64];
@@ -414,7 +415,7 @@ out:
 /**
   get_service_property(service_name, property)
  */
-char *
+static char *
 sl_service_property(char *svcName, char *prop)
 {
 	char buf[96];
@@ -432,7 +433,7 @@ sl_service_property(char *svcName, char *prop)
 
   stop_service(name, disable_flag);
  */
-int
+static int
 sl_stop_service(void)
 {
 	char *svcname = NULL;
@@ -444,7 +445,7 @@ sl_stop_service(void)
 	/* Takes one or two args */
 	if (nargs <= 0 || nargs > 2) {
 		SLang_verror(SL_Syntax_Error,
-		     "%s: Wrong # of args (%d), must be 1 or 2\n",
+		     (char *)"%s: Wrong # of args (%d), must be 1 or 2\n",
 		     __FUNCTION__,
 		     nargs);
 		return -1;
@@ -454,14 +455,14 @@ sl_stop_service(void)
 		t = SLang_peek_at_stack();
 		if (t != SLANG_INT_TYPE) {
 			SLang_verror(SL_Syntax_Error,
-				     "%s: expected type %d got %d\n",
+				     (char *)"%s: expected type %d got %d\n",
 				     __FUNCTION__, SLANG_INT_TYPE, t);
 			goto out;
 		}
 
 		if (SLang_pop_integer(&do_disable) < 0) {
 			SLang_verror(SL_Syntax_Error,
-			    "%s: Failed to pop integer from stack!\n",
+			    (char *)"%s: Failed to pop integer from stack!\n",
 			    __FUNCTION__);
 			goto out;
 		}
@@ -473,7 +474,7 @@ sl_stop_service(void)
 		t = SLang_peek_at_stack();
 		if (t != SLANG_STRING_TYPE) {
 			SLang_verror(SL_Syntax_Error,
-				     "%s: expected type %d got %d\n",
+				     (char *)"%s: expected type %d got %d\n",
 				     __FUNCTION__,
 				     SLANG_STRING_TYPE, t);
 			goto out;
@@ -481,7 +482,7 @@ sl_stop_service(void)
 
 		if (SLpop_string(&svcname) < 0) {
 			SLang_verror(SL_Syntax_Error,
-			    "%s: Failed to pop string from stack!\n",
+			    (char *)"%s: Failed to pop string from stack!\n",
 			    __FUNCTION__);
 			goto out;
 		}
@@ -503,7 +504,7 @@ out:
   start_service(name, <array>ordered_node_list_allowed,
   		      <array>node_list_illegal)
  */
-int
+static int
 sl_start_service(void)
 {
 	char *svcname = NULL;
@@ -516,7 +517,7 @@ sl_start_service(void)
 	/* Takes one, two, or three */
 	if (nargs <= 0 || nargs > 3) {
 		SLang_verror(SL_Syntax_Error,
-		     "%s: Wrong # of args (%d), must be 1 or 2\n",
+		     (char *)"%s: Wrong # of args (%d), must be 1 or 2\n",
 		     __FUNCTION__, nargs);
 		return -1;
 	}
@@ -538,7 +539,7 @@ sl_start_service(void)
 		t = SLang_peek_at_stack();
 		if (t != SLANG_STRING_TYPE) {
 			SLang_verror(SL_Syntax_Error,
-				     "%s: expected type %d got %d\n",
+				     (char *)"%s: expected type %d got %d\n",
 				     __FUNCTION__,
 				     SLANG_STRING_TYPE, t);
 			goto out;
@@ -592,7 +593,7 @@ push_int_array(int *stuff, int len)
 /*
    Returns an array of rgmanager-visible nodes online.  How cool is that?
  */
-void
+static void
 sl_nodes_online(void)
 {
 	int x, *nodes = NULL, nodecount = 0;
@@ -611,7 +612,7 @@ sl_nodes_online(void)
    We allocate/kill this list *once* per event to ensure we don't leak
    memory
  */
-void
+static void
 sl_service_list(void)
 {
 	SLindex_Type svccount = _service_list_len, x = 0;
@@ -629,7 +630,7 @@ sl_service_list(void)
 
 
 /* s_union hook (see sets.c) */
-void
+static void
 sl_union(void)
 {
 	int *arr1 = NULL, a1len = 0;
@@ -656,7 +657,7 @@ sl_union(void)
 
 
 /* s_intersection hook (see sets.c) */
-void
+static void
 sl_intersection(void)
 {
 	int *arr1 = NULL, a1len = 0;
@@ -683,7 +684,7 @@ sl_intersection(void)
 
 
 /* s_delta hook (see sets.c) */
-void
+static void
 sl_delta(void)
 {
 	int *arr1 = NULL, a1len = 0;
@@ -710,7 +711,7 @@ sl_delta(void)
 
 
 /* s_subtract hook (see sets.c) */
-void
+static void
 sl_subtract(void)
 {
 	int *arr1 = NULL, a1len = 0;
@@ -737,7 +738,7 @@ sl_subtract(void)
 
 
 /* Shuffle array (see sets.c) */
-void
+static void
 sl_shuffle(void)
 {
 	int *arr1 = NULL, a1len = 0;
@@ -815,7 +816,7 @@ array_to_string(char *buf, int buflen, int *array, int arraylen)
   Result:  String 1 string2
 
  */
-void
+static void
 sl_logt_print(int level)
 {
 	int t, nargs, len;
@@ -887,63 +888,63 @@ sl_logt_print(int level)
 
 
 /* Logging functions */
-void
+static void
 sl_log_debug(void)
 {
 	sl_logt_print(LOG_DEBUG);
 }
 
 
-void
+static void
 sl_log_info(void)
 {
 	sl_logt_print(LOG_INFO);
 }
 
 
-void
+static void
 sl_log_notice(void)
 {
 	sl_logt_print(LOG_NOTICE);
 }
 
 
-void
+static void
 sl_log_warning(void)
 {
 	sl_logt_print(LOG_WARNING);
 }
 
 
-void
+static void
 sl_log_err(void)
 {
 	sl_logt_print(LOG_ERR);
 }
 
 
-void
+static void
 sl_log_crit(void)
 {
 	sl_logt_print(LOG_CRIT);
 }
 
 
-void
+static void
 sl_log_alert(void)
 {
 	sl_logt_print(LOG_ALERT);
 }
 
 
-void
+static void
 sl_log_emerg(void)
 {
 	sl_logt_print(LOG_EMERG);
 }
 
 
-void
+static void
 sl_die(void)
 {
 	_stop_processing = 1;
@@ -951,48 +952,53 @@ sl_die(void)
 }
 
 
-SLang_Intrin_Fun_Type rgmanager_slang[] =
+static SLang_Intrin_Fun_Type rgmanager_slang[] =
 {
-	MAKE_INTRINSIC_0("nodes_online", sl_nodes_online, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("service_list", sl_service_list, SLANG_VOID_TYPE),
-
-	MAKE_INTRINSIC_SS("service_property", sl_service_property,
-			  SLANG_STRING_TYPE),
-	MAKE_INTRINSIC_S("service_domain_info", sl_domain_info, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("service_stop", sl_stop_service, SLANG_INT_TYPE),
-	MAKE_INTRINSIC_0("service_start", sl_start_service, SLANG_INT_TYPE),
-	MAKE_INTRINSIC_S("service_status", sl_service_status,
+	MAKE_INTRINSIC_0((char *)"nodes_online", sl_nodes_online,
 			 SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_S("service_freeze", sl_service_freeze,
+	MAKE_INTRINSIC_0((char *)"service_list", sl_service_list,
+			 SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_SS((char *)"service_property", sl_service_property,
+			  SLANG_STRING_TYPE),
+	MAKE_INTRINSIC_S((char *)"service_domain_info", sl_domain_info,
+			 SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"service_stop", sl_stop_service,
 			 SLANG_INT_TYPE),
-	MAKE_INTRINSIC_S("service_unfreeze", sl_service_unfreeze,
+	MAKE_INTRINSIC_0((char *)"service_start", sl_start_service,
+			 SLANG_INT_TYPE),
+	MAKE_INTRINSIC_S((char *)"service_status", sl_service_status,
+			 SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_S((char *)"service_freeze", sl_service_freeze,
+			 SLANG_INT_TYPE),
+	MAKE_INTRINSIC_S((char *)"service_unfreeze", sl_service_unfreeze,
 			 SLANG_INT_TYPE),
 
 	/* Node list manipulation */
-	MAKE_INTRINSIC_0("union", sl_union, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("intersection", sl_intersection, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("delta", sl_delta, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("subtract", sl_subtract, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("shuffle", sl_shuffle, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"union", sl_union, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"intersection", sl_intersection,
+			 SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"delta", sl_delta, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"subtract", sl_subtract, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"shuffle", sl_shuffle, SLANG_VOID_TYPE),
 
 	/* Logging */
-	MAKE_INTRINSIC_0("debug", sl_log_debug, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("info", sl_log_info, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("notice", sl_log_notice, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("warning", sl_log_warning, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("err", sl_log_err, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("crit", sl_log_crit, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("alert", sl_log_alert, SLANG_VOID_TYPE),
-	MAKE_INTRINSIC_0("emerg", sl_log_emerg, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"debug", sl_log_debug, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"info", sl_log_info, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"notice", sl_log_notice, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"warning", sl_log_warning, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"err", sl_log_err, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"crit", sl_log_crit, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"alert", sl_log_alert, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"emerg", sl_log_emerg, SLANG_VOID_TYPE),
 
-	MAKE_INTRINSIC_0("stop_processing", sl_die, SLANG_VOID_TYPE),
+	MAKE_INTRINSIC_0((char *)"stop_processing", sl_die, SLANG_VOID_TYPE),
 
 	SLANG_END_INTRIN_FUN_TABLE
 };
 
 
 /* Hook for when we generate a script error */
-void
+static void
 rgmanager_slang_error_hook(char *errstr)
 {
 	/* Don't just send errstr, because it might contain
@@ -1006,7 +1012,7 @@ rgmanager_slang_error_hook(char *errstr)
 /* ================================================================
  * S/Lang initialization
  * ================================================================ */
-int
+static int
 do_init_slang(void)
 {
 	SLang_init_slang();
@@ -1020,7 +1026,7 @@ do_init_slang(void)
 	/* TODO: Make rgmanager S/Lang conformant.  Though, it
 	   might be a poor idea to provide access to all the 
 	   S/Lang libs */
-	SLpath_set_load_path(RESOURCE_ROOTDIR);
+	SLpath_set_load_path((char *)RESOURCE_ROOTDIR);
 
 	_my_node_id = my_id();
 	__sl_initialized = 1;
@@ -1035,7 +1041,7 @@ do_init_slang(void)
    Execute a script / file and return the result to the caller
    Log an error if we receive one.
  */
-int
+static int
 do_slang_run(const char *file, const char *script)
 {
 	int ret = 0;
@@ -1054,7 +1060,7 @@ do_slang_run(const char *file, const char *script)
 }
 
 
-int
+static int
 S_node_event(const char *file, const char *script, int nodeid,
 	     int state, int clean)
 {
@@ -1080,7 +1086,7 @@ S_node_event(const char *file, const char *script, int nodeid,
 }
 
 
-int
+static int
 S_service_event(const char *file, const char *script, char *name,
 	        int state, int owner, int last_owner)
 {
@@ -1114,7 +1120,7 @@ S_service_event(const char *file, const char *script, char *name,
 }
 
 
-int
+static int
 S_user_event(const char *file, const char *script, char *name,
 	     int request, int arg1, int arg2, int target, msgctx_t *ctx)
 {
@@ -1160,7 +1166,7 @@ S_user_event(const char *file, const char *script, char *name,
 }
 
 
-int
+static int
 slang_do_script(event_t *pattern, event_t *ev)
 {
 	int ret = 0;

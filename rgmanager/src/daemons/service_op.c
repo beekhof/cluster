@@ -1,5 +1,9 @@
 #include <assert.h>
 #include <platform.h>
+#include <time.h>
+#include <list.h>
+#include <restart_counter.h>
+#include <reslist.h>
 #include <message.h>
 #include <members.h>
 #include <stdio.h>
@@ -18,8 +22,6 @@
 /*
  * Send a message to the target node to start the service.
  */
-int svc_start_remote(char *svcName, int request, uint32_t target);
-void svc_report_failure(char *);
 int get_service_state_internal(char *svcName, rg_state_t *svcStatus);
 
 

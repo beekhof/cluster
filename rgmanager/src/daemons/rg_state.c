@@ -62,7 +62,7 @@ broadcast_event(const char *svcName, uint32_t state, int owner, int last)
 }
 
 
-static int
+int
 svc_report_failure(const char *svcName)
 {
 	struct dlm_lksb lockp;
