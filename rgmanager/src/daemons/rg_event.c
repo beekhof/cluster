@@ -1,3 +1,7 @@
+#include <time.h>
+#include <list.h>
+#include <restart_counter.h>
+#include <reslist.h>
 #include <resgroup.h>
 #include <rg_locks.h>
 #include <gettid.h>
@@ -10,7 +14,7 @@
 #include <stdint.h>
 #include <vf.h>
 #include <members.h>
-#include <time.h>
+#include <groups.h>
 
 
 /**
@@ -364,7 +368,7 @@ out:
   Event handling function.  This only stays around as long as
   events are on the queue.
  */
-void *
+static void *
 _event_thread_f(void __attribute__ ((unused)) *arg)
 {
 	event_t *ev;

@@ -131,5 +131,7 @@ void node_event(int local, int nodeID, int nodeStatus, int clean);
 int32_t master_event_callback(char *key, uint64_t viewno, void *data,
 			      uint32_t datalen);
 
+int node_has_fencing(int nodeid);
+int fence_domain_joined(void);
 
 #endif

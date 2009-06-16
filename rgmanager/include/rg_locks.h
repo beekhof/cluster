@@ -4,6 +4,11 @@
 int rg_running(void);
 
 int rg_locked(void);
+
+#define L_SHUTDOWN (1<<2)
+#define L_SYS (1<<1)
+#define L_USER (1<<0)
+
 int rg_lockall(int flag);
 int rg_unlockall(int flag);
 

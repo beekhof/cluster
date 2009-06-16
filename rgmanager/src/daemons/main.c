@@ -23,10 +23,6 @@
 #include <daemon_init.h>
 #include <groups.h>
 
-#define L_SHUTDOWN (1<<2)
-#define L_SYS (1<<1)
-#define L_USER (1<<0)
-
 #ifdef WRAP_THREADS
 void dump_thread_states(FILE *);
 #endif
@@ -35,8 +31,6 @@ void set_transition_throttling(int);
 
 static void flag_shutdown(int sig);
 
-int node_has_fencing(int nodeid);
-int fence_domain_joined(void);
 int watchdog_init(void);
 
 

@@ -45,7 +45,7 @@ clu_ls_lock(dlm_lshandle_t ls,
 	    int mode,
 	    struct dlm_lksb *lksb,
 	    int options,
-            char *resource)
+            const char *resource)
 {
         int ret;
 
@@ -156,7 +156,7 @@ int
 clu_lock(int mode,
 	 struct dlm_lksb *lksb,
 	 int options,
-         char *resource)
+         const char *resource)
 {
 	int ret = 0, block = 0, conv = 0, err;
 
