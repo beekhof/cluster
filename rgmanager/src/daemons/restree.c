@@ -16,26 +16,15 @@
 #include <assert.h>
 
 /* XXX from resrules.c */
-int store_childtype(resource_child_t **childp, char *name, int start,
-		    int stop, int forbid, int flags);
 int _res_op(resource_node_t **tree, resource_t *first, char *type,
 	    void * __attribute__((unused))ret, int op);
 static inline int
 _res_op_internal(resource_node_t **tree, resource_t *first,
 		 char *type, void *__attribute__((unused))ret, int realop,
 		 resource_node_t *node);
-void print_env(char **env);
 static inline int _res_op_internal(resource_node_t **tree, resource_t *first,
 		 char *type, void *__attribute__((unused))ret, int realop,
 		 resource_node_t *node);
-
-/* XXX from reslist.c */
-void * act_dup(resource_act_t *acts);
-
-
-/* XXX from reslist.c */
-void * act_dup(resource_act_t *acts);
-
 
 /* XXX from reslist.c */
 void * act_dup(resource_act_t *acts);
@@ -70,7 +59,7 @@ _no_op_mode(int arg)
 /**
    ocf_strerror
  */
-const char *
+static const char *
 ocf_strerror(int ret)
 {
 	if (ret >= 0 && ret < OCF_RA_MAX)
@@ -121,7 +110,7 @@ add_ocf_stuff(resource_t *res, char **env, int depth, int refcnt)
 		*minor = 0;
 		minor++;
 	} else
-		minor = "0";
+		minor = (char *)"0";
 		
 	/*
 	   Store the OCF major version
@@ -243,7 +232,7 @@ build_env(resource_node_t *node, int depth, int refcnt)
 	attrs = 0;
 	for (x = 0; res->r_attrs && res->r_attrs[x].ra_name; x++) {
 
-		val = attr_value(node, res->r_attrs[x].ra_name);
+		val = (char *)attr_value(node, res->r_attrs[x].ra_name);
 		if (!val)
 			continue;
 
@@ -276,26 +265,10 @@ build_env(resource_node_t *node, int depth, int refcnt)
 
 
 /**
-   Print info in an environment array
-
-   @param env		Environment to print.
- */
-void
-print_env(char **env)
-{
-	int x;
-
-	for (x = 0; env[x]; x++) {
-		printf("%s\n", env[x]);
-	}
-}
-
-
-/**
    Set all signal handlers to default for exec of a script.
    ONLY do this after a fork().
  */
-void
+static void
 restore_signals(void)
 {
 	sigset_t set;
@@ -310,7 +283,7 @@ restore_signals(void)
 
 
 /** Find the index for a given operation / depth in a resource node */
-int
+static int
 res_act_index(resource_node_t *node, const char *op_str, int depth)
 {
 	int x = 0;
@@ -506,13 +479,13 @@ assign_restart_policy(resource_t *curres, resource_node_t *parent,
 	if (parent) /* Non-parents don't get one for now */
 		return;
 
-	val = res_attr_value(curres, "max_restarts");
+	val = (char *)res_attr_value(curres, "max_restarts");
 	if (!val)
 		return;
 	max_restarts = atoi(val);
 	if (max_restarts <= 0)
 		return;
-	val = res_attr_value(curres, "restart_expire_time");
+	val = (char *)res_attr_value(curres, "restart_expire_time");
 	if (val) {
 		restart_expire_time = (time_t)expand_time(val);
 		if ((int64_t)restart_expire_time < 0)
@@ -885,7 +858,7 @@ destroy_resource_tree(resource_node_t **tree)
 }
 
 
-void
+static void
 _print_resource_tree(resource_node_t **tree, int level)
 {
 	resource_node_t *node;
@@ -1052,7 +1025,7 @@ _do_child_default_level(resource_node_t **tree, resource_t *first,
 			in the subtree).
    @see			_res_op res_exec
  */
-int
+static int
 _res_op_by_level(resource_node_t **tree, resource_t *first, void *ret,
 		 int op)
 {
@@ -1082,7 +1055,7 @@ _res_op_by_level(resource_node_t **tree, resource_t *first, void *ret,
 }
 
 
-void
+static void
 mark_nodes(resource_node_t *node, int state, int setflags, int clearflags)
 {
 	int x;
@@ -1105,7 +1078,7 @@ mark_nodes(resource_node_t *node, int state, int setflags, int clearflags)
    status operation was run and selects the highest possible resource depth
    to use given the elapsed time.
   */
-int
+static int
 do_status(resource_node_t *node)
 {
 	int x = 0, idx = -1;
@@ -1178,8 +1151,8 @@ do_status(resource_node_t *node)
 }
 
 
-void
-set_time(char *action, int depth, resource_node_t *node)
+static void
+set_time(const char *action, int depth, resource_node_t *node)
 {
 	time_t now;
 	int x = 0;
@@ -1216,7 +1189,7 @@ get_time(char *action, int depth, resource_node_t *node)
 }
 
 
-void
+static void
 clear_checks(resource_node_t *node)
 {
 	time_t now;
@@ -1545,20 +1518,6 @@ int
 res_status_inquiry(resource_node_t **tree, resource_t *res, void *ret)
 {
 	return _res_op(tree, res, NULL, ret, RS_STATUS_INQUIRY);
-}
-
-
-/**
-   Grab resource info for all occurrences of a resource in a tree
-
-   @param tree		Tree to search for our resource.
-   @param res		Resource to start/stop
-   @param ret		Unused
- */
-int
-res_resinfo(resource_node_t **tree, resource_t *res, void *ret)
-{
-	return _res_op(tree, res, NULL, ret, RS_RESINFO);
 }
 
 
