@@ -163,12 +163,13 @@ int vf_shutdown(void);
  * the child has exited
  */
 int vf_write(cluster_member_list_t *membership, uint32_t flags,
-	     char *keyid, void *data, uint32_t datalen);
-int vf_read(cluster_member_list_t *membership, char *keyid,
+	     const char *keyid, const void *data, uint32_t datalen);
+int vf_read(cluster_member_list_t *membership, const char *keyid,
 	    uint64_t *view, void **data, uint32_t *datalen);
-int vf_read_local(char *keyid, uint64_t *view, void **data, uint32_t *datalen);
+int vf_read_local(const char *keyid, uint64_t *view, void **data,
+		  uint32_t *datalen);
 
-int vf_key_init(char *keyid, int timeout, vf_vote_cb_t vote_cb,
+int vf_key_init(const char *keyid, int timeout, vf_vote_cb_t vote_cb,
 		vf_commit_cb_t commit_cb);
 int getuptime(struct timeval *tv);
 int vf_process_msg(msgctx_t *ctx, int nodeid, generic_msg_hdr *msgp, int nbytes);

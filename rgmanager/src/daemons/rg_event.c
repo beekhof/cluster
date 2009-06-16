@@ -31,12 +31,12 @@ static int central_events = 0;
 
 extern int running;
 extern int shutdown_pending;
+extern int need_reconfigure;
 static int _master = 0;
 static struct dlm_lksb _master_lock;
 static int _xid = 0;
 static event_master_t *mi = NULL;
 
-void hard_exit(void);
 void flag_shutdown(int sig);
 void flag_reconfigure(int sig);
 
@@ -63,6 +63,23 @@ int
 central_events_enabled(void)
 {
 	return central_events;
+}
+
+
+static void
+hard_exit(void)
+{
+	rg_lockall(L_SYS);
+	rg_doall(RG_INIT, 1, "Emergency stop of %s");
+	//vf_shutdown();
+	exit(1);
+}
+
+
+void
+flag_reconfigure(int __attribute__ ((unused)) sig)
+{
+	need_reconfigure++;
 }
 
 

@@ -202,7 +202,7 @@ msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx)
 
 /* XXX Special case */
 int
-msg_listen(int type, void *port, int me, msgctx_t **ctx)
+msg_listen(int type, const void *port, int me, msgctx_t **ctx)
 {
 	errno = EINVAL;
 	if (!me)

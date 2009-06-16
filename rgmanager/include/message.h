@@ -99,7 +99,7 @@ typedef struct ALIGNED _msgctx {
 typedef int (*msg_open_t)(int type, int nodeid, int port, msgctx_t *ctx,
 			  int timeout);
 typedef int (*msg_close_t)(msgctx_t *);
-typedef int (*msg_listen_t)(int me, void *, msgctx_t **);
+typedef int (*msg_listen_t)(int me, const void *, msgctx_t **);
 typedef int (*msg_accept_t)(msgctx_t *, msgctx_t *);
 typedef int (*msg_shutdown_t)(void);
 typedef int (*msg_send_t)(msgctx_t *, void *, size_t);
@@ -140,7 +140,7 @@ typedef struct _msg_ops {
 /* Call once for MSG_CLUSTER, once for MSG_SOCKET */
 /* Private is should be a null-terminated char string for MSG_SOCKET,
    and a pointer to int type for MSG_CLUSTER */
-int msg_listen(int type, void *port, int me, msgctx_t **new_ctx);
+int msg_listen(int type, const void *port, int me, msgctx_t **new_ctx);
 int msg_open(int type, int nodeid, int port, msgctx_t *ctx, int timeout);
 int msg_init(msgctx_t *ctx);
 int msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx);
@@ -160,12 +160,12 @@ int msg_shutdown(void);
 
 /* From msg_cluster */
 int cluster_msg_init(msgctx_t *ctx);
-int cluster_msg_listen(int me, void *, msgctx_t **ctx);
+int cluster_msg_listen(int me, const void *, msgctx_t **ctx);
 int cluster_msg_shutdown(void);
 
 /* From msg_socket  */
 int sock_msg_init(msgctx_t *ctx);
-int sock_msg_listen(int me, void *, msgctx_t **ctx);
+int sock_msg_listen(int me, const void *, msgctx_t **ctx);
 int sock_msg_shutdown(void);
 
 /* Debugging */

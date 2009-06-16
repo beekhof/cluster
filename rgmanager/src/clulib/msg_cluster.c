@@ -1055,7 +1055,7 @@ process_cman_event(cman_handle_t handle, void *private, int reason, int arg)
 
 /* */
 int
-cluster_msg_listen(int me, void *portp, msgctx_t **cluster_ctx)
+cluster_msg_listen(int me, const void *portp, msgctx_t **cluster_ctx)
 {
 	int e;
 	pthread_attr_t attrs;

@@ -1,4 +1,3 @@
-#include <message.h>
 #include <platform.h>
 #include <ccs.h>
 #include <stdio.h>
@@ -7,18 +6,22 @@
 #include <unistd.h>
 #include <rg_locks.h>
 #include <fcntl.h>
+#include <restart_counter.h>
 #include <resgroup.h>
+#include <reslist.h>
 #include <logging.h>
 #include <members.h>
 #include <msgsimple.h>
 #include <vf.h>
 #include <lock.h>
+#include <message.h>
 #include <rg_queue.h>
 #include <malloc.h>
 #include <cman-private.h>
 #include <event.h>
 #include <members.h>
 #include <daemon_init.h>
+#include <groups.h>
 
 #define L_SHUTDOWN (1<<2)
 #define L_SYS (1<<1)
@@ -27,33 +30,26 @@
 #ifdef WRAP_THREADS
 void dump_thread_states(FILE *);
 #endif
-int configure_rgmanager(int ccsfd, int debug);
+static int configure_rgmanager(int ccsfd, int debug);
 void set_transition_throttling(int);
 
-void node_event(int, int, int, int);
-void node_event_q(int, int, int, int);
-void daemon_cleanup(void);
-void kill_resource_groups(void);
-void flag_shutdown(int sig);
-void hard_exit(void);
-int send_rg_states(msgctx_t *, int);
-int svc_exists(char *);
-int watchdog_init(void);
-int32_t master_event_callback(char *key, uint64_t viewno, void *data, uint32_t datalen);
+static void flag_shutdown(int sig);
 
 int node_has_fencing(int nodeid);
 int fence_domain_joined(void);
+int watchdog_init(void);
+
 
 int shutdown_pending = 0, running = 1, need_reconfigure = 0;
 char debug = 0; /* XXX* */
 static int signalled = 0;
 static uint8_t ALIGNED port = RG_PORT;
-static char *rgmanager_lsname = "rgmanager"; /* XXX default */
+static char *rgmanager_lsname = (char *)"rgmanager"; /* XXX default */
 static int status_poll_interval = DEFAULT_CHECK_INTERVAL;
 
 int next_node_id(cluster_member_list_t *membership, int me);
 
-void
+static void
 segfault(int __attribute__ ((unused)) sig)
 {
 	char ow[64];
@@ -67,7 +63,7 @@ segfault(int __attribute__ ((unused)) sig)
 }
 
 
-int
+static int
 send_exit_msg(msgctx_t *ctx)
 {
 	msg_send_simple(ctx, RG_EXITING, my_id(), 0);
@@ -76,7 +72,7 @@ send_exit_msg(msgctx_t *ctx)
 }
 
 
-void
+static void
 send_node_states(msgctx_t *ctx)
 {
 	int x;
@@ -102,13 +98,6 @@ send_node_states(msgctx_t *ctx)
 }
 
 
-void
-flag_reconfigure(int __attribute__ ((unused)) sig)
-{
-	need_reconfigure++;
-}
-
-
 /**
   This updates our local membership view and handles whether or not we
   should exit, as well as determines node transitions (thus, calling
@@ -117,7 +106,7 @@ flag_reconfigure(int __attribute__ ((unused)) sig)
   @see				node_event
   @return			0
  */
-int
+static int
 membership_update(void)
 {
 	cluster_member_list_t *new_ml = NULL, *node_delta = NULL,
@@ -279,7 +268,7 @@ membership_update(void)
 }
 
 
-int
+static int
 lock_commit_cb(char __attribute__ ((unused)) *key,
 	       uint64_t __attribute__ ((unused)) viewno,
 	       void *data, uint32_t datalen)
@@ -314,59 +303,7 @@ lock_commit_cb(char __attribute__ ((unused)) *key,
 }
 
 
-#if 0
-struct lr_arg {
-	msgctx_t *ctx;
-	int req;
-};
-
-
-void *
-lockreq_th(void *a)
-{
-	int ret;
-	char state;
-	struct lr_arg *lr_arg = (struct lr_arg *)a;
-	cluster_member_list_t *m = member_list();
-
-	state = (lr_arg->req==RG_LOCK)?1:0;
-	ret = vf_write(m, VFF_IGN_CONN_ERRORS, "rg_lockdown", &state, 1);
-	free_member_list(m);
-
-	if (ret == 0) {
-		msg_send_simple(lr_arg->ctx, RG_SUCCESS, 0, 0);
-	} else {
-		msg_send_simple(lr_arg->ctx, RG_FAIL, 0, 0);
-	}
-
-	msg_close(lr_arg->ctx);
-	msg_free_ctx(lr_arg->ctx);
-	free(lr_arg);
-	return NULL;
-}
-
-
-void
-do_lockreq(msgctx_t *ctx, int req)
-{
-	pthread_t th;
-	struct lr_arg *arg;
-
-	arg = malloc(sizeof(*arg));
-	if (!arg) {
-		msg_send_simple(ctx, RG_FAIL, 0, 0);
-		msg_close(ctx);
-		msg_free_ctx(ctx);
-		return 0;
-	}
-
-	arg->ctx = ctx;
-	arg->req = req;
-
-	pthread_create(&th, NULL, lockreq_th, (void *)arg);
-}
-#else
-void 
+static void 
 do_lockreq(msgctx_t *ctx, int req)
 {
 	int ret;
@@ -393,8 +330,6 @@ do_lockreq(msgctx_t *ctx, int req)
 		msg_send_simple(ctx, RG_FAIL, 0, 0);
 	}
 }
-#endif
-
 
 
 /**
@@ -406,7 +341,7 @@ do_lockreq(msgctx_t *ctx, int req)
  *			data received.  0 - handled message successfully.
  * @see			quorum_msg
  */
-int
+static int
 dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 {
 	int ret = 0, sz = -1, nid;
@@ -595,7 +530,7 @@ out:
   @param fd		File descriptor to check
   @return		Event
  */
-int
+static int
 handle_cluster_event(msgctx_t *ctx)
 {
 	int ret;
@@ -676,8 +611,8 @@ void dump_config_version(FILE *fp);
 void dump_vf_states(FILE *fp);
 void dump_cluster_ctx(FILE *fp);
 
-void
-dump_internal_state(char *loc)
+static void
+dump_internal_state(const char *loc)
 {
 	FILE *fp;
 	fp=fopen(loc, "w+");
@@ -691,7 +626,7 @@ dump_internal_state(char *loc)
  	fclose(fp);
 }
 
-int
+static int
 event_loop(msgctx_t *localctx, msgctx_t *clusterctx)
 {
  	int n = 0, max, ret;
@@ -786,24 +721,14 @@ event_loop(msgctx_t *localctx, msgctx_t *clusterctx)
 }
 
 
-void
+static void
 flag_shutdown(int __attribute__ ((unused)) sig)
 {
 	shutdown_pending = 1;
 }
 
 
-void
-hard_exit(void)
-{
-	rg_lockall(L_SYS);
-	rg_doall(RG_INIT, 1, "Emergency stop of %s");
-	//vf_shutdown();
-	exit(1);
-}
-
-
-void
+static void
 cleanup(msgctx_t *clusterctx)
 {
 	kill_resource_groups();
@@ -812,7 +737,7 @@ cleanup(msgctx_t *clusterctx)
 
 
 
-void
+static void
 statedump(int __attribute__ ((unused)) sig)
 {
 	signalled++;
@@ -822,7 +747,7 @@ statedump(int __attribute__ ((unused)) sig)
 /*
  * Configure logging based on data in cluster.conf
  */
-int
+static int
 configure_rgmanager(int ccsfd, int dbg)
 {
 	char *v;
@@ -888,7 +813,7 @@ configure_rgmanager(int ccsfd, int dbg)
 }
 
 
-int
+static int
 cman_connect(cman_handle_t *ch)
 {
 	if (!ch)
@@ -926,7 +851,7 @@ cman_connect(cman_handle_t *ch)
 }
 
 
-void
+static void
 wait_for_fencing(void)
 {
         if (node_has_fencing(my_id()) && !fence_domain_joined()) {
@@ -943,17 +868,7 @@ wait_for_fencing(void)
 }
 
 
-void
-set_nonblock(int fd)
-{
-       int flags;
-
-       flags = fcntl(fd, F_GETFL, 0);
-       fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-}
-
-
-void *
+static void *
 shutdown_thread(void __attribute__ ((unused)) *arg)
 {
 	rg_lockall(L_SYS|L_SHUTDOWN);

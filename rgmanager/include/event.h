@@ -125,4 +125,11 @@ int service_op_start(char *svcName, int *target_list, int target_list_len,
 int service_op_stop(char *svcName, int do_disable, int event_type);
 
 
+/* Non-central event processing */
+void node_event(int local, int nodeID, int nodeStatus, int clean);
+
+int32_t master_event_callback(char *key, uint64_t viewno, void *data,
+			      uint32_t datalen);
+
+
 #endif

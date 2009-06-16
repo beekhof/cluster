@@ -52,15 +52,16 @@ static int _send_simple(msgctx_t *ctx, int32_t command, int arg1, int arg2,
 		        int log_errors);
 static int vf_send_abort(msgctx_t *ctx, uint32_t trans);
 static int vf_send_commit(msgctx_t *ctx, uint32_t trans);
-static key_node_t * kn_find_key(char *keyid);
+static key_node_t * kn_find_key(const char *keyid);
 static key_node_t * kn_find_trans(uint32_t trans);
 static int vf_handle_join_view_msg(msgctx_t *ctx, int nodeid, vf_msg_t * hdrp);
 static int vf_resolve_views(key_node_t *key_node);
 static int vf_unanimous(msgctx_t *ctx, int trans, int remain, int timeout);
 static view_node_t * vn_new(uint32_t trans, uint32_t nodeid, int viewno,
 			    void *data, uint32_t datalen);
-static int vf_request_current(cluster_member_list_t *membership, char *keyid,
-		   	      uint64_t *viewno, void **data, uint32_t *datalen);
+static int vf_request_current(cluster_member_list_t *membership,
+			      const char *keyid, uint64_t *viewno,
+			      void **data, uint32_t *datalen);
 static int _vf_purge(key_node_t *key_node, uint32_t *trans);
 
 /* Join-view buffer list functions */
@@ -85,21 +86,12 @@ static int tv_cmp(struct timeval *left, struct timeval *right);
 /* Resolution */
 static uint32_t vf_try_commit(key_node_t *key_node);
 
-int vf_init(int my_node_id, uint16_t my_port,
-	    vf_vote_cb_t vote_cb, vf_commit_cb_t commit_cb);
-int vf_key_init(char *keyid, int timeout, vf_vote_cb_t vote_cb,
-		vf_commit_cb_t commit_cb);
-static int vf_key_init_nt(char *keyid, int timeout, vf_vote_cb_t vote_cb,
-			  vf_commit_cb_t commit_cb);
-int vf_write(cluster_member_list_t *memberhip, uint32_t flags,
-	     char *keyid, void *data, uint32_t datalen);
+static int vf_key_init_nt(const char *keyid, int timeout,
+			  vf_vote_cb_t vote_cb, vf_commit_cb_t commit_cb);
 int vf_process_msg(msgctx_t *ctx, int nodeid, generic_msg_hdr *msgp, int nbytes);
-int vf_end(char *keyid);
-int vf_read(cluster_member_list_t *membership, char *keyid, uint64_t *view,
-	    void **data, uint32_t *datalen);
 	       
 /* Reply to request for current data */
-static int vf_send_current(msgctx_t *, char *);
+static int vf_send_current(msgctx_t *, const char *);
 
 
 struct vf_args {
@@ -147,7 +139,7 @@ vf_send_commit(msgctx_t *ctx, uint32_t trans)
 
 
 static key_node_t *
-kn_find_key(char *keyid)
+kn_find_key(const char *keyid)
 {
 	key_node_t *cur;
 
@@ -1004,7 +996,7 @@ vf_shutdown(void)
  * @return 0 (always)
  */
 static int
-vf_key_init_nt(char *keyid, int timeout, vf_vote_cb_t vote_cb,
+vf_key_init_nt(const char *keyid, int timeout, vf_vote_cb_t vote_cb,
    	       vf_commit_cb_t commit_cb)
 {
 	key_node_t *newnode = NULL;
@@ -1054,7 +1046,7 @@ vf_key_init_nt(char *keyid, int timeout, vf_vote_cb_t vote_cb,
 
 
 int
-vf_key_init(char *keyid, int timeout, vf_vote_cb_t vote_cb,
+vf_key_init(const char *keyid, int timeout, vf_vote_cb_t vote_cb,
 	    vf_commit_cb_t commit_cb)
 {
 	int rv;
@@ -1068,8 +1060,9 @@ vf_key_init(char *keyid, int timeout, vf_vote_cb_t vote_cb,
 
 
 static vf_msg_t *
-build_vf_data_message(int cmd, char *keyid, void *data, uint32_t datalen,
-		      int viewno, int trans, uint32_t *retlen)
+build_vf_data_message(int cmd, const char *keyid, const void *data,
+		      uint32_t datalen, int viewno, int trans,
+		      uint32_t *retlen)
 {
 	uint32_t totallen;
 	vf_msg_t *msg;
@@ -1118,8 +1111,8 @@ build_vf_data_message(int cmd, char *keyid, void *data, uint32_t datalen,
  * @see vf_end
  */
 int
-vf_write(cluster_member_list_t *membership, uint32_t flags, char *keyid,
-	 void *data, uint32_t datalen)
+vf_write(cluster_member_list_t *membership, uint32_t flags,
+	 const char *keyid, const void *data, uint32_t datalen)
 {
 	msgctx_t everyone;
 	key_node_t *key_node;
@@ -1437,7 +1430,7 @@ vf_process_msg(msgctx_t *ctx, int nodeid, generic_msg_hdr *msgp, int nbytes)
  * @return		-1 on failure, 0 on success.
  */
 int
-vf_read(cluster_member_list_t *membership, char *keyid, uint64_t *view,
+vf_read(cluster_member_list_t *membership, const char *keyid, uint64_t *view,
 	void **data, uint32_t *datalen)
 {
 	key_node_t *key_node;
@@ -1521,7 +1514,7 @@ vf_read(cluster_member_list_t *membership, char *keyid, uint64_t *view,
 
 
 int
-vf_read_local(char *keyid, uint64_t *view, void **data, uint32_t *datalen)
+vf_read_local(const char *keyid, uint64_t *view, void **data, uint32_t *datalen)
 {
 	key_node_t *key_node = NULL;
 
@@ -1562,7 +1555,7 @@ vf_read_local(char *keyid, uint64_t *view, void **data, uint32_t *datalen)
 
 
 static int
-vf_send_current(msgctx_t *ctx, char *keyid)
+vf_send_current(msgctx_t *ctx, const char *keyid)
 {
 	key_node_t *key_node;
 	vf_msg_t *msg;
@@ -1605,7 +1598,7 @@ vf_send_current(msgctx_t *ctx, char *keyid)
 
 
 static int
-vf_set_current(char *keyid, int view, void *data, uint32_t datalen)
+vf_set_current(const char *keyid, int view, void *data, uint32_t datalen)
 {
 	key_node_t *key_node;
 	void *datatmp;
@@ -1652,7 +1645,7 @@ vf_set_current(char *keyid, int view, void *data, uint32_t datalen)
  * @param datalen	Size of data returned.
  */
 static int
-vf_request_current(cluster_member_list_t *membership, char *keyid,
+vf_request_current(cluster_member_list_t *membership, const char *keyid,
 		   uint64_t *viewno, void **data, uint32_t *datalen)
 {
 	int x, n, rv = VFR_OK, port;

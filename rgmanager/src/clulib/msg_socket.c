@@ -335,7 +335,7 @@ sock_msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx)
 
 
 int
-sock_msg_listen(int me, void *portp, msgctx_t **listen_ctx)
+sock_msg_listen(int me, const void *portp, msgctx_t **listen_ctx)
 {
 	int sock;
 	struct sockaddr_un su;
