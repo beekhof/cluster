@@ -15,10 +15,8 @@
 #ifndef NO_CCS
 #include <logging.h>
 #endif
+#include <groups.h>
 
-
-char *attr_value(resource_node_t *node, char *attrname);
-char *rg_attr_value(resource_node_t *node, char *attrname);
 
 void
 res_build_name(char *buf, size_t buflen, resource_t *res)
@@ -34,7 +32,7 @@ res_build_name(char *buf, size_t buflen, resource_t *res)
    @param attrname	Attribute to retrieve.
    @return 		value of attribute or NULL if not found
  */
-char *
+const char *
 res_attr_value(resource_t *res, const char *attrname)
 {
 	resource_attr_t *ra;
@@ -67,7 +65,7 @@ res_attr_value(resource_t *res, const char *attrname)
    @return 		value of attribute or NULL if not found
  */
 static char *
-_attr_value(resource_node_t *node, char *attrname, char *ptype)
+_attr_value(resource_node_t *node, const char *attrname, const char *ptype)
 {
 	resource_t *res;
 	resource_attr_t *ra;
@@ -118,8 +116,8 @@ _attr_value(resource_node_t *node, char *attrname, char *ptype)
 }
 
 
-char *
-attr_value(resource_node_t *node, char *attrname)
+const char *
+attr_value(resource_node_t *node, const char *attrname)
 {
 	return _attr_value(node, attrname, NULL);
 }
@@ -129,15 +127,15 @@ attr_value(resource_node_t *node, char *attrname)
   Run to the top of the tree.  Used to determine certain attributes of the
   resource group in-line, during resource tree operations.
  */
-char *
-rg_attr_value(resource_node_t *node, char *attrname)
+const char *
+rg_attr_value(resource_node_t *node, const char *attrname)
 {
 	for (; node->rn_parent; node = node->rn_parent);
 	return res_attr_value(node->rn_resource, attrname);
 }
 
 
-char *
+const char *
 primary_attr_value(resource_t *res)
 {
 	int x;
@@ -154,7 +152,6 @@ primary_attr_value(resource_t *res)
 
 	return NULL;
 }
-
 
 
 /**
@@ -257,7 +254,7 @@ rescmp(resource_t *left, resource_t *right)
    @return		Resource matching type/ref or NULL if none.
  */   
 resource_t *
-find_resource_by_ref(resource_t **reslist, char *type, char *ref)
+find_resource_by_ref(resource_t **reslist, const char *type, const char *ref)
 {
 	resource_t *curr;
 	int x;
@@ -300,7 +297,7 @@ find_root_by_ref(resource_t **reslist, const char *ref)
 	resource_t *curr;
 	char ref_buf[128];
 	char *type;
-	char *name = ref;
+	char *name = (char *)ref;
 	int x;
 
 	snprintf(ref_buf, sizeof(ref_buf), "%s", ref);
@@ -311,8 +308,8 @@ find_root_by_ref(resource_t **reslist, const char *ref)
 		name++;
 	} else {
 		/* Default type */
-		type = "service";
-		name = ref;
+		type = (char *)"service";
+		name = (char *)ref;
 	}
 
 	list_do(reslist, curr) {
@@ -431,9 +428,9 @@ store_resource(resource_t **reslist, resource_t *newres)
    @param query		Query to execute.
    @return		newly allocated pointer to value or NULL if not found.
  */
-char *
+const char *
 xpath_get_one(xmlDocPtr __attribute__ ((unused)) doc,
-	      xmlXPathContextPtr ctx, char *query)
+	      xmlXPathContextPtr ctx, const char *query)
 {
 	char *val = NULL, *ret = NULL;
 	xmlXPathObjectPtr obj;
@@ -605,7 +602,7 @@ print_resource(resource_t *res)
 }
 
 
-void *
+static void *
 act_dup(resource_act_t *acts)
 {
 	int x;
@@ -627,7 +624,7 @@ act_dup(resource_act_t *acts)
 
 
 /* Copied from resrules.c -- _get_actions */
-void
+static void
 #ifndef NO_CCS
 _get_actions_ccs(int ccsfd, char *base, resource_t *res)
 #else
