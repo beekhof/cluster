@@ -177,7 +177,7 @@ void res_build_name(char *, size_t, resource_t *);
 /*
    Internal functions; shouldn't be needed.
  */
-const char *xpath_get_one(xmlDocPtr doc, xmlXPathContextPtr ctx,
+char *xpath_get_one(xmlDocPtr doc, xmlXPathContextPtr ctx,
 			  const char *query);
 int store_attribute(resource_attr_t **attrsp, char *name, char *value,
 		    int flags);

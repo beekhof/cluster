@@ -28,7 +28,7 @@
    @return		0 on success or -1 if rule with same name
 			already exists in rulelist
  */
-int
+static int
 store_rule(resource_rule_t **rulelist, resource_rule_t *newrule)
 {
 	resource_rule_t *curr;
@@ -69,7 +69,7 @@ store_rule(resource_rule_t **rulelist, resource_rule_t *newrule)
 
    @param rr		Resource rule to free.
  */
-void
+static void
 destroy_resource_rule(resource_rule_t *rr)
 {
 	int x;
@@ -138,12 +138,12 @@ destroy_resource_rules(resource_rule_t **rules)
    @param base		XPath prefix to search
    @param rr		Resource rule to store new information in.
  */
-void
+static void
 _get_maxparents(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 	       	resource_rule_t *rr)
 {
 	char xpath[256];
-	char *ret = NULL;
+	char *ret;
 
 	snprintf(xpath, sizeof(xpath),
 		 "%s/attributes/@maxinstances",
@@ -166,12 +166,12 @@ _get_maxparents(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
    @param base		XPath prefix to search
    @param rr		Resource rule to store new information in.
  */
-void
+static void
 _get_rule_flag(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
-	       resource_rule_t *rr, char *flag, int bit)
+	       resource_rule_t *rr, const char *flag, int bit)
 {
 	char xpath[256];
-	char *ret = NULL;
+	char *ret;
 
 	snprintf(xpath, sizeof(xpath),
 		 "%s/attributes/@%s",
@@ -196,12 +196,12 @@ _get_rule_flag(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
    @param base		XPath prefix to search
    @param rr		Resource rule to store new information in.
  */
-void
+static void
 _get_version(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 	     resource_rule_t *rr)
 {
 	char xpath[256];
-	char *ret = NULL;
+	char *ret;
 
 	snprintf(xpath, sizeof(xpath), "%s/@version", base);
 	ret = xpath_get_one(doc, ctx, xpath);
@@ -370,8 +370,7 @@ store_action(resource_act_t **actsp, char *name, int depth,
 }
 
 
-
-void
+static void
 _get_actions(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 		 resource_rule_t *rr)
 {
@@ -389,7 +388,7 @@ _get_actions(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 		snprintf(xpath, sizeof(xpath),
 			 "%s/action[%d]/@name", base, ++idx);
 
-		act = xpath_get_one(doc,ctx,xpath);
+		act = xpath_get_one(doc, ctx, xpath);
 		if (!act)
 			break;
 
@@ -508,9 +507,9 @@ store_attribute(resource_attr_t **attrsp, char *name, char *value, int flags)
    @param flags		set to 1 to note that it was defined inline
    @return		0 on success, nonzero on failure
  */
-int
-store_childtype(resource_child_t **childp, char *name, int start, int stop,
-		int forbid, int flags)
+static int
+store_childtype(resource_child_t **childp, char *name, int start,
+		int stop, int forbid, int flags)
 {
 	int x = 0;
 	resource_child_t *child = *childp;
@@ -683,7 +682,7 @@ children:
    @param rr		Resource rule to store new information in.
    @return		0
  */
-int
+static int
 _get_rule_attrs(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 		resource_rule_t *rr)
 {
@@ -811,7 +810,7 @@ _get_rule_attrs(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
    @param rr		Resource rule to store new information in.
    @return		0
  */
-int
+static int
 _get_childtypes(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 		resource_rule_t *rr)
 {
@@ -876,7 +875,7 @@ _get_childtypes(xmlDocPtr doc, xmlXPathContextPtr ctx, char *base,
 /**
   Read a file from a stdout pipe.
  */
-int
+static int
 read_pipe(int fd, char **file, size_t *length)
 {
 	char buf[4096];
@@ -924,7 +923,7 @@ read_pipe(int fd, char **file, size_t *length)
 }
 
 
-xmlDocPtr
+static xmlDocPtr
 read_resource_agent_metadata(char *filename)
 {
 	int pid;
@@ -984,7 +983,7 @@ read_resource_agent_metadata(char *filename)
    @param rules		Rule list to add new rules to
    @return		0
  */
-int
+static int
 load_resource_rulefile(char *filename, resource_rule_t **rules)
 {
 	resource_rule_t *rr = NULL;
@@ -1161,7 +1160,7 @@ load_resource_rules(const char *rpath, resource_rule_t **rules)
    @return		Resource rule or NULL if not found.
  */
 resource_rule_t *
-find_rule_by_type(resource_rule_t **rulelist, char *type)
+find_rule_by_type(resource_rule_t **rulelist, const char *type)
 {
 	resource_rule_t *curr = NULL;
 

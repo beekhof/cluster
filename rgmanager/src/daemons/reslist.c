@@ -428,7 +428,7 @@ store_resource(resource_t **reslist, resource_t *newres)
    @param query		Query to execute.
    @return		newly allocated pointer to value or NULL if not found.
  */
-const char *
+char *
 xpath_get_one(xmlDocPtr __attribute__ ((unused)) doc,
 	      xmlXPathContextPtr ctx, const char *query)
 {
