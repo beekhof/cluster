@@ -61,6 +61,7 @@ struct id_info {
 	int fence_external_node;
 	int fence_master;
 	int fence_how;
+	int pad;
 	uint64_t fence_time;
 	uint64_t fence_external_time;
 };
