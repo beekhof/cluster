@@ -458,11 +458,20 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 
 		/* Distributed processing and/or request is from master node
 		   -- Queue request */
-		rt_enqueue_request(msg_sm->sm_data.d_svcName,
-		  		   msg_sm->sm_data.d_action,
-		  		   ctx, 0, msg_sm->sm_data.d_svcOwner,
-		  		   msg_sm->sm_hdr.gh_arg1,
-		  		   msg_sm->sm_hdr.gh_arg2);
+		if (rt_enqueue_request(msg_sm->sm_data.d_svcName,
+		      		       msg_sm->sm_data.d_action,
+		      		       ctx, 0, msg_sm->sm_data.d_svcOwner,
+		      		       msg_sm->sm_hdr.gh_arg1,
+		      		       msg_sm->sm_hdr.gh_arg2) != 0) {
+
+			/* Clean up this context if we fail to 
+			 * queue the request. */
+			send_ret(ctx, msg_sm->sm_data.d_svcName,
+				 RG_EAGAIN, msg_sm->sm_data.d_action, 0);
+			need_close = 1;
+			ret = 0;
+			goto out;
+		}
 		return 0;
 
 	case RG_EVENT:
