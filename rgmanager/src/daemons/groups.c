@@ -1829,7 +1829,6 @@ check_restart(char *rg_name)
 	pthread_rwlock_rdlock(&resource_lock);
 	node = node_by_ref(&_tree, rg_name);
 	if (node) {
-		printf("%s %p\n", rg_name, node->rn_restart_counter);
 		ret = restart_threshold_exceeded(node->rn_restart_counter);
 	}
 	pthread_rwlock_unlock(&resource_lock);
