@@ -415,16 +415,23 @@ out:
 /**
   get_service_property(service_name, property)
  */
-static char *
+static void
 sl_service_property(char *svcName, char *prop)
 {
 	char buf[96];
+	char *ret;
 
 	if (get_service_property(svcName, prop, buf, sizeof(buf)) < 0)
-		return NULL;
+		return;
 
 	/* does this work or do I have to push a malloce'd string? */
-	return strdup(buf);
+	ret = strdup(buf);
+	if (SLang_push_malloced_string(ret) < 0) {
+		SLang_verror(SL_RunTime_Error,
+			     (char *)"%s: Failed to push %s property of %s",
+			     __FUNCTION__, prop, svcName);
+		free(ret);
+	}
 }
 
 
@@ -959,7 +966,7 @@ static SLang_Intrin_Fun_Type rgmanager_slang[] =
 	MAKE_INTRINSIC_0((char *)"service_list", sl_service_list,
 			 SLANG_VOID_TYPE),
 	MAKE_INTRINSIC_SS((char *)"service_property", sl_service_property,
-			  SLANG_STRING_TYPE),
+			  SLANG_VOID_TYPE),
 	MAKE_INTRINSIC_S((char *)"service_domain_info", sl_domain_info,
 			 SLANG_VOID_TYPE),
 	MAKE_INTRINSIC_0((char *)"service_stop", sl_stop_service,
