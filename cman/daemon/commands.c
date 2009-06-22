@@ -538,6 +538,8 @@ static int do_cmd_get_extrainfo(char *cmdbuf, char **retbuf, int retsize, int *r
 		       sizeof(struct sockaddr_storage) * (MAX_INTERFACES*2))) {
 
 		*retbuf = malloc(sizeof(struct cl_extra_info) + sizeof(struct sockaddr_storage) * (MAX_INTERFACES*2));
+		if (*retbuf == NULL)
+			return -ENOMEM;
 		outbuf = *retbuf + offset;
 		einfo = (struct cl_extra_info *)outbuf;
 
@@ -635,6 +637,8 @@ static int do_cmd_get_all_members(char *cmdbuf, char **retbuf, int retsize, int 
 		/* If there is not enough space in the default buffer, allocate some more. */
 		if ((retsize / sizeof(struct cl_cluster_node)) < total_nodes) {
 			*retbuf = malloc(sizeof(struct cl_cluster_node) * total_nodes + offset);
+			if (!*retbuf)
+				return -ENOMEM;
 			outbuf = *retbuf + offset;
 			log_printf(LOGSYS_LEVEL_DEBUG, "memb: get_all_members: allocated new buffer (retsize=%d)\n", retsize);
 		}
