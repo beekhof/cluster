@@ -424,8 +424,15 @@ sl_service_property(char *svcName, char *prop)
 	if (get_service_property(svcName, prop, buf, sizeof(buf)) < 0)
 		return;
 
-	/* does this work or do I have to push a malloce'd string? */
 	ret = strdup(buf);
+	if (!ret) {
+		SLang_verror(SL_RunTime_Error,
+			     (char *)"%s: Failed to duplicate state of %s",
+			     __FUNCTION__,
+			     svcName);
+		return;
+	}
+
 	if (SLang_push_malloced_string(ret) < 0) {
 		SLang_verror(SL_RunTime_Error,
 			     (char *)"%s: Failed to push %s property of %s",
