@@ -112,7 +112,11 @@ int main(int argc, char *argv[])
 	}
     }
 
-    resources = malloc(sizeof(char*) * rescount);
+    if ((resources = malloc(sizeof(char*) * rescount)) == NULL)
+    {
+	    perror("exhausted virtual memory");
+	    return 1;
+    }
     for (i=0; i < rescount; i++) {
 	    char resname[256];
 	    sprintf(resname, "TESTLOCK%d", i);
@@ -164,4 +168,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
