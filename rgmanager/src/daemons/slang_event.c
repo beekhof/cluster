@@ -427,9 +427,8 @@ sl_service_property(char *svcName, char *prop)
 	ret = strdup(buf);
 	if (!ret) {
 		SLang_verror(SL_RunTime_Error,
-			     (char *)"%s: Failed to duplicate state of %s",
-			     __FUNCTION__,
-			     svcName);
+			     (char *)"%s: Failed to duplicate %s property of %s",
+			     __FUNCTION__, prop, svcName);
 		return;
 	}
 
