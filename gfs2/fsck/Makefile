@@ -45,12 +45,6 @@ ${TARGET}: $(OBJS) ${LDDEPS}
 depends:
 	$(MAKE) -C ../libgfs2 all
 
-test_block_list: log.o test_block_list.o
-	$(CC) -o $@ $^ $(LDFLAGS)
-
-test_bitmap: test_bitmap.o log.o
-	$(CC) -o $@ $^ $(LDFLAGS)
-
 clean: generalclean
 	rm -f test_block_list test_bitmap
 
