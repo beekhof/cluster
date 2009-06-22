@@ -136,9 +136,11 @@ void process_cluster(int ci)
     AIS_Message *msg = NULL;
     SaAisErrorT rc = SA_AIS_OK;
     mar_res_header_t *header = NULL;
+    mar_res_header_t *h_new;
     static int header_len = sizeof(mar_res_header_t);
 
-    header = malloc(header_len);
+    if ((header = malloc(header_len)) == NULL)
+	goto bail;
     memset(header, 0, header_len);
     
     errno = 0;
@@ -160,8 +162,12 @@ void process_cluster(int ci)
     } else if(header->error != 0) {
 	log_error("Header contined error: %d", header->error);
     }
-    
-    header = realloc(header, header->size);
+
+    h_new = realloc(header, header->size);
+    if (h_new == NULL)
+	goto bail;
+    header = h_new;
+
     /* Use a char* so we can store the remainder into an offset */
     data = (char*)header;
 
@@ -250,6 +256,7 @@ void process_cluster(int ci)
     goto done;
     
   bail:
+    free (header);
     log_error("AIS connection failed");
     return;
 }
@@ -406,4 +413,3 @@ int fence_in_progress(int *count)
 {
 	return 0;
 }
-
