@@ -70,6 +70,7 @@ ds_key_init_nt(char *keyid, int maxsize, int timeout)
 	}
 
 	newnode = malloc(sizeof(*newnode));
+	// FIXME: detect failed malloc
 	memset(newnode,0,sizeof(*newnode));
 	snprintf((char *)newnode->kn_cpname.value, SA_MAX_NAME_LENGTH-1,
 		 "%s", keyid);
