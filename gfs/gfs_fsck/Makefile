@@ -50,14 +50,7 @@ LDFLAGS += -L${libdir}
 ${TARGET}: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-test_block_list: block_list.o bitmap.o log.o test_block_list.o
-	$(CC) -o $@ $^ $(LDFLAGS)
-
-test_bitmap: bitmap.o test_bitmap.o log.o
-	$(CC) -o $@ $^ $(LDFLAGS)
-
 clean: generalclean
-	rm -f test_block_list test_bitmap
 
 ${TARGET}.pot: $(OBJS:.o=.c)
 	xgettext -C -F --keyword=print_log --keyword=log_debug --keyword=log_info --keyword=_ \
