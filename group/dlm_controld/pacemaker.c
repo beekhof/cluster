@@ -191,6 +191,7 @@ void process_cluster(int ci)
 
 	log_debug("Decompressing message data");
 	uncompressed = malloc(new_size);
+	// FIXME: handle malloc failure
 	memset(uncompressed, 0, new_size);
 	
 	rc = BZ2_bzBuffToBuffDecompress(
