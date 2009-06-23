@@ -353,16 +353,16 @@ static int fix_journal_seq_no(struct gfs2_inode *ip)
 			prev_seq = lh.lh_sequence;
 			continue;
 		}
-		log_err("Journal block %u (0x%x): sequence no. 0x%llx out of "
-			"order.\n", blk, blk, lh.lh_sequence);
-		log_info("Low: 0x%llx, High: 0x%llx, Prev: 0x%llx\n",
-			 (unsigned long long)lowest_seq,
-			 (unsigned long long)highest_seq,
-			 (unsigned long long)prev_seq);
+		log_err( _("Journal block %u (0x%x): sequence no. 0x%llx "
+			   "out of order.\n"), blk, blk, lh.lh_sequence);
+		log_info( _("Low: 0x%llx, High: 0x%llx, Prev: 0x%llx\n"),
+			  (unsigned long long)lowest_seq,
+			  (unsigned long long)highest_seq,
+			  (unsigned long long)prev_seq);
 		highest_seq++;
 		lh.lh_sequence = highest_seq;
 		prev_seq = lh.lh_sequence;
-		log_warn("Renumbering it as 0x%llx\n", lh.lh_sequence);
+		log_warn( _("Renumbering it as 0x%llx\n"), lh.lh_sequence);
 		block_map(ip, blk, &new, &dblock, &extlen, FALSE, not_updated);
 		bh = bread(&ip->i_sbd->buf_list, dblock);
 		gfs2_log_header_out(&lh, bh->b_data);
@@ -393,24 +393,28 @@ static int gfs2_recover_journal(struct gfs2_inode *ip, int j)
 	osi_list_init(&sd_revoke_list);
 	error = gfs2_find_jhead(ip, &head);
 	if (error) {
-		if (!query(&opts, "\nJournal #%d (\"journal%d\") is corrupt.  "
-			   "Okay to repair it? (y/n)", j+1, j)) {
-			log_err("jid=%u: The journal was not repaired.\n", j);
+		if (!query(&opts, _("\nJournal #%d (\"journal%d\") is "
+				    "corrupt.  Okay to repair it? (y/n)"),
+			   j+1, j)) {
+			log_err( _("jid=%u: The journal was not repaired.\n"),
+				 j);
 			goto out;
 		}
-		log_info("jid=%u: Repairing journal...\n", j);
+		log_info( _("jid=%u: Repairing journal...\n"), j);
 		error = fix_journal_seq_no(ip);
 		if (error) {
-			log_err("jid=%u: Unable to repair the bad journal.\n",
-				j);
+			log_err( _("jid=%u: Unable to repair the bad "
+				   "journal.\n"), j);
 			goto out;
 		}
 		error = gfs2_find_jhead(ip, &head);
 		if (error) {
-			log_err("jid=%u: Unable to fix the bad journal.\n", j);
+			log_err( _("jid=%u: Unable to fix the bad journal.\n"),
+				 j);
 			goto out;
 		}
-		log_err("jid=%u: The journal was successfully fixed.\n", j);
+		log_err( _("jid=%u: The journal was successfully fixed.\n"),
+			 j);
 	}
 	if (head.lh_flags & GFS2_LOG_HEAD_UNMOUNT) {
 		log_info( _("jid=%u: Journal is clean.\n"), j);

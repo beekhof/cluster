@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	char *p, *whoami;
 
 	setlocale(LC_ALL, "");
-	textdomain("mkfs.gfs2");
+	textdomain("gfs2-utils");
 
 	srandom(time(NULL) ^ getpid());
 

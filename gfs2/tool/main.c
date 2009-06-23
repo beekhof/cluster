@@ -158,7 +158,7 @@ static void decode_arguments(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	setlocale(LC_ALL, "");
-	textdomain("gfs2_tool");
+	textdomain("gfs2-utils");
 
 	if (argc < 2) {
 		print_usage();

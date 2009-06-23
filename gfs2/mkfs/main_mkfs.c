@@ -583,7 +583,7 @@ void main_mkfs(int argc, char *argv[])
 		are_you_sure(sdp);
 
 	if (compute_constants(sdp)) {
-		fprintf(stderr, "Bad constants (1)\n");
+		fprintf(stderr, _("Bad constants (1)\n"));
 		exit(-1);
 	}
 
@@ -608,7 +608,7 @@ void main_mkfs(int argc, char *argv[])
 		sdp->device.length = sdp->orig_fssize;
 	}
 	if (fix_device_geometry(sdp)) {
-		fprintf(stderr, "Device is too small (%"PRIu64" bytes)\n",
+		fprintf(stderr, _("Device is too small (%"PRIu64" bytes)\n"),
 				sdp->device.length << GFS2_BASIC_BLOCK_SHIFT);
 		exit(-1);
 	}
