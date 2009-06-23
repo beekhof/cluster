@@ -25,7 +25,8 @@
 #define BUF_SIZE 4096
 #define RANDOM(values) ((values) * (random() / (RAND_MAX + 1.0)))
 
-static void make_jdata(int fd, const char *value)
+static void
+make_jdata(int fd, const char *value)
 {
         int err;
         uint32_t val;
@@ -42,7 +43,8 @@ static void make_jdata(int fd, const char *value)
                 die( _("error doing set flags (%d): %s\n"), err, strerror(errno));
 }
 
-static int rename2system(struct gfs2_sbd *sdp, const char *new_dir, const char *new_name)
+static int
+rename2system(struct gfs2_sbd *sdp, const char *new_dir, const char *new_name)
 {
 	char oldpath[PATH_MAX], newpath[PATH_MAX];
 	int error = 0;
@@ -217,7 +219,8 @@ create_new_inode(struct gfs2_sbd *sdp)
 	return fd;
 }
 
-static void add_ir(struct gfs2_sbd *sdp)
+static void
+add_ir(struct gfs2_sbd *sdp)
 {
 	int fd;
 	char new_name[256];
