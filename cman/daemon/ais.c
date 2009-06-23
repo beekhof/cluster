@@ -258,6 +258,8 @@ static void cman_deliver_fn(unsigned int nodeid, const void *msg, unsigned int m
 		header.srcid = swab32(original_header->srcid);
 		header.tgtid = swab32(original_header->tgtid);
 		header.flags = swab32(original_header->flags);
+		header.srcport = original_header->srcport;
+		header.tgtport = original_header->tgtport;
 	} 
 	else {
 	        memcpy(&header, original_header, sizeof(header));

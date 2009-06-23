@@ -581,7 +581,7 @@ static int do_cmd_get_extrainfo(char *cmdbuf, char **retbuf, int retsize, int *r
 			objdb_get_string(corosync, object_handle, "mcastaddr", &mcast);
 			/* If this fails, it must be using broadcast*/
 			if (!mcast)
-				mcast = "255.255.255.255";
+				mcast = (char*)"255.255.255.255";
 			memset(ptr, 0, sizeof(struct sockaddr_storage));
 
 			saddr4 = (struct sockaddr_in *)ptr;
