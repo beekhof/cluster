@@ -26,7 +26,8 @@ void decrease_verbosity(void)
 	_state.print_level--;
 }
 
-static void print_msg(int priority, const char *file, int line, const char *format, va_list args) {
+static void __attribute__((format(printf, 4, 0)))
+print_msg(int priority, const char *file, int line, const char *format, va_list args) {
 
 	switch (priority) {
 
@@ -51,7 +52,8 @@ static void print_msg(int priority, const char *file, int line, const char *form
 }
 
 
-void print_fsck_log(int iif, int priority, const char *file, int line, const char *format, ...)
+void __attribute__((format(printf, 5, 6)))
+print_fsck_log(int iif, int priority, const char *file, int line, const char *format, ...)
 {
 
 	va_list args;
@@ -70,7 +72,8 @@ void print_fsck_log(int iif, int priority, const char *file, int line, const cha
 
 
 
-int query(struct fsck_sb *sbp, const char *format, ...)
+int __attribute__((format(printf, 2, 3)))
+query(struct fsck_sb *sbp, const char *format, ...)
 {
 
 	va_list args;
