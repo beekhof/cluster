@@ -307,7 +307,7 @@ int fence_node(char *victim, struct fence_log *log, int log_size,
 			left--;
 		}
 		count++;
-		error = -1;
+		error = -2;		/* No fencing */
 		goto out;
 	}
 

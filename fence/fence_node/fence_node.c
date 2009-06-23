@@ -225,7 +225,11 @@ int main(int argc, char *argv[])
 			rv = EXIT_SUCCESS;
 		}
 	} else {
-		if (error) {
+		if (error == -2) {
+			fprintf(stderr, "fence %s undefined\n", victim);
+			logt_print(LOG_ERR, "fence %s undefined\n", victim);
+			rv = 2;
+		} else if (error) {
 			fprintf(stderr, "fence %s failed\n", victim);
 			logt_print(LOG_ERR, "fence %s failed\n", victim);
 			rv = EXIT_FAILURE;
