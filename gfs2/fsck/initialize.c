@@ -148,7 +148,7 @@ static int set_block_ranges(struct gfs2_sbd *sdp)
 	last_fs_block = rmax;
 	if (last_fs_block > 0xffffffff && sizeof(unsigned long) <= 4) {
 		log_crit( _("This file system is too big for this computer to handle.\n"));
-		log_crit( _("Last fs block = 0x%llx, but sizeof(unsigned long) is %lu bytes.\n"),
+		log_crit( _("Last fs block = 0x%llx, but sizeof(unsigned long) is %zu bytes.\n"),
 			 (unsigned long long)last_fs_block,
 			 sizeof(unsigned long));
 		goto fail;
