@@ -336,7 +336,7 @@ static void cman_confchg_fn(enum totem_configuration_type configuration_type,
 
 void corosync_shutdown(void)
 {
-	corosync->request_shutdown();
+	corosync->shutdown_request();
 }
 
 /* Write an error message down the CMAN startup pipe so
