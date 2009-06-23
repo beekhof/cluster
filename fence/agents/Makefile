@@ -1,17 +1,6 @@
 include ../../make/defines.mk
+include $(OBJDIR)/make/passthrough.mk
 
 ifdef fence_agents
 SUBDIRS = ${fence_agents} lib nss_wrapper
 endif
-
-all: ${SUBDIRS}
-
-%:
-	set -e && \
-	for i in ${SUBDIRS}; do \
-		if [ "$$i" = "xvm" ] && [ "${enable_virt}" != "1" ] && [ "$@" != "clean" ]; then \
-			continue; \
-		else \
-			${MAKE} -C $$i $@; \
-		fi; \
-	done

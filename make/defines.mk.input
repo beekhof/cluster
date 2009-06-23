@@ -73,7 +73,6 @@ fenceagentslibdir ?= @FENCEAGENTSLIBDIR@
 experimental_build ?= @ENABLE_CRACK_OF_THE_DAY@
 legacy_code ?= @ENABLE_LEGACY_CODE@
 contrib_code ?= @ENABLE_CONTRIB@
-enable_virt ?= @ENABLE_VIRT@
 enable_pacemaker ?= @ENABLE_PACEMAKER@
 without_gfs-kernel/src/gfs ?= @DISABLE_GFSKERNEL@
 without_common ?= @DISABLE_COMMON@

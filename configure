@@ -87,7 +87,6 @@ my %options = (
 	enable_crack_of_the_day => \$enable_crack_of_the_day,
 	enable_legacy_code => \$enable_legacy_code,
 	enable_contrib => \$enable_contrib,
-	enable_virt => \$enable_virt,
 	enable_pacemaker => \$enable_pacemaker,
 	somajor => \$somajor,
 	sominor => \$sominor,
@@ -179,7 +178,6 @@ my $err = &GetOptions (\%options,
 		    'enable_crack_of_the_day',
 		    'enable_legacy_code',
 		    'enable_contrib',
-		    'enable_virt',
 		    'enable_pacemaker',
 		    'without_common',
 		    'without_config',
@@ -275,7 +273,6 @@ if ($help || !$err) {
   print "--enable_crack_of_the_day\tEnable build of highly experimental features that rely on code that is not yet available for general use. (Default: no)\n";
   print "--enable_contrib\tEnable build of community contributed code/tools.  (Default: no)\n";
   print "--enable_legacy_code\tEnable build of old/obsolete/unsupported code/tools.  (Default: no)\n";
-  print "--enable_virt\tEnable building of virtualization code (Default: disabled\n";
   print "--enable_pacemaker\tEnable building of Pacemaker-specific pieces\n";
   print "--without_common\tDisable common building  (Default: enabled)\n";
   print "--without_config\tDisable config building  (Default: enabled)\n";
@@ -620,9 +617,6 @@ if (!$enable_legacy_code) {
   print "\n********************************************************************************************\n";
   $cflags="${cflags} -DLEGACY_CODE";
 }
-if (!$enable_virt) {
-  $enable_virt="";
-}
 if (!$enable_pacemaker) {
   $enable_pacemaker=""
 }
@@ -702,7 +696,6 @@ if ($fence_agents eq "help") {
 
 if ((!$fence_agents) || ($fence_agents eq "all")) {
   print "\nThe following fence agents will be build on this system:\n$all_fence\n";
-  print "\nNOTE: xvm will build only if --enable_virt has been specified\n\n";
   $fence_agents = $all_fence
 }
 
@@ -781,7 +774,6 @@ while (<IFILE>) {
   $_ =~ s/\@ENABLE_CRACK_OF_THE_DAY\@/$enable_crack_of_the_day/;
   $_ =~ s/\@ENABLE_LEGACY_CODE\@/$enable_legacy_code/;
   $_ =~ s/\@ENABLE_CONTRIB\@/$enable_contrib/;
-  $_ =~ s/\@ENABLE_VIRT\@/$enable_virt/;
   $_ =~ s/\@ENABLE_PACEMAKER\@/$enable_pacemaker/;
   $_ =~ s/\@DISABLE_COMMON\@/$without_common/;
   $_ =~ s/\@DISABLE_CONFIG\@/$without_config/;
