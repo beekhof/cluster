@@ -181,9 +181,11 @@ uint32_t best_target_node(cluster_member_list_t *allowed, uint32_t owner,
 			  const char *rg_name, int lock);
 
 #ifdef DEBUG
+int _rg_lock(const char *name, struct dlm_lksb *p);
 int _rg_lock_dbg(const char *, struct dlm_lksb *, const char *, int);
 #define rg_lock(name, p) _rg_lock_dbg(name, p, __FILE__, __LINE__)
 
+int _rg_unlock(struct dlm_lksb *p);
 int _rg_unlock_dbg(struct dlm_lksb *, const char *, int);
 #define rg_unlock(p) _rg_unlock_dbg(p, __FILE__, __LINE__)
 
