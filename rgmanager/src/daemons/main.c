@@ -853,20 +853,25 @@ cman_connect(cman_handle_t *ch)
 }
 
 
-static void
+static int
 wait_for_fencing(void)
 {
         if (node_has_fencing(my_id()) && !fence_domain_joined()) {
 		logt_print(LOG_INFO, "Waiting for fence domain join operation "
 		       "to complete\n");
 
-		while (fence_domain_joined() == 0)
+		while (fence_domain_joined() == 0) {
+			if (shutdown_pending)
+				return 1;
 			sleep(1);
+		}
 		logt_print(LOG_INFO, "Fence domain joined\n");
 	} else {
 		logt_print(LOG_DEBUG, "Fence domain already joined "
 		       "or no fencing configured\n");
 	}
+
+	return 0;
 }
 
 
@@ -963,7 +968,8 @@ main(int argc, char **argv)
 
 	logt_print(LOG_INFO, "I am node #%d\n", my_id());
 
-	wait_for_fencing();
+	if (wait_for_fencing() != 0)
+		goto out;
 
 	/*
 	   We know we're quorate.  At this point, we need to
@@ -976,6 +982,9 @@ main(int argc, char **argv)
 		logt_print(LOG_CRIT, "#8: Couldn't initialize services\n");
 		return -1;
 	}
+
+	if (shutdown_pending)
+		goto out;
 
 	if (msg_listen(MSG_SOCKET, RGMGR_SOCK, me.cn_nodeid, &local_ctx) < 0) {
 		logt_print(LOG_CRIT,
