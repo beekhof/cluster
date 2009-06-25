@@ -1225,7 +1225,7 @@ static void usage(const char *name)
 static void process_parameters(int argc, char **argv, struct gfs2_options *opts)
 
 {
-	char c;
+	int c;
 
 	opts->yes = 0;
 	opts->no = 0;
