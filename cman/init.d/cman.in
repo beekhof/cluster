@@ -732,7 +732,7 @@ stop()
 		"Stopping groupd"
 
 	runwrap stop_qdiskd \
-		none \
+		qdiskd_enabled \
 		"Stopping qdiskd"
 
 	runwrap stop_cman \
