@@ -1279,7 +1279,7 @@ get_log_config_data(int ccsfd)
 		need_close = 1;
 	}
 
-	snprintf(fname, sizeof(fname)-1, LOGDIR "/qdisk.log");
+	snprintf(fname, sizeof(fname)-1, LOGDIR "/qdiskd.log");
 	if (ccs_read_old_logging(ccsfd, &facility, &loglevel))
 		filelevel = loglevel;
 
