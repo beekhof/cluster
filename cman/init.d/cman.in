@@ -393,6 +393,8 @@ fence_xvmd_enabled()
 		! check_fence_opt X; then
 			ccs_tool query /cluster/fence_xvmd \
 				> /dev/null 2>&1 || return 1
+	else
+		return 1
 	fi
 }
 
