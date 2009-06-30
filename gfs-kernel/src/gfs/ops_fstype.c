@@ -809,7 +809,7 @@ gfs_kill_sb(struct super_block *sb)
 
 struct file_system_type gfs_fs_type = {
 	.name = "gfs",
-	.fs_flags = FS_REQUIRES_DEV | FS_HAS_FREEZE,
+	.fs_flags = FS_REQUIRES_DEV,
 	.get_sb = gfs_get_sb,
 	.kill_sb = gfs_kill_sb,
 	.owner = THIS_MODULE,
