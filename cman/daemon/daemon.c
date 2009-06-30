@@ -494,13 +494,12 @@ static void sigint_handler(int ignored)
 	quit_threads = 1;
 }
 
-extern hdb_handle_t corosync_poll_handle;
-int cman_init()
+int cman_init(struct corosync_api_v1 *api)
 {
 	int fd;
 	struct sigaction sa;
 
-	cs_poll_handle = corosync_poll_handle;
+	cs_poll_handle = api->poll_handle_get();
 	barrier_init();
 
 	log_printf(LOG_INFO, "CMAN %s (built %s %s) started\n",

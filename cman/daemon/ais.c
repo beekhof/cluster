@@ -102,6 +102,7 @@ static struct corosync_service_engine cman_service_handler = {
 	.lib_exit_fn		       	= cman_exit_fn,
 	.exec_init_fn		       	= cman_exec_init_fn,
 	.config_init_fn                 = NULL,
+	.sync_mode			= CS_SYNC_V1,
 };
 
 static struct corosync_service_engine *cman_get_handler_ver0(void)
@@ -193,7 +194,7 @@ static int cman_exec_init_fn(struct corosync_api_v1 *api)
 		/* An error message will have been written to cman_pipe */
 		exit(9);
 	}
-	cman_init();
+	cman_init(api);
 
 	/* Let cman_tool know we are running and our PID */
 	sprintf(pipe_msg,"SUCCESS: %d", getpid());
