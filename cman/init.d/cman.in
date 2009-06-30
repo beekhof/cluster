@@ -640,6 +640,12 @@ start()
 
 	echo $echoarg "Starting cluster: "
 
+	runwrap start_fence_xvmd \
+		fence_xvmd_standalone \
+		"Starting virtual machine fencing host (standalone)"
+
+	fence_xvmd_standalone && exit 0
+
 	runwrap start_global \
 		none \
 		"Global setup"
@@ -710,6 +716,12 @@ stop()
 	echo $echoarg "Stopping cluster: "
 
 	runwrap stop_fence_xvmd \
+		fence_xvmd_standalone \
+		"Stopping virtual machine fencing host (standalone)"
+
+	fence_xvmd_standalone && exit 0
+
+	runwrap stop_fence_xvmd \
 		fence_xvmd_enabled \
 		"Stopping virtual machine fencing host"
 
@@ -756,6 +768,11 @@ stop()
 
 cmanstatus()
 {
+	if fence_xvmd_standalone; then
+		errmsg=$( status fence_xvmd 2>&1 ) || return 1
+		return 0
+	fi
+
 	errmsg=$( status corosync 2>&1 ) || return 1
 
 	if ! cman_running; then
@@ -810,7 +827,11 @@ restart|reload)
 ;;
 status)
 	if cmanstatus; then
-		echo "cluster is running."
+		if fence_xvmd_standalone; then
+			echo "fence_xvmd standalone is running."
+		else
+			echo "cluster is running."
+		fi
 	else
 		echo $errmsg
 		rtrn=1
