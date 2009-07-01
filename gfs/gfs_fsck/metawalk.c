@@ -411,10 +411,11 @@ static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
 			relse_buf(ip->i_sbd, bh);
 			return 1;
 		}
-		check_eattr_entries(ip, bh, pass);
-
-		if (bh)
+		if (bh) {
+			error = check_eattr_entries(ip, bh, pass);
 			relse_buf(ip->i_sbd, bh);
+		}
+		return error;
 	}
 
 	return 0;
