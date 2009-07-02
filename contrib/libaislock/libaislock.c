@@ -26,7 +26,7 @@ enum {
 
 static struct dlm_ls_info *sa_default_ls = NULL;
 
-inline int lkmode_ais2dlm(SaLckLockModeT mode)
+static inline int lkmode_ais2dlm(SaLckLockModeT mode)
 {
 	switch(mode)
 	{
@@ -39,7 +39,7 @@ inline int lkmode_ais2dlm(SaLckLockModeT mode)
 	}
 }
 
-inline SaLckLockModeT lkmode_dlm2ais(int mode)
+static inline SaLckLockModeT lkmode_dlm2ais(int mode)
 {
 	switch(mode)
 	{
@@ -52,7 +52,7 @@ inline SaLckLockModeT lkmode_dlm2ais(int mode)
 	}
 }
 
-inline unsigned long lkflag_ais2dlm(SaLckLockFlagsT flag)
+static inline unsigned long lkflag_ais2dlm(SaLckLockFlagsT flag)
 {
 	unsigned long dlm_flag = 0;
 
@@ -64,7 +64,7 @@ inline unsigned long lkflag_ais2dlm(SaLckLockFlagsT flag)
 	return dlm_flag;
 }
 
-inline SaLckLockStatusT lkstatus_dlm2ais(int status)
+static inline SaLckLockStatusT lkstatus_dlm2ais(int status)
 {
 	switch(status)
 	{
@@ -79,7 +79,7 @@ inline SaLckLockStatusT lkstatus_dlm2ais(int status)
 	}
 }
 
-inline SaErrorT lkerr_dlm2ais(int status)
+static inline SaErrorT lkerr_dlm2ais(int status)
 {
 	switch(status)
 	{
