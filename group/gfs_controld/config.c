@@ -170,6 +170,12 @@ int setup_ccs(void)
 	}
 	ccs_handle = cd;
 
+	/* plock_ownership is a special case */
+	if (optd_plock_ownership)
+		using_default_plock_ownership = 0;
+	else
+		using_default_plock_ownership = 1;
+
 	/* These config values are set from cluster.conf only if they haven't
 	   already been set on the command line. */
 
@@ -182,7 +188,9 @@ int setup_ccs(void)
 	if (!optd_plock_ownership) {
 		rv = read_ccs_int(PLOCK_OWNERSHIP_PATH, &cfgd_plock_ownership);
 		if (rv < 0)
-			read_ccs_int(DLM_PLOCK_OWNERSHIP_PATH, &cfgd_plock_ownership);
+			rv = read_ccs_int(DLM_PLOCK_OWNERSHIP_PATH, &cfgd_plock_ownership);
+		if (!rv)
+			using_default_plock_ownership = 0;
 	}
 
 	/* The following can be changed while running */

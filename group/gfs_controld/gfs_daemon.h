@@ -86,6 +86,7 @@ extern int group_mode;
 extern uint32_t plock_minor;
 extern uint32_t old_plock_minor;
 extern struct list_head withdrawn_mounts;
+extern int using_default_plock_ownership;
 
 void daemon_dump_save(void);
 

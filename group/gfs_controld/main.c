@@ -1200,6 +1200,11 @@ static void loop(void)
 
 	} else if (group_mode == GROUP_LIBGROUP) {
 
+		/* the stable2 default is zero plock_ownership which we need
+		   to match or protocol_active will differ */
+		if (using_default_plock_ownership)
+			cfgd_plock_ownership = 0;
+
 		/*
 		 * The old, bad, way of doing things using libgroup.
 		 * code in: cpg-old.c group.c plock.c
@@ -1576,4 +1581,5 @@ int group_mode;
 uint32_t plock_minor;
 uint32_t old_plock_minor;
 struct list_head withdrawn_mounts;
+int using_default_plock_ownership;
 
