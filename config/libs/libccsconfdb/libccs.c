@@ -325,7 +325,8 @@ int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 {
 	char temp[PATH_MAX];
 	size_t templen = 0;
-	unsigned int temphandle;
+	hdb_handle_t temphandle;
+	unsigned int temptracker;
 
 	if (confdb_key_get
 	    (handle, connection_handle, "previous_query",
@@ -375,11 +376,11 @@ int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 
 	if (confdb_key_get
 	    (handle, connection_handle, "iterator_tracker",
-	     strlen("iterator_tracker"), &temphandle, &templen) != CS_OK) {
-		temphandle = 1;
+	     strlen("iterator_tracker"), &temptracker, &templen) != CS_OK) {
+		temptracker = 1;
 		if (confdb_key_create
 		    (handle, connection_handle, "iterator_tracker",
-		     strlen("iterator_tracker"), &temphandle,
+		     strlen("iterator_tracker"), &temptracker,
 		     sizeof(unsigned int)) != CS_OK) {
 			errno = ENOMEM;
 			return -1;
