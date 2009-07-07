@@ -820,7 +820,7 @@ stop)
 		echo
 	fi
 ;;
-restart|reload)
+restart|reload|force-reload)
 	cmanremove=remove
 	stop
 	start

@@ -100,7 +100,7 @@ restart|condrestart)
 	$0 stop
 	$0 start
 ;;
-reload)
+reload|force-reload)
 	# not required anymore
 	# return not implemented
 	rtrn=3

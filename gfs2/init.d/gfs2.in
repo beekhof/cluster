@@ -137,7 +137,7 @@ case "$1" in
 	$0 start
 	;;
 
-  reload)
+  reload|force-reload)
         $0 start
 	;;
   *)
