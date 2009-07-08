@@ -1065,6 +1065,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="restart_expire_time"/>
         </optional>
+        <optional>
+          <attribute name="priority"/>
+        </optional>
       </group>
       </choice>
       <optional>
@@ -1650,31 +1653,13 @@ To validate your cluster.conf against this schema, run:
           <attribute name="recovery"/>
         </optional>
         <optional>
-          <attribute name="memory"/>
-        </optional>
-        <optional>
           <attribute name="migration_mapping"/>
         </optional>
         <optional>
-          <attribute name="bootloader"/>
+          <attribute name="use_virsh"/>
         </optional>
         <optional>
-          <attribute name="path"/>
-        </optional>
-        <optional>
-          <attribute name="rootdisk_physical"/>
-        </optional>
-        <optional>
-          <attribute name="rootdisk_virtual"/>
-        </optional>
-        <optional>
-          <attribute name="swapdisk_physical"/>
-        </optional>
-        <optional>
-          <attribute name="swapdisk_virtual"/>
-        </optional>
-        <optional>
-          <attribute name="vif"/>
+          <attribute name="xmlfile"/>
         </optional>
         <optional>
           <attribute name="migrate"/>
@@ -1693,6 +1678,15 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="restart_expire_time"/>
+        </optional>
+        <optional>
+          <attribute name="hypervisor"/>
+        </optional>
+        <optional>
+          <attribute name="hypervisor_uri"/>
+        </optional>
+        <optional>
+          <attribute name="migration_uri"/>
         </optional>
       </group>
       </choice>
@@ -1923,6 +1917,9 @@ To validate your cluster.conf against this schema, run:
           <attribute name="force_unmount"/>
         </optional>
         <optional>
+          <attribute name="quick_status"/>
+        </optional>
+        <optional>
           <attribute name="self_fence"/>
         </optional>
         <optional>
@@ -1936,9 +1933,6 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="options"/>
-        </optional>
-        <optional>
-          <attribute name="quick_status"/>
         </optional>
       </group>
       </choice>
