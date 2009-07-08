@@ -1,5 +1,5 @@
-# Max attribute value: 227
-# Max object class value: 55
+# Max attribute value: 238
+# Max object class value: 56
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
 obj,rhcsTotem,totem,4
@@ -281,3 +281,15 @@ attr,rhcsBlade,blade,224
 attr,rhcsLpan,lpan,225
 attr,rhcsPserver,pserver,226
 attr,rhcsQuick-status,quick_status,227
+attr,rhcsBroadcast,broadcast,228
+attr,rhcsDisable-openais,disable_openais,229
+obj,rhcsInterface,interface,56
+attr,rhcsRingnumber,ringnumber,230
+attr,rhcsBindnetaddr,bindnetaddr,231
+attr,rhcsMcastaddr,mcastaddr,232
+attr,rhcsMcastport,mcastport,233
+attr,rhcsUse-virsh,use_virsh,234
+attr,rhcsXmlfile,xmlfile,235
+attr,rhcsHypervisor,hypervisor,236
+attr,rhcsHypervisor-uri,hypervisor_uri,237
+attr,rhcsMigration-uri,migration_uri,238
