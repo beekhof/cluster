@@ -529,7 +529,7 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
-  1.3.6.1.4.1.2312.8.1.1.88 NAME 'rhcsStatusmax'
+  1.3.6.1.4.1.2312.8.1.1.88 NAME 'rhcsStatus-child-max'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
@@ -1432,7 +1432,7 @@ objectClasses: (
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.21 NAME 'rhcsRm' SUP top STRUCTURAL
-     MAY( rhcsLog-facility $ rhcsCentral-processing $ rhcsTransition-throttling $ rhcsStatus-poll-interval $ rhcsStatusmax $ rhcsLog-level )
+     MAY( rhcsLog-facility $ rhcsCentral-processing $ rhcsTransition-throttling $ rhcsStatus-poll-interval $ rhcsStatus-child-max $ rhcsLog-level )
    )
 ### Placeholder for rhcsFailoverdomains
 ### This object class currently has no attributes

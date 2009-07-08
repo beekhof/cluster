@@ -107,7 +107,7 @@ attr,rhcsSecauth,secauth,85
 attr,rhcsKeyfile,keyfile,86
 obj,rhcsRm,rm,21
 attr,rhcsLog-level,log_level,87
-attr,rhcsStatusmax,statusmax,88
+attr,rhcsStatus-child-max,status_child_max,88
 attr,rhcsStatus-poll-interval,status_poll_interval,89
 attr,rhcsTransition-throttling,transition_throttling,90
 attr,rhcsCentral-processing,central_processing,91

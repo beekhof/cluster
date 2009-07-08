@@ -815,7 +815,7 @@ To validate your cluster.conf against this schema, run:
     </attribute>
    </optional>
    <optional>
-    <attribute name="statusmax">
+    <attribute name="status_child_max">
      <data type="integer"/>
     </attribute>
    </optional>
