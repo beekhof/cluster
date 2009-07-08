@@ -74,6 +74,14 @@ To validate your cluster.conf against this schema, run:
     </attribute>
    </optional>
    <optional>
+    <attribute name="broadcast">
+     <data type="nonNegativeInteger"/>
+    </attribute>
+   </optional>
+   <optional>
+    <attribute name="disable_openais"/>
+   </optional>
+   <optional>
     <element name="multicast">
      <attribute name="addr"/>
     </element>
@@ -776,6 +784,26 @@ To validate your cluster.conf against this schema, run:
    <optional>
     <attribute name="keyfile"/>
    </optional>
+   <!-- multicast address -->
+   <zeroOrMore>
+    <element name="interface">
+     <optional>
+      <attribute name="ringnumber"/>
+     </optional>
+     <optional>
+      <attribute name="bindnetaddr"/>
+     </optional>
+     <optional>
+      <attribute name="mcastaddr"/>
+     </optional>
+     <optional>
+      <attribute name="mcastport"/>
+     </optional>
+     <optional>
+      <attribute name="broadcast"/>
+     </optional>
+    </element>
+   </zeroOrMore>
   </element>
  </optional>
 
