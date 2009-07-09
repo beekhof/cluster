@@ -51,8 +51,6 @@ my %options = (
 	ncurseslibdir => \$ncurseslibdir,
 	slangincdir => \$slangincdir,
 	slanglibdir => \$slanglibdir,
-	readlineincdir => \$readlineincdir,
-	readlinelibdir => \$readlinelibdir,
 	corosyncincdir => \$corosyncincdir,
 	corosynclibdir => \$corosynclibdir,
 	openaisincdir => \$openaisincdir,
@@ -139,8 +137,6 @@ my $err = &GetOptions (\%options,
 		    'ncurseslibdir=s',
 		    'slangincdir=s',
 		    'slanglibdir=s',
-		    'readlineincdir=s',
-		    'readlinelibdir=s',
 		    'corosyncincdir=s',
 		    'corosynclibdir=s',
 		    'openaisincdir=s',
@@ -250,8 +246,6 @@ if ($help || !$err) {
   print "--ncurseslibdir=\tthe base directory for ncurses libraries.  (Default: {libdir})\n";
   print "--slangincdir=\tthe base directory for S-Lang include files.  (Default: {incdir})\n";
   print "--slanglibdir=\tthe base directory for S-Lang libraries.  (Default: {libdir})\n";
-  print "--readlineincdir=\tthe base directory for readline include files.  (Default: {incdir})\n";
-  print "--readlinelibdir=\tthe base directory for readline libraries.  (Default: {libdir})\n";
   print "--corosyncincdir=\tthe base directory for corosync include files.  (Default: {incdir})\n";
   print "--corosynclibdir=\tthe base directory for corosync libraries.  (Default: {libdir}/corosync)\n";
   print "--openaisincdir=\tthe base directory for openais include files.  (Default: {incdir})\n";
@@ -483,12 +477,6 @@ if (!$logtincdir) {
 }
 if (!$logtlibdir) {
   $logtlibdir="${objdir}/common/liblogthread";
-}
-if (!$readlineincdir) {
-  $readlineincdir="${incdir}";
-}
-if (!$readlinelibdir) {
-  $readlinelibdir="${libdir}";
 }
 if (!$ncursesincdir) {
   $ncursesincdir="${incdir}";
@@ -733,8 +721,6 @@ while (<IFILE>) {
   $_ =~ s/\@FENCELIBDIR\@/$fencelibdir/;
   $_ =~ s/\@LOGTINCDIR\@/$logtincdir/;
   $_ =~ s/\@LOGTLIBDIR\@/$logtlibdir/;
-  $_ =~ s/\@READLINEINCDIR\@/$readlineincdir/;
-  $_ =~ s/\@READLINELIBDIR\@/$readlinelibdir/;
   $_ =~ s/\@NCURSESINCDIR\@/$ncursesincdir/;
   $_ =~ s/\@NCURSESLIBDIR\@/$ncurseslibdir/;
   $_ =~ s/\@SLANGINCDIR\@/$slangincdir/;

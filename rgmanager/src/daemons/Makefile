@@ -43,7 +43,7 @@ OBJS2=	test-noccs.o \
 CFLAGS += -DSHAREDIR=\"${sharedir}\"
 CFLAGS += -fPIC
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir} -I${logtincdir}
-CFLAGS += `xml2-config --cflags` -I${readlineincdir} -I${slangincdir}
+CFLAGS += `xml2-config --cflags` -I${slangincdir}
 CFLAGS += -I$(S)/../../include
 CFLAGS += -I${incdir}
 
@@ -59,7 +59,6 @@ DLM_LDFLAGS += -L${dlmlibdir} -ldlm
 XML2_LDFLAGS += `xml2-config --libs`
 SLANG_LDFLAGS += -L${slanglibdir} -lslang
 EXTRA_LDFLAGS += -lpthread
-READLINE_LDFLAGS += -L${readlinelibdir} -lreadline
 
 LDDEPS += ../clulib/libclulib.a
 
