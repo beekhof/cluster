@@ -15,8 +15,6 @@ include $(OBJDIR)/make/clean.mk
 include $(OBJDIR)/make/install.mk
 include $(OBJDIR)/make/uninstall.mk
 
-DISABLEDTARGETS= cluarp
-
 CFLAGS += -fPIC -D_GNU_SOURCE
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir}
 CFLAGS += -I${logtincdir} -I${ncursesincdir}
