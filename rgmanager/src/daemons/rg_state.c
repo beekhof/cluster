@@ -871,6 +871,11 @@ svc_migrate(const char *svcName, int target)
 		return RG_EFAIL;
 	}
 
+	if (svcStatus.rs_flags & RG_FLAG_FROZEN) {
+		rg_unlock(&lockp);
+		return RG_EFROZEN;
+	}
+
 	/* LOCK HELD */
 	svcStatus.rs_owner = target;
 	svcStatus.rs_last_owner = my_id();
