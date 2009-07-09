@@ -1,12 +1,11 @@
 TARGET1= rgmanager
 TARGET2= rg_test
-TARGET3= dtest
-TARGET4= clurgmgrd
+TARGET3= clurgmgrd
 
 SBINDIRT=$(TARGET1) $(TARGET2)
-SBINSYMT=$(TARGET4)
+SBINSYMT=$(TARGET3)
 
-all: depends ${TARGET1} ${TARGET2} ${TARGET4}
+all: depends ${TARGET1} ${TARGET2} ${TARGET3}
 
 include ../../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -32,17 +31,14 @@ OBJS1=	fo_domain.o \
 	event_config.o \
 	watchdog.o
 
-OBJS2=	test-noccs.o
-
-OBJS3=	dtest-noccs.o
-
-SHAREDOBJS=	fo_domain-noccs.o \
-		restart_counter.o \
-		reslist-noccs.o \
-		resrules-noccs.o \
-		restree-noccs.o \
-		rg_locks-noccs.o \
-		event_config-noccs.o
+OBJS2=	test-noccs.o \
+	fo_domain-noccs.o \
+	restart_counter.o \
+	reslist-noccs.o \
+	resrules-noccs.o \
+	restree-noccs.o \
+	rg_locks-noccs.o \
+	event_config-noccs.o
 
 CFLAGS += -DSHAREDIR=\"${sharedir}\"
 CFLAGS += -fPIC
@@ -87,17 +83,12 @@ ${TARGET1}: ${OBJS1} ${LDDEPS}
 # This is NOT meant to be an installed binary.  Rather, RPMs and/or other
 # packages should run 'make check' as part of the build process.
 #
-${TARGET2}: ${SHAREDOBJS} ${OBJS2} ${LDDEPS}
+${TARGET2}: ${OBJS2} ${LDDEPS}
 	$(CC) -o $@ $^ $(CMAN_LDFLAGS) $(EXTRA_LDFLAGS) \
 			$(XML2_LDFLAGS) $(LOGSYS_LDFLAGS) $(LDFLAGS)
 
-${TARGET3}: ${SHAREDOBJS} ${OBJS3} ${LDDEPS}
-	$(CC) -o $@ $^ $(CCS_LDFLAGS) $(CMAN_LDFLAGS) \
-			$(EXTRA_LDFLAGS) $(XML2_LDFLAGS) \
-			$(READLINE_LDFLAGS) $(LOGSYS_LDFLAGS) $(LDFLAGS)
-
-${TARGET4}: ${TARGET1}
-	ln -sf ${TARGET1} ${TARGET4}
+${TARGET3}: ${TARGET1}
+	ln -sf ${TARGET1} ${TARGET3}
 
 check: rg_test
 	cd tests && ./runtests.sh
@@ -111,5 +102,3 @@ clean: generalclean
 -include $(OBJS1:.o=.d)
 -include $(OBJS2:.o=.d)
 -include $(OBJS3:.o=.d)
--include $(OBJS4:.o=.d)
--include $(SHAREDOBJS:.o=.d)
