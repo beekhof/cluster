@@ -1798,12 +1798,14 @@ main(int argc, char **argv)
 
 	io_nanny_start(ctx.qc_tko * ctx.qc_interval);
 
-	if (quorum_loop(&ctx, ni, MAX_NODES_DISK) == 0)
+	if (quorum_loop(&ctx, ni, MAX_NODES_DISK) == 0) {
+		/* Only clean up if we're exiting w/o error) */
 		cman_unregister_quorum_device(ctx.qc_cman_admin);
+		quorum_logout(&ctx);
+	}
 
 	io_nanny_stop();
 
-	quorum_logout(&ctx);
 out:
 	/* free cman handle to avoid leak in cman */
 	cman_finish(ch_admin);
