@@ -140,13 +140,15 @@ def main():
 	options = check_input(device_opt, process_input(device_opt))
 
 	## 
-	## Fence agent specific defaults
+	## Fence agent specific settings and default values
 	#####
 	if 0 == options.has_key("-c"):
 		options["-c"] = [ ":~>", "]\$", "\$ " ]
 
 	if 0 == options.has_key("-x"):
 		fail_usage("Failed: You have to use ssh connection (-x) to fence device")
+		
+	show_docs(options)
 
 	if 0 == options.has_key("-s"):
 		fail_usage("Failed: You have to enter name of managed system")
