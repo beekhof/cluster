@@ -25,8 +25,11 @@
 #define ST_POWERON 1
 #define ST_POWEROFF 2
 #define ST_GENERIC_RESET 3
+#define ST_CYCLE 4
 
 #define DEFAULT_TIMEOUT 10
+
+#define DEFAULT_METHOD "onoff"
 
 #define log(lvl, fmt, args...) fprintf(stderr, fmt, ##args)
 #include <libgen.h>
@@ -82,7 +85,7 @@ const char *ipmitool_paths[] = {
 
 
 #define ECIPHER 2048
-
+#define ESTATE (8192*2)
 static struct Etoken power_on_complete[] = {
 	{"Password:", EPERM, 0},
 	{"Unable to establish LAN", EAGAIN, 0},	/* Retry */
@@ -103,6 +106,17 @@ static struct Etoken power_off_complete[] = {
 	{NULL, 0, 0}
 };
 
+/** Powercycle operation */
+static struct Etoken power_cycle_complete[] = {
+	{"Password:", EPERM, 0},
+	{"Unable to establish LAN", EAGAIN, 0},	/* Retry */
+	{"IPMI mutex", EFAULT, 0},	/* Death */
+	{"Unsupported cipher suite ID", ECIPHER,0},
+	{"read_rakp2_message: no support for", ECIPHER,0},
+	{"Command not supported in present state", ESTATE, 0},
+	{": Cycle", 0, 0},
+	{NULL, 0, 0}
+};
 
 #define STATE_OFF 4096
 #define STATE_ON  8192
@@ -263,6 +277,10 @@ build_cmd(char *command, size_t cmdlen, struct ipmi *ipmi, int op)
 		snprintf(arg, sizeof(arg),
 			 "%s chassis power status", cmd);
 		break;
+	case ST_CYCLE:
+		snprintf(arg, sizeof(arg),
+			 "%s chassis power cycle", cmd);
+		break;
 	}
 
 	strncpy(command, arg, cmdlen);
@@ -371,6 +389,12 @@ ipmi_op(struct ipmi *ipmi, int op, struct Etoken *toklist)
 		return ret;
 	}
 
+	if (ret == ESTATE) {
+		log(LOG_CRIT, "ipmilan: ipmitool failed to complete "
+		    "command in current state\n");
+		return ret;
+	}
+
 	if (ret == ETIMEDOUT) {
 		/*!!! Still couldn't get through?! */
 		log(LOG_WARNING,
@@ -460,6 +484,16 @@ ipmi_on(struct ipmi *ipmi)
 		}
 	}
 	log(LOG_WARNING, "ipmilan: Power still off\n");
+
+	return ret;
+}
+
+static int
+ipmi_cycle(struct ipmi *ipmi)
+{
+	int ret;
+
+	ret = ipmi_op(ipmi, ST_CYCLE, power_cycle_complete);
 
 	return ret;
 }
@@ -632,13 +666,14 @@ get_options_stdin(char *ip, size_t iplen,
 		  char *user, size_t userlen,
 		  char *op, size_t oplen,
 		  int *lanplus, int *verbose,int *timeout,
-	          int *cipher)
+	          int *cipher, char *method, int methodlen)
 {
 	char in[256];
 	int line = 0;
 	char *name, *val;
 
 	op[0] = 0;
+	method[0] = 0;
 
 	while (fgets(in, sizeof(in), stdin)) {
 		++line;
@@ -702,6 +737,8 @@ get_options_stdin(char *ip, size_t iplen,
 			if ((sscanf(val,"%d",cipher)!=1) || *cipher<0) {
 			    *cipher=-1;
 			}
+		} else if (!strcasecmp(name,"method")) {
+			strncpy (method, val, methodlen);
 		} else if (!strcasecmp(name, "option") ||
 			   !strcasecmp(name, "operation") ||
 			   !strcasecmp(name, "action")) {
@@ -743,6 +780,7 @@ printf("   -o <op>        Operation to perform.\n");
 printf("                  Valid operations: on, off, reboot, status, list or monitor\n");
 printf("   -t <timeout>   Timeout (sec) for IPMI operation (default %d)\n",DEFAULT_TIMEOUT);
 printf("   -C <cipher>    Ciphersuite to use (same as ipmitool -C parameter)\n");
+printf("   -M <method>    Method to fence (onoff or cycle (default %s)\n", DEFAULT_METHOD);
 printf("   -V             Print version and exit\n");
 printf("   -v             Verbose mode\n\n");
 printf("If no options are specified, the following options will be read\n");
@@ -758,6 +796,7 @@ printf("   operation=<op>        Same as -o\n");
 printf("   action=<op>           Same as -o\n");
 printf("   timeout=<timeout>     Same as -t\n");
 printf("   cipher=<cipher>       Same as -C\n");
+printf("   method=<method>       Same as -M\n");
 printf("   verbose               Same as -v\n\n");
 	exit(1);
 }
@@ -793,6 +832,7 @@ main(int argc, char **argv)
 	char passwd[64];
 	char user[64];
 	char op[64];
+	char method[64];
 	char pwd_script[PATH_MAX] = { 0, };
 	int lanplus=0;
 	int verbose=0;
@@ -812,7 +852,7 @@ main(int argc, char **argv)
 		/*
 		   Parse command line options if any were specified
 		 */
-		while ((opt = getopt(argc, argv, "A:a:i:l:p:S:Po:vV?hHt:C:")) != EOF) {
+		while ((opt = getopt(argc, argv, "A:a:i:l:p:S:Po:vV?hHt:C:M:")) != EOF) {
 			switch(opt) {
 			case 'A':
 				/* Auth type */
@@ -854,6 +894,10 @@ main(int argc, char **argv)
 				    fail_exit("Ciphersuite option expects positive number parameter");
 				}
 				break;
+			case 'M':
+				/* Reboot method */
+				strncpy(method, optarg, sizeof(method));
+				break;
 			case 'v':
 				verbose++;
 				break;
@@ -878,7 +922,7 @@ main(int argc, char **argv)
 					  pwd_script, sizeof(pwd_script),
 				      user, sizeof(user),
 				      op, sizeof(op), &lanplus, &verbose,&timeout,
-				      &cipher) != 0)
+				      &cipher, method, sizeof(method)) != 0)
 			return 1;
 	}
 
@@ -912,6 +956,9 @@ main(int argc, char **argv)
 	if (!strlen(op))
 		snprintf(op,sizeof(op), "reboot");
 
+	if (!strlen(method))
+		snprintf(method, sizeof(method), "onoff");
+
 	if (strcasecmp(op, "off") && strcasecmp(op, "on") &&
 	    strcasecmp(op, "status") && strcasecmp(op, "reboot") &&
 	    strcasecmp(op, "monitor") && strcasecmp(op, "list") &&
@@ -928,6 +975,15 @@ main(int argc, char **argv)
 			  " 'none'.");
 	}
 
+	if (strcasecmp(method, "onoff") &&
+	    strcasecmp(method, "cycle")) {
+		fail_exit("method, if included, muse be 'onoff', 'cycle'.");
+	}
+
+	if (!strcasecmp(method, "cycle") &&
+	    (!strcasecmp(op, "on") || !strcasecmp(op, "off"))) {
+		fail_exit("cycle method supports only 'reboot' operation (not 'on' or 'off').");
+	}
 
 	/* Ok, set up the IPMI struct */
 	i = ipmi_init(NULL, ip, authtype, user, passwd, lanplus, verbose, timeout, cipher);
@@ -940,11 +996,24 @@ main(int argc, char **argv)
 	if (!strcasecmp(op, "reboot")) {
 		printf("Rebooting machine @ IPMI:%s...", ip);
 		fflush(stdout);
-		ret = ipmi_off(i);
-		if (ret != 0)
-			goto out;
-		ret = ipmi_on(i);
+		if (!strcasecmp(method, "cycle")) {
+			ret = ipmi_op(i, ST_STATUS, power_status);
 
+			if (ret == STATE_OFF) {
+				/* State is off -> use onoff method because cycle is not able to turn on*/
+				snprintf(method, sizeof(method), "onoff");
+			}
+		}
+
+		if (!strcasecmp(method, "cycle")) {
+			ret = ipmi_cycle(i);
+		} else {
+			/* Original onoff method */
+			ret = ipmi_off(i);
+			if (ret != 0)
+				goto out;
+			ret = ipmi_on(i);
+		}
 	} else if (!strcasecmp(op, "on")) {
 		printf("Powering on machine @ IPMI:%s...", ip);
 		fflush(stdout);
