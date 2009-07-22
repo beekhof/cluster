@@ -272,7 +272,7 @@ int join(commandline_t *comline, char *main_envp[])
 						fprintf(stderr, "forked process ID is %d\n", corosync_pid);
 					status = 1;
 
-					/* There might be a SUCCESS message in the pipe too. */
+					/* There might be a SUCCESS or error message in the pipe too. */
 					messageptr = strchr(messageptr, '\n');
 					if (messageptr)
 						messageptr++;
@@ -286,6 +286,10 @@ int join(commandline_t *comline, char *main_envp[])
 					status = 0;
 					break;
 				}
+				else if (messageptr) {
+						fprintf(stderr, "%s\n", messageptr);
+						break;
+					}
 			}
 			else if (len < 0 && errno == EINTR) {
 				continue;

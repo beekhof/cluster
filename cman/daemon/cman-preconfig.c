@@ -543,22 +543,24 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 			error = uname(&utsname);
 			if (error) {
 				sprintf(error_reason, "cannot get node name, uname failed");
-				write_cman_pipe("Can't determine local node name");
+				write_cman_pipe("Can't determine local node name, uname failed");
 				error = -1;
 				goto out;
 			}
 
 			if (strlen(utsname.nodename) >= sizeof(nodename)) {
 				sprintf(error_reason, "node name from uname is too long");
-				write_cman_pipe("Can't determine local node name");
+				write_cman_pipe("local node name is too long");
 				error = -1;
 				goto out;
 			}
 
 			strcpy(nodename, utsname.nodename);
 		}
-		if (verify_nodename(objdb, nodename))
+		if (verify_nodename(objdb, nodename)) {
+			write_cman_pipe("Cannot find node name in cluster.conf");
 			return -1;
+		}
 
 	}
 
@@ -622,8 +624,10 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 		free(str);
 	}
 
-	if (add_ifaddr(objdb, mcast_name, nodename, portnum, broadcast))
+	if (add_ifaddr(objdb, mcast_name, nodename, portnum, broadcast)) {
+		write_cman_pipe(error_reason);
 		return -1;
+	}
 
 	/* Get all alternative node names */
 	num_nodenames = 1;
@@ -643,8 +647,10 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 			mcast = mcast_name;
 		}
 
-		if (add_ifaddr(objdb, mcast, node, portnum, broadcast))
+		if (add_ifaddr(objdb, mcast, node, portnum, broadcast)) {
+			write_cman_pipe(error_reason);
 			return -1;
+		}
 
 		num_nodenames++;
 	}
