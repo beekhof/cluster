@@ -1622,6 +1622,8 @@ gfs_fsync(struct file *file, struct dentry *dentry, int datasync)
 			};
 			error = sync_inode(inode, &wbc);
 		}
+		if (gfs_is_stuffed(ip))
+			gfs_log_flush_glock(ip->i_gl);
 	}
 
 	gfs_glock_dq_uninit(&i_gh);
