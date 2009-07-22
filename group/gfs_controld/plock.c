@@ -705,6 +705,7 @@ static void do_get(struct mountgroup *mg, struct dlm_plock_info *in,
 		rv = 0;
 
 	write_result(mg, in, rv);
+	put_resource(r);
 }
 
 static void __receive_plock(struct mountgroup *mg, struct dlm_plock_info *in,
