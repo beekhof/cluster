@@ -1,7 +1,4 @@
-DOCS =	gfs2.txt \
-	journaling.txt \
-	min-gfs.txt \
-	usage.txt \
+DOCS =	usage.txt \
 	COPYING.applications \
 	COPYING.libraries \
 	COPYRIGHT \
