@@ -5,7 +5,7 @@ xmlns:rha="http://redhat.com/~pkennedy/annotation_namespace/cluster_conf_annot_n
 <!-- The cluster.conf schema follows this outline:
 
 cluster
-- cman 
+- cman
 - clusternodes
 - dlm
 - gfs_controld
@@ -20,7 +20,7 @@ cluster
 
 Element defnitions:
 - Resource
-- Fence	
+- Fence
 
 To validate your cluster.conf against this schema, run:
 
@@ -145,7 +145,7 @@ To validate your cluster.conf against this schema, run:
        </attribute>
        <optional>
 	 <attribute name="votes" rha:description="The number of votes a
-            node can cast" rha:sample="2" rha:default="1"> 
+            node can cast" rha:sample="2" rha:default="1">
 	   <data type="positiveInteger"/>
 	 </attribute>
        </optional>
@@ -307,9 +307,9 @@ To validate your cluster.conf against this schema, run:
   </optional>
  </element>
  </optional>
-<!-- end gfs_controld block --> 
+<!-- end gfs_controld block -->
 
-<!-- group block --> 
+<!-- group block -->
  <optional>
  <element name="group" rha:description="">
   <optional>
@@ -317,7 +317,7 @@ To validate your cluster.conf against this schema, run:
   </optional>
  </element>
  </optional>
-<!-- end group block --> 
+<!-- end group block -->
 
 <!--FIXME: The following text was copied from the schema description
 here:
@@ -358,11 +358,11 @@ offers one other feature for customizing fence action. Within a <method>
 block, it is allowable to list more than one <device>. This is useful
 when fencing a node with redundant power supplies, for example. The
 fence daemon will run the agent for each device listed within a <method>
-block before determining success or failure. 
+block before determining success or failure.
 -->
 
 <!--fencedevices block-->
- 
+
  <optional>
  <element name="fencedevices" rha:description="This element and its
      attributes define the fence devices in the cluster. Parameters
@@ -1029,7 +1029,7 @@ block before determining success or failure.
       cluster services, the HA cluster services themselves, and failover
       domains for the HA cluster services.">
    <optional>
-    <!-- FIXME: The following text needs clarifying. What is meant by 
+    <!-- FIXME: The following text needs clarifying. What is meant by
     "...for all levels less than the selected."? -->
     <attribute name="log_level" rha:description="An integer 0-7,
         inclusive, for all levels less than the selected.
@@ -1162,7 +1162,7 @@ block before determining success or failure.
      </zeroOrMore>
     </element>
    </optional>  <!-- End of events block -->
-   <optional> 
+   <optional>
     <element name="resources" rha:description="">
      <zeroOrMore>
       <ref name="CHILDREN"/>
@@ -2783,4 +2783,4 @@ rha:sample=""/>
        </choice>
       </element>
      </define>
-</grammar>      
+</grammar>
