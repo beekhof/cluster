@@ -1,5 +1,6 @@
 <grammar  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
-xmlns="http://relaxng.org/ns/structure/1.0">
+xmlns="http://relaxng.org/ns/structure/1.0"
+xmlns:rha="http://redhat.com/~pkennedy/annotation_namespace/cluster_conf_annot_namespace">
 
 <!-- The cluster.conf schema follows this outline:
 
@@ -28,97 +29,156 @@ To validate your cluster.conf against this schema, run:
 -->
 
 <start>
-<element name="cluster">
- <attribute name="name"/>
- <attribute name="config_version">
-  <data type="positiveInteger"/>
- </attribute>
+<element name="cluster" rha:description="The cluster element is the
+    top-level element and contains attributes that define the cluster
+    name and the configuration version number.">
+ <attribute name="name" rha:description="Specifies a unique cluster name;
+      it can be up to 16 characters long." rha:sample="my_rh_cluster"/>
+ <attribute name="config_version" rha:description="Identifies the
+     revision level of the cluster.conf file. To propagate a revised
+     configuration file, this value must be advanced to a value higher
+     than the current value." rha:sample="1" rha:default="1"/>
  <optional>
-  <attribute name="alias"/>
+  <attribute name="alias" rha:description="Pretty name for cluster that
+      is not parsed by cluster tag software; only the Conga and
+      system-config-cluster GUIs use this value."
+      rha:sample="My Red Hat Cluster"/>
  </optional>
  <interleave>
 
 
  <!--cman block-->
+
  <optional>
-  <element name="cman">
-   <optional>
-    <attribute name="two_node"/>
-   </optional>
-   <optional>
-    <attribute name="expected_votes">
-     <data type="positiveInteger"/>
-    </attribute>
-   </optional>
-   <optional>
-    <attribute name="quorum_dev_poll">
-     <data type="positiveInteger"/>
-    </attribute>
-   </optional>
-   <optional>
-    <attribute name="shutdown_timeout">
-     <data type="nonNegativeInteger"/>
-    </attribute>
-   </optional>
-   <optional>
-    <attribute name="ccsd_poll">
-     <data type="positiveInteger"/>
-    </attribute>
-   </optional>
-   <optional>
-    <attribute name="debug_mask"/>
-   </optional>
-   <optional>
-    <attribute name="port">
-     <data type="nonNegativeInteger"/>
-    </attribute>
-   </optional>
-   <optional>
-    <attribute name="broadcast">
-     <data type="nonNegativeInteger"/>
-    </attribute>
-   </optional>
-   <optional>
-    <attribute name="disable_openais"/>
-   </optional>
-   <optional>
-    <element name="multicast">
-     <attribute name="addr"/>
-    </element>
-   </optional> 
-  </element>
+   <element name="cman" rha:description="The cman element contains
+       attributes that define the following cluster-wide parameters and
+       behaviors: whether the cluster is a two-node cluster, expected
+       votes, user-specified multicast address, and logging.">
+    <optional>
+     <attribute name="two_node" rha:description="The two_node attribute
+         allows you to configure a cluster with only two
+         nodes. Ordinarily, the loss of quorum after one of two nodes
+         fails prevents the remaining node from continuing (if both
+         nodes have one vote.) To enable a two-node cluster, set the
+         two_node value equal to 1. If the two_node value is enabled,
+         the expected_votes value must be set to 1." rha:sample="1"/>
+    </optional>
+    <optional>
+     <attribute name="expected_votes" rha:description="The expected
+         votes value is used by cman to determine quorum. The cluster
+         is quorate if the sum of votes of members is over
+         half of the expected votes value. By default, cman sets the
+         expected votes value to be the sum of votes of all nodes listed
+         in cluster.conf. This can be overriden by setting an explicit
+         expected_votes value." rha:sample="4">
+      <data type="positiveInteger"/>
+     </attribute>
+    </optional>
+    <optional>
+     <attribute name="quorum_dev_poll" rha:description="The amount of time
+         after a qdisk poll, in milliseconds, before a quorum disk is
+         considered dead. The quorum disk daemon, qdisk, periodically
+         sends hello messages to cman and ais, indicating that qdisk
+         is present. If qdisk takes more time to send a hello message
+         to cman and ais than by quorum_dev_poll, then cman declares
+         qdisk dead and prints a message indicating that connection to
+         the quorum device has been lost." rha:sample="50000"/>
+    </optional>
+    <!--FIXME: Clarify the following. What is meant by "service"? Also, is
+     there a default value? What is a good sample value?-->
+    <optional>
+     <attribute name="shutdown_timeout" rha:description="Timeout period,
+         in milliseconds, to allow a service to respond during a
+         shutdown." rha:sample="5000"/>
+    </optional>
+    <optional>
+     <attribute name="ccsd_poll" rha:description="" rha:sample=""
+         rha:default="1000"/>
+    </optional>
+    <optional>
+     <attribute name="debug_mask" rha:description="" rha:sample=""/>
+    </optional>
+    <optional>
+     <attribute name="port">
+      <data type="nonNegativeInteger"/>
+     </attribute>
+    </optional>
+    <optional>
+     <attribute name="broadcast">
+      <data type="nonNegativeInteger"/>
+     </attribute>
+    </optional>
+    <optional>
+     <attribute name="disable_openais" rha:description="" rha:sample=""/>
+    </optional>
+    <optional>
+     <element name="multicast" rha:description="The multicast element
+         provides the ability for a user to specify a multicast address
+         instead of using the multicast address generated by cman. If
+         a user does not specify a multicast address, cman creates one. It
+         forms the upper 16 bits of the multicast address with 239.192 and
+         forms the lower 16 bits based on the cluster ID."> <attribute
+         name="addr" rha:description="A multicast address specified
+         by a user. If you do specify a multicast address, you should
+         use the 239.192.x.x series that cman uses. Otherwise, using a
+         multicast address outside that range may cause unpredictable
+         results. For example, using 224.0.0.x (All hosts on the network)
+         may not be routed correctly, or even routed at all by some
+         hardware." rha:sample="239.192.0.1"/>
+     </element>
+    </optional>
+   </element>
  </optional>
 
  <!--clusternode block-->
- <element name="clusternodes">
+ <element name="clusternodes" rha:description="This element defines the
+     cluster nodes configuration; it contains one clusternode element
+     per node.">
    <zeroOrMore>
-     <element name="clusternode">
-       <attribute name="name">
+     <element name="clusternode" rha:description="This element and its
+         attributes define a cluster node, specifying node name, node ID,
+         number of quorum votes, and fencing method for that node. There
+         is one clusernode element per node in a cluster.">
+      <attribute name="name" rha:description="The hostname or the IP
+          address of the node." rha:sample="node-01">
 	 <data type="ID"/>
        </attribute>
        <optional>
-	 <attribute name="votes">
+	 <attribute name="votes" rha:description="The number of votes a
+            node can cast" rha:sample="2" rha:default="1"> 
+	   <data type="positiveInteger"/>
+	 </attribute>
+       </optional>
+       <!--FIXME: Verify if the nodeid attribute is optional. I think
+       it is required for RHEL 5. The sources.redhat.com site states
+       that the attribute is required; however, that must mean that a
+       cluster.conf file must have a nodeid for each node. The value
+       is automatically assigned a value; however, you can change its
+       value.-->
+       <optional>
+	 <attribute name="nodeid" rha:description="Each node is assigned
+             a unique integer value as its node ID. You can change a
+             node's nodeid; hoever, it must be a unique integer value
+             in the cluster. A node's application to join a cluster may
+             be rejected if you try to set the nodeid to one that is
+             already used in a cluster." rha:sample="1">
 	   <data type="positiveInteger"/>
 	 </attribute>
        </optional>
        <optional>
-	 <attribute name="nodeid">
-	   <data type="positiveInteger"/>
-	 </attribute>
+	 <attribute name="weight" rha:description="" rha:sample=""/>
+<!-- DLM weight -->
        </optional>
        <optional>
-	 <attribute name="weight"/> <!-- DLM weight -->
-       </optional>
-       <optional>
-         <element name="altname">
+         <element name="altname" rha:description="">
            <optional>
-             <attribute name="name"/>
+             <attribute name="name" rha:description="" rha:sample=""/>
            </optional>
            <optional>
-             <attribute name="port"/>
+             <attribute name="port" rha:description="" rha:sample=""/>
            </optional>
            <optional>
-             <attribute name="mcast"/>
+             <attribute name="mcast" rha:description="" rha:sample=""/>
            </optional>
          </element>
        </optional>
@@ -134,92 +194,114 @@ To validate your cluster.conf against this schema, run:
    </zeroOrMore>
  </element>
 
-
+<!--FIXME: More information needed for dlm. I looked in dlm_controld man
+page; however, configuration paramaters there do not seem to match the
+following elements and attributes. -->
 <!-- dlm block -->
  <optional>
- <element name="dlm">
+ <element name="dlm" rha:description="">
   <optional>
-   <attribute name="log_debug"/>
+    <attribute name="log_debug" rha:description="Enable/disable dlm
+      kernel debug messages." rha:default="0" rha:sample="1"/>
   </optional>
   <optional>
-   <attribute name="timewarn"/>
+   <attribute name="timewarn" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="protocol"/>
+   <attribute name="protocol" rha:description="The network protocol
+     used by the dlm." rha:default="tcp" rha:sample="sctp"/>
   </optional>
   <optional>
-   <attribute name="enable_fencing"/>
+   <attribute name="enable_fencing" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="enable_quorum"/>
+   <attribute name="enable_quorum" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="enable_deadlk"/>
+   <attribute name="enable_deadlk" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="enable_plock"/>
+   <attribute name="enable_plock" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="plock_debug"/>
+   <attribute name="plock_debug" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="plock_rate_limit"/>
+   <attribute name="plock_rate_limit" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="plock_ownership"/>
+   <attribute name="plock_ownership" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="drop_resources_time"/>
+   <attribute name="drop_resources_time" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="drop_resources_count"/>
+   <attribute name="drop_resources_count" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="drop_resources_age"/>
+   <attribute name="drop_resources_age" rha:description="" rha:sample=""/>
   </optional>
  </element>
  </optional>
-<!-- end dlm block --> 
+<!-- end dlm block -->
 
 <!-- gfs_controld block -->
  <optional>
- <element name="gfs_controld">
+ <element name="gfs_controld" rha:description="This element and its
+   attributes configure the gfs_controld daemon.">
   <optional>
-   <attribute name="enable_withdraw"/>
+   <attribute name="enable_withdraw" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="enable_plock"/>
+   <attribute name="enable_plock" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="plock_debug"/>
+   <attribute name="plock_debug" rha:description="" rha:sample=""/>
   </optional>
   <optional>
-   <attribute name="plock_rate_limit"/>
+   <attribute name="plock_rate_limit" rha:description="The maximum
+     number of plock operations that will be sent every second.  This is
+     used to prevent potentially excessive network load.  For best
+     performance it is recommended to disable this rate limiting by
+     setting the value to 0." rha:sample="10000" rha:default="100"/>
   </optional>
   <optional>
-   <attribute name="plock_ownership"/>
+   <attribute name="plock_ownership" rha:description="Enabling this
+     option by setting to 1 optimizes plock performance for repeated
+     locking of the same locks by processes on a single node.
+     All gfs_controld daemons in the cluster must be stopped before
+     changing this value." rha:sample="1" rha:default="0"/>
   </optional>
   <optional>
-   <attribute name="drop_resources_time"/>
+   <attribute name="drop_resources_time" rha:description="For tuning the
+     plock_ownership resource caching.  This is the frequence of
+     attempts in milliseconds to drop unused resources from the
+     cache." rha:sample="5000" rha:default="10000"/>
   </optional>
   <optional>
-   <attribute name="drop_resources_count"/>
+   <attribute name="drop_resources_count" rha:description="For tuning
+     the plock_ownership resource caching.  This is the maximum number
+     of resources to drop from the cache each time." rha:sample="100"
+     rha:default="10"/>
   </optional>
   <optional>
-   <attribute name="drop_resources_age"/>
+   <attribute name="drop_resources_age" rha:description="For tuning the
+     plock_ownership resource caching.  This is the time in milliseconds
+     that a cached resource should be unused before consideration for
+     dropping." rha:sample="5000" rha:default="10000"/>
   </optional>
   <optional>
    <zeroOrMore>
-    <element name="lockspace">
-     <attribute name="name"/>
+    <element name="lockspace" rha:description="">
+     <attribute name="name" rha:description="" rha:sample=""/>
      <optional>
-      <attribute name="nodir"/>
+      <attribute name="nodir" rha:description="" rha:sample=""/>
      </optional>
      <optional>
       <zeroOrMore>
-       <element name="master">
-        <attribute name="name"/>
-        <attribute name="weight"/>
+       <element name="master" rha:description="">
+        <attribute name="name" rha:description="" rha:sample=""/>
+        <attribute name="weight" rha:description="" rha:sample=""/>
        </element>
       </zeroOrMore>
      </optional>
@@ -228,82 +310,174 @@ To validate your cluster.conf against this schema, run:
   </optional>
  </element>
  </optional>
-<!-- end dlm block --> 
+<!-- end gfs_controld block --> 
 
 <!-- group block --> 
  <optional>
- <element name="group">
+ <element name="group" rha:description="">
   <optional>
-   <attribute name="groupd_compat"/>
+   <attribute name="groupd_compat" rha:description="" rha:sample=""/>
   </optional>
  </element>
  </optional>
 <!-- end group block --> 
 
+<!--FIXME: The following text was copied from the schema description
+here:
+http://sources.redhat.com/cluster/doc/cluster_schema_rhel5.html
+
+It is too much content for just the annotated schema. It is being placed
+here for now until we can figure out where to put it. One possibility is
+to place this content in an introductory chapter separate from the
+schema description chapter. Most likely it should be supported with an
+illustration, as well.
+-->
+<!--
+A Note On Fencing
+Fencing is specified within the cluster.conf file in two places. The
+first place is within the <fencedevices> tag. Any device used for
+fencing a node must be defined here as a <fencedevice> first. This
+applies to power switches (APC, WTI, etc.) with multiple ports that are
+able to fence multiple cluster nodes, as well as fabric switches and
+baseboard management fence strategies (iLO, RSA, IPMI, Drac, etc.) that
+are usually 1 to 1 in nature; that is, one specified fence device is
+able to fence only one node. After defining the fence devices to be used
+in the cluster, it is necessary to associate the fence device listings
+with specific cluster nodes. The second place that fencing is specified
+within cluster.conf is within the <clusternode> tag. Beneath the
+<clusternode> tag, is a <fence> tag. Beneath the <fence> tag is one or
+more <method> tag sets. Within a <method> tag set, is a <device> tag
+set. This is where the actual association between <fencedevice> and node
+takes place. A <device> tag has a required "name" attribute that refers
+to the name of one of the <fencedevice>'s specified in the
+<fencedevices> section of cluster.conf. More about <method> blocks: A
+method block is like a fence level. If a primary fence method is
+selected, yet the user wants to define a backup method in case the first
+fence method fails, this is done by defining two <metho>d blocks for a
+cluster node, each with a unique name parameter. The fence daemon will
+call each fence method in the order they are specified under the
+<clusternode><fence> tag set. Fence specification within cluster.conf
+offers one other feature for customizing fence action. Within a <method>
+block, it is allowable to list more than one <device>. This is useful
+when fencing a node with redundant power supplies, for example. The
+fence daemon will run the agent for each device listed within a <method>
+block before determining success or failure. 
+-->
+
 <!--fencedevices block-->
  
  <optional>
- <element name="fencedevices">
+ <element name="fencedevices" rha:description="This element and its
+     attributes define the fence devices in the cluster. Parameters
+     vary according to the type of fence device. For example, for a
+     power controller used as a fence device, the cluster configuration
+     defines the name of the power controller, its IP address, login,
+     and password.">
   <zeroOrMore>
-   <element name="fencedevice">
-     <attribute name="name">
+   <element name="fencedevice" rha:description="The fencedevice element
+       and its attributes define each fence device in a
+       cluster. Parameters for each fence device vary according to the
+       type of fence device.">
+     <attribute name="name" rha:description="This is a reference
+         name that you assign to a fence device. It is specific to a
+         cluster configuration file. It is required
+         when configuring a fence method for a node (refer
+         to the method and device elements in the clusternode
+         element)." rha:sample="apc_123">
       <data type="ID"/>
      </attribute>
-     <attribute name="agent"/>
+     <attribute name="agent" rha:description="Specifies a fence agent to
+         be used." rha:sample="fence_apc"/>
      <optional>
       <choice>
        <!-- RPS10 -->
-       <group>
-        <attribute name="device" />
-        <attribute name="port" />
+       <group rha:description="RPS10 Serial Switch" >
+        <attribute name="device" rha:description="The device the switch
+            is connected to on the controlling host."
+            rha:sample="/dev/ttys2"/>
+        <attribute name="port" rha:description="The switch outlet
+            number." rha:sample="2"/>
        </group>
-       <!-- Brocade, McData, SANBox2, Bladecenter, bullpap, ipmilan -->
+       <!--FIXME: Determine if the following group should exclude
+       the auth and lanplus attributes. Those attributes apply only to
+       the impilan fence device.-->
+       <!-- Brocade, McData, SANBox2, Bladecenter,bullpap, ipmilan -->
        <group>
-        <attribute name="ipaddr"/>
+        <attribute name="ipaddr" rha:description="IP address or the name
+            of the device." rha:sample="rack007"/>
         <optional>
-        <attribute name="login"/>
+        <attribute name="login" rha:description="The login name used to
+            access the device. " rha:sample="admin"/>
         </optional>
         <optional>
-        <attribute name="passwd"/>
+        <attribute name="passwd" rha:description="The password used to
+            authenticate the connection to the
+            device." rha:sample="pa$$word"/>
         </optional>
         <optional>
-        <attribute name="passwd_script"/>
+        <attribute name="passwd_script" rha:description="The script that
+            supplies a password for access to the fence device. Using
+            this supersedes the Password parameter." rha:sample=""/>
         </optional>
         <optional>
-         <attribute name="auth"/>
+         <attribute name="auth" rha:description="For IPMI LAN
+             only. Authentication Type: none, password,
+             md2, or md5" rha:sample=""/>
         </optional>
         <optional>
-         <attribute name="lanplus"/>
+         <attribute name="lanplus" rha:description="For IPMI LAN only.
+             Set value to either True or 1; leave out for false."
+             rha:sample="True"/>
         </optional>
        </group>
        <!-- Vixel -->
        <group>
         <optional>
-         <attribute name="ipaddr"/>
+         <attribute name="ipaddr" rha:description="IP address or the
+             name of the device." rha:sample="10.1.0.1"/>
         </optional>
         <optional>
-        <attribute name="passwd"/>
+        <attribute name="passwd" rha:description="The password used to
+            authenticate the connection to the
+            device." rha:sample="pa$$word"/>
         </optional>
         <optional>
-         <attribute name="passwd_script"/>
+         <attribute name="passwd_script" rha:description="The script
+             that supplies a password for access to the
+             fence device. Using this supersedes the Password
+             parameter." rha:sample=""/>
         </optional>
        </group>
        <!-- scsi reservations -->
        <group>
-        <attribute name="nodename"/>
-        <attribute name="self"/>
+        <attribute name="nodename" rha:description="Name of the node to
+            be fenced. Refer to fence_scsi(8) for more
+            information." rha:sample=""/>
+        <attribute name="self" rha:description="" rha:sample=""/>
        </group>
        <!-- GNBD -->
        <group>
-        <attribute name="servers"/>
+        <attribute name="servers" rha:description="The hostname of each
+            GNBD to disable. For multiple hostnames, separate each
+            hostname with a space." rha:sample=""/>
        </group>
        <!-- Egenera -->
+       <!-- FIXME: Note that in the schema web page each is listed as a
+       parameter. Likewise for Conga. In addition, Conga shows Ipan
+       and pserver parameters. Also, in Conga, the esh parameter is
+       an optional ESH path. Presumably those should be attributes in
+       the schema. We need more invormation on this. -->
        <group>
-        <attribute name="cserver"/>
+        <attribute name="cserver" rha:description="The hostname (and
+            optionally the username in the form of username@hostname)
+            assigned to the device. Refer to the fence_egenera(8) man
+            page for more information." rha:sample=""/>
        </group>
+       <!-- FIXME: It appears that xCat is no longer supported. Found no
+       fence agents for x Cat in RHEL 5.3. -->
        <!-- xCAT -->
        <group>
-        <attribute name="rpowerpath"/>
+        <attribute name="rpowerpath" rha:description="" rha:sample=""/>
        </group>
 
 <!-- autogenerated ones -->
@@ -658,49 +832,57 @@ To validate your cluster.conf against this schema, run:
  </optional>
 
  <optional>
-  <element name="fence_xvmd">
+  <element name="fence_xvmd" rha:description="Fence_xvm daemon. The
+      fence_xvmd fence device is an I/O fencing host that resides
+      on dom0 and is used in conjunction with the fence_xvm fencing
+      agent. Together, these two programs fence Xen virtual machines
+      that are in a cluster. There is a requirement that the parent
+      dom0s are also a part of their own CMAN/OpenAIS based cluster,
+      and that the dom0 cluster does not share any members with the domU
+      cluster. Furthermore, the dom0 cluster is required to have fencing
+      if domU recovery is expected to be automatic.">
     <optional>
-      <attribute name="debug">
+      <attribute name="debug" rha:description="" rha:sample="">
 	<data type="integer"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="port">
+      <attribute name="port" rha:description="" rha:sample="">
 	<data type="integer"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="use_uuid">
+      <attribute name="use_uuid" rha:description="" rha:sample="">
 	<data type="boolean"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="multicast_address">
+      <attribute name="multicast_address" rha:description="" rha:sample="">
 	<data type="string"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="auth">
+      <attribute name="auth" rha:description="" rha:sample="">
 	<data type="string"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="hash">
+      <attribute name="hash" rha:description="" rha:sample="">
 	<data type="string"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="uri">
+      <attribute name="uri" rha:description="" rha:sample="">
 	<data type="string"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="key_file">
+      <attribute name="key_file" rha:description="" rha:sample="">
 	<data type="string"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="multicast_interface">
+      <attribute name="multicast_interface" rha:description="" rha:sample="">
 	<data type="string"/>
       </attribute>
     </optional>
@@ -710,51 +892,51 @@ To validate your cluster.conf against this schema, run:
 
  <!-- stable3 and master logging block -->
  <optional>
-  <element name="logging">
+  <element name="logging" rha:description="">
    <optional>
-    <attribute name="to_syslog"/>
+    <attribute name="to_syslog" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="to_logfile"/>
+    <attribute name="to_logfile" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="syslog_facility"/>
+    <attribute name="syslog_facility" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="syslog_priority"/>
+    <attribute name="syslog_priority" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="logfile"/>
+    <attribute name="logfile" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="debug"/>
+    <attribute name="debug" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="logfile_priority"/>
+    <attribute name="logfile_priority" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <element name="logging_subsys">
-     <attribute name="subsys"/>
+    <element name="logging_subsys" rha:description="">
+     <attribute name="subsys" rha:description="" rha:sample=""/>
      <optional>
-      <attribute name="to_syslog"/>
+      <attribute name="to_syslog" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="to_logfile"/>
+      <attribute name="to_logfile" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="syslog_facility"/>
+      <attribute name="syslog_facility" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="syslog_priority"/>
+      <attribute name="syslog_priority" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="logfile"/>
+      <attribute name="logfile" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="debug"/>
+      <attribute name="debug" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="logfile_priority"/>
+      <attribute name="logfile_priority" rha:description="" rha:sample=""/>
      </optional>
     </element>
    </optional>
@@ -762,45 +944,82 @@ To validate your cluster.conf against this schema, run:
  </optional>
 
  <optional>
-  <element name="totem">
+  <element name="totem" rha:description="OpenAIS msg transport
+    protocol">
    <optional>
-    <attribute name="consensus"/>
+    <attribute name="consensus" rha:description="This is a timeout value
+        that specifies how many milliseconds to wait for consensus
+        to be achieved before starting a new round of membership
+        configuration." rha:default="200" rha:sample="235"/>
    </optional>
    <optional>
-    <attribute name="join"/>
+    <attribute name="join" rha:description="This is a timeout value that
+        specifies how many milliseconds to wait for join messages in
+        the membership protocol." rha:default="100" rha:sample="95"/>
    </optional>
    <optional>
-    <attribute name="token"/>
+    <attribute name="token" rha:description="This is a timeout value
+        that specifies how many milliseconds elapse before a
+        token loss is declared after not receiving a token. This
+        is the time spent detecting a failure of a processor in
+        the current configuration. Reforming a new configuration
+        takes about 50 milliseconds in addition to this
+        timeout." rha:default="5000" rha:sample="5300"/>
    </optional>
    <optional>
-    <attribute name="token_retransmits_before_loss_const"/>
+    <attribute name="token_retransmits_before_loss_const"
+      rha:description="This value identifies how many token retransmits
+      should be attempted before forming a new configuration. If
+      this value is set, retransmit and hold will be automatically
+      calculated from retransmits_before_loss and token." rha:default="4"
+      rha:sample="5"/>
+   </optional>
+   <!-- FIXME: The following description was adapted from the man page.
+   It may be tool long for the schema docuement. Consider cutting text
+   after the second sentence and referring the reader to the openais.conf
+   man page. -->
+   <optional>
+    <attribute name="rrp_mode" rha:description="This attribute
+        specifies the redundant ring protocol mode. Its value can be
+        set to active, passive, or none. Active replication offers
+        slightly lower latency from transmit to delivery in faulty
+        network environments but with less performance. Passive
+        replication may nearly double the speed of the totem protocol
+        if the protocol doesnÃ¢ÂÂt become cpu bound. The final option is
+        none, in which case only one network interface is used to
+        operate the totem protocol. If only one interface directive is
+        specified, none is automatically chosen. If multiple interface
+        directives are specified, only active or passive may be
+        chosen." rha:sample="active"/>
    </optional>
    <optional>
-    <attribute name="rrp_mode"/>
+    <attribute name="secauth" rha:description="This attribute specifies
+       that HMAC/SHA1 authentication should be used to authenticate all
+       messages. It further specifies that all data should be encrypted
+       with the sober128 encryption algorithm to protect data from
+       eavesdropping. For more information setting this value, refer
+       the the openais.conf man page." rha:default="on" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="secauth"/>
-   </optional>
-   <optional>
-    <attribute name="keyfile"/>
+    <attribute name="keyfile" rha:description="" rha:sample=""/>
    </optional>
    <!-- multicast address -->
    <zeroOrMore>
-    <element name="interface">
+    <element name="interface" rha:description="" rha:sample="">
      <optional>
-      <attribute name="ringnumber"/>
+      <attribute name="ringnumber" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="bindnetaddr"/>
+      <attribute name="bindnetaddr" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="mcastaddr"/>
+      <attribute name="mcastaddr" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="mcastport"/>
+      <attribute name="mcastport" rha:description="" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="broadcast"/>
+      <attribute name="broadcast" rha:description="" rha:sample=""/>
      </optional>
     </element>
    </zeroOrMore>
@@ -808,58 +1027,89 @@ To validate your cluster.conf against this schema, run:
  </optional>
 
  <optional>
-  <element name="rm">
+  <element name="rm" rha:description="This element and its attributes
+      define resources (for example an IP address) required to create HA
+      cluster services, the HA cluster services themselves, and failover
+      domains for the HA cluster services.">
    <optional>
-    <attribute name="log_level">
+    <!-- FIXME: The following text needs clarifying. What is meant by 
+    "...for all levels less than the selected."? -->
+    <attribute name="log_level" rha:description="An integer 0-7,
+        inclusive, for all levels less than the selected.
+        0, system is unusable, emergency;
+        1, action must be taken immediately;
+        2, critical conditions;
+        3, error conditions;
+        4, warning conditions;
+        5, normal but significant condition;
+        6, informational;
+        7, debug-level messages." rha:sample="6">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="status_child_max">
+    <attribute name="status_child_max" rha:description="" rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="status_poll_interval">
+    <attribute name="status_poll_interval" rha:description=""
+      rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="transition_throttling">
+    <attribute name="transition_throttling" rha:description=""
+      rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="central_processing">
+    <attribute name="central_processing" rha:description=""
+      rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="log_facility">
+    <attribute name="log_facility" rha:description="The facility is one
+       of the following keywords: auth, authpriv, cron, daemon, kern,
+       lpr, mail, news, syslog, user, uucp and local0 through local7"
+       rha:sample="local4">
      <data type="string"/>
     </attribute>
    </optional>
    <interleave>
    <optional>
-    <element name="failoverdomains">
+    <element name="failoverdomains" rha:description="">
      <zeroOrMore>
-      <element name="failoverdomain">
-       <attribute name="name"/>
+      <element name="failoverdomain" rha:description="Specifies
+        properties of a specific failover domain">
+       <attribute name="name" rha:description="The name of the failover
+         domain." rha:sample="foo"/>
        <optional>
-        <attribute name="ordered"/>
+        <attribute name="ordered" rha:description="Set value to 1 if
+          the failover domain is ordered; set value to 0 if
+          unordered." rha:default="0" rha:sample="1"/>
        </optional>
        <optional>
-        <attribute name="restricted"/>
+        <attribute name="restricted" rha:description="Set value to 1 if
+          the failover domain is restricted; set value to 0 if
+          unrestricted." rha:default="0" rha:sample="1"/>
        </optional>
        <optional>
-        <attribute name="nofailback"/>
+        <attribute name="nofailback" rha:description="" rha:sample=""/>
        </optional>
        <zeroOrMore>
-        <element name="failoverdomainnode">
+        <element name="failoverdomainnode" rha:description="A node in
+          a failover domain">
          <optional>
-          <attribute name="priority"/>
+          <attribute name="priority" rha:description="A number
+            specifying the priority; lower numbers having higher
+            priority"
+              rha:sample="1"/>
          </optional>
-         <attribute name="name"/>
+         <attribute name="name" rha:description="Name of the node."
+             rha:sample="member2"/>
         </element>
        </zeroOrMore>
       </element>
@@ -867,47 +1117,47 @@ To validate your cluster.conf against this schema, run:
     </element>
    </optional>  <!-- End of failoverdomains block -->
    <optional>
-    <element name="events">
+    <element name="events" rha:description="">
      <zeroOrMore>
-      <element name="event">
-       <attribute name="name"/>
+      <element name="event" rha:description="">
+       <attribute name="name" rha:description="" rha:sample=""/>
        <optional>
         <text/>
        </optional>
        <optional>
-        <attribute name="file"/>
+        <attribute name="file" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="priority"/>
+        <attribute name="priority" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="class"/>
+        <attribute name="class" rha:description="" rha:sample=""/>
        </optional>
        <!-- Service event class attributes -->
        <optional>
-        <attribute name="service"/>
+        <attribute name="service" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="service_state"/>
+        <attribute name="service_state" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="service_owner"/>
+        <attribute name="service_owner" rha:description="" rha:sample=""/>
        </optional>
        <!-- Node event -->
        <optional>
-        <attribute name="node"/>
+        <attribute name="node" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_id"/>
+        <attribute name="node_id" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_state"/>
+        <attribute name="node_state" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_clean"/>
+        <attribute name="node_clean" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_local"/>
+        <attribute name="node_local" rha:description="" rha:sample=""/>
        </optional>
        <!-- Config event attributes -->
        <!-- NOT USED -->
@@ -916,7 +1166,7 @@ To validate your cluster.conf against this schema, run:
     </element>
    </optional>  <!-- End of events block -->
    <optional> 
-    <element name="resources">
+    <element name="resources" rha:description="">
      <zeroOrMore>
       <ref name="CHILDREN"/>
      </zeroOrMore>
@@ -933,81 +1183,139 @@ To validate your cluster.conf against this schema, run:
  </optional>
 
  <optional>
-  <element name="fence_daemon">
+  <element name="fence_daemon"  rha:description="This element and its
+      attributes define cluster-wide parameters for basic fence timing
+      properties used when a node joins a cluster or is fenced from
+      the cluster.">
    <optional>
-    <attribute name="post_join_delay"/>
+    <attribute name="post_join_delay"  rha:description="The number of
+        seconds the fence daemon (fenced) waits before fencing a node
+        after the node joins the fence domain. A typical setting for
+        post_join_delay is between 20 and 30 seconds, but can vary
+        according to cluster and network performance requirements."
+        rha:default="3" rha:sample="20"/>
    </optional>
    <optional>
-    <attribute name="post_fail_delay"/>
+    <attribute name="post_fail_delay" rha:description="The the number of
+        seconds the fence daemon (fenced) waits before fencing
+        a node (a member of the fence domain) after the node has
+        failed." rha:default="0" rha:sample="2"/>
    </optional>
    <optional>
-    <attribute name="override_path"/>
+    <attribute name="override_path" rha:description="The location of a
+       FIFO used for communication between fenced and fence_ack_manual"
+       rha:default="/var/run/cluster/fenced_override"
+       rha:sample="/opt/cluster/fenced_override"/>
    </optional>
    <optional>
-    <attribute name="override_time"/>
+    <attribute name="override_time" rha:description="The location of a
+       FIFO used for communication between fenced and fence_ack_manual"
+       rha:default="/var/run/cluster/fenced_override"
+       rha:sample="/opt/cluster/fenced_override"/>
    </optional>
    <optional>
-    <attribute name="clean_start"/>
+    <attribute name="clean_start" rha:description="Clean-start is used
+       to prevent any startup fencing the daemon might do." rha:default="0"
+       rha:sample="1"/>
    </optional>
+   <!--FIXME: This attribute is in the proposed RHEL5 schema; verify if
+  it should be in stable3.
+   <optional>
+    <attribute name="skip_undefined" rha:description="Do not do startup
+       fencing of nodes with no fence methods defined." rha:default="0"
+       rha:sample="1"/>
+   </optional>
+   -->
+
   </element>
  </optional>
 
  <optional>
-  <element name="quorumd">
+  <element name="quorumd" rha:description="This element and its
+      attributes define parameters for the quorum disk daemon,
+      quorumd.">
    <optional>
-    <attribute name="interval"/>
+    <attribute name="interval" rha:description="The frequency of
+        read/write cycles, in seconds." rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="tko"/>
+    <attribute name="tko" rha:description="The number of cycles a node
+        must miss to be declared dead." rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="votes"/>
+    <attribute name="votes" rha:description="The number of votes the
+        quorum daemon advertises to CMAN when it has a high enough
+        score." rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="min_score"/>
+    <attribute name="min_score" rha:description="The minimum score for a
+        node to be considered alive. If omitted or set to 0, the default
+        function, floor((n+1)/2), is used, where n is the sum of the
+        heuristics scores. The Minimum Score value must never exceed the
+        sum of the heuristic scores; otherwise, the quorum disk cannot
+        be available." rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="device"/>
+    <attribute name="device" rha:description="The storage device the
+        quorum daemon uses. The device must be the same on all
+        nodes." rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="label"/>
+    <attribute name="label" rha:description="Specifies the quorum disk
+        label created by the mkqdisk utility. If this field contains an
+        entry, the label overrides the Device field. If this field is
+        used, the quorum daemon reads /proc/partitions and checks for
+        qdisk signatures on every block device found, comparing the
+label
+        against the specified label. This is useful in configurations
+        where the quorum device name differs among nodes."
+rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="status_file"/>
+    <attribute name="status_file" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="scheduler"/>
+    <attribute name="scheduler" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="reboot"/>
+    <attribute name="reboot" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="priority"/>
+    <attribute name="priority" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="stop_cman"/>
+    <attribute name="stop_cman" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="paranoid"/>
+    <attribute name="paranoid" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="allow_kill"/>
+    <attribute name="allow_kill" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="max_error_cycles"/>
+    <attribute name="max_error_cycles" rha:description=""
+rha:sample=""/>
    </optional>
 
    <zeroOrMore>
-    <element name="heuristic">
+    <element name="heuristic" rha:description="">
+     <attribute name="program" rha:description="The program used to
+         determine if this heuristic is alive. This can be anything that
+         can be executed by /bin/sh -c. A return value of 0 indicates
+         success; anything else indicates failure." rha:sample=""/>
      <attribute name="program"/>
      <optional>
-      <attribute name="score"/>
+      <attribute name="score" rha:description="The weight of this
+          heuristic. Be careful when determining scores for
+          heuristics." rha:default="1" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="interval"/>
+      <attribute name="interval" rha:description="The frequency (in
+          seconds) at which the heuristic is polled." rha:default="2"
+          rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="tko"/>
+      <attribute name="tko" rha:description="" rha:sample=""/>
      </optional>
     </element>
    </zeroOrMore>
@@ -2047,10 +2355,18 @@ To validate your cluster.conf against this schema, run:
 <!--Beginning of fence definitions-->
 
  <define name="FENCE">
-  <element name="fence">
+  <element name="fence" rha:description="The fence element specifies how
+      a node is fenced. Its elements and attributes identify fence device
+      (or devices) to use and the parameters specific to each fence device
+      (for example, IP address and port number in an APC fence device)">
    <zeroOrMore>
-    <element name="method">
-     <attribute name="name"/>
+    <element name="method" rha:description="Typically, there is a single
+        method used to fence each node (the name  given to the method is
+        not significant). A method refers to a specific device listed in
+        the fencedevices section (a separate section from the clusternode
+        section), and then lists any node-specific parameters related
+        to using the device.">
+     <attribute name="name" rha:description="" rha:sample="apc123"/>
      <zeroOrMore>
        <ref name="DEVICE"/>
      </zeroOrMore>
@@ -2060,7 +2376,7 @@ To validate your cluster.conf against this schema, run:
  </define>
 
  <define name="UNFENCE">
-  <element name="unfence">
+  <element name="unfence" rha:description="">
    <zeroOrMore>
     <ref name="DEVICE"/>
    </zeroOrMore>
@@ -2068,8 +2384,8 @@ To validate your cluster.conf against this schema, run:
  </define>
 
  <define name="DEVICE">
-  <element name="device">
-   <attribute name="name">
+  <element name="device" rha:description="">
+   <attribute name="name" rha:description="" rha:sample="">
     <data type="IDREF"/>
    </attribute>
    <choice>
