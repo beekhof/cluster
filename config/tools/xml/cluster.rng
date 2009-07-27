@@ -104,6 +104,11 @@ To validate your cluster.conf against this schema, run:
      </attribute>
     </optional>
     <optional>
+     <attribute name="cluster_id">
+      <data type="nonNegativeInteger"/>
+     </attribute>
+    </optional>
+    <optional>
      <attribute name="broadcast">
       <data type="nonNegativeInteger"/>
      </attribute>
@@ -149,19 +154,9 @@ To validate your cluster.conf against this schema, run:
 	   <data type="positiveInteger"/>
 	 </attribute>
        </optional>
-       <!--FIXME: Verify if the nodeid attribute is optional. I think
-       it is required for RHEL 5. The sources.redhat.com site states
-       that the attribute is required; however, that must mean that a
-       cluster.conf file must have a nodeid for each node. The value
-       is automatically assigned a value; however, you can change its
-       value.-->
        <optional>
-	 <attribute name="nodeid" rha:description="Each node is assigned
-             a unique integer value as its node ID. You can change a
-             node's nodeid; hoever, it must be a unique integer value
-             in the cluster. A node's application to join a cluster may
-             be rejected if you try to set the nodeid to one that is
-             already used in a cluster." rha:sample="1">
+	 <attribute name="nodeid" rha:description="Each node requires
+             a unique integer value as its node ID." rha:sample="1">
 	   <data type="positiveInteger"/>
 	 </attribute>
        </optional>
@@ -1220,8 +1215,6 @@ block before determining success or failure.
        fencing of nodes with no fence methods defined." rha:default="0"
        rha:sample="1"/>
    </optional>
-   -->
-
   </element>
  </optional>
 
