@@ -33,7 +33,7 @@ To validate your cluster.conf against this schema, run:
     top-level element and contains attributes that define the cluster
     name and the configuration version number.">
  <attribute name="name" rha:description="Specifies a unique cluster name;
-      it can be up to 16 characters long." rha:sample="my_rh_cluster"/>
+      it can be up to 16 characters long." rha:sample="my_cluster"/>
  <attribute name="config_version" rha:description="Identifies the
      revision level of the cluster.conf file. To propagate a revised
      configuration file, this value must be advanced to a value higher
@@ -42,7 +42,7 @@ To validate your cluster.conf against this schema, run:
   <attribute name="alias" rha:description="Pretty name for cluster that
       is not parsed by cluster tag software; only the Conga and
       system-config-cluster GUIs use this value."
-      rha:sample="My Red Hat Cluster"/>
+      rha:sample="My Cluster"/>
  </optional>
  <interleave>
 
@@ -194,9 +194,6 @@ To validate your cluster.conf against this schema, run:
    </zeroOrMore>
  </element>
 
-<!--FIXME: More information needed for dlm. I looked in dlm_controld man
-page; however, configuration paramaters there do not seem to match the
-following elements and attributes. -->
 <!-- dlm block -->
  <optional>
  <element name="dlm" rha:description="">
@@ -240,6 +237,24 @@ following elements and attributes. -->
   </optional>
   <optional>
    <attribute name="drop_resources_age" rha:description="" rha:sample=""/>
+  </optional>
+  <optional>
+   <zeroOrMore>
+    <element name="lockspace" rha:description="">
+     <attribute name="name" rha:description="" rha:sample=""/>
+     <optional>
+      <attribute name="nodir" rha:description="" rha:sample=""/>
+     </optional>
+     <optional>
+      <zeroOrMore>
+       <element name="master" rha:description="">
+        <attribute name="name" rha:description="" rha:sample=""/>
+        <attribute name="weight" rha:description="" rha:sample=""/>
+       </element>
+      </zeroOrMore>
+     </optional>
+    </element>
+   </zeroOrMore>
   </optional>
  </element>
  </optional>
@@ -289,24 +304,6 @@ following elements and attributes. -->
      plock_ownership resource caching.  This is the time in milliseconds
      that a cached resource should be unused before consideration for
      dropping." rha:sample="5000" rha:default="10000"/>
-  </optional>
-  <optional>
-   <zeroOrMore>
-    <element name="lockspace" rha:description="">
-     <attribute name="name" rha:description="" rha:sample=""/>
-     <optional>
-      <attribute name="nodir" rha:description="" rha:sample=""/>
-     </optional>
-     <optional>
-      <zeroOrMore>
-       <element name="master" rha:description="">
-        <attribute name="name" rha:description="" rha:sample=""/>
-        <attribute name="weight" rha:description="" rha:sample=""/>
-       </element>
-      </zeroOrMore>
-     </optional>
-    </element>
-   </zeroOrMore>
   </optional>
  </element>
  </optional>
@@ -915,8 +912,8 @@ block before determining success or failure.
     <attribute name="logfile_priority" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <element name="logging_subsys" rha:description="">
-     <attribute name="subsys" rha:description="" rha:sample=""/>
+    <element name="logging_daemon" rha:description="">
+     <attribute name="name" rha:description="" rha:sample=""/>
      <optional>
       <attribute name="to_syslog" rha:description="" rha:sample=""/>
      </optional>
@@ -985,7 +982,7 @@ block before determining success or failure.
         slightly lower latency from transmit to delivery in faulty
         network environments but with less performance. Passive
         replication may nearly double the speed of the totem protocol
-        if the protocol doesnÃ¢ÂÂt become cpu bound. The final option is
+        if the protocol doesn't become cpu bound. The final option is
         none, in which case only one network interface is used to
         operate the totem protocol. If only one interface directive is
         specified, none is automatically chosen. If multiple interface
@@ -1218,8 +1215,6 @@ block before determining success or failure.
        to prevent any startup fencing the daemon might do." rha:default="0"
        rha:sample="1"/>
    </optional>
-   <!--FIXME: This attribute is in the proposed RHEL5 schema; verify if
-  it should be in stable3.
    <optional>
     <attribute name="skip_undefined" rha:description="Do not do startup
        fencing of nodes with no fence methods defined." rha:default="0"
