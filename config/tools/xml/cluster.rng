@@ -418,58 +418,91 @@ To validate your cluster.conf against this schema, run:
  <optional>
  <element name="dlm" rha:description="">
   <optional>
-    <attribute name="log_debug" rha:description="Enable/disable dlm
+    <attribute name="log_debug" rha:description="Enable dlm
       kernel debug messages." rha:default="0" rha:sample="1"/>
   </optional>
   <optional>
-   <attribute name="timewarn" rha:description="" rha:sample=""/>
+   <attribute name="timewarn" rha:description="The number of centiseconds
+     a lock is blocked before a warning is sent to userland, for lockspaces
+     created with TIMEWARN flag." rha:default="500" rha:sample="100"/>
   </optional>
   <optional>
    <attribute name="protocol" rha:description="The network protocol
      used by the dlm." rha:default="tcp" rha:sample="sctp"/>
   </optional>
   <optional>
-   <attribute name="enable_fencing" rha:description="" rha:sample=""/>
+   <attribute name="enable_fencing" rha:description="Enable fencing recovery
+     dependency." rha:default="1" rha:sample="0"/>
   </optional>
   <optional>
-   <attribute name="enable_quorum" rha:description="" rha:sample=""/>
+   <attribute name="enable_quorum" rha:description="Enable quorum recovery
+     dependency." rha:default="1" rha:sample="0"/>
   </optional>
   <optional>
-   <attribute name="enable_deadlk" rha:description="" rha:sample=""/>
+   <attribute name="enable_deadlk" rha:description="Enable deadlock detection
+     code." rha:default="0" rha:sample="1"/>
   </optional>
   <optional>
-   <attribute name="enable_plock" rha:description="" rha:sample=""/>
+   <attribute name="enable_plock" rha:description="Enable posix lock code for
+     cluster fs." rha:default="1" rha:sample="0"/>
   </optional>
   <optional>
-   <attribute name="plock_debug" rha:description="" rha:sample=""/>
+   <attribute name="plock_debug" rha:description="Enable posix lock debugging."
+     rha:default="0" rha:sample="1"/>
   </optional>
   <optional>
-   <attribute name="plock_rate_limit" rha:description="" rha:sample=""/>
+   <attribute name="plock_rate_limit" rha:description="The maximum
+     number of plock operations that will be sent every second.  This is
+     used to prevent potentially excessive network load.  For best
+     performance it is recommended to disable this rate limiting by
+     setting the value to 0." rha:sample="10000" rha:default="100"/>
   </optional>
   <optional>
-   <attribute name="plock_ownership" rha:description="" rha:sample=""/>
+   <attribute name="plock_ownership" rha:description="Enabling this
+     option by setting to 1 optimizes plock performance for repeated
+     locking of the same locks by processes on a single node.
+     All dlm_controld daemons in the cluster must be stopped before
+     changing this value." rha:sample="0" rha:default="1"/>
   </optional>
   <optional>
-   <attribute name="drop_resources_time" rha:description="" rha:sample=""/>
+   <attribute name="drop_resources_time" rha:description="For tuning the
+     plock_ownership resource caching.  This is the frequence of
+     attempts in milliseconds to drop unused resources from the
+     cache." rha:sample="5000" rha:default="10000"/>
   </optional>
   <optional>
-   <attribute name="drop_resources_count" rha:description="" rha:sample=""/>
+   <attribute name="drop_resources_count" rha:description="For tuning
+     the plock_ownership resource caching.  This is the maximum number
+     of resources to drop from the cache each time." rha:sample="100"
+     rha:default="10"/>
   </optional>
   <optional>
-   <attribute name="drop_resources_age" rha:description="" rha:sample=""/>
+   <attribute name="drop_resources_age" rha:description="For tuning the
+     plock_ownership resource caching.  This is the time in milliseconds
+     that a cached resource should be unused before consideration for
+     dropping." rha:sample="5000" rha:default="10000"/>
   </optional>
   <optional>
    <zeroOrMore>
-    <element name="lockspace" rha:description="">
-     <attribute name="name" rha:description="" rha:sample=""/>
+    <element name="lockspace" rha:description="Individual lockspace
+      configuration.">
+     <attribute name="name" rha:description="The name of the lockspace."
+        rha:sample="foo"/>
      <optional>
-      <attribute name="nodir" rha:description="" rha:sample=""/>
+      <attribute name="nodir" rha:description="The lockspace will not use a
+        resource directory when this is set to 1." rha:default="0"
+        rha:sample="1"/>
      </optional>
      <optional>
       <zeroOrMore>
-       <element name="master" rha:description="">
-        <attribute name="name" rha:description="" rha:sample=""/>
-        <attribute name="weight" rha:description="" rha:sample=""/>
+       <element name="master" rha:description="Define a particular node to be
+         responsible for a certain amount of lock mastering.">
+        <attribute name="name" rha:description="The name of the node that
+          should be mastering resources/locks.  This needs to match one of
+          the nodes defined in clusternodes." rha:sample="node01"/>
+        <attribute name="weight" rha:description="The proportion of
+          resources/locks this node should master." rha:default="1"
+          rha:sample="2"/>
        </element>
       </zeroOrMore>
      </optional>
@@ -485,13 +518,18 @@ To validate your cluster.conf against this schema, run:
  <element name="gfs_controld" rha:description="This element and its
    attributes configure the gfs_controld daemon.">
   <optional>
-   <attribute name="enable_withdraw" rha:description="" rha:sample=""/>
+   <attribute name="enable_withdraw" rha:description="Enable the code that
+     handles gfs withdraw." rha:default="1" rha:sample="0"/>
   </optional>
   <optional>
-   <attribute name="enable_plock" rha:description="" rha:sample=""/>
+   <attribute name="enable_plock" rha:description="Enable posix lock code for
+     cluster fs.  gfs_controld only handles plocks when daemons run in compat
+     mode, otherwise dlm_controld processes plocks." rha:default="1"
+     rha:sample="0"/>
   </optional>
   <optional>
-   <attribute name="plock_debug" rha:description="" rha:sample=""/>
+   <attribute name="plock_debug" rha:description="Enable posix lock
+     debugging." rha:default="0" rha:sample="1"/>
   </optional>
   <optional>
    <attribute name="plock_rate_limit" rha:description="The maximum
