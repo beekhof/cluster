@@ -1070,8 +1070,13 @@ static int do_cmd_try_shutdown(struct connection *con, char *cmdbuf)
 
 	/* If no-one is listening for events then we can just go down now */
 	if (shutdown_expected == 0) {
+		int leaveflags = CLUSTER_LEAVEFLAG_DOWN;
+
 		quit_threads = 1;
-		send_leave(CLUSTER_LEAVEFLAG_DOWN);
+		if (shutdown_flags & SHUTDOWN_REMOVE)
+			leaveflags |= CLUSTER_LEAVEFLAG_REMOVED;
+
+		send_leave(leaveflags);
 		return 0;
 	}
 	else {
