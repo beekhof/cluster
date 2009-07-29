@@ -327,12 +327,14 @@ gfs_consist_inode_i(struct gfs_inode *ip, int cluster_wide,
 	struct gfs_sbd *sdp = ip->i_sbd;
         return gfs_lm_withdraw(sdp,
 			       "GFS: fsid=%s: fatal: filesystem consistency error\n"
-			       "GFS: fsid=%s:   inode = %"PRIu64"/%"PRIu64"\n"
+			       "GFS: fsid=%s:   inode = %llu/%llu\n"
 			       "GFS: fsid=%s:   function = %s\n"
 			       "GFS: fsid=%s:   file = %s, line = %u\n"
 			       "GFS: fsid=%s:   time = %lu\n",
 			       sdp->sd_fsname,
-			       sdp->sd_fsname, ip->i_num.no_formal_ino, ip->i_num.no_addr,
+			       sdp->sd_fsname,
+			       (unsigned long long)ip->i_num.no_formal_ino,
+			       (unsigned long long)ip->i_num.no_addr,
 			       sdp->sd_fsname, function,
 			       sdp->sd_fsname, file, line,
 			       sdp->sd_fsname, get_seconds());
@@ -358,12 +360,13 @@ gfs_consist_rgrpd_i(struct gfs_rgrpd *rgd, int cluster_wide,
         struct gfs_sbd *sdp = rgd->rd_sbd;
         return gfs_lm_withdraw(sdp,
 			       "GFS: fsid=%s: fatal: filesystem consistency error\n"
-			       "GFS: fsid=%s:   RG = %"PRIu64"\n"
+			       "GFS: fsid=%s:   RG = %llu\n"
 			       "GFS: fsid=%s:   function = %s\n"
 			       "GFS: fsid=%s:   file = %s, line = %u\n"
 			       "GFS: fsid=%s:   time = %lu\n",
 			       sdp->sd_fsname,
-			       sdp->sd_fsname, rgd->rd_ri.ri_addr,
+			       sdp->sd_fsname,
+			       (unsigned long long)rgd->rd_ri.ri_addr,
 			       sdp->sd_fsname, function,
 			       sdp->sd_fsname, file, line,
 			       sdp->sd_fsname, get_seconds());
@@ -389,12 +392,12 @@ gfs_meta_check_ii(struct gfs_sbd *sdp, struct buffer_head *bh,
 	int me;
         me = gfs_lm_withdraw(sdp,
 			     "GFS: fsid=%s: fatal: invalid metadata block\n"
-			     "GFS: fsid=%s:   bh = %"PRIu64" (magic)\n"
+			     "GFS: fsid=%s:   bh = %llu (magic)\n"
 			     "GFS: fsid=%s:   function = %s\n"
 			     "GFS: fsid=%s:   file = %s, line = %u\n"
 			     "GFS: fsid=%s:   time = %lu\n",
 			     sdp->sd_fsname,
-			     sdp->sd_fsname, (uint64_t)bh->b_blocknr,
+			     sdp->sd_fsname, (unsigned long long)bh->b_blocknr,
 			     sdp->sd_fsname, function,
 			     sdp->sd_fsname, file, line,
 			     sdp->sd_fsname, get_seconds());
@@ -424,13 +427,13 @@ gfs_metatype_check_ii(struct gfs_sbd *sdp, struct buffer_head *bh,
 	int me;
         me = gfs_lm_withdraw(sdp,
 			     "GFS: fsid=%s: fatal: invalid metadata block\n"
-			     "GFS: fsid=%s:   bh = %"PRIu64" (type: exp=%u, found=%u)\n"
+			     "GFS: fsid=%s:   bh = %llu (type: exp=%u, found=%u)\n"
 			     "GFS: fsid=%s:   function = %s\n"
 			     "GFS: fsid=%s:   file = %s, line = %u\n"
 			     "GFS: fsid=%s:   time = %lu\n",
 			     sdp->sd_fsname,
-			     sdp->sd_fsname, (uint64_t)bh->b_blocknr, type, t,
-			     sdp->sd_fsname, function,
+			     sdp->sd_fsname, (unsigned long long)bh->b_blocknr,
+			     type, t, sdp->sd_fsname, function,
 			     sdp->sd_fsname, file, line,
 			     sdp->sd_fsname, get_seconds());
 	return (me) ? -1 : -2;
@@ -482,12 +485,14 @@ gfs_io_error_inode_i(struct gfs_inode *ip,
 	struct gfs_sbd *sdp = ip->i_sbd;
         return gfs_lm_withdraw(sdp,
 			       "GFS: fsid=%s: fatal: I/O error\n"
-			       "GFS: fsid=%s:   inode = %"PRIu64"/%"PRIu64"\n"
+			       "GFS: fsid=%s:   inode = %llu/%llu\n"
 			       "GFS: fsid=%s:   function = %s\n"
 			       "GFS: fsid=%s:   file = %s, line = %u\n"
 			       "GFS: fsid=%s:   time = %lu\n",
 			       sdp->sd_fsname,
-			       sdp->sd_fsname, ip->i_num.no_formal_ino, ip->i_num.no_addr,
+			       sdp->sd_fsname,
+			       (unsigned long long)ip->i_num.no_formal_ino,
+			       (unsigned long long)ip->i_num.no_addr,
 			       sdp->sd_fsname, function,
 			       sdp->sd_fsname, file, line,
 			       sdp->sd_fsname, get_seconds());
@@ -512,12 +517,13 @@ gfs_io_error_bh_i(struct gfs_sbd *sdp, struct buffer_head *bh,
 {
         return gfs_lm_withdraw(sdp,
 			       "GFS: fsid=%s: fatal: I/O error\n"
-			       "GFS: fsid=%s:   block = %"PRIu64"\n"
+			       "GFS: fsid=%s:   block = %llu\n"
 			       "GFS: fsid=%s:   function = %s\n"
 			       "GFS: fsid=%s:   file = %s, line = %u\n"
 			       "GFS: fsid=%s:   time = %lu\n",
 			       sdp->sd_fsname,
-			       sdp->sd_fsname, (uint64_t)bh->b_blocknr,
+			       sdp->sd_fsname,
+			       (unsigned long long)bh->b_blocknr,
 			       sdp->sd_fsname, function,
 			       sdp->sd_fsname, file, line,
 			       sdp->sd_fsname, get_seconds());

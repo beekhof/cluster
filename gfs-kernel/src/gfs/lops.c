@@ -85,9 +85,9 @@ glock_print(struct gfs_sbd *sdp, struct gfs_log_element *le, unsigned int where)
 		return;
 	}
 
-	printk("  Glock:  (%u, %"PRIu64")\n",
+	printk("  Glock:  (%u, %llu)\n",
 	       gl->gl_name.ln_type,
-	       gl->gl_name.ln_number);
+	       (unsigned long long)gl->gl_name.ln_number);
 }
 
 /**
@@ -222,7 +222,7 @@ buf_print(struct gfs_sbd *sdp, struct gfs_log_element *le, unsigned int where)
 		return;
 	}
 
-	printk("  Buffer:  %"PRIu64"\n", (uint64_t)bd->bd_bh->b_blocknr);
+	printk("  Buffer:  %llu\n", (unsigned long long)bd->bd_bh->b_blocknr);
 }
 
 /**
@@ -726,8 +726,9 @@ unlinked_print(struct gfs_sbd *sdp, struct gfs_log_element *le,
 		return;
 	}
 
-	printk("  unlinked:  %"PRIu64"/%"PRIu64", %s\n",
-	       ul->ul_inum.no_formal_ino, ul->ul_inum.no_addr,
+	printk("  unlinked:  %llu/%llu, %s\n",
+	       (unsigned long long)ul->ul_inum.no_formal_ino,
+	       (unsigned long long)ul->ul_inum.no_addr,
 	       type);
 }
 
@@ -1172,9 +1173,9 @@ quota_print(struct gfs_sbd *sdp, struct gfs_log_element *le, unsigned int where)
 	struct gfs_quota_le *ql;
 
 	ql = container_of(le, struct gfs_quota_le, ql_le);
-	printk("  quota:  %s %u:  %"PRId64" blocks\n",
+	printk("  quota:  %s %u:  %lld blocks\n",
 	       (test_bit(QDF_USER, &ql->ql_data->qd_flags)) ? "user" : "group",
-	       ql->ql_data->qd_id, ql->ql_change);
+	       ql->ql_data->qd_id, (long long)ql->ql_change);
 }
 
 /**

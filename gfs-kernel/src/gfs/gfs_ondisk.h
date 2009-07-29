@@ -788,8 +788,8 @@ gfs_inum_out(struct gfs_inum *no, char *buf)
 void
 gfs_inum_print(struct gfs_inum *no)
 {
-	pv(no, no_formal_ino, "%"PRIu64);
-	pv(no, no_addr, "%"PRIu64);
+	pv(no, no_formal_ino, "%llu");
+	pv(no, no_addr, "%llu");
 }
 
 /**
@@ -847,7 +847,7 @@ gfs_meta_header_print(struct gfs_meta_header *mh)
 {
 	pv(mh, mh_magic, "0x%.8X");
 	pv(mh, mh_type, "%u");
-	pv(mh, mh_generation, "%"PRIu64);
+	pv(mh, mh_generation, "%llu");
 	pv(mh, mh_format, "%u");
 	pv(mh, mh_incarn, "%u");
 }
@@ -1001,7 +1001,7 @@ gfs_jindex_out(struct gfs_jindex *jindex, char *buf)
 void
 gfs_jindex_print(struct gfs_jindex *ji)
 {
-	pv(ji, ji_addr, "%"PRIu64);
+	pv(ji, ji_addr, "%llu");
 	pv(ji, ji_nsegment, "%u");
 	pv(ji, ji_pad, "%u");
 
@@ -1065,11 +1065,11 @@ gfs_rindex_out(struct gfs_rindex *grindex, char *buf)
 void
 gfs_rindex_print(struct gfs_rindex *ri)
 {
-	pv(ri, ri_addr, "%"PRIu64);
+	pv(ri, ri_addr, "%llu");
 	pv(ri, ri_length, "%u");
 	pv(ri, ri_pad, "%u");
 
-	pv(ri, ri_data1, "%"PRIu64);
+	pv(ri, ri_data1, "%llu");
 	pv(ri, ri_data, "%u");
 
 	pv(ri, ri_bitbytes, "%u");
@@ -1205,9 +1205,9 @@ gfs_quota_out(struct gfs_quota *quota, char *buf)
 void
 gfs_quota_print(struct gfs_quota *quota)
 {
-	pv(quota, qu_limit, "%"PRIu64);
-	pv(quota, qu_warn, "%"PRIu64);
-	pv(quota, qu_value, "%"PRId64);
+	pv(quota, qu_limit, "%llu");
+	pv(quota, qu_warn, "%llu");
+	pv(quota, qu_value, "%llu");
 
 	pa(quota, qu_reserved, 64);
 }
@@ -1327,16 +1327,16 @@ gfs_dinode_print(struct gfs_dinode *di)
 	pv(di, di_uid, "%u");
 	pv(di, di_gid, "%u");
 	pv(di, di_nlink, "%u");
-	pv(di, di_size, "%"PRIu64);
-	pv(di, di_blocks, "%"PRIu64);
-	pv(di, di_atime, "%"PRId64);
-	pv(di, di_mtime, "%"PRId64);
-	pv(di, di_ctime, "%"PRId64);
+	pv(di, di_size, "%llu");
+	pv(di, di_blocks, "%llu");
+	pv(di, di_atime, "%lld");
+	pv(di, di_mtime, "%llu");
+	pv(di, di_ctime, "%llu");
 	pv(di, di_major, "%u");
 	pv(di, di_minor, "%u");
 
-	pv(di, di_rgrp, "%"PRIu64);
-	pv(di, di_goal_rgrp, "%"PRIu64);
+	pv(di, di_rgrp, "%llu");
+	pv(di, di_goal_rgrp, "%llu");
 	pv(di, di_goal_dblk, "%u");
 	pv(di, di_goal_mblk, "%u");
 	pv(di, di_flags, "0x%.8X");
@@ -1351,7 +1351,7 @@ gfs_dinode_print(struct gfs_dinode *di)
 
 	gfs_inum_print(&di->di_next_unused);
 
-	pv(di, di_eattr, "%"PRIu64);
+	pv(di, di_eattr, "%llu");
 
 	pa(di, di_reserved, 56);
 }
@@ -1529,7 +1529,7 @@ gfs_leaf_print(struct gfs_leaf *lf)
 	pv(lf, lf_depth, "%u");
 	pv(lf, lf_entries, "%u");
 	pv(lf, lf_dirent_format, "%u");
-	pv(lf, lf_next, "%"PRIu64);
+	pv(lf, lf_next, "%llu");
 
 	pa(lf, lf_reserved, 64);
 }
@@ -1600,11 +1600,11 @@ gfs_log_header_print(struct gfs_log_header *lh)
 	pv(lh, lh_flags, "0x%.8X");
 	pv(lh, lh_pad, "%u");
 
-	pv(lh, lh_first, "%"PRIu64);
-	pv(lh, lh_sequence, "%"PRIu64);
+	pv(lh, lh_first, "%llu");
+	pv(lh, lh_sequence, "%llu");
 
-	pv(lh, lh_tail, "%"PRIu64);
-	pv(lh, lh_last_dump, "%"PRIu64);
+	pv(lh, lh_tail, "%llu");
+	pv(lh, lh_last_dump, "%llu");
 
 	pa(lh, lh_reserved, 64);
 }
@@ -1715,7 +1715,7 @@ gfs_block_tag_out(struct gfs_block_tag *tag, char *buf)
 void
 gfs_block_tag_print(struct gfs_block_tag *tag)
 {
-	pv(tag, bt_blkno, "%"PRIu64);
+	pv(tag, bt_blkno, "%llu");
 	pv(tag, bt_flags, "%u");
 	pv(tag, bt_pad, "%u");
 }
@@ -1763,7 +1763,7 @@ gfs_quota_tag_out(struct gfs_quota_tag *tag, char *buf)
 void
 gfs_quota_tag_print(struct gfs_quota_tag *tag)
 {
-	pv(tag, qt_change, "%"PRId64);
+	pv(tag, qt_change, "%llu");
 	pv(tag, qt_flags, "0x%.8X");
 	pv(tag, qt_id, "%u");
 }

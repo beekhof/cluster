@@ -551,10 +551,14 @@ check_seg_usage(struct gfs_sbd *sdp, struct gfs_trans *tr)
 
 		default:
 			gfs_assert(sdp, FALSE,
-				   printk("GFS: fsid=%s: head_off = %"PRIu64", head_wrap = %"PRIu64"\n"
-					  "GFS: fsid=%s: dump_off = %"PRIu64", dump_wrap = %"PRIu64"\n",
-					  sdp->sd_fsname, head_off, head_wrap,
-					  sdp->sd_fsname, dump_off, dump_wrap););
+				   printk("GFS: fsid=%s: head_off = %llu, head_wrap = %llu\n"
+					  "GFS: fsid=%s: dump_off = %llu, dump_wrap = %llu\n",
+					  sdp->sd_fsname,
+					  (unsigned long long)head_off,
+					  (unsigned long long)head_wrap,
+					  sdp->sd_fsname,
+					  (unsigned long long)dump_off,
+					  (unsigned long long)dump_wrap););
 			break;
 		}
 	}

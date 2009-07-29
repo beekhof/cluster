@@ -1173,8 +1173,9 @@ make_dinode(struct gfs_inode *dip,
 	rgd = gfs_blk2rgrpd(sdp, inum->no_addr);
 	if (!rgd) {
 		if (gfs_consist(sdp))
-			printk("GFS: fsid=%s: block = %"PRIu64"\n",
-			       sdp->sd_fsname, inum->no_addr);
+			printk("GFS: fsid=%s: block = %llu\n",
+			       sdp->sd_fsname,
+			       (unsigned long long)inum->no_addr);
 		brelse(dibh);
 		return -EIO;
 	}

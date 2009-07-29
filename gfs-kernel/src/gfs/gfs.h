@@ -22,30 +22,6 @@
 #define NO_CREATE (0)
 #define CREATE (1)
 
-#if (BITS_PER_LONG == 64)
-#define PRIu64 "lu"
-#define PRId64 "ld"
-#define PRIo64 "lo"
-#define PRIx64 "lx"
-#define PRIX64 "lX"
-#define SCNu64 "lu"
-#define SCNd64 "ld"
-#define SCNo64 "lo"
-#define SCNx64 "lx"
-#define SCNX64 "lX"
-#else
-#define PRIu64 "Lu"
-#define PRId64 "Ld"
-#define PRIo64 "Lo"
-#define PRIx64 "Lx"
-#define PRIX64 "LX"
-#define SCNu64 "Lu"
-#define SCNd64 "Ld"
-#define SCNo64 "Lo"
-#define SCNx64 "Lx"
-#define SCNX64 "LX"
-#endif
-
 /*  Divide num by den.  Round up if there is a remainder.  */
 #define DIV_RU(num, den) (((num) + (den) - 1) / (den))
 #define MAKE_MULT8(x) (((x) + 7) & ~7)

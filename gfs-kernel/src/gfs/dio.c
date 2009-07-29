@@ -66,9 +66,9 @@ stuck_releasepage(struct buffer_head *bh)
 	struct gfs_bufdata *bd = get_v2bd(bh);
 
 	printk("GFS: fsid=%s: stuck in gfs_releasepage()...\n", sdp->sd_fsname);
-	printk("GFS: fsid=%s: blkno = %"PRIu64", bh->b_count = %d\n",
+	printk("GFS: fsid=%s: blkno = %llu, bh->b_count = %d\n",
 	       sdp->sd_fsname,
-	       (uint64_t)bh->b_blocknr,
+	       (unsigned long long)bh->b_blocknr,
 	       atomic_read(&bh->b_count));
 	printk("GFS: fsid=%s: get_v2bd(bh) = %s\n",
 	       sdp->sd_fsname,
@@ -77,10 +77,10 @@ stuck_releasepage(struct buffer_head *bh)
 	if (bd) {
 		struct gfs_glock *gl = bd->bd_gl;
 
-		printk("GFS: fsid=%s: gl = (%u, %"PRIu64")\n",
+		printk("GFS: fsid=%s: gl = (%u, %llu)\n",
 		       sdp->sd_fsname,
 		       gl->gl_name.ln_type,
-		       gl->gl_name.ln_number);
+		       (unsigned long long)gl->gl_name.ln_number);
 
 		printk("GFS: fsid=%s: bd_new_le.le_trans = %s\n",
 		       sdp->sd_fsname,
@@ -103,10 +103,10 @@ stuck_releasepage(struct buffer_head *bh)
 			if (ip) {
 				unsigned int x;
 
-				printk("GFS: fsid=%s: ip = %"PRIu64"/%"PRIu64"\n",
+				printk("GFS: fsid=%s: ip = %llu/%llu\n",
 				       sdp->sd_fsname,
-				       ip->i_num.no_formal_ino,
-				       ip->i_num.no_addr);
+				       (unsigned long long)ip->i_num.no_formal_ino,
+				       (unsigned long long)ip->i_num.no_addr);
 				printk("GFS: fsid=%s: ip->i_count = %d, ip->i_vnode = %s\n",
 				     sdp->sd_fsname,
 				     atomic_read(&ip->i_count),

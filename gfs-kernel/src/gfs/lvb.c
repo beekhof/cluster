@@ -129,7 +129,7 @@ gfs_quota_lvb_print(struct gfs_quota_lvb *qb)
 {
 	pv(qb, qb_magic, "%u");
 	pv(qb, qb_pad, "%u");
-	pv(qb, qb_limit, "%"PRIu64);
-	pv(qb, qb_warn, "%"PRIu64);
-	pv(qb, qb_value, "%"PRId64);
+	pv(qb, qb_limit, "%llu");
+	pv(qb, qb_warn, "%llu");
+	pv(qb, qb_value, "%lld");
 }

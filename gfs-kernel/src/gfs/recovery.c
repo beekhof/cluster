@@ -311,14 +311,14 @@ gfs_increment_blkno(struct gfs_sbd *sdp, struct gfs_jindex *jdesc,
 
 		if (error) { /* Corrupt headers here are bad */
 			if (gfs_consist(sdp))
-				printk("GFS: fsid=%s: *addr = %"PRIu64"\n",
-				       sdp->sd_fsname, *addr);
+				printk("GFS: fsid=%s: *addr = %llu\n",
+				       sdp->sd_fsname, (unsigned long long)*addr);
 			return -EIO;
 		}
 		if (header.lh_first == *addr) {
 			if (gfs_consist(sdp))
-				printk("GFS: fsid=%s: *addr = %"PRIu64"\n",
-				       sdp->sd_fsname, *addr);
+				printk("GFS: fsid=%s: *addr = %llu\n",
+				       sdp->sd_fsname, (unsigned long long)*addr);
 			gfs_log_header_print(&header);
 			return -EIO;
 		}
@@ -367,14 +367,14 @@ foreach_descriptor(struct gfs_sbd *sdp, struct gfs_jindex *jdesc,
 
 		if (error) { /* Corrupt headers here are bad */
 			if (gfs_consist(sdp))
-				printk("GFS: fsid=%s: start = %"PRIu64"\n",
-				       sdp->sd_fsname, start);
+				printk("GFS: fsid=%s: start = %llu\n",
+				       sdp->sd_fsname, (unsigned long long)start);
 			return -EIO;
 		}
 		if (header.lh_first != start) {
 			if (gfs_consist(sdp))
-				printk("GFS: fsid=%s: start = %"PRIu64"\n",
-				       sdp->sd_fsname, start);
+				printk("GFS: fsid=%s: start = %llu\n",
+				       sdp->sd_fsname, (unsigned long long)start);
 			gfs_log_header_print(&header);
 			return -EIO;
 		}

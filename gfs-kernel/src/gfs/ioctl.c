@@ -273,12 +273,12 @@ gi_get_stat_gfs(struct gfs_inode *ip,
 
 	gfs_printf("version 0\n");
 	gfs_printf("bsize %u\n", ip->i_sbd->sd_sb.sb_bsize);
-        gfs_printf("total_blocks %"PRIu64"\n", sg.sg_total_blocks);
-        gfs_printf("free %"PRIu64"\n", sg.sg_free);
-        gfs_printf("used_dinode %"PRIu64"\n", sg.sg_used_dinode);
-        gfs_printf("free_dinode %"PRIu64"\n", sg.sg_free_dinode);
-        gfs_printf("used_meta %"PRIu64"\n", sg.sg_used_meta);
-        gfs_printf("free_meta %"PRIu64"\n", sg.sg_free_meta);
+        gfs_printf("total_blocks %llu\n", (unsigned long long)sg.sg_total_blocks);
+        gfs_printf("free %llu\n", (unsigned long long)sg.sg_free);
+        gfs_printf("used_dinode %llu\n", (unsigned long long)sg.sg_used_dinode);
+        gfs_printf("free_dinode %llu\n", (unsigned long long)sg.sg_free_dinode);
+        gfs_printf("used_meta %llu\n", (unsigned long long)sg.sg_used_meta);
+        gfs_printf("free_meta %llu\n", (unsigned long long)sg.sg_free_meta);
 
 	error = 0;
 
@@ -357,8 +357,8 @@ gi_get_counters(struct gfs_inode *ip,
 		   atomic_read(&sdp->sd_depend_count));
 	gfs_printf("sd_reclaim_count:glocks on reclaim list::%d\n",
 		   atomic_read(&sdp->sd_reclaim_count));
-	gfs_printf("sd_log_wrap:log wraps::%"PRIu64"\n",
-		   sdp->sd_log_wrap);
+	gfs_printf("sd_log_wrap:log wraps::%llu\n",
+		   (unsigned long long)sdp->sd_log_wrap);
 	gfs_printf("sd_lm_outstanding:outstanding LM calls::%d\n",
 		   atomic_read(&sdp->sd_lm_outstanding));
 	gfs_printf("sd_bio_outstanding:outstanding BIO calls::%u\n",
@@ -804,8 +804,8 @@ gi_do_reclaim(struct gfs_inode *ip,
 	error = -ENOBUFS;
 
 	gfs_printf("version 0\n");
-        gfs_printf("inodes %"PRIu64"\n", inodes);
-        gfs_printf("metadata %"PRIu64"\n", metadata);
+        gfs_printf("inodes %llu\n", (unsigned long long)inodes);
+        gfs_printf("metadata %llu\n", (unsigned long long)metadata);
 
         error = 0;
 
