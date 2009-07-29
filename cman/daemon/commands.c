@@ -75,6 +75,7 @@ static struct corosync_api_v1 *corosync;
 static corosync_timer_handle_t ccsd_timer;
 static unsigned int wanted_config_version;
 static int config_error;
+static int local_first_trans;
 
 static corosync_timer_handle_t shutdown_timer;
 static struct connection *shutdown_con;
@@ -1719,6 +1720,7 @@ void send_transition_msg(int last_memb_count, int first_trans)
 	int len = sizeof(struct cl_transmsg);
 
 	we_are_a_cluster_member = 1;
+	local_first_trans = first_trans;
 
 	log_printf(LOGSYS_LEVEL_DEBUG, "memb: sending TRANSITION message. cluster_name = %s\n", cluster_name);
 	msg->cmd = CLUSTER_MSG_TRANSITION;
@@ -1889,9 +1891,9 @@ static void do_process_transition(int nodeid, char *data)
 		return;
 	}
 
-	/* If the remote node can see AISONLY nodes then we can't join as we don't
-	   know the full state */
-	if (msg->flags & NODE_FLAGS_SEESDISALLOWED && !have_disallowed()) {
+	/* If the remote node can see AISONLY nodes and we want to join,
+	   then we can't, as we don't know the full state */
+	if (local_first_trans && msg->flags & NODE_FLAGS_SEESDISALLOWED && !have_disallowed()) {
 		/* Must use syslog directly here or the message will never arrive */
 		syslog(LOG_CRIT, "CMAN: Joined a cluster with disallowed nodes. must die");
 		cman_finish();
@@ -1953,10 +1955,10 @@ static void do_process_transition(int nodeid, char *data)
 		add_ais_node(nodeid, incarnation, num_ais_nodes);
 	}
 
-	/* If the cluster already has some AISONLY nodes then we can't make
-	   sense of the membership. So the new node has to also be AISONLY
-	   until we are consistent again */
-	if (have_disallowed() && !node->us)
+	/* If the new node is joining and the existing cluster already has some AISONLY
+	   nodes then we can't make sense of the membership.
+	   So the new node has to also be AISONLY until we are consistent again */
+	if (msg->first_trans && !node->us && have_disallowed())
 		node->state = NODESTATE_AISONLY;
 
 	node->flags = msg->flags; /* This will clear the BEENDOWN flag of course */
