@@ -300,9 +300,9 @@ static int init_sb(struct gfs_sbd *sdp, int silent, int undo)
 	      sizes, version #s, locations of important on-disk inodes, etc.  */
 
 	error = -EINVAL;
-	if (sdp->sd_sb.sb_bsize < bdev_hardsect_size(sb->s_bdev)) {
+	if (sdp->sd_sb.sb_bsize < bdev_logical_block_size(sb->s_bdev)) {
 		printk("GFS: fsid=%s: FS block size (%u) is too small for device block size (%u)\n",
-		       sdp->sd_fsname, sdp->sd_sb.sb_bsize, bdev_hardsect_size(sb->s_bdev));
+		       sdp->sd_fsname, sdp->sd_sb.sb_bsize, bdev_logical_block_size(sb->s_bdev));
 		goto fail;
 	}
 	if (sdp->sd_sb.sb_bsize > PAGE_SIZE) {

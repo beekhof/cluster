@@ -352,7 +352,7 @@ do_read_direct(struct file *file, char *buf, size_t size, loff_t *offset,
 		goto out_gunlock;
 
 	if (gfs_is_stuffed(ip)) {
-		size_t mask = bdev_hardsect_size(inode->i_sb->s_bdev) - 1;
+		size_t mask = bdev_logical_block_size(inode->i_sb->s_bdev) - 1;
 
 		if (((*offset) & mask) || (((unsigned long)buf) & mask))
 			goto out_gunlock;
