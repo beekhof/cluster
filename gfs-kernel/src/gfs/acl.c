@@ -127,7 +127,7 @@ gfs_acl_get(struct gfs_inode *ip, int access, struct posix_acl **acl)
 	if (!GFS_EA_DATA_LEN(el.el_ea))
 		goto out;
 
-	er.er_data = kmalloc(GFS_EA_DATA_LEN(el.el_ea), GFP_KERNEL);
+	er.er_data = kmalloc(GFS_EA_DATA_LEN(el.el_ea), GFP_NOFS);
 	error = -ENOMEM;
 	if (!er.er_data)
 		goto out;
@@ -214,7 +214,7 @@ gfs_acl_new_prep(struct gfs_inode *dip,
 	}
 
 	{
-		struct posix_acl *clone = posix_acl_clone(acl, GFP_KERNEL);
+		struct posix_acl *clone = posix_acl_clone(acl, GFP_NOFS);
 		error = -ENOMEM;
 		if (!clone)
 			goto out;
@@ -250,7 +250,7 @@ gfs_acl_new_prep(struct gfs_inode *dip,
 			b *= 2;
 		b++;
 
-		d = kmalloc(s, GFP_KERNEL);
+		d = kmalloc(s, GFP_NOFS);
 		error = -ENOMEM;
 		if (!d)
 			goto out;
@@ -355,7 +355,7 @@ gfs_acl_chmod(struct gfs_inode *ip, struct iattr *attr)
 	if (!GFS_EA_DATA_LEN(el.el_ea))
 		goto simple;
 
-	er.er_data = kmalloc(GFS_EA_DATA_LEN(el.el_ea), GFP_KERNEL);
+	er.er_data = kmalloc(GFS_EA_DATA_LEN(el.el_ea), GFP_NOFS);
 	error = -ENOMEM;
 	if (!er.er_data)
 		goto out;

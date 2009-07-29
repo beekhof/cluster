@@ -596,7 +596,7 @@ ea_get_unstuffed(struct gfs_inode *ip, struct gfs_ea_header *ea,
 	unsigned int x;
 	int error = 0;
 
-	bh = kmalloc(nptrs * sizeof(struct buffer_head *), GFP_KERNEL);
+	bh = kmalloc(nptrs * sizeof(struct buffer_head *), GFP_NOFS);
 	if (!bh)
 		return -ENOMEM;
 
@@ -1621,7 +1621,7 @@ ea_acl_chmod_unstuffed(struct gfs_inode *ip,
 	unsigned int x;
 	int error;
 
-	bh = kmalloc(nptrs * sizeof(struct buffer_head *), GFP_KERNEL);
+	bh = kmalloc(nptrs * sizeof(struct buffer_head *), GFP_NOFS);
 	if (!bh)
 		return -ENOMEM;
 
