@@ -1232,6 +1232,12 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
 	}
         *error_string = error_reason;
 
+
+	/* Close stderr, because cman_tool tells corosync not to.
+	   This helps pass error messages back to the command-line
+	*/
+	if (!debug)
+	    close(STDERR_FILENO);
 	return ret;
 }
 

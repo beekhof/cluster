@@ -10,7 +10,7 @@
 static char *argv[MAX_ARGS];
 static char *envp[MAX_ARGS];
 
-static void be_daemon(int close_stderr)
+static void be_daemon(void)
 {
 	int devnull = open("/dev/null", O_RDWR);
 	if (devnull == -1) {
@@ -27,15 +27,10 @@ static void be_daemon(int close_stderr)
 		die("Error setting terminal FDs to /dev/null: %m");
 	}
 
-	if (close_stderr) {
-		if (close(2)) {
-			die("Error closing stderr FD");
-		}
-		if (!dup2(devnull, 2) < 0) {
-			die("Error setting stderr FD to /dev/null: %m");
-		}
-	}
-
+	/* We leave stderr open to allow error messags through.
+	   the cman plugin will close it when it's all started
+	   up properly.
+	*/
 	setsid();
 }
 
@@ -226,7 +221,7 @@ int join(commandline_t *comline, char *main_envp[])
 				fprintf(stderr, "%s\n", envp[i]);
 			}
 		}
-		be_daemon(!(comline->verbose & ~DEBUG_STARTUP_ONLY));
+		be_daemon();
 
 		sprintf(scratch, "FORKED: %d\n", getpid());
 		err = write(p[1], scratch, strlen(scratch));
