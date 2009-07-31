@@ -1573,6 +1573,31 @@ dump_config_version(FILE *fp)
 
 
 /**
+ Copy out the incarnations after doing CONDSTOPs
+ */
+static int
+copy_incarnations(resource_t **leftres, resource_t **rightres)
+{
+	resource_t *lc, *rc;
+	int ret;
+
+	list_do(leftres, lc) {
+		rc = find_resource_by_ref(rightres, lc->r_rule->rr_type,
+					  primary_attr_value(lc));
+		/* Resource does not exist */
+		if (!rc)
+			continue;
+
+		/* Ok, see if the resource is the same */
+		if (!rescmp(lc, rc))
+			rc->r_incarnations = lc->r_incarnations;
+	} while (!list_done(leftres, lc));
+
+	return 0;
+}
+
+
+/**
   Initialize resource groups.  This reads all the resource groups from 
   CCS, builds the tree, etc.  Ideally, we'll have a similar function 
   performing deltas on the two trees so that we can fully support online
@@ -1688,6 +1713,8 @@ init_resource_groups(int reconfigure, int do_init)
 		pthread_rwlock_unlock(&resource_lock);
 
 		do_condstops();
+
+		copy_incarnations(&_resources, &reslist);
 	}
 
 	/* Swap in the new configuration */
