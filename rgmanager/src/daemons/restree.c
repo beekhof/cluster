@@ -1290,6 +1290,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 	/* Start starts before children */
 	if (me && (op == RS_START)) {
 
+		pthread_mutex_lock(&node->rn_resource->r_mutex);
 		if (node->rn_flags & RF_RECONFIG &&
 		    realop == RS_CONDSTART) {
 			rv = res_exec(node, RS_RECONFIG, NULL, 0);
@@ -1300,6 +1301,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		node->rn_flags &= ~(RF_NEEDSTART | RF_RECONFIG);
 		if (rv != 0) {
 			node->rn_state = RES_FAILED;
+			pthread_mutex_unlock(&node->rn_resource->r_mutex);
 			return SFL_FAILURE;
 		}
 
@@ -1310,6 +1312,8 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			++node->rn_resource->r_incarnations;
 			node->rn_state = RES_STARTED;
 		}
+		pthread_mutex_unlock(&node->rn_resource->r_mutex);
+
 	} else if (me && (op == RS_STATUS || op == RS_STATUS_INQUIRY)) {
 
 		/* Special quick-check for status inquiry */
@@ -1367,16 +1371,30 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
  			
 	/* Stop should occur after children have stopped */
 	if (me && (op == RS_STOP)) {
+
+		/* Decrease incarnations so the script knows how many *other*
+		   incarnations there are. */
+		pthread_mutex_lock(&node->rn_resource->r_mutex);
+		if (node->rn_state == RES_STARTED) {
+			assert(node->rn_resource->r_incarnations > 0);
+			--node->rn_resource->r_incarnations;
+		}
+
 		node->rn_flags &= ~RF_NEEDSTOP;
 		rv |= res_exec(node, op, NULL, 0);
 
 		if (rv != 0) {
+			if (node->rn_state == RES_STARTED) {
+				/* Fail to stop: fix incarnations */
+				++node->rn_resource->r_incarnations;
+			}
 			node->rn_state = RES_FAILED;
+			pthread_mutex_unlock(&node->rn_resource->r_mutex);
 			return SFL_FAILURE;
 		}
+		pthread_mutex_unlock(&node->rn_resource->r_mutex);
 
 		if (node->rn_state != RES_STOPPED) {
-			--node->rn_resource->r_incarnations;
 			node->rn_state = RES_STOPPED;
 		}
 	}

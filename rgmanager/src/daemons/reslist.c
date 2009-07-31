@@ -729,6 +729,7 @@ load_resource(int ccsfd, resource_rule_t *rule, char *base)
 	}
 
 	memset(res, 0, sizeof(*res));
+	pthread_mutex_init(&res->r_mutex, NULL);
 	res->r_rule = rule;
 
 	for (x = 0; res->r_rule->rr_attrs &&

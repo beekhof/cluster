@@ -92,6 +92,7 @@ typedef struct _resource_rule {
 
 typedef struct _resource {
 	list_head();
+	pthread_mutex_t		r_mutex;
 	resource_rule_t *	r_rule;
 	char *	r_name;
 	resource_attr_t *	r_attrs;
