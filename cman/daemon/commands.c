@@ -993,7 +993,8 @@ static void check_shutdown_status(void)
 	/* All replies safely gathered in ? */
 	if (shutdown_yes + shutdown_no >= shutdown_expected) {
 
-		corosync->timer_delete(shutdown_timer);
+		if (shutdown_timer)
+			corosync->timer_delete(shutdown_timer);
 
 		if (shutdown_yes >= shutdown_expected ||
 		    shutdown_flags & SHUTDOWN_ANYWAY) {
@@ -1071,14 +1072,8 @@ static int do_cmd_try_shutdown(struct connection *con, char *cmdbuf)
 
 	/* If no-one is listening for events then we can just go down now */
 	if (shutdown_expected == 0) {
-		int leaveflags = CLUSTER_LEAVEFLAG_DOWN;
-
-		quit_threads = 1;
-		if (shutdown_flags & SHUTDOWN_REMOVE)
-			leaveflags |= CLUSTER_LEAVEFLAG_REMOVED;
-
-		send_leave(leaveflags);
-		return 0;
+		shutdown_timer = 0;
+		check_shutdown_status();
 	}
 	else {
 
@@ -1091,6 +1086,7 @@ static int do_cmd_try_shutdown(struct connection *con, char *cmdbuf)
 
 		return -EWOULDBLOCK;
 	}
+	return 0;
 }
 
 static int do_cmd_register_quorum_device(char *cmdbuf, int *retlen)
