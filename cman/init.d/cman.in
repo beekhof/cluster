@@ -68,13 +68,13 @@ fi
 #     a cluster is not joined.  If CMAN_CLUSTER_TIMEOUT is zero, then
 #     wait indefinately for a cluster join.  If CMAN_CLUSTER_TIMEOUT is
 #     negative, do not check to see that the cluster has been joined
-[ -z "$CMAN_CLUSTER_TIMEOUT" ] && CMAN_CLUSTER_TIMEOUT=120
+[ -z "$CMAN_CLUSTER_TIMEOUT" ] && CMAN_CLUSTER_TIMEOUT=60
 
 # CMAN_QUORUM_TIMEOUT -- amount of time to wait for a quorate cluster on
 #     startup quorum is needed by many other applications, so we may as
-#     well wait here.  If CMAN_QUORUM_TIMEOUT is less than 1, quorum will
+#     well wait here.  If CMAN_QUORUM_TIMEOUT is zero, quorum will
 #     be ignored.
-[ -z "$CMAN_QUORUM_TIMEOUT" ] && CMAN_QUORUM_TIMEOUT=0
+[ -z "$CMAN_QUORUM_TIMEOUT" ] && CMAN_QUORUM_TIMEOUT=20
 
 # CMAN_SHUTDOWN_TIMEOUT -- amount of time to wait for cman to become a
 #     cluster member before calling cman_tool leave during shutdown.
@@ -490,6 +490,14 @@ start_cman()
 	fi
 }
 
+wait_for_quorum()
+{
+	if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]; then
+		errmsg=$( cman_tool -t $CMAN_QUORUM_TIMEOUT \
+			 -q wait 2>&1 ) || return 1
+	fi
+}
+
 stop_cman()
 {
 	if cman_running; then
@@ -677,6 +685,10 @@ start()
 	runwrap start_qdiskd \
 		qdiskd_enabled \
 		"Starting qdiskd"
+
+	runwrap wait_for_quorum \
+		none \
+		"Waiting for quorum"
 
 	runwrap start_groupd \
 		groupd_enabled \
