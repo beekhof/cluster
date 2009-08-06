@@ -112,7 +112,10 @@ To validate your cluster.conf against this schema, run:
      </attribute>
     </optional>
     <optional>
-     <attribute name="disable_openais" rha:description="" rha:sample=""/>
+     <attribute name="keyfile" rha:description=""/>
+    </optional>
+    <optional>
+     <attribute name="disable_openais"/>
     </optional>
     <optional>
      <element name="multicast" rha:description="The multicast element
@@ -571,7 +574,8 @@ To validate your cluster.conf against this schema, run:
  <optional>
  <element name="group" rha:description="">
   <optional>
-   <attribute name="groupd_compat" rha:description="" rha:sample=""/>
+   <attribute name="groupd_compat" rha:description="Enable compatibility with
+     cluster2 (RHEL5) nodes" rha:default="0" rha:sample="1"/>
   </optional>
  </element>
  </optional>
@@ -579,51 +583,64 @@ To validate your cluster.conf against this schema, run:
 
 <!-- logging block -->
  <optional>
-  <element name="logging" rha:description="">
+  <element name="logging" rha:description="Global logging config applies
+    to all daemons.">
    <optional>
-    <attribute name="to_syslog" rha:description="" rha:sample=""/>
+    <attribute name="to_syslog" rha:description="enable/disable messages to
+      syslog" rha:default="yes"/>
    </optional>
    <optional>
-    <attribute name="to_logfile" rha:description="" rha:sample=""/>
+    <attribute name="to_logfile" rha:description="enable/disable messages to
+      log file" rha:default="yes"/>
    </optional>
    <optional>
-    <attribute name="syslog_facility" rha:description="" rha:sample=""/>
+    <attribute name="syslog_facility" rha:description="facility used for
+      syslog messages" rha:default="daemon"/>
    </optional>
    <optional>
-    <attribute name="syslog_priority" rha:description="" rha:sample=""/>
+    <attribute name="syslog_priority" rha:description="messages at this level
+      and up will be sent to syslog" rha:default="info"/>
    </optional>
    <optional>
-    <attribute name="logfile" rha:description="" rha:sample=""/>
+    <attribute name="logfile_priority" rha:description="messages at this level
+      and up will be written to log file" rha:default="info"/>
    </optional>
    <optional>
-    <attribute name="debug" rha:description="" rha:sample=""/>
+    <attribute name="logfile" rha:description="the log file name"
+      rha:default="/var/log/cluster/daemon_name.log"/>
    </optional>
    <optional>
-    <attribute name="logfile_priority" rha:description="" rha:sample=""/>
+    <attribute name="debug" rha:description="turn on debugging, a shortcut for
+      setting logfile_priority to debug" rha:sample="on"/>
    </optional>
    <optional>
-    <element name="logging_daemon" rha:description="">
-     <attribute name="name" rha:description="" rha:sample=""/>
+    <element name="logging_daemon" rha:description="Per-daemon logging
+      config overrides global settings for named daemon.">
+     <attribute name="name" rha:description="daemon name" rha:sample="fenced"/>
      <optional>
-      <attribute name="to_syslog" rha:description="" rha:sample=""/>
+      <attribute name="subsys" rha:description="corosync subsystem name"
+        rha:sample="CMAN"/>
      </optional>
      <optional>
-      <attribute name="to_logfile" rha:description="" rha:sample=""/>
+      <attribute name="to_syslog" rha:description="same as global"/>
      </optional>
      <optional>
-      <attribute name="syslog_facility" rha:description="" rha:sample=""/>
+      <attribute name="to_logfile" rha:description="same as global"/>
      </optional>
      <optional>
-      <attribute name="syslog_priority" rha:description="" rha:sample=""/>
+      <attribute name="syslog_facility" rha:description="same as global"/>
      </optional>
      <optional>
-      <attribute name="logfile" rha:description="" rha:sample=""/>
+      <attribute name="syslog_priority" rha:description="same as global"/>
      </optional>
      <optional>
-      <attribute name="debug" rha:description="" rha:sample=""/>
+      <attribute name="logfile_priority" rha:description="same as global"/>
      </optional>
      <optional>
-      <attribute name="logfile_priority" rha:description="" rha:sample=""/>
+      <attribute name="logfile" rha:description="same as global"/>
+     </optional>
+     <optional>
+      <attribute name="debug" rha:description="same as global"/>
      </optional>
     </element>
    </optional>
