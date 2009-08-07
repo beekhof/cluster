@@ -167,7 +167,6 @@ them into corosync:
 
   <cluster>
     <totem />
-    <logging />
     <event />
     <aisexec />
     <group />
@@ -195,21 +194,11 @@ default values:
     rrp_mode="none"
     <!-- or rrp_mode="active" if altnames are present >
   />
-  <logging syslog_facility="local4" />
   <aisexec user="root" group="root" />
 
 Here's how to set the token timeout to five seconds:
 
   <totem token="5000"/>
-
-And this is how to add extra corosync logging options to CMAN and CPG:
-
-  <logging to_stderr="yes">
-    <logger_subsys subsys="CPG" debug="on">
-    </logger>
-    <logger_subsys subsys="CMAN" debug="on">
-    </logger>
-  </logging>
 
 .in -7
 
