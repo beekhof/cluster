@@ -14,6 +14,16 @@ int remove_dentry_from_dir(struct fsck_sb *sbp, uint64_t dir,
 int find_di(struct fsck_sb *sbp, uint64_t childblock, struct dir_info **dip);
 int dinode_hash_insert(osi_list_t *buckets, uint64_t key, struct dir_info *di);
 int dinode_hash_remove(osi_list_t *buckets, uint64_t key);
+void free_block(struct fsck_sb *sdp, uint64_t block);
+int delete_blocks(struct fsck_inode *ip, uint64_t block, osi_buf_t **bh,
+		  const char *btype, void *private);
+int delete_metadata(struct fsck_inode *ip, uint64_t block, osi_buf_t **bh,
+		    void *private);
+int delete_data(struct fsck_inode *ip, uint64_t block, void *private);
+int delete_eattr_indir(struct fsck_inode *ip, uint64_t block, uint64_t parent,
+		       osi_buf_t **bh, void *private);
+int delete_eattr_leaf(struct fsck_inode *ip, uint64_t block, uint64_t parent,
+		      osi_buf_t **bh, void *private);
 
 /* metawalk_fxns: function pointers to check various parts of the fs
  *
@@ -60,7 +70,8 @@ struct metawalk_fxns {
 				     struct gfs_ea_header *ea_hdr,
 				     struct gfs_ea_header *ea_hdr_prev,
 				     void *private);
-	int (*finish_eattr_indir) (struct fsck_inode *ip, int indir_ok,
+	int (*finish_eattr_indir) (struct fsck_inode *ip, int leaf_pointers,
+				   int leaf_pointer_errors,
 				   void *private);
 };
 

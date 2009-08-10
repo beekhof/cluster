@@ -155,7 +155,6 @@ int fs_rgrp_read(struct fsck_rgrp *rgd, int repair_if_corrupted)
 	int error;
 
 	if(rgd->rd_open_count){
-		log_debug("rgrp already read...\n");
 		rgd->rd_open_count++;
 		return 0;
 	}
@@ -236,7 +235,7 @@ void fs_rgrp_relse(struct fsck_rgrp *rgd)
 
 	rgd->rd_open_count--;
 	if(rgd->rd_open_count){
-		log_debug("rgrp still held...\n");
+		;
 	} else {
 		for (x = 0; x < length; x++){
 			if (rgd->rd_bh[x]) {

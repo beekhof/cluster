@@ -162,6 +162,17 @@ static int convert_mark(enum mark_block mark, uint32_t *count)
 	return -1;
 }
 
+static const char *block_type_string(struct block_query *q)
+{
+	const char *blktyp[] = {"free", "used", "indirect data", "directory",
+				"file", "symlink", "block dev", "char dev",
+				"fifo", "socket", "dir leaf", "journ data",
+				"other meta", "free meta", "meta eattr",
+				"bad blk", "dup block", "eattr", "invalid"};
+	if (q->block_type < 18)
+		return (blktyp[q->block_type]);
+	return blktyp[18];
+}
 
 static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int buflen,
 		       uint64_t *rg_block, uint64_t rg_data, uint32_t *count)
@@ -179,7 +190,6 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 	while(byte < end) {
 		rg_status = ((*byte >> bit) & GFS_BIT_MASK);
 		block = rg_data + *rg_block;
-		log_debug("Checking block %" PRIu64 "\n", block);
 		warm_fuzzy_stuff(block);
 		if (skip_this_pass || fsck_abort) /* if asked to skip the rest */
 			return 0;
@@ -204,22 +214,30 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 				}
 			}
 			else {
+				const char *blockstatus[] = {"Free", "Data",
+							     "Free Meta",
+							     "Metadata"};
 
 				log_err("ondisk and fsck bitmaps differ at"
 					" block %"PRIu64"\n", block);
+				log_err("Ondisk status is %u (%s) but FSCK "
+					"thinks it should be ",
+					rg_status, blockstatus[rg_status]);
+				log_err("%u (%s)\n", block_status,
+					blockstatus[block_status]);
+				log_err("Metadata type is %u (%s)\n",
+					q.block_type,
+					block_type_string(&q));
 
 				if(query(sbp, "Fix bitmap for block %"
 					 PRIu64"? (y/n) ", block)) {
-					if(fs_set_bitmap(sbp, block, block_status)) {
+					if(fs_set_bitmap(sbp, block, block_status))
 						log_err("Failed.\n");
-					}
-					else {
+					else
 						log_err("Succeeded.\n");
-					}
-				} else {
+				} else
 					log_err("Bitmap at block %"PRIu64
 						" left inconsistent\n", block);
-				}
 			}
 		}
 		(*rg_block)++;

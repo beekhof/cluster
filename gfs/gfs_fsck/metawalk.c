@@ -8,9 +8,22 @@
 
 #include "metawalk.h"
 
-static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int lindex,
-		  int type, int *update, uint16_t *count,
-		  struct metawalk_fxns *pass)
+/*
+ * check_entries - check directory entries for a given block
+ *
+ * @ip - dinode associated with this leaf block
+ * bh - buffer for the leaf block
+ * type - type of block this is (linear or exhash)
+ * @update - set to 1 if the block was updated
+ * @count - set to the count entries
+ * @pass - structure pointing to pass-specific functions
+ *
+ * returns: 0 - good block or it was repaired to be good
+ *         -1 - error occurred
+ */
+static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int type,
+			 int *update, uint16_t *count,
+			 struct metawalk_fxns *pass)
 {
 	struct gfs_leaf *leaf = NULL;
 	struct gfs_dirent *dent;
@@ -38,31 +51,46 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int lindex,
 	}
 
 	prev = NULL;
-	if(!pass->check_dentry) {
+	if(!pass->check_dentry)
 		return 0;
-	}
 
 	while(1) {
+		if (skip_this_pass || fsck_abort)
+			return 0;
 		memset(&de, 0, sizeof(struct gfs_dirent));
 		gfs_dirent_in(&de, (char *)dent);
 		filename = (char *)dent + sizeof(struct gfs_dirent);
 
 		if (de.de_rec_len < sizeof(struct gfs_dirent) +
-		    de.de_name_len || !de.de_name_len) {
+		    de.de_name_len ||
+		    (de.de_inum.no_formal_ino && !de.de_name_len && !first)) {
 			log_err("Directory block %"
 				PRIu64 ", entry %d of directory %"
 				PRIu64 " is corrupt.\n", BH_BLKNO(bh),
 				(*count) + 1, ip->i_di.di_num.no_addr);
 			if (query(ip->i_sbd, "Attempt to repair it? (y/n) ")) {
 				if (dirent_repair(ip, bh, &de, dent, type,
-						  first))
-					break;
-			}
-			else {
-				log_err("Corrupt directory entry %d ignored, "
+						  first)) {
+					if (first) /* make a new sentinel */
+						dirblk_truncate(ip, dent, bh);
+					else
+						dirblk_truncate(ip, prev, bh);
+					*update = 1;
+					log_err("Unable to repair corrupt "
+						"directory entry; the entry "
+						"was removed instead.\n");
+					return 0;
+				} else {
+					log_err("Corrupt directory entry "
+						"repaired.\n");
+					*update = 1;
+					/* keep looping through dentries */
+				}
+			} else {
+				log_err("Corrupt directory entry ignored, "
 					"stopped after checking %d entries.\n",
 					*count);
-				break;
+				return 0;
 			}
 		}
 		if (!de.de_inum.no_formal_ino){
@@ -70,9 +98,23 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int lindex,
 				log_debug("First dirent is a sentinel (place holder).\n");
 				first = 0;
 			} else {
-				/* FIXME: Do something about this */
-				log_err("Directory entry with inode number of zero in leaf %"PRIu64" of directory %"PRIu64"!\n", BH_BLKNO(bh), ip->i_di.di_num.no_addr);
-				return 1;
+				log_err("Directory entry with inode number of "
+					"zero in leaf %"PRIu64" of directory "
+					"%"PRIu64"!\n", BH_BLKNO(bh),
+					ip->i_di.di_num.no_addr);
+				if (query(ip->i_sbd,
+					  "Attempt to remove it? (y/n) ")) {
+					dirblk_truncate(ip, prev, bh);
+					*update = 1;
+					log_err("The corrupt directory entry "
+						"was removed.\n");
+				} else {
+					log_err("Corrupt directory entry "
+						"ignored, stopped after "
+						"checking %d entries.\n",
+						*count);
+				}
+				return 0;
 			}
 		} else {
 
@@ -84,9 +126,6 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int lindex,
 				stack;
 				return -1;
 			}
-			/*if(error > 0) {
-			  return 1;
-			  }*/
 		}
 
 		if ((char *)dent + de.de_rec_len >= bh_end){
@@ -96,27 +135,22 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int lindex,
 
 		/* If we didn't clear the dentry, or if we did, but it
 		 * was the first dentry, set prev  */
-		if(!error || first) {
+		if(!error || first)
 			prev = dent;
-		}
-
 		first = 0;
-
-
 		dent = (struct gfs_dirent *)((char *)dent + de.de_rec_len);
 	}
 	return 0;
 }
-
 
 /* Process a bad leaf pointer and ask to repair the first time.      */
 /* The repair process involves extending the previous leaf's entries */
 /* so that they replace the bad ones.  We have to hack up the old    */
 /* leaf a bit, but it's better than deleting the whole directory,    */
 /* which is what used to happen before.                              */
-static void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no, 
-		    uint64_t *bad_leaf, uint64_t old_leaf, int lindex,
-		    const char *msg)
+static void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no,
+		    uint64_t *bad_leaf, uint64_t old_leaf,
+		    uint64_t first_ok_leaf, int lindex, const char *msg)
 {
 	if (*bad_leaf != *leaf_no) {
 		log_err("Directory Inode %" PRIu64 " points to leaf %"
@@ -125,7 +159,12 @@ static void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no,
 	}
 	if (*leaf_no == *bad_leaf ||
 	    query(ip->i_sbd, "Attempt to patch around it? (y/n) ")) {
-		put_leaf_nr(ip, lindex, old_leaf);
+		if (check_range(ip->i_sbd, old_leaf) == 0)
+			put_leaf_nr(ip, lindex, old_leaf);
+		else
+			put_leaf_nr(ip, lindex, first_ok_leaf);
+		log_err("Directory Inode %" PRIu64 ") repaired.\n",
+			ip->i_di.di_num.no_addr);
 	}
 	else
 		log_err("Bad leaf left in place.\n");
@@ -133,21 +172,43 @@ static void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no,
 	*leaf_no = old_leaf;
 }
 
-/* Checks exthash directory entries */
-static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *pass)
+/* Checks all exhash directory leaf blocks (and their directory entries) */
+static int check_leaf_blks(struct fsck_inode *ip, int *update,
+			   struct metawalk_fxns *pass)
 {
 	int error;
 	struct gfs_leaf leaf, oldleaf;
 	uint64_t leaf_no, old_leaf, bad_leaf = -1;
+	uint64_t first_leaf_ptr = -1, first_ok_leaf = -1;
 	osi_buf_t *lbh;
 	int lindex;
 	struct fsck_sb *sbp = ip->i_sbd;
 	uint16_t count;
 	int ref_count = 0, exp_count = 0;
 
-	old_leaf = 0;
+	/* Find the first valid leaf pointer in range and use it as our "old"
+	   leaf. That way, bad blocks at the beginning will be overwritten
+	   with the first valid leaf. */
+	first_ok_leaf = -1;
+	for(lindex = 0; lindex < (1 << ip->i_di.di_depth); lindex++) {
+		get_leaf_nr(ip, lindex, &first_ok_leaf);
+		if (first_leaf_ptr == -1)
+			first_leaf_ptr = first_ok_leaf;
+		if(check_range(sbp, first_ok_leaf) == 0) {
+			get_and_read_buf(sbp, first_ok_leaf, &lbh, 0);
+			/* Make sure it's really a valid leaf block. */
+			if (check_meta(lbh, GFS_METATYPE_LF) == 0) {
+				relse_buf(sbp, lbh);
+				break;
+			}
+			relse_buf(sbp, lbh);
+		}
+	}
+	old_leaf = -1;
 	memset(&oldleaf, 0, sizeof(oldleaf));
 	for(lindex = 0; lindex < (1 << ip->i_di.di_depth); lindex++) {
+		if (fsck_abort)
+			break;
 		if(get_leaf_nr(ip, lindex, &leaf_no)) {
 			log_err("Unable to get leaf block number in dir %"
 				PRIu64"\n"
@@ -170,49 +231,48 @@ static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *
 		else if(old_leaf == leaf_no) {
 			ref_count++;
 			continue;
-		} else {
-			if(ref_count != exp_count){
-				log_err("Dir #%"PRIu64" has an incorrect number "
-					 "of pointers to leaf #%"PRIu64"\n"
-					 "\tFound: %u,  Expected: %u\n",
-					 ip->i_num.no_addr,
-					 old_leaf,
-					 ref_count,
-					 exp_count);
-				if (query(ip->i_sbd, "Attempt to fix it? (y/n) ")) {
-					int factor = 0, divisor = ref_count;
-
-					get_and_read_buf(sbp, old_leaf, &lbh,
-							 0);
-					while (divisor > 1) {
-						factor++;
-						divisor /= 2;
-					}
-					oldleaf.lf_depth = ip->i_di.di_depth -
-						factor;
-					gfs_leaf_out(&oldleaf, BH_DATA(lbh));
-					write_buf(sbp, lbh, 0);
-					relse_buf(sbp, lbh);
-				}
-				else
-					return 1;
-			}
-			ref_count = 1;
 		}
+		if(check_range(sbp, old_leaf) == 0 && ref_count != exp_count){
+			log_err("Dir #%"PRIu64" has an incorrect number "
+				"of pointers to leaf #%"PRIu64"\n"
+				"\tFound: %u,  Expected: %u\n",
+				ip->i_num.no_addr, old_leaf, ref_count,
+				exp_count);
+			if (query(ip->i_sbd, "Attempt to fix it? (y/n) ")) {
+				int factor = 0, divisor = ref_count;
+
+				get_and_read_buf(sbp, old_leaf, &lbh, 0);
+				while (divisor > 1) {
+					factor++;
+					divisor /= 2;
+				}
+				gfs_leaf_in(&oldleaf, BH_DATA(lbh));
+				oldleaf.lf_depth = ip->i_di.di_depth - factor;
+				gfs_leaf_out(&oldleaf, BH_DATA(lbh));
+				write_buf(sbp, lbh, 0);
+				relse_buf(sbp, lbh);
+			}
+			else
+				return 1;
+		}
+		ref_count = 1;
 
 		count = 0;
 		do {
+			if (fsck_abort)
+				break;
 			/* Make sure the block number is in range. */
 			if(check_range(ip->i_sbd, leaf_no)){
 				log_err("Leaf block #%"PRIu64" is out of "
 					"range for directory #%"PRIu64".\n",
 					leaf_no, ip->i_di.di_num.no_addr);
 				warn_and_patch(ip, &leaf_no, &bad_leaf,
-					       old_leaf, lindex,
+					       old_leaf,  first_ok_leaf, lindex,
 					       "that is out of range");
 				memcpy(&leaf, &oldleaf, sizeof(oldleaf));
 				break;
 			}
+			*update = 0;
 			/* Try to read in the leaf block. */
 			if(get_and_read_buf(sbp, leaf_no, &lbh, 0)){
 				log_err("Unable to read leaf block #%"
@@ -220,7 +280,7 @@ static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *
 					"directory #%"PRIu64".\n",
 					leaf_no, ip->i_di.di_num.no_addr);
 				warn_and_patch(ip, &leaf_no, &bad_leaf,
-					       old_leaf, lindex,
+					       old_leaf, first_ok_leaf, lindex,
 					       "that cannot be read");
 				memcpy(&leaf, &oldleaf, sizeof(oldleaf));
 				relse_buf(sbp, lbh);
@@ -229,7 +289,7 @@ static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *
 			/* Make sure it's really a valid leaf block. */
 			if (check_meta(lbh, GFS_METATYPE_LF)) {
 				warn_and_patch(ip, &leaf_no, &bad_leaf,
-					       old_leaf, lindex,
+					       old_leaf, first_ok_leaf, lindex,
 					       "that is not really a leaf");
 				memcpy(&leaf, &oldleaf, sizeof(oldleaf));
 				relse_buf(sbp, lbh);
@@ -241,27 +301,32 @@ static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *
 							 pass->private);
 			}
 
+			/* Make sure it's really a leaf. */
+			if (leaf.lf_header.mh_type != GFS_METATYPE_LF) {
+				log_err("Inode %" PRIu64 " points to bad leaf "
+					PRIu64 ".\n", ip->i_di.di_num.no_addr,
+					leaf_no);
+				relse_buf(sbp, lbh);
+				break;
+			}
+
 			exp_count = (1 << (ip->i_di.di_depth - leaf.lf_depth));
 			log_debug("expected count %u - %u %u\n", exp_count,
 				  ip->i_di.di_depth, leaf.lf_depth);
 			if(pass->check_dentry && 
 			   ip->i_di.di_type == GFS_FILE_DIR) {
-				error = check_entries(ip, lbh, lindex,
-						      DIR_EXHASH, update,
-						      &count,
-						      pass);
+				error = check_entries(ip, lbh, DIR_EXHASH,
+						      update, &count, pass);
 
 				/* Since the buffer possibly got
-				   updated directly, release it now,
-				   and grab it again later if we need it */
+				 * updated directly, release it now,
+				 * and grab it again later if we need it. */
+
 				relse_buf(sbp, lbh);
+
 				if(error < 0) {
 					stack;
 					return -1;
-				}
-
-				if(error > 0) {
-					return 1;
 				}
 
 				if(update && (count != leaf.lf_entries)) {
@@ -289,22 +354,19 @@ static int check_leaf(struct fsck_inode *ip, int *update, struct metawalk_fxns *
 					relse_buf(sbp, lbh);
 				}
 				/* FIXME: Need to get entry count and
-				 * compare it against
-				 * leaf->lf_entries */
-
-				break;
+				 * compare it against leaf->lf_entries */
+				break; /* not a chain; go back to outer loop */
 			} else {
 				relse_buf(sbp, lbh);
-				if(!leaf.lf_next) {
+				if(!leaf.lf_next)
 					break;
-				}
 				leaf_no = leaf.lf_next;
 				log_debug("Leaf chain detected.\n");
 			}
-		} while(1);
+		} while(1); /* while we have chained leaf blocks */
 		old_leaf = leaf_no;
 		memcpy(&oldleaf, &leaf, sizeof(oldleaf));
-	}
+	} /* for every leaf block */
 	return 0;
 }
 
@@ -325,8 +387,12 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 					  sizeof(struct gfs_meta_header));
 
 	while(1){
-		error = pass->check_eattr_entry(ip, bh, ea_hdr, ea_hdr_prev,
-						pass->private);
+		if (ea_hdr->ea_type == GFS_EATYPE_UNUSED)
+			error = 0;
+		else
+			error = pass->check_eattr_entry(ip, bh, ea_hdr,
+							ea_hdr_prev,
+							pass->private);
 		if(error < 0) {
 			stack;
 			return -1;
@@ -346,6 +412,7 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 			** In this case, the EA ** code leaves
 			** the blocks ** there for **
 			** reuse...........  */
+
 			for(i = 0; i < ea_hdr->ea_num_ptrs; i++){
 				if(pass->check_eattr_extentry(ip,
 							      ea_data_ptr,
@@ -353,8 +420,8 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 							      ea_hdr_prev,
 							      pass->private)) {
 					if (query(ip->i_sbd,
-						  "Repair the bad EA? "
-						  "(y/n) ")) {
+						  "Repair the bad Extended "
+						  "Attribute? (y/n) ")) {
 						ea_hdr->ea_num_ptrs = i;
 						ea_hdr->ea_data_len =
 							cpu_to_be32(tot_ealen);
@@ -362,10 +429,16 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 						/* Endianness doesn't matter
 						   in this case because it's
 						   a single byte. */
+						block_set(sdp->bl,
+							  ip->i_di.di_eattr,
+							  meta_eattr);
 						write_buf(sdp, bh, 0);
-						return -1;
+						log_err("The EA was fixed.\n");
+					} else {
+						error = 1;
+						log_err("The bad EA was not "
+							"fixed.\n");
 					}
-					log_err("The bad EA was not fixed.\n");
 				}
 				tot_ealen += sdp->sb.sb_bsize -
 					sizeof(struct gfs_meta_header);
@@ -383,7 +456,7 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 			 gfs32_to_cpu(ea_hdr->ea_rec_len));
 	}
 
-	return 0;
+	return error;
 }
 
 /**
@@ -391,7 +464,7 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
  * @ip: the inode the eattr comes from
  * @block: block number of the leaf
  *
- * Returns: 0 on success, -1 if removal is needed
+ * Returns: 0 on success, 1 if removal is needed, -1 on error
  */
 static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
 			    uint64_t parent, struct metawalk_fxns *pass)
@@ -408,7 +481,8 @@ static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
 			return -1;
 		}
 		if(error > 0) {
-			relse_buf(ip->i_sbd, bh);
+			if (bh)
+				relse_buf(ip->i_sbd, bh);
 			return 1;
 		}
 		if (bh) {
@@ -421,10 +495,6 @@ static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
 	return 0;
 }
 
-
-
-
-
 /**
  * check_indirect_eattr
  * @ip: the inode the eattr comes from
@@ -433,12 +503,16 @@ static int check_leaf_eattr(struct fsck_inode *ip, uint64_t block,
  * Returns: 0 on success -1 on error
  */
 static int check_indirect_eattr(struct fsck_inode *ip, uint64_t indirect,
-				struct metawalk_fxns *pass){
+				struct metawalk_fxns *pass)
+{
 	int error = 0;
 	uint64_t *ea_leaf_ptr, *end;
 	uint64_t block;
 	osi_buf_t *indirect_buf = NULL;
 	struct fsck_sb *sdp = ip->i_sbd;
+	int update_indir_block = 0;
+	int first_ea_is_bad = 0;
+	uint64_t di_eattr_save = ip->i_di.di_eattr;
 
 	log_debug("Checking EA indirect block #%"PRIu64".\n", indirect);
 
@@ -451,40 +525,74 @@ static int check_indirect_eattr(struct fsck_inode *ip, uint64_t indirect,
 
 		ea_leaf_ptr = (uint64 *)(BH_DATA(indirect_buf)
 					 + sizeof(struct gfs_indirect));
-		end = ea_leaf_ptr
-			+ ((sdp->sb.sb_bsize
-			    - sizeof(struct gfs_indirect)) / 8);
+		end = ea_leaf_ptr + ((sdp->sb.sb_bsize
+				      - sizeof(struct gfs_indirect)) / 8);
 
 		while(*ea_leaf_ptr && (ea_leaf_ptr < end)){
 			block = gfs64_to_cpu(*ea_leaf_ptr);
 			leaf_pointers++;
 			error = check_leaf_eattr(ip, block, indirect, pass);
-			if (error)
+			if (error) {
 				leaf_pointer_errors++;
+				if (!update_indir_block) {
+					if (query(sdp, "Fix the indirect "
+						  "block too? (y/n) ")) {
+						update_indir_block = 1;
+						*ea_leaf_ptr = 0;
+					}
+				} else
+					*ea_leaf_ptr = 0;
+			}
+			/* If the first eattr lead is bad, we can't have
+			   a hole, so we have to treat this as an unrecoverable
+			   eattr error and delete all eattr info. Calling
+			   finish_eattr_indir here causes ip->i_di.di_eattr = 0
+			   and that ensures that subsequent calls to
+			   check_leaf_eattr result in the eattr
+			   check_leaf_block nuking them all "due to previous
+			   errors" */
+			if (leaf_pointers == 1 && leaf_pointer_errors == 1) {
+				first_ea_is_bad = 1;
+				if (pass->finish_eattr_indir)
+					pass->finish_eattr_indir(ip,
+							leaf_pointers,
+							leaf_pointer_errors,
+							pass->private);
+			} else if (leaf_pointer_errors) {
+				/* This is a bit tricky.  We can't have eattr
+				   holes. So if we have 4 good eattrs, 1 bad
+				   eattr and 5 more good ones: GGGGBGGGGG,
+				   we need to tell check_leaf_eattr to delete
+				   all eattrs after the bad one.  So we want:
+				   GGGG when we finish.  To do that, we set
+				   di_eattr to 0 temporarily. */
+				ip->i_di.di_eattr = 0;
+			}
 			ea_leaf_ptr++;
 		}
 		if (pass->finish_eattr_indir) {
-			int indir_ok = 1;
-
-			if (leaf_pointer_errors == leaf_pointers)
-				indir_ok = 0;
-			pass->finish_eattr_indir(ip, indir_ok, pass->private);
-			if (!indir_ok) {
+			if (!first_ea_is_bad) {
+				/* If the first ea is good but subsequent ones
+				   were bad and deleted, we need to restore
+				   the saved di_eattr block. */
+				if (leaf_pointer_errors)
+					ip->i_di.di_eattr = di_eattr_save;
+				pass->finish_eattr_indir(ip, leaf_pointers,
+							 leaf_pointer_errors,
+							 pass->private);
+			}
+			if (leaf_pointer_errors == leaf_pointers) {
 				fs_set_bitmap(sdp, indirect, GFS_BLKST_FREE);
-				block_clear(sdp->bl, indirect, indir_blk);
 				block_set(sdp->bl, indirect, block_free);
 				error = 1;
 			}
 		}
 	}
-
 	if (indirect_buf)
 		relse_buf(sdp, indirect_buf);
+
 	return error;
 }
-
-
-
 
 /**
  * check_inode_eattr - check the EA's for a single inode
@@ -496,9 +604,8 @@ int check_inode_eattr(struct fsck_inode *ip, struct metawalk_fxns *pass)
 {
 	int error = 0;
 
-	if(!ip->i_di.di_eattr){
+	if(!ip->i_di.di_eattr)
 		return 0;
-	}
 
 	log_debug("Extended attributes exist for inode #%"PRIu64".\n",
 		ip->i_num.no_formal_ino);
@@ -507,8 +614,9 @@ int check_inode_eattr(struct fsck_inode *ip, struct metawalk_fxns *pass)
 		if((error = check_indirect_eattr(ip, ip->i_di.di_eattr, pass)))
 			stack;
 	} else {
-		if((error = check_leaf_eattr(ip, ip->i_di.di_eattr,
-					     ip->i_di.di_num.no_addr, pass)))
+		error = check_leaf_eattr(ip, ip->i_di.di_eattr,
+					 ip->i_di.di_num.no_addr, pass);
+		if (error)
 			stack;
 	}
 
@@ -519,31 +627,27 @@ int check_inode_eattr(struct fsck_inode *ip, struct metawalk_fxns *pass)
  * build_metalist
  * @ip:
  * @mlp:
- *
  */
-
 static int build_metalist(struct fsck_inode *ip, osi_list_t *mlp,
 			  struct metawalk_fxns *pass)
 {
 	uint32 height = ip->i_di.di_height;
-	osi_buf_t *bh, *nbh;
+	osi_buf_t *bh, *nbh, *metabh;
 	osi_list_t *prev_list, *cur_list, *tmp;
 	int i, head_size;
 	uint64 *ptr, block;
 	int err;
 
-	if(get_and_read_buf(ip->i_sbd, ip->i_di.di_num.no_addr, &bh, 0)) {
+	if(get_and_read_buf(ip->i_sbd, ip->i_di.di_num.no_addr, &metabh, 0)) {
 		stack;
 		return -1;
 	}
 
-	osi_list_add(&bh->b_list, &mlp[0]);
+	osi_list_add(&metabh->b_list, &mlp[0]);
 
 	/* if(<there are no indirect blocks to check>) */
-	if (height < 2) {
+	if (height < 2)
 		return 0;
-	}
-
 	for (i = 1; i < height; i++){
 		prev_list = &mlp[i - 1];
 		cur_list = &mlp[i];
@@ -551,9 +655,17 @@ static int build_metalist(struct fsck_inode *ip, osi_list_t *mlp,
 		for (tmp = prev_list->next; tmp != prev_list; tmp = tmp->next){
 			bh = osi_list_entry(tmp, osi_buf_t, b_list);
 
-			head_size = (i > 1 ?
-				     sizeof(struct gfs_indirect) :
-				     sizeof(struct gfs_dinode));
+			if (i > 1) {
+				/* if this isn't really a block list skip it */
+				if (check_meta(bh, GFS_METATYPE_IN))
+					continue;
+				head_size = sizeof(struct gfs_indirect);
+			} else {
+				/* if this isn't really a dinode, skip it */
+				if (check_meta(bh, GFS_METATYPE_DI))
+					continue;
+				head_size = sizeof(struct gfs_dinode);
+			}
 
 			for (ptr = (uint64 *)(bh->b_data + head_size);
 			     (char *)ptr < (bh->b_data + bh->b_size);
@@ -564,7 +676,6 @@ static int build_metalist(struct fsck_inode *ip, osi_list_t *mlp,
 					continue;
 
 				block = gfs64_to_cpu(*ptr);
-
 				err = pass->check_metalist(ip, block, &nbh,
 							   pass->private);
 				if(err < 0) {
@@ -590,8 +701,7 @@ static int build_metalist(struct fsck_inode *ip, osi_list_t *mlp,
 	return 0;
 
  fail:
-	for (i = 0; i < GFS_MAX_META_HEIGHT; i++)
-	{
+	for (i = 0; i < GFS_MAX_META_HEIGHT; i++) {
 		osi_list_t *list;
 		list = &mlp[i];
 		while (!osi_list_empty(list))
@@ -601,6 +711,8 @@ static int build_metalist(struct fsck_inode *ip, osi_list_t *mlp,
 			relse_buf(ip->i_sbd, bh);
 		}
 	}
+	/* This is an error path, so we need to release the buffer here: */
+	relse_buf(ip->i_sbd, metabh);
 	return -1;
 }
 
@@ -624,7 +736,6 @@ int check_metatree(struct fsck_inode *ip, struct metawalk_fxns *pass)
 	if (!height)
 		goto end;
 
-
 	for (i = 0; i < GFS_MAX_META_HEIGHT; i++)
 		osi_list_init(&metalist[i]);
 
@@ -639,21 +750,28 @@ int check_metatree(struct fsck_inode *ip, struct metawalk_fxns *pass)
 	if (ip->i_di.di_type == GFS_FILE_DIR) {
 		log_debug("Directory with height > 0 at %"PRIu64"\n",
 			  ip->i_di.di_num.no_addr);
-
 	}
 
 	/* check data blocks */
 	list = &metalist[height - 1];
 
-	for (tmp = list->next; tmp != list; tmp = tmp->next)
-	{
+	for (tmp = list->next; tmp != list; tmp = tmp->next) {
 		bh = osi_list_entry(tmp, osi_buf_t, b_list);
 
-		head_size = (height != 1 ? sizeof(struct gfs_indirect) : sizeof(struct gfs_dinode));
+		if (height > 1) {
+			/* if this isn't really a block list skip it */
+			if (check_meta(bh, GFS_METATYPE_IN))
+				continue;
+			head_size = sizeof(struct gfs_indirect);
+		} else {
+			/* if this isn't really a dinode, skip it */
+			if (check_meta(bh, GFS_METATYPE_DI))
+				continue;
+			head_size = sizeof(struct gfs_dinode);
+		}
 		ptr = (uint64 *)(bh->b_data + head_size);
 
-		for ( ; (char *)ptr < (bh->b_data + bh->b_size); ptr++)
-		{
+		for ( ; (char *)ptr < (bh->b_data + bh->b_size); ptr++) {
 			if (!*ptr)
 				continue;
 
@@ -666,7 +784,6 @@ int check_metatree(struct fsck_inode *ip, struct metawalk_fxns *pass)
 			}
 		}
 	}
-
 
 	/* free metalists */
 	for (i = 0; i < GFS_MAX_META_HEIGHT; i++)
@@ -684,7 +801,7 @@ end:
 	if (ip->i_di.di_type == GFS_FILE_DIR) {
 		/* check validity of leaf blocks and leaf chains */
 		if (ip->i_di.di_flags & GFS_DIF_EXHASH) {
-			error = check_leaf(ip, &update, pass);
+			error = check_leaf_blks(ip, &update, pass);
 			if(error < 0)
 				return -1;
 			if(error > 0)
@@ -695,7 +812,6 @@ end:
 	return 0;
 }
 
-
 /* Checks stuffed inode directories */
 static int check_linear_dir(struct fsck_inode *ip, osi_buf_t *bh, int *update,
 		     struct metawalk_fxns *pass)
@@ -703,7 +819,7 @@ static int check_linear_dir(struct fsck_inode *ip, osi_buf_t *bh, int *update,
 	int error = 0;
 	uint16_t count = 0;
 
-	error = check_entries(ip, bh, 0, DIR_LINEAR, update, &count, pass);
+	error = check_entries(ip, bh, DIR_LINEAR, update, &count, pass);
 	if(error < 0) {
 		stack;
 		return -1;
@@ -734,8 +850,7 @@ int check_dir(struct fsck_sb *sbp, uint64_t block, struct metawalk_fxns *pass)
 	}
 
 	if(ip->i_di.di_flags & GFS_DIF_EXHASH) {
-
-		error = check_leaf(ip, &update, pass);
+		error = check_leaf_blks(ip, &update, pass);
 		if(error < 0) {
 			stack;
 			free_inode(&ip);
@@ -757,9 +872,7 @@ int check_dir(struct fsck_sb *sbp, uint64_t block, struct metawalk_fxns *pass)
 	relse_buf(sbp, bh);
 
 	return error;
-
 }
-
 
 static int remove_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 		  struct gfs_dirent *prev_de,
@@ -877,7 +990,6 @@ int dinode_hash_insert(osi_list_t *buckets, uint64_t key, struct dir_info *di)
 	return 0;
 }
 
-
 int dinode_hash_remove(osi_list_t *buckets, uint64_t key)
 {
 	osi_list_t *tmp;
@@ -895,4 +1007,67 @@ int dinode_hash_remove(osi_list_t *buckets, uint64_t key)
 		}
 	}
 	return -1;
+}
+
+/**
+ * free_block - free up a block given its block number
+ */
+void free_block(struct fsck_sb *sdp, uint64_t block)
+{
+	osi_buf_t *bh;
+	struct fsck_rgrp *rgd;
+
+	fs_set_bitmap(sdp, block, GFS_BLKST_FREE);
+	/* Adjust the free space count for the freed block */
+	rgd = fs_blk2rgrpd(sdp, block); /* find the rg for indir block */
+	get_and_read_buf(sdp, rgd->rd_ri.ri_addr, &bh, 0);
+	rgd->rd_rg.rg_free++; /* adjust the free count */
+	gfs_rgrp_out(&rgd->rd_rg, bh->b_data); /* back to the buffer */
+	relse_buf(sdp, bh); /* release the buffer */
+}
+
+/**
+ * delete_blocks - delete blocks associated with an inode
+ */
+int delete_blocks(struct fsck_inode *ip, uint64_t block, osi_buf_t **bh,
+		  const char *btype, void *private)
+{
+	struct block_query q = {0};
+
+	if (check_range(ip->i_sbd, block) == 0) {
+		if (block_check(ip->i_sbd->bl, block, &q))
+			return 0;
+		if (!q.dup_block) {
+			log_info("Deleting %s block %lld as part "
+				 "of inode %lld \n",
+				 btype, block, ip->i_di.di_num.no_addr);
+			block_set(ip->i_sbd->bl, block, block_free);
+			free_block(ip->i_sbd, block);
+		}
+	}
+	return 0;
+}
+
+int delete_metadata(struct fsck_inode *ip, uint64_t block, osi_buf_t **bh,
+		    void *private)
+{
+	return delete_blocks(ip, block, bh, "metadata", private);
+}
+
+int delete_data(struct fsck_inode *ip, uint64_t block, void *private)
+{
+	return delete_blocks(ip, block, NULL, "data", private);
+}
+
+int delete_eattr_indir(struct fsck_inode *ip, uint64_t block, uint64_t parent,
+		       osi_buf_t **bh, void *private)
+{
+	return delete_blocks(ip, block, NULL, "indirect extended attribute",
+			     private);
+}
+
+int delete_eattr_leaf(struct fsck_inode *ip, uint64_t block, uint64_t parent,
+		      osi_buf_t **bh, void *private)
+{
+	return delete_blocks(ip, block, NULL, "extended attribute", private);
 }

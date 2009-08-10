@@ -87,7 +87,7 @@ static int check_eattr_leaf(struct fsck_inode *ip, uint64_t block,
 
 	inc_if_found(block, 0, private);
 	if(get_and_read_buf(sbp, block, &leaf_bh, 0)){
-		log_warn("Unable to read EA leaf block #%"PRIu64".\n",
+		log_err("Unable to read EA leaf block #%"PRIu64".\n",
 			 block);
 		return 1;
 	}
@@ -166,11 +166,11 @@ static int clear_dup_metalist(struct fsck_inode *ip, uint64_t block,
 	if(dh->ref_count == 1)
 		return 1;
 	if(block == dh->b->block_no) {
-		log_err("Found dup in inode \"%s\" (block #%"PRIu64
-			") with block #%"PRIu64"\n",
+		log_err("Found duplicate reference in inode \"%s\" at block #%"
+			PRIu64 " to block #%"PRIu64"\n",
 			dh->id->name ? dh->id->name : "unknown name",
 			ip->i_di.di_num.no_addr, block);
-		log_err("inode %s is in directory %"PRIu64"\n",
+		log_err("Inode %s is in directory %"PRIu64"\n",
 			dh->id->name ? dh->id->name : "",
 			dh->id->parent);
 		inode_hash_remove(ip->i_sbd->inode_hash, ip->i_di.di_num.no_addr);
@@ -182,26 +182,7 @@ static int clear_dup_metalist(struct fsck_inode *ip, uint64_t block,
 }
 static int clear_dup_data(struct fsck_inode *ip, uint64_t block, void *private)
 {
-	struct dup_handler *dh = (struct dup_handler *) private;
-
-	if(dh->ref_count == 1) {
-		return 1;
-	}
-	if(block == dh->b->block_no) {
-		log_err("Found dup in inode \"%s\" (block #%"PRIu64
-			") with block #%"PRIu64"\n",
-			dh->id->name ? dh->id->name : "unknown name",
-			ip->i_di.di_num.no_addr, block);
-		log_err("inode %s is in directory %"PRIu64"\n",
-			dh->id->name ? dh->id->name : "",
-			dh->id->parent);
-		inode_hash_remove(ip->i_sbd->inode_hash, ip->i_di.di_num.no_addr);
-		/* Setting the block to invalid means the inode is
-		 * cleared in pass2 */
-		block_set(ip->i_sbd->bl, ip->i_di.di_num.no_addr, meta_inval);
-	}
-
-	return 0;
+	return clear_dup_metalist(ip, block, NULL, private);
 }
 static int clear_dup_eattr_indir(struct fsck_inode *ip, uint64_t block,
 				 uint64_t parent, osi_buf_t **bh,
@@ -210,6 +191,7 @@ static int clear_dup_eattr_indir(struct fsck_inode *ip, uint64_t block,
 	struct dup_handler *dh = (struct dup_handler *) private;
 	/* Can't use fxns from eattr.c since we need to check the ref
 	 * count */
+	*bh = NULL;
 	if(dh->ref_count == 1)
 		return 1;
 	if(block == dh->b->block_no) {
@@ -286,8 +268,6 @@ static int clear_eattr_entry (struct fsck_inode *ip,
 				  max_ptrs,
 				  ea_hdr->ea_num_ptrs);
 		}
-
-
 	}
 	return 0;
 }
@@ -338,15 +318,20 @@ static int find_block_ref(struct fsck_sb *sbp, uint64_t inode, struct blocks *b)
 		stack;
 		return -1;
 	}
-	log_info("Checking inode %"PRIu64"'s metatree for references to block %"PRIu64"\n",
-		 inode, b->block_no);
+	log_debug("Checking inode %"PRIu64"'s metatree for references to "
+		  "block %"PRIu64"\n", inode, b->block_no);
 	if(check_metatree(ip, &find_refs)) {
 		stack;
 		free_inode(&ip);
 		return -1;
 	}
-	log_info("Done checking metatree\n");
-
+	log_debug("Done checking metatree\n");
+	/* Check for ea references in the inode */
+	if(check_inode_eattr(ip, &find_refs) < 0){
+		stack;
+		free_inode(&ip);
+		return -1;
+	}
 	if (myfi.found) {
 		if(!(id = malloc(sizeof(*id)))) {
 			log_crit("Unable to allocate inode_with_dups structure\n");
@@ -363,8 +348,6 @@ static int find_block_ref(struct fsck_sb *sbp, uint64_t inode, struct blocks *b)
 		id->block_no = inode;
 		id->ea_only = myfi.ea_only;
 		osi_list_add_prev(&id->list, &b->ref_inode_list);
-		free_inode(&ip);
-		return 0;
 	}
 	free_inode(&ip);
 	return 0;
@@ -394,8 +377,6 @@ static int find_dup_blocks(struct fsck_sb *sbp)
 	return 0;
 }
 
-
-
 static int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
 {
 	osi_list_t *tmp;
@@ -419,16 +400,65 @@ static int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
 		dh.ref_inode_count++;
 		dh.ref_count += id->dup_count;
 	}
-	log_notice("Block %"PRIu64" has %d inodes referencing it for"
-		   "a total of %d duplicate references\n",
+	/* A single reference to the block implies a possible situation where
+	   a data pointer points to a metadata block.  In other words, the
+	   duplicate reference in the file system is (1) Metadata block X and
+	   (2) A dinode reference such as a data pointer pointing to block X.
+	   We can't really check for that in pass1 because user data might
+	   just _look_ like metadata by coincidence, and at the time we're
+	   checking, we might not have processed the referenced block.
+	   Here in pass1b we're sure. */
+	if (dh.ref_count == 1) {
+		osi_buf_t *bh;
+		uint32_t cmagic;
+
+		get_and_read_buf(sbp, b->block_no, &bh, 0);
+		cmagic = ((struct gfs_meta_header *)(bh->b_data))->mh_magic;
+		relse_buf(sbp, bh);
+		if (be32_to_cpu(cmagic) == GFS_MAGIC) {
+			tmp = b->ref_inode_list.next;
+			id = osi_list_entry(tmp, struct inode_with_dups, list);
+			log_warn("Inode %s (%lld) has a reference to "
+				 "data block %"PRIu64", but "
+				 "the block is really metadata.\n",
+				 id->name, id->block_no, b->block_no);
+			if (query(sbp, "Clear the inode? (y/n) ")) {
+				log_warn("Clearing inode %lld...\n",
+					 id->block_no);
+				load_inode(sbp, id->block_no, &ip);
+				inode_hash_remove(ip->i_sbd->inode_hash,
+						  ip->i_di.di_num.no_addr);
+				/* Setting the block to invalid means the inode
+				   is cleared in pass2 */
+				block_set(sbp->bl, ip->i_di.di_num.no_addr,
+					  meta_inval);
+				free_inode(&ip);
+			} else {
+				log_warn("The bad inode was not cleared.");
+			}
+			return 0;
+		}
+	}
+
+	log_notice("Block %"PRIu64" has %d inodes referencing it for "
+		   "a total of %d duplicate references.\n",
 		   b->block_no, dh.ref_inode_count, dh.ref_count);
 
 	osi_list_foreach(tmp, &b->ref_inode_list) {
 		id = osi_list_entry(tmp, struct inode_with_dups, list);
-		log_warn("Inode %s has %d reference(s) to block %"PRIu64
-			 "\n", id->name, id->dup_count, b->block_no);
-		/* FIXME: User input */
-		log_warn("Clearing...\n");
+		log_warn("Inode %s (%lld) has %d reference(s) to block %"PRIu64
+			 "\n", id->name, id->block_no, id->dup_count,
+			 b->block_no);
+	}
+	osi_list_foreach(tmp, &b->ref_inode_list) {
+		id = osi_list_entry(tmp, struct inode_with_dups, list);
+		if (!query(sbp, "Okay to clear inode %lld? (y/n) ",
+			   id->block_no)) {
+			log_warn("The inode %lld was not cleared...\n",
+				 id->block_no);
+			continue;
+		}
+		log_warn("Clearing inode %lld...\n", id->block_no);
 		load_inode(sbp, id->block_no, &ip);
 		dh.b = b;
 		dh.id = id;
@@ -439,6 +469,7 @@ static int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
 		if(!id->ea_only)
 			check_metatree(ip, &clear_dup_fxns);
 
+		block_set(sbp->bl, id->block_no, meta_inval);
 		free_inode(&ip);
 		dh.ref_inode_count--;
 		if(dh.ref_inode_count == 1)
@@ -460,7 +491,7 @@ int pass1b(struct fsck_sb *sbp)
 	struct blocks *b;
 	uint64_t i;
 	struct block_query q;
-	osi_list_t *tmp;
+	osi_list_t *tmp = NULL, *x;
 	struct metawalk_fxns find_dirents = {0};
 	int rc = 0;
 
@@ -498,7 +529,7 @@ int pass1b(struct fsck_sb *sbp)
 		   (q.block_type == inode_chr) ||
 		   (q.block_type == inode_fifo) ||
 		   (q.block_type == inode_sock)) {
-			osi_list_foreach(tmp, &sbp->dup_list) {
+			osi_list_foreach_safe(tmp, &sbp->dup_list, x) {
 				b = osi_list_entry(tmp, struct blocks, list);
 				if(find_block_ref(sbp, i, b)) {
 					stack;

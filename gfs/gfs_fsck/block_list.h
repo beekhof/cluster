@@ -77,7 +77,8 @@ struct block_list {
 struct block_list *block_list_create(uint64_t size, enum block_list_type type);
 int block_mark(struct block_list *il, uint64_t block, enum mark_block mark);
 int block_set(struct block_list *il, uint64_t block, enum mark_block mark);
-int block_clear(struct block_list *il, uint64_t block, enum mark_block m);
+int block_unmark(struct block_list *il, uint64_t block, enum mark_block m);
+int block_clear(struct block_list *il, uint64_t block);
 int block_check(struct block_list *il, uint64_t block,
 		struct block_query *val);
 int block_check_for_mark(struct block_list *il, uint64_t block,

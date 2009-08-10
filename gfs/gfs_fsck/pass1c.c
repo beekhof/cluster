@@ -1,5 +1,6 @@
 #include "fsck.h"
 #include "fsck_incore.h"
+#include "fs_inode.h"
 #include "bio.h"
 #include "inode.h"
 #include "util.h"
@@ -10,19 +11,12 @@ static int remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 			struct gfs_ea_header *curr,
 			struct gfs_ea_header *prev)
 {
-	log_warn("Removing EA located in block #%"PRIu64".\n",
-		 BH_BLKNO(leaf_bh));
-	if(!prev){
+	if(!prev)
 		curr->ea_type = GFS_EATYPE_UNUSED;
-	} else {
-		uint32_t curr_rec_len;
-		uint32_t prev_rec_len;
-
-		curr_rec_len = gfs32_to_cpu(curr->ea_rec_len);
-		prev_rec_len = gfs32_to_cpu(prev->ea_rec_len);
-
-		prev->ea_rec_len =
-			cpu_to_gfs32(curr_rec_len + prev_rec_len);
+	else {
+		uint32_t tmp32 = gfs32_to_cpu(curr->ea_rec_len) +
+			gfs32_to_cpu(prev->ea_rec_len);
+		prev->ea_rec_len = cpu_to_gfs32(tmp32);
 		if (curr->ea_flags & GFS_EAFLAG_LAST)
 			prev->ea_flags |= GFS_EAFLAG_LAST;
 	}
@@ -31,40 +25,81 @@ static int remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 		log_err("EA removal failed.\n");
 		return -1;
 	}
+	log_err("Bad Extended Attribute at block #%"PRIu64" removed.\n",
+		 BH_BLKNO(leaf_bh));
 	return 0;
 }
 
+static int ask_remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
+				  struct gfs_ea_header *curr,
+				  struct gfs_ea_header *prev,
+				  int fix_curr, int fix_curr_len)
+{
+	if (query(sdp, "Remove the bad Extended Attribute? (y/n) ")) {
+		if (fix_curr)
+			curr->ea_flags |= GFS_EAFLAG_LAST;
+		if (fix_curr_len) {
+			uint32_t max_size = sdp->sb.sb_bsize;
+			uint32_t offset = (uint32_t)(((unsigned long)curr) -
+					     ((unsigned long)leaf_bh->b_data));
+			curr->ea_rec_len = cpu_to_be32(max_size - offset);
+		}
+		if (remove_eattr_entry(sdp, leaf_bh, curr, prev)) {
+			stack;
+			return -1;
+		}
+	} else {
+		log_err("Bad Extended Attribute not removed.\n");
+	}
+	return 1;
+}
+
+static int ask_remove_eattr(struct fsck_inode *ip)
+{
+	if (query(ip->i_sbd, "Remove the bad Extended Attribute? (y/n) ")) {
+		ip->i_di.di_eattr = 0;
+		if (fs_copyout_dinode(ip))
+			log_err("Bad Extended Attribute could not be "
+				"removed.\n");
+		else
+			log_err("Bad Extended Attribute removed.\n");
+	} else
+		log_err("Bad Extended Attribute not removed.\n");
+	return 1;
+}
+
 static int check_eattr_indir(struct fsck_inode *ip, uint64_t block,
-		      uint64_t parent, osi_buf_t **bh,
-		      void *private)
+			     uint64_t parent, osi_buf_t **bh,
+			     void *private)
 {
 	int *update = (int *) private;
 	struct fsck_sb *sbp = ip->i_sbd;
 	struct block_query q;
-	osi_buf_t *indir_bh;
+	osi_buf_t *indir_bh = NULL;
 
+	*update = 0;
 	if(check_range(sbp, block)) {
-		log_err("Extended attributes indirect block out of range...removing\n");
-		ip->i_di.di_eattr = 0;
-		*update = 1;
-		return 1;
+		log_err("Extended attributes indirect block #%llu"
+			" for inode #%llu is out of range.\n",
+			(unsigned long long)block,
+			(unsigned long long)ip->i_num.no_addr);
+		return ask_remove_eattr(ip);
 	}
 	else if (block_check(sbp->bl, block, &q)) {
 		stack;
 		return -1;
 	}
 	else if(q.block_type != indir_blk) {
-		log_err("Extended attributes indirect block invalid...removing\n");
-		ip->i_di.di_eattr = 0;
-		*update = 1;
-		return 1;
+		log_err("Extended attributes indirect block #%llu"
+			" for inode #%llu is invalid.\n",
+			(unsigned long long)block,
+			(unsigned long long)ip->i_num.no_addr);
+		return ask_remove_eattr(ip);
 	}
 	else if(get_and_read_buf(sbp, block, &indir_bh, 0)){
-		log_warn("Unable to read EA leaf block #%"PRIu64".\n",
-			 block);
-		ip->i_di.di_eattr = 0;
-		*update = 1;
-		return 1;
+		log_warn("Unable to read Extended Attribute leaf block "
+			 "#%"PRIu64".\n", block);
+		return ask_remove_eattr(ip);
 	}
 
 	*bh = indir_bh;
@@ -72,43 +107,37 @@ static int check_eattr_indir(struct fsck_inode *ip, uint64_t block,
 }
 
 static int check_eattr_leaf(struct fsck_inode *ip, uint64_t block,
-		     uint64_t parent, osi_buf_t **bh, void *private)
+			    uint64_t parent, osi_buf_t **bh, void *private)
 {
-	int *update = (int *) private;
 	struct fsck_sb *sbp = ip->i_sbd;
 	struct block_query q;
 	osi_buf_t *leaf_bh;
 
 	if(check_range(sbp, block)) {
-		log_err("Extended attributes block out of range...removing\n");
-		ip->i_di.di_eattr = 0;
-		*update = 1;
-		return 1;
+		log_err("Extended attributes leaf block #%"PRIu64
+			" for inode #%" PRIu64 " is out of range.\n",
+			block, ip->i_num.no_addr);
+		return ask_remove_eattr(ip);
 	}
 	else if (block_check(sbp->bl, block, &q)) {
 		stack;
 		return -1;
 	}
 	else if(q.block_type != meta_eattr) {
-		log_err("Extended attributes block invalid...removing\n");
-		ip->i_di.di_eattr = 0;
-		*update = 1;
-		return 1;
+		log_err("Extended attributes leaf block #%"PRIu64
+			" for inode #%" PRIu64 " is invalid.\n",
+			block, ip->i_num.no_addr);
+		return ask_remove_eattr(ip);
 	}
 	else if(get_and_read_buf(sbp, block, &leaf_bh, 0)){
-		log_warn("Unable to read EA leaf block #%"PRIu64".\n",
-			 block);
-		ip->i_di.di_eattr = 0;
-		*update = 1;
-		return 1;
+		log_warn("Unable to read Extended attributes leaf block "
+			 "#%"PRIu64".\n", block);
+		return ask_remove_eattr(ip);
 	}
 
 	*bh = leaf_bh;
-
 	return 0;
-
 }
-
 
 static int check_eattr_entry(struct fsck_inode *ip,
 			     osi_buf_t *leaf_bh,
@@ -123,41 +152,24 @@ static int check_eattr_entry(struct fsck_inode *ip,
 	uint32_t max_size = sdp->sb.sb_bsize;
 	if(!ea_hdr->ea_rec_len){
 		log_err("EA has rec length == 0\n");
-		ea_hdr->ea_flags |= GFS_EAFLAG_LAST;
-		ea_hdr->ea_rec_len = cpu_to_gfs32(max_size - offset);
-		if(remove_eattr_entry(sdp, leaf_bh, ea_hdr, ea_hdr_prev)){
-			stack;
-			return -1;
-		}
-		return 1;
+		return ask_remove_eattr_entry(sdp, leaf_bh, ea_hdr,
+					      ea_hdr_prev, 1, 1);
 	}
 	if(offset + gfs32_to_cpu(ea_hdr->ea_rec_len) > max_size){
 		log_err("EA rec length too long\n");
-		ea_hdr->ea_flags |= GFS_EAFLAG_LAST;
-		ea_hdr->ea_rec_len = cpu_to_gfs32(max_size - offset);
-		if(remove_eattr_entry(sdp, leaf_bh, ea_hdr, ea_hdr_prev)){
-			stack;
-			return -1;
-		}
-		return 1;
+		return ask_remove_eattr_entry(sdp, leaf_bh, ea_hdr,
+					      ea_hdr_prev, 1, 1);
 	}
 	if(offset + gfs32_to_cpu(ea_hdr->ea_rec_len) == max_size &&
 	   (ea_hdr->ea_flags & GFS_EAFLAG_LAST) == 0){
 		log_err("last EA has no last entry flag\n");
-		ea_hdr->ea_flags |= GFS_EAFLAG_LAST;
-		if(remove_eattr_entry(sdp, leaf_bh, ea_hdr, ea_hdr_prev)){
-			stack;
-			return -1;
-		}
-		return 1;
+		return ask_remove_eattr_entry(sdp, leaf_bh, ea_hdr,
+					      ea_hdr_prev, 0, 0);
 	}
 	if(!ea_hdr->ea_name_len){
 		log_err("EA has name length == 0\n");
-		if(remove_eattr_entry(sdp, leaf_bh, ea_hdr, ea_hdr_prev)){
-			stack;
-			return -1;
-		}
-		return 1;
+		return ask_remove_eattr_entry(sdp, leaf_bh, ea_hdr,
+					      ea_hdr_prev, 0, 0);
 	}
 
 	memset(ea_name, 0, sizeof(ea_name));
@@ -168,11 +180,8 @@ static int check_eattr_entry(struct fsck_inode *ip,
 	   ((ea_hdr_prev) || (!ea_hdr_prev && ea_hdr->ea_type))){
 		log_err("EA (%s) type is invalid (%d > %d).\n",
 			ea_name, ea_hdr->ea_type, GFS_EATYPE_LAST);
-		if(remove_eattr_entry(sdp, leaf_bh, ea_hdr, ea_hdr_prev)){
-			stack;
-			return -1;
-		}
-		return 1;
+		return ask_remove_eattr_entry(sdp, leaf_bh, ea_hdr,
+					      ea_hdr_prev, 0, 0);
 	}
 
 	if(ea_hdr->ea_num_ptrs){
@@ -187,20 +196,14 @@ static int check_eattr_entry(struct fsck_inode *ip,
 			log_err("  Required:  %d\n"
 				"  Reported:  %d\n",
 				max_ptrs, ea_hdr->ea_num_ptrs);
-			if(remove_eattr_entry(sdp, leaf_bh, ea_hdr, ea_hdr_prev)){
-				stack;
-				return -1;
-			}
-			return 1;
+			return ask_remove_eattr_entry(sdp, leaf_bh, ea_hdr,
+						      ea_hdr_prev, 0, 0);
 		} else {
 			log_debug("  Pointers Required: %d\n"
 				  "  Pointers Reported: %d\n",
-				  max_ptrs,
-				  ea_hdr->ea_num_ptrs);
+				  max_ptrs, ea_hdr->ea_num_ptrs);
 		}
-
 	}
-
 	return 0;
 }
 
@@ -212,6 +215,7 @@ static int check_eattr_extentry(struct fsck_inode *ip, uint64_t *ea_ptr,
 {
 	struct block_query q;
 	struct fsck_sb *sbp = ip->i_sbd;
+
 	if(block_check(sbp->bl, gfs64_to_cpu(*ea_ptr), &q)) {
 		stack;
 		return -1;
@@ -258,6 +262,7 @@ int pass1c(struct fsck_sb *sbp)
 			return -1;
 		}
 
+		block_unmark(sbp->bl, block_no, eattr_block);
 		log_debug("Found eattr at %"PRIu64"\n", ip->i_di.di_eattr);
 		/* FIXME: Handle walking the eattr here */
 		error = check_inode_eattr(ip, &pass1c_fxns);

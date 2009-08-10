@@ -113,13 +113,13 @@ int block_mark(struct block_list *il, uint64_t block, enum mark_block mark)
 int block_set(struct block_list *il, uint64_t block, enum mark_block mark)
 {
 	int err = 0;
-	err = block_clear(il, block, mark);
+	err = block_clear(il, block);
 	if(!err)
 		err = block_mark(il, block, mark);
 	return err;
 }
 
-int block_clear(struct block_list *il, uint64_t block, enum mark_block m)
+int block_unmark(struct block_list *il, uint64_t block, enum mark_block m)
 {
 	int err = 0;
 
@@ -141,6 +141,26 @@ int block_clear(struct block_list *il, uint64_t block, enum mark_block m)
 			break;
 		}
 
+		break;
+	default:
+		log_err("block list type %d not implemented\n",
+			il->type);
+		err = -1;
+		break;
+	}
+	return err;
+}
+
+int block_clear(struct block_list *il, uint64_t block)
+{
+	int err = 0;
+
+	switch(il->type) {
+	case gbmap:
+		err = bitmap_clear(&il->list.gbmap.dup_map, block);
+		err = bitmap_clear(&il->list.gbmap.bad_map, block);
+		err = bitmap_clear(&il->list.gbmap.eattr_map, block);
+		err = bitmap_clear(&il->list.gbmap.group_map, block);
 		break;
 	default:
 		log_err("block list type %d not implemented\n",

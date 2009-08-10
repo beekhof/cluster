@@ -29,5 +29,7 @@ int fs_dirent_alloc(struct fsck_inode *dip, osi_buf_t *bh,
 int fs_dir_search(struct fsck_inode *dip, identifier_t *id, unsigned int *type);
 int dirent_repair(struct fsck_inode *ip, osi_buf_t *bh, struct gfs_dirent *de, 
 		  struct gfs_dirent *dent, int type, int first);
+void dirblk_truncate(struct fsck_inode *ip, struct gfs_dirent *fixb,
+		     osi_buf_t *bh);
 
 #endif /* __FS_DIR_H__ */

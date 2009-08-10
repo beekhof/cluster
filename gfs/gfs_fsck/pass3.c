@@ -25,23 +25,25 @@ static int attach_dotdot_to(struct fsck_sb *sbp, uint64_t newdotdot,
 	 * this case? */
 
 	filename.len = strlen("..");
-	if(!(filename.name = malloc(sizeof(char) * filename.len))) {
+	if(!(filename.name = malloc(sizeof(char) * filename.len + 1))) {
 		log_err("Unable to allocate name\n");
+		free_inode(&ip);
+		free_inode(&pip);
 		stack;
 		return -1;
 	}
-	if(!memset(filename.name, 0, sizeof(char) * filename.len)) {
+	if(!memset(filename.name, 0, (sizeof(char) * filename.len + 1))) {
 		log_err("Unable to zero name\n");
+		free_inode(&ip);
+		free_inode(&pip);
 		stack;
 		return -1;
 	}
 	memcpy(filename.name, "..", filename.len);
-	if(fs_dirent_del(ip, NULL, &filename)){
+	if(fs_dirent_del(ip, NULL, &filename))
 		log_warn("Unable to remove \"..\" directory entry.\n");
-	}
-	else {
+	else
 		decrement_link(sbp, olddotdot);
-	}
 	if(fs_dir_add(ip, &filename, &pip->i_num,
 		      pip->i_di.di_type)){
 		log_err("Failed to link \"..\" entry to directory.\n");
@@ -65,9 +67,8 @@ static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 
 	di->checked = 1;
 
-	if(!di->treewalk_parent) {
+	if(!di->treewalk_parent)
 		return NULL;
-	}
 
 	if(di->dotdot_parent != di->treewalk_parent) {
 		log_warn(".. and treewalk conections are not the same for %"PRIu64
@@ -104,7 +105,6 @@ static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 				attach_dotdot_to(sbp, di->treewalk_parent,
 						 di->dotdot_parent, di->dinode);
 				di->dotdot_parent = di->treewalk_parent;
-
 			}
 		}
 		else {
@@ -145,7 +145,6 @@ static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 				attach_dotdot_to(sbp, di->treewalk_parent,
 						 di->dotdot_parent, di->dinode);
 				di->dotdot_parent = di->treewalk_parent;
-
 			}
 		}
 	}
@@ -165,7 +164,6 @@ static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 	find_di(sbp, di->dotdot_parent, &pdi);
 
 	return pdi;
-
 }
 
 /**
@@ -250,6 +248,7 @@ int pass3(struct fsck_sb *sbp, struct options *opts)
 				if(query(sbp, "Add unlinked directory to l+f? (y/n) ")) {
 					if(add_inode_to_lf(ip)) {
 						stack;
+						free_inode(&ip);
 						return -1;
 					}
 					log_warn("Directory relinked to l+f\n");

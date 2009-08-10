@@ -1730,8 +1730,7 @@ int dirent_repair(struct fsck_inode *ip, osi_buf_t *bh, struct gfs_dirent *de,
 				sizeof(struct gfs_dinode);
 		else
 			de->de_rec_len = BH_SIZE(bh) - sizeof(struct gfs_leaf);
-	}
-	else {
+	} else {
 		bh_end = BH_DATA(bh) + BH_SIZE(bh);
 		/* first, figure out a probable name length */
 		p = (char *)dent + sizeof(struct gfs_dirent);
@@ -1753,4 +1752,24 @@ int dirent_repair(struct fsck_inode *ip, osi_buf_t *bh, struct gfs_dirent *de,
 	gfs_dirent_out(de, (char *)dent);
 	write_buf(ip->i_sbd, bh, 0);
 	return 0;
+}
+
+/**
+ * dirblk_truncate - truncate a directory block
+ */
+void dirblk_truncate(struct fsck_inode *ip, struct gfs_dirent *fixb,
+		     osi_buf_t *bh)
+{
+	char *bh_end;
+	struct gfs_dirent de;
+	uint16_t old_rec_len;
+
+	bh_end = BH_DATA(bh) + BH_SIZE(bh);
+	/* truncate the block to save the most dentries.  To do this we
+	   have to patch the previous dent. */
+	gfs_dirent_in(&de, (char *)fixb);
+	old_rec_len = de.de_rec_len;
+	de.de_rec_len = bh_end - (char *)fixb;
+	gfs_dirent_out(&de, (char *)fixb);
+	write_buf(ip->i_sbd, bh, 0);
 }
