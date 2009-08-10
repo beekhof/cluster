@@ -68,3 +68,5 @@ ${TARGET}:
 	${MAKE} -C ${KERNEL_BUILD} M=${PWD} symverfile=${SYMVERFILE} modules USING_KBUILD=yes
 
 clean: generalclean
+
+.PHONY: gfs.ko
