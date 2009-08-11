@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCDIR@
+
+Name: libfenced
+Version: @VERSION@
+Description: Private Fencing Comm. Library - DO NOT USE - see lib header
+Requires:
+Libs: -L${libdir} -lfenced
+Cflags: -I${includedir}

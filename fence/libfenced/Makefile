@@ -1,7 +1,5 @@
 TARGET= libfenced
 
-MAKESTATICLIB = 1
-
 OBJS=	main.o
 
 include ../../make/defines.mk

@@ -1,3 +1,16 @@
+/*
+ * libfenced is a private library.
+ *
+ * If you think this library is installed on your cluster, you are wrong.
+ * You have never seen it, it doesn't exist, you'll never talk about it
+ * or ponder to use it.
+ *
+ * "You've got a nice noun there.
+ *  It'd be a shame if anything were to ... happen to it."
+ *
+ * The Godfather (aka fabbione)
+ */
+
 #ifndef _LIBFENCED_H_
 #define _LIBFENCED_H_
 
