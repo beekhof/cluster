@@ -42,7 +42,7 @@ gfs:
 gfs2: group
 rgmanager: cman dlm
 bindings: cman
-contrib: gfs2
+contrib: dlm
 
 oldconfig:
 	@if [ -f $(OBJDIR)/.configure.sh ]; then \
