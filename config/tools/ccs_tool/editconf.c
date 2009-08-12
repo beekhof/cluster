@@ -46,7 +46,7 @@ static void config_usage(int rw)
 	if (rw)
 	{
 		fprintf(stderr, " -o --outputfile    Name of output file (defaults to same as --configfile)\n");
-		fprintf(stderr, " -C --no_ccs        Don't tell CCSD about this change\n");
+		fprintf(stderr, " -C --ccs           Tell CCSD about this change\n");
 		fprintf(stderr, "                    default: run \"ccs_tool update\" if file is updated in place)\n");
 		fprintf(stderr, " -F --force_ccs     Force \"ccs_tool upgrade\" even if input & output files differ\n");
 	}
@@ -71,12 +71,14 @@ static void create_usage(const char *name)
 {
 	fprintf(stderr, "Usage: %s %s [-2] <clustername>\n", prog_name, name);
 	fprintf(stderr, " -2                 Create a 2-node cman cluster config file\n");
+	fprintf(stderr, " -n <num>           Create skeleton entries for <num> nodes\n");
+	fprintf(stderr, " -f <device>        Add a fence device to the node skeletons\n");
 	config_usage(0);
 	help_usage();
 	fprintf(stderr, "\n"
 	  "Note that \"create\" on its own will not create a valid configuration file.\n"
 	  "Fence agents and nodes will need to be added to it before handing it over\n"
-	  "to ccsd.\n"
+	  "to cman.\n"
 	  "\n"
 	  "eg:\n"
 	  "  ccs_tool create MyCluster\n"
@@ -86,6 +88,9 @@ static void create_usage(const char *name)
 	  "  ccs_tool addnode node3 -n 3 -f apc port=3\n"
 	  "  ccs_tool addnode node4 -n 4 -f apc port=4\n"
           "\n");
+	fprintf(stderr, "If you add -n <numbner> to the command then %s will add skeleton entries for\n", name);
+	fprintf(stderr, "that many nodes. This file WILL NEED EDITTING MANUALLY before it can be used\n");
+	fprintf(stderr, "by cman.\n");
 
 	exit(0);
 }
@@ -152,10 +157,10 @@ static void addnode_usage(const char *name)
 	fprintf(stderr, "Examples:\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Add a new node to default configuration file:\n");
-	fprintf(stderr, "  %s %s -n 1 -f manual ipaddr=newnode\n", prog_name, name);
+	fprintf(stderr, "  %s %s newnode1 -n 1 -f manual ipaddr=newnode\n", prog_name, name);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Add a new node and dump config file to stdout rather than save it\n");
-	fprintf(stderr, "  %s %s -n 2 -f apc -o- newnode.temp.net port=1\n", prog_name, name);
+	fprintf(stderr, "  %s %s newnode2 -n 2 -f apc -o- newnode.temp.net port=1\n", prog_name, name);
 
 	exit(0);
 }
@@ -480,7 +485,7 @@ static void add_clusternode(xmlNode *root_element, struct option_info *ninfo,
 		die("nodeid %s already in use\n", ninfo->nodeid);
 
         /* Don't allow random fence types */
-	if (!valid_fence_type(root_element, ninfo->fence_type))
+	if (ninfo->fence_type && !valid_fence_type(root_element, ninfo->fence_type))
 		die("fence type '%s' not known\n", ninfo->fence_type);
 
 	/* Add the new node */
@@ -500,19 +505,22 @@ static void add_clusternode(xmlNode *root_element, struct option_info *ninfo,
 	}
 
 	/* Add the fence attributes */
-	newfence = xmlNewNode(NULL, BAD_CAST "fence");
-	newfencemethod = xmlNewNode(NULL, BAD_CAST "method");
-	xmlSetProp(newfencemethod, BAD_CAST "name", BAD_CAST "single");
+	if (ninfo->fence_type)
+	{
+		newfence = xmlNewNode(NULL, BAD_CAST "fence");
+		newfencemethod = xmlNewNode(NULL, BAD_CAST "method");
+		xmlSetProp(newfencemethod, BAD_CAST "name", BAD_CAST "single");
 
-	newfencedevice = xmlNewNode(NULL, BAD_CAST "device");
-	xmlSetProp(newfencedevice, BAD_CAST "name", BAD_CAST ninfo->fence_type);
+		newfencedevice = xmlNewNode(NULL, BAD_CAST "device");
+		xmlSetProp(newfencedevice, BAD_CAST "name", BAD_CAST ninfo->fence_type);
 
-	/* Add name=value options */
-	add_fence_args(newfencedevice, argc, argv, optindex+1);
+		/* Add name=value options */
+		add_fence_args(newfencedevice, argc, argv, optindex+1);
 
-	xmlAddChild(newnode, newfence);
-	xmlAddChild(newfence, newfencemethod);
-	xmlAddChild(newfencemethod, newfencedevice);
+		xmlAddChild(newnode, newfence);
+		xmlAddChild(newfence, newfencemethod);
+		xmlAddChild(newfencemethod, newfencedevice);
+	}
 }
 
 static xmlDoc *open_configfile(struct option_info *ninfo)
@@ -567,7 +575,7 @@ struct option addnode_options[] =
       { "fence_type", required_argument, NULL, 'f'},
       { "outputfile", required_argument, NULL, 'o'},
       { "configfile", required_argument, NULL, 'c'},
-      { "no_ccs", no_argument, NULL, 'C'},
+      { "ccs", no_argument, NULL, 'C'},
       { "force_ccs", no_argument, NULL, 'F'},
       { NULL, 0, NULL, 0 },
 };
@@ -576,7 +584,7 @@ struct option delnode_options[] =
 {
       { "outputfile", required_argument, NULL, 'o'},
       { "configfile", required_argument, NULL, 'c'},
-      { "no_ccs", no_argument, NULL, 'C'},
+      { "ccs", no_argument, NULL, 'C'},
       { "force_ccs", no_argument, NULL, 'F'},
       { NULL, 0, NULL, 0 },
 };
@@ -585,7 +593,7 @@ struct option addfence_options[] =
 {
       { "outputfile", required_argument, NULL, 'o'},
       { "configfile", required_argument, NULL, 'c'},
-      { "no_ccs", no_argument, NULL, 'C'},
+      { "ccs", no_argument, NULL, 'C'},
       { "force_ccs", no_argument, NULL, 'F'},
       { NULL, 0, NULL, 0 },
 };
@@ -603,6 +611,15 @@ struct option addnodeid_options[] =
 struct option list_options[] =
 {
       { "configfile", required_argument, NULL, 'c'},
+      { "verbose", no_argument, NULL, 'v'},
+      { NULL, 0, NULL, 0 },
+};
+
+struct option create_options[] =
+{
+      { "configfile", required_argument, NULL, 'c'},
+      { "nodes", required_argument, NULL, 'n'},
+      { "fence", required_argument, NULL, 'f'},
       { "verbose", no_argument, NULL, 'v'},
       { NULL, 0, NULL, 0 },
 };
@@ -775,7 +792,7 @@ void add_node(int argc, char **argv)
 	xmlNode *root_element;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 1;
+	ninfo.tell_ccsd = 0;
 	ninfo.votes = "1";
 
 	while ( (opt = getopt_long(argc, argv, "v:n:a:f:o:c:CFh?", addnode_options, NULL)) != EOF)
@@ -809,7 +826,7 @@ void add_node(int argc, char **argv)
 			break;
 
 		case 'C':
-			ninfo.tell_ccsd = 0;
+			ninfo.tell_ccsd = 1;
 			break;
 
 		case 'F':
@@ -827,10 +844,6 @@ void add_node(int argc, char **argv)
 		ninfo.name = strdup(argv[optind]);
 	else
 		addnode_usage(argv[0]);
-
-	if (!ninfo.fence_type)
-		addnode_usage(argv[0]);
-
 
 	doc = open_configfile(&ninfo);
 
@@ -855,7 +868,7 @@ void del_node(int argc, char **argv)
 	xmlNode *root_element;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 1;
+	ninfo.tell_ccsd = 0;
 
 	while ( (opt = getopt_long(argc, argv, "o:c:CFh?", delnode_options, NULL)) != EOF)
 	{
@@ -870,7 +883,7 @@ void del_node(int argc, char **argv)
 			break;
 
 		case 'C':
-			ninfo.tell_ccsd = 0;
+			ninfo.tell_ccsd = 1;
 			break;
 
 		case 'F':
@@ -984,22 +997,19 @@ void list_nodes(int argc, char **argv)
 
 void create_skeleton(int argc, char **argv)
 {
-	xmlNode *root_element;
-	xmlNode *fencedevices;
-	xmlNode *clusternodes;
-	xmlNode *rm;
-	xmlNode *rm1;
-	xmlNode *rm2;
-	xmlDocPtr doc;
+	char *fencename = NULL;
 	char *clustername;
 	struct option_info ninfo;
 	struct stat st;
+	FILE *outfile;
+	int i;
 	int twonode = 0;
+	int numnodes=0;
 	int opt;
 
 	memset(&ninfo, 0, sizeof(ninfo));
 
-	while ( (opt = getopt_long(argc, argv, "c:2h?", list_options, NULL)) != EOF)
+	while ( (opt = getopt_long(argc, argv, "c:2hn:f:?", create_options, NULL)) != EOF)
 	{
 		switch(opt)
 		{
@@ -1009,6 +1019,13 @@ void create_skeleton(int argc, char **argv)
 
 		case '2':
 			twonode = 1;
+			numnodes = 2;
+			break;
+		case 'n':
+			numnodes = atoi(optarg);
+			break;
+		case 'f':
+			fencename = strdup(optarg);
 			break;
 
 		case '?':
@@ -1029,41 +1046,46 @@ void create_skeleton(int argc, char **argv)
 		die("%s already exists", ninfo.outputfile);
 
 	/* Init libxml */
-	xmlInitParser();
-	LIBXML_TEST_VERSION;
-
-	doc = xmlNewDoc(BAD_CAST "1.0");
-	root_element = xmlNewNode(NULL, BAD_CAST "cluster");
-	xmlDocSetRootElement(doc, root_element);
-
-	xmlSetProp(root_element, BAD_CAST "name", BAD_CAST clustername);
-	xmlSetProp(root_element, BAD_CAST "config_version", BAD_CAST "1");
-
-	/* Generate extra bits for a 2node cman cluster */
-	if (twonode) {
-
-		xmlNode *cman = xmlNewNode(NULL, BAD_CAST "cman");
-		xmlSetProp(cman, BAD_CAST "two_node", BAD_CAST "1");
-		xmlSetProp(cman, BAD_CAST "expected_votes", BAD_CAST "1");
-		xmlAddChild(root_element, cman);
+	outfile = fopen(ninfo.outputfile, "w+");
+	if (!outfile) {
+		perror(" Can't open output file");
+		return;
 	}
 
-	clusternodes = xmlNewNode(NULL, BAD_CAST "clusternodes");
-	fencedevices = xmlNewNode(NULL, BAD_CAST "fencedevices");
-	rm = xmlNewNode(NULL, BAD_CAST "rm");
-	rm1 = xmlNewNode(NULL, BAD_CAST "failoverdomains");
+	fprintf(outfile, "<?xml version=\"1.0\"?>\n");
+	fprintf(outfile, "<cluster name=\"%s\" config_version=\"1\">\n", clustername);
+	fprintf(outfile, "\n");
+	if (twonode) {
+		fprintf(outfile, "  <cman two_node=\"1\" expected_votes=\"1\"/>\n");
+	}
 
-	xmlAddChild(root_element, clusternodes);
-	xmlAddChild(root_element, fencedevices);
-	xmlAddChild(root_element, rm);
+	fprintf(outfile, "  <clusternodes>\n");
+	for (i=1; i< numnodes; i++) {
+		fprintf(outfile, "    <clusternode name=\"NEEDNAME-%02d\" votes=\"1\" nodeid=\"%d\">\n", i, i);
+		fprintf(outfile, "      <fence>\n");
+		fprintf(outfile, "        <method name=\"single\">\n");
+		if (fencename) {
+			fprintf(outfile, "          <device name=\"fence1\" ADDARGS/>\n");
+		}
+		fprintf(outfile, "        </method>\n");
+		fprintf(outfile, "      </fence>\n");
+		fprintf(outfile, "    </clusternode>\n");
+	}
+	fprintf(outfile, "  </clusternodes>\n");
+	fprintf(outfile, "\n");
+	fprintf(outfile, "  <fencedevices>\n");
+	if (fencename) {
+		fprintf(outfile, "    <fencedevice name=\"fence1\" agent=\"%s\" ADDARGS/>\n", fencename);
+	}
+	fprintf(outfile, "  </fencedevices>\n");
+	fprintf(outfile, "\n");
+	fprintf(outfile, "  <rm>\n");
+	fprintf(outfile, "    <failoverdomains/>\n");
+	fprintf(outfile, "    <resources/>\n");
+	fprintf(outfile, "  </rm>\n");
+	fprintf(outfile, "</cluster>\n");
 
-	/* Create empty resource manager sections to keep GUI happy */
-	rm2 = xmlNewNode(NULL, BAD_CAST "resources");
-	xmlAddChild(rm, rm1);
-	xmlAddChild(rm, rm2);
-
-	save_file(doc, &ninfo);
-
+	fclose(outfile);
 }
 
 void add_fence(int argc, char **argv)
@@ -1078,7 +1100,7 @@ void add_fence(int argc, char **argv)
 	int opt;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 1;
+	ninfo.tell_ccsd = 0;
 
 	while ( (opt = getopt_long(argc, argv, "c:o:CFh?", list_options, NULL)) != EOF)
 	{
@@ -1092,7 +1114,7 @@ void add_fence(int argc, char **argv)
 			break;
 
 		case 'C':
-			ninfo.tell_ccsd = 0;
+			ninfo.tell_ccsd = 1;
 			break;
 
 		case 'F':
@@ -1149,7 +1171,7 @@ void del_fence(int argc, char **argv)
 	int opt;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 1;
+	ninfo.tell_ccsd = 0;
 
 	while ( (opt = getopt_long(argc, argv, "c:o:CFhv?", list_options, NULL)) != EOF)
 	{
@@ -1163,7 +1185,7 @@ void del_fence(int argc, char **argv)
 			break;
 
 		case 'C':
-			ninfo.tell_ccsd = 0;
+			ninfo.tell_ccsd = 1;
 			break;
 
 		case 'F':
