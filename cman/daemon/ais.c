@@ -42,6 +42,7 @@
 extern char cluster_name[MAX_CLUSTER_NAME_LEN+1];
 extern unsigned int quorumdev_poll;
 extern unsigned int ccsd_poll_interval;
+extern unsigned int enable_disallowed;
 extern unsigned int shutdown_timeout;
 extern int init_config(struct corosync_api_v1 *api);
 
@@ -184,6 +185,7 @@ static int cman_exec_init_fn(struct corosync_api_v1 *api)
 		objdb_get_int(api, object_handle, "quorum_dev_poll", &quorumdev_poll, DEFAULT_QUORUMDEV_POLL);
 		objdb_get_int(api, object_handle, "shutdown_timeout", &shutdown_timeout, DEFAULT_SHUTDOWN_TIMEOUT);
 		objdb_get_int(api, object_handle, "ccsd_poll", &ccsd_poll_interval, DEFAULT_CCSD_POLL);
+		objdb_get_int(api, object_handle, "disallowed", &enable_disallowed, DEFAULT_DISALLOWED);
 
 	}
 	corosync->object_find_destroy(find_handle);

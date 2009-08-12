@@ -237,6 +237,8 @@ static void show_status(void)
 		printf(" Error");
 	if (einfo->ei_flags & CMAN_EXTRA_FLAG_DISALLOWED)
 		printf(" DisallowedNodes");
+	if (einfo->ei_flags & CMAN_EXTRA_FLAG_DISALLOWED_ENABLED)
+		printf(" DisallowedEnabled");
 	if (einfo->ei_flags & CMAN_EXTRA_FLAG_DIRTY)
 		printf(" HaveState");
 	printf(" \n");

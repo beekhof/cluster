@@ -163,6 +163,7 @@ struct sock_confchg_message {
 #define CMAN_EXTRA_FLAG_SHUTDOWN  4
 #define CMAN_EXTRA_FLAG_UNCOUNTED 8
 #define CMAN_EXTRA_FLAG_DIRTY    16
+#define CMAN_EXTRA_FLAG_DISALLOWED_ENABLED    32
 
 struct cl_extra_info {
 	int           node_state;

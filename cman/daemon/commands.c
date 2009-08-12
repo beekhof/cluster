@@ -60,6 +60,7 @@ extern int two_node;
        unsigned int quorumdev_poll=DEFAULT_QUORUMDEV_POLL;
        unsigned int shutdown_timeout=DEFAULT_SHUTDOWN_TIMEOUT;
        unsigned int ccsd_poll_interval=DEFAULT_CCSD_POLL;
+       unsigned int enable_disallowed=DEFAULT_DISALLOWED;
 static int cluster_is_quorate;
        char cluster_name[MAX_CLUSTER_NAME_LEN+1];
 static char nodename[MAX_CLUSTER_MEMBER_NAME_LEN+1];
@@ -133,6 +134,9 @@ static int get_port_bit(struct cluster_node *node, uint8_t port)
 static int have_disallowed(void)
 {
 	struct cluster_node *node;
+
+	if (!enable_disallowed)
+	        return 0;
 
 	list_iterate_items(node, &cluster_members_list) {
 		if (node->state == NODESTATE_AISONLY)
@@ -566,6 +570,8 @@ static int do_cmd_get_extrainfo(char *cmdbuf, char **retbuf, int retsize, int *r
 		einfo->flags |= CMAN_EXTRA_FLAG_UNCOUNTED;
 	if (us->flags & NODE_FLAGS_DIRTY)
 		einfo->flags |= CMAN_EXTRA_FLAG_DIRTY;
+	if (enable_disallowed)
+		einfo->flags |= CMAN_EXTRA_FLAG_DISALLOWED_ENABLED;
 
 	ptr = einfo->addresses;
 
@@ -1889,7 +1895,8 @@ static void do_process_transition(int nodeid, char *data)
 
 	/* If the remote node can see AISONLY nodes and we want to join,
 	   then we can't, as we don't know the full state */
-	if (local_first_trans && msg->flags & NODE_FLAGS_SEESDISALLOWED && !have_disallowed()) {
+	if (enable_disallowed && 
+	    local_first_trans && msg->flags & NODE_FLAGS_SEESDISALLOWED && !have_disallowed()) {
 		/* Must use syslog directly here or the message will never arrive */
 		syslog(LOG_CRIT, "CMAN: Joined a cluster with disallowed nodes. must die");
 		cman_finish();
@@ -1911,50 +1918,56 @@ static void do_process_transition(int nodeid, char *data)
 
 	/* Newer nodes 6.1.0 onwards, set the DIRTY flag if they have state. If the new node has been down
 	   and has state then we mark it disallowed because we cannot merge stateful nodes */
-	if ( (msg->flags & NODE_FLAGS_DIRTY && (node->flags & NODE_FLAGS_BEENDOWN)) ||
-	     (msg->flags & NODE_FLAGS_DIRTY && msg->first_trans && !node->us && (us->flags & NODE_FLAGS_DIRTY))) {
-		/* Don't duplicate messages */
-		if (node->state != NODESTATE_AISONLY) {
-			if (cluster_is_quorate) {
-				log_printf(LOG_CRIT, "Killing node %s because it has rejoined the cluster with existing state", node->name);
-				node->state = NODESTATE_AISONLY;
-				send_kill(nodeid, CLUSTER_KILL_REJOIN);
+	if (enable_disallowed) {
+		if ( (msg->flags & NODE_FLAGS_DIRTY && (node->flags & NODE_FLAGS_BEENDOWN)) ||
+		     (msg->flags & NODE_FLAGS_DIRTY && msg->first_trans && !node->us && (us->flags & NODE_FLAGS_DIRTY))) {
+			/* Don't duplicate messages */
+			if (node->state != NODESTATE_AISONLY) {
+				if (cluster_is_quorate) {
+					log_printf(LOG_CRIT, "Killing node %s because it has rejoined the cluster with existing state", node->name);
+					node->state = NODESTATE_AISONLY;
+					send_kill(nodeid, CLUSTER_KILL_REJOIN);
+				}
+				else {
+					log_printf(LOG_CRIT, "Node %s not joined to cman because it has existing state", node->name);
+					node->state = NODESTATE_AISONLY;
+				}
 			}
-			else {
-				log_printf(LOG_CRIT, "Node %s not joined to cman because it has existing state", node->name);
-				node->state = NODESTATE_AISONLY;
-			}
+			return;
 		}
-		return;
-	}
 
-        /* This is for older nodes. If the join_time of the node matches that already stored AND
-	   the node has been down, then we kill it as this must be a rejoin */
-	if (msg->minor_version == 0 &&
-	    msg->join_time == node->cman_join_time && node->flags & NODE_FLAGS_BEENDOWN) {
-		/* Don't duplicate messages */
-		if (node->state != NODESTATE_AISONLY) {
-			if (cluster_is_quorate) {
-				log_printf(LOG_CRIT, "Killing node %s because it has rejoined the cluster without cman_tool join", node->name);
-				node->state = NODESTATE_AISONLY;
-				send_kill(nodeid, CLUSTER_KILL_REJOIN);
+		/* This is for older nodes. If the join_time of the node matches that already stored AND
+		   the node has been down, then we kill it as this must be a rejoin */
+		if (msg->minor_version == 0 &&
+		    msg->join_time == node->cman_join_time && node->flags & NODE_FLAGS_BEENDOWN) {
+			/* Don't duplicate messages */
+			if (node->state != NODESTATE_AISONLY) {
+				if (cluster_is_quorate) {
+					log_printf(LOG_CRIT, "Killing node %s because it has rejoined the cluster without cman_tool join", node->name);
+					node->state = NODESTATE_AISONLY;
+					send_kill(nodeid, CLUSTER_KILL_REJOIN);
+				}
+				else {
+					log_printf(LOG_CRIT, "Node %s not joined to cman because it has rejoined an inquorate cluster", node->name);
+					node->state = NODESTATE_AISONLY;
+				}
 			}
-			else {
-				log_printf(LOG_CRIT, "Node %s not joined to cman because it has rejoined an inquorate cluster", node->name);
-				node->state = NODESTATE_AISONLY;
-			}
+			return;
 		}
-		return;
+		else {
+			node->cman_join_time = msg->join_time;
+			add_ais_node(nodeid, incarnation, num_ais_nodes);
+		}
 	}
 	else {
-		node->cman_join_time = msg->join_time;
-		add_ais_node(nodeid, incarnation, num_ais_nodes);
+	        add_ais_node(nodeid, incarnation, num_ais_nodes);
 	}
 
 	/* If the new node is joining and the existing cluster already has some AISONLY
 	   nodes then we can't make sense of the membership.
 	   So the new node has to also be AISONLY until we are consistent again */
-	if (msg->first_trans && !node->us && have_disallowed())
+	if (enable_disallowed &&
+	    msg->first_trans && !node->us && have_disallowed())
 		node->state = NODESTATE_AISONLY;
 
 	node->flags = msg->flags; /* This will clear the BEENDOWN flag of course */

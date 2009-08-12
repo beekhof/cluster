@@ -14,3 +14,4 @@ extern int our_nodeid(void);
 #define DEFAULT_QUORUMDEV_POLL   10000
 #define DEFAULT_SHUTDOWN_TIMEOUT 5000
 #define DEFAULT_CCSD_POLL        1000
+#define DEFAULT_DISALLOWED       1

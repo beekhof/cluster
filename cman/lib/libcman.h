@@ -174,6 +174,7 @@ typedef struct cman_cluster
 #define CMAN_EXTRA_FLAG_SHUTDOWN   4
 #define CMAN_EXTRA_FLAG_DISALLOWED 8
 #define CMAN_EXTRA_FLAG_DIRTY     16
+#define CMAN_EXTRA_FLAG_DISALLOWED_ENABLED     32
 
 typedef struct cman_extra_info {
 	int           ei_node_state;
