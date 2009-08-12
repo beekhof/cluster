@@ -36,8 +36,6 @@ struct option_info
 	const char *configfile;
 	const char *outputfile;
 	int  do_delete;
-	int  tell_ccsd;
-	int  force_ccsd;
 };
 
 static void config_usage(int rw)
@@ -46,9 +44,6 @@ static void config_usage(int rw)
 	if (rw)
 	{
 		fprintf(stderr, " -o --outputfile    Name of output file (defaults to same as --configfile)\n");
-		fprintf(stderr, " -C --ccs           Tell CCSD about this change\n");
-		fprintf(stderr, "                    default: run \"ccs_tool update\" if file is updated in place)\n");
-		fprintf(stderr, " -F --force_ccs     Force \"ccs_tool upgrade\" even if input & output files differ\n");
 	}
 }
 
@@ -575,8 +570,6 @@ struct option addnode_options[] =
       { "fence_type", required_argument, NULL, 'f'},
       { "outputfile", required_argument, NULL, 'o'},
       { "configfile", required_argument, NULL, 'c'},
-      { "ccs", no_argument, NULL, 'C'},
-      { "force_ccs", no_argument, NULL, 'F'},
       { NULL, 0, NULL, 0 },
 };
 
@@ -584,8 +577,6 @@ struct option delnode_options[] =
 {
       { "outputfile", required_argument, NULL, 'o'},
       { "configfile", required_argument, NULL, 'c'},
-      { "ccs", no_argument, NULL, 'C'},
-      { "force_ccs", no_argument, NULL, 'F'},
       { NULL, 0, NULL, 0 },
 };
 
@@ -593,8 +584,6 @@ struct option addfence_options[] =
 {
       { "outputfile", required_argument, NULL, 'o'},
       { "configfile", required_argument, NULL, 'c'},
-      { "ccs", no_argument, NULL, 'C'},
-      { "force_ccs", no_argument, NULL, 'F'},
       { NULL, 0, NULL, 0 },
 };
 
@@ -792,7 +781,6 @@ void add_node(int argc, char **argv)
 	xmlNode *root_element;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 0;
 	ninfo.votes = "1";
 
 	while ( (opt = getopt_long(argc, argv, "v:n:a:f:o:c:CFh?", addnode_options, NULL)) != EOF)
@@ -823,14 +811,6 @@ void add_node(int argc, char **argv)
 
 		case 'o':
 			ninfo.outputfile = strdup(optarg);
-			break;
-
-		case 'C':
-			ninfo.tell_ccsd = 1;
-			break;
-
-		case 'F':
-			ninfo.force_ccsd = 1;
 			break;
 
 		case '?':
@@ -868,7 +848,6 @@ void del_node(int argc, char **argv)
 	xmlNode *root_element;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 0;
 
 	while ( (opt = getopt_long(argc, argv, "o:c:CFh?", delnode_options, NULL)) != EOF)
 	{
@@ -880,14 +859,6 @@ void del_node(int argc, char **argv)
 
 		case 'o':
 			ninfo.outputfile = strdup(optarg);
-			break;
-
-		case 'C':
-			ninfo.tell_ccsd = 1;
-			break;
-
-		case 'F':
-			ninfo.force_ccsd = 1;
 			break;
 
 		case '?':
@@ -1100,7 +1071,6 @@ void add_fence(int argc, char **argv)
 	int opt;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 0;
 
 	while ( (opt = getopt_long(argc, argv, "c:o:CFh?", list_options, NULL)) != EOF)
 	{
@@ -1111,14 +1081,6 @@ void add_fence(int argc, char **argv)
 			break;
 		case 'o':
 			ninfo.outputfile = strdup(optarg);
-			break;
-
-		case 'C':
-			ninfo.tell_ccsd = 1;
-			break;
-
-		case 'F':
-			ninfo.force_ccsd = 1;
 			break;
 
 		case '?':
@@ -1171,7 +1133,6 @@ void del_fence(int argc, char **argv)
 	int opt;
 
 	memset(&ninfo, 0, sizeof(ninfo));
-	ninfo.tell_ccsd = 0;
 
 	while ( (opt = getopt_long(argc, argv, "c:o:CFhv?", list_options, NULL)) != EOF)
 	{
@@ -1182,14 +1143,6 @@ void del_fence(int argc, char **argv)
 			break;
 		case 'o':
 			ninfo.outputfile = strdup(optarg);
-			break;
-
-		case 'C':
-			ninfo.tell_ccsd = 1;
-			break;
-
-		case 'F':
-			ninfo.force_ccsd = 1;
 			break;
 
 		case '?':
