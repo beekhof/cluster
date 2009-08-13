@@ -265,7 +265,7 @@ int join(commandline_t *comline, char *main_envp[])
 				if (sscanf(messageptr, "FORKED: %d", &corosync_pid) == 1) {
 					if (comline->verbose & DEBUG_STARTUP_ONLY)
 						fprintf(stderr, "forked process ID is %d\n", corosync_pid);
-					status = 1;
+					status = 0;
 
 					/* There might be a SUCCESS or error message in the pipe too. */
 					messageptr = strchr(messageptr, '\n');
@@ -278,7 +278,6 @@ int join(commandline_t *comline, char *main_envp[])
 				if (sscanf(messageptr, "SUCCESS: %d", &corosync_pid) == 1) {
 					if (comline->verbose & DEBUG_STARTUP_ONLY)
 						fprintf(stderr, "corosync running, process ID is %d\n", corosync_pid);
-					status = 0;
 					break;
 				}
 				else if (messageptr) {
@@ -294,7 +293,7 @@ int join(commandline_t *comline, char *main_envp[])
 			}
 		}
 
-	} while (status != 0);
+	} while (status == 0);
 	close(p[0]);
 
 	/* If corosync has started, try to connect to cman ... if it's still there */
