@@ -1161,11 +1161,86 @@ err:
 	return ret;
 }
 
+
+static hdb_handle_t find_or_create_object(struct objdb_iface_ver0 *objdb, const char *name, hdb_handle_t parent_handle)
+{
+	hdb_handle_t find_handle;
+	hdb_handle_t ret_handle = 0;
+
+	objdb->object_find_create(parent_handle, name, strlen(name), &find_handle);
+        objdb->object_find_next(find_handle, &ret_handle);
+	objdb->object_find_destroy(find_handle);
+
+	if (!ret_handle) {
+		objdb->object_create(parent_handle, &ret_handle, name, strlen(name));
+	}
+
+	return ret_handle;
+}
+
+static const char *groupd_compat="groupd_compat";
+static const char *clvmd_interface="interface";
+static const char *cman_disallowed="disallowed";
+static const char *totem_crypto="crypto_accept";
+
+/*
+ * Flags to set:
+ * - groupd:
+ * - clvmd
+ * - disallowed (on)
+ * - rgmanager
+ */
+static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluster_handle)
+{
+	hdb_handle_t groupd_handle;
+	hdb_handle_t clvmd_handle;
+	hdb_handle_t cman_handle;
+	hdb_handle_t totem_handle;
+	char *value;
+
+	/* Set groupd to backwards compatibility mode */
+	groupd_handle = find_or_create_object(objdb, "group", cluster_handle);
+	if (objdb->object_key_get(groupd_handle, groupd_compat, strlen(groupd_compat),
+				  (void *)&value, NULL) ||
+	    !value) {
+		objdb->object_key_create(groupd_handle, groupd_compat, strlen(groupd_compat),
+					 "1", 2);
+	}
+
+	/* Make clvmd use cman */
+	clvmd_handle = find_or_create_object(objdb, "clvmd", cluster_handle);
+	if (objdb->object_key_get(clvmd_handle, clvmd_interface, strlen(clvmd_interface),
+				  (void *)&value, NULL) ||
+	    !value) {
+		objdb->object_key_create(clvmd_handle, clvmd_interface, strlen(clvmd_interface),
+					 "cman", 5);
+	}
+
+	/* Make cman use disallowed mode */
+	cman_handle = find_or_create_object(objdb, "cman", cluster_handle);
+	if (objdb->object_key_get(cman_handle, cman_disallowed, strlen(cman_disallowed),
+				  (void *)&value, NULL) ||
+	    !value) {
+		objdb->object_key_create(cman_handle, cman_disallowed, strlen(cman_disallowed),
+					 "1", 2);
+	}
+
+	/* Make totem use the old communications method */
+	totem_handle = find_or_create_object(objdb, "totem", OBJECT_PARENT_HANDLE);
+	if (objdb->object_key_get(totem_handle, totem_crypto, strlen(totem_crypto),
+				  (void *)&value, NULL) ||
+	    !value) {
+		objdb->object_key_create(totem_handle, totem_crypto, strlen(totem_crypto),
+					 "old", 4);
+	}
+}
+
 static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error_string)
 {
 	int ret = 0;
 	hdb_handle_t object_handle;
 	hdb_handle_t find_handle;
+	char *str;
 
 	if (getenv("CMAN_PIPE"))
                 startup_pipe = atoi(getenv("CMAN_PIPE"));
@@ -1193,6 +1268,12 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
 					"cman", strlen("cman"));
         }
 	objdb->object_find_destroy(find_handle);
+
+	/* Set up STABLE2/RHEL5 compatibility modes */
+	objdb_get_string(objdb, object_handle, "upgrading", &str);
+	if (str && strcasecmp(str, "on")==0) {
+		setup_old_compat(objdb, cluster_parent_handle);
+	}
 
 	/* This will create /libccs/@next_handle.
 	 * next_handle will be atomically incremented by corosync to return ccs_handle down the pipe.
