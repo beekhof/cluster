@@ -482,11 +482,6 @@ start_cman()
 	if ! cman_running && cman_checkconfig; then
 		errmsg=$( cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
 			$cman_join_opts 2>&1 ) || return 1
-
-		if [ $CMAN_QUORUM_TIMEOUT -gt 0 ]; then
-			errmsg=$( cman_tool -t $CMAN_QUORUM_TIMEOUT \
-				-q wait 2>&1 ) || return 1
-		fi
 	fi
 }
 
