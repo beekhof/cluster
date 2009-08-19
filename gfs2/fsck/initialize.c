@@ -29,7 +29,7 @@
  * Change the lock protocol so nobody can mount the fs
  *
  */
-int block_mounters(struct gfs2_sbd *sbp, int block_em)
+static int block_mounters(struct gfs2_sbd *sbp, int block_em)
 {
 	if(block_em) {
 		/* verify it starts with lock_ */
