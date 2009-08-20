@@ -111,7 +111,7 @@ int join(commandline_t *comline, char *main_envp[])
 	int envptr = 0;
 	int argvptr = 0;
 	char scratch[1024];
-	cman_handle_t h;
+	cman_handle_t h = NULL;
 	int status;
 	pid_t corosync_pid;
 	int p[2];
@@ -269,7 +269,7 @@ int join(commandline_t *comline, char *main_envp[])
 
 					/* There might be a SUCCESS or error message in the pipe too. */
 					messageptr = strchr(messageptr, '\n');
-					if (messageptr)
+					if (messageptr && strlen(messageptr) > 1)
 						messageptr++;
 					else
 						continue;
@@ -282,6 +282,7 @@ int join(commandline_t *comline, char *main_envp[])
 				}
 				else if (messageptr) {
 						fprintf(stderr, "%s\n", messageptr);
+						status = 1;
 						break;
 					}
 			}
