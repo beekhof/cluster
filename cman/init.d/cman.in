@@ -169,7 +169,7 @@ ok() {
 }
 
 nok() {
-	echo $errmsg
+	echo "$errmsg"
 	failure
 	echo
 	exit 1
@@ -479,10 +479,30 @@ set_networking_params()
 
 start_cman()
 {
-	if ! cman_running && cman_checkconfig; then
-		errmsg=$( cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join \
-			$cman_join_opts 2>&1 ) || return 1
+	cman_running && return 0
+	cman_checkconfig || return 1
+
+	tmpfile=$(mktemp -t cmanstartup.XXXXXXXXXX)
+	if [ -z "$tmpfile" ]; then
+		errmsg="Unable to create temporary file"
+		return 1
 	fi
+
+	cman_tool -t $CMAN_CLUSTER_TIMEOUT -w join $cman_join_opts > $tmpfile 2>&1 &
+
+	while status cman_tool >/dev/null 2>&1; do
+		sleep 0.2
+	done
+
+	if ! cman_running; then
+		errmsg="$(cat $tmpfile)"
+		ret=1
+	else
+		ret=0
+	fi
+
+	rm -f $tmpfile
+	return $ret
 }
 
 wait_for_quorum()
@@ -840,7 +860,7 @@ status)
 			echo "cluster is running."
 		fi
 	else
-		echo $errmsg
+		echo "$errmsg"
 		rtrn=1
 	fi
 ;;
