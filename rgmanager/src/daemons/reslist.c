@@ -257,7 +257,8 @@ resource_t *
 find_resource_by_ref(resource_t **reslist, const char *type, const char *ref)
 {
 	resource_t *curr;
-	int x;
+	resource_t *first_possible = NULL;
+	int x, flags = RA_UNIQUE|RA_REQUIRED;
 
 	list_do(reslist, curr) {
 		if (strcmp(curr->r_rule->rr_type, type))
@@ -269,16 +270,18 @@ find_resource_by_ref(resource_t **reslist, const char *type, const char *ref)
 		 */
 		for (x = 0; curr->r_attrs && curr->r_attrs[x].ra_name;
 		     x++) {
-			if (!(curr->r_attrs[x].ra_flags & RA_PRIMARY))
-				continue;
 			if (strcmp(ref, curr->r_attrs[x].ra_value))
 				continue;
-
+			if (((curr->r_attrs[x].ra_flags & flags) == flags) &&
+		    	    !first_possible)
+				first_possible = curr;
+			if (!(curr->r_attrs[x].ra_flags & RA_PRIMARY))
+				continue;
 			return curr;
 		}
 	} while (!list_done(reslist, curr));
 
-	return NULL;
+	return first_possible;
 }
 
 
