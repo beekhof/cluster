@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/errno.h>
 #include <netdb.h>
+#include <fcntl.h>
 #define SYSLOG_NAMES
 #include <sys/syslog.h>
 #include <ifaddrs.h>
@@ -1314,11 +1315,19 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
         *error_string = error_reason;
 
 
-	/* Close stderr, because cman_tool tells corosync not to.
-	   This helps pass error messages back to the command-line
+	/* nullify stderr, because cman_tool tells corosync not to.
+	   This helps pass error messages back to the command-line, when
+	   debug is enabled.
 	*/
-	if (!debug)
-	    close(STDERR_FILENO);
+	if (!debug) {
+		int tmpfd;
+		tmpfd = open("/dev/null", O_RDWR);
+		if (tmpfd > -1 && tmpfd != STDERR_FILENO) {
+			dup2(tmpfd, STDERR_FILENO);
+			close(tmpfd);
+		}
+
+	}
 	return ret;
 }
 
