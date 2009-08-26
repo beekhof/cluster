@@ -13,17 +13,15 @@ include $(OBJDIR)/make/uninstall.mk
 OBJS=fence_tool.o
 
 CFLAGS += -D_FILE_OFFSET_BITS=64
-CFLAGS += -I${ccsincdir} -I${cmanincdir}
-CFLAGS += -I$(S)/../libfenced -I$(S)/../include
+CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${fencedincdir}
+CFLAGS += -I$(S)/../include
 CFLAGS += -I${incdir} 
 
 LDFLAGS += -L${ccslibdir} -L${cmanlibdir} -lccs -lcman
-LDFLAGS += -L../libfenced -lfenced
+LDFLAGS += -L${fencedlibdir} -lfenced
 LDFLAGS += -L${libdir}
 
-LDDEPS += ../libfenced/libfenced.a
-
-${TARGET}: ${OBJS} ${LDDEPS}
+${TARGET}: ${OBJS}
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 depends:

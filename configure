@@ -45,6 +45,8 @@ my %options = (
 	dlmcontrollibdir => \$dlmcontrollibdir,
 	fenceincdir => \$fenceincdir,
 	fencelibdir => \$fencelibdir,
+	fencedincdir => \$fencedincdir,
+	fencedlibdir => \$fencedlibdir,
 	logtincdir => \$logtincdir,
 	logtlibdir => \$logtlibdir,
 	ncursesincdir => \$ncursesincdir,
@@ -131,6 +133,8 @@ my $err = &GetOptions (\%options,
 		    'dlmcontrollibdir=s',
 		    'fenceincdir=s',
 		    'fencelibdir=s',
+		    'fencedincdir=s',
+		    'fencedlibdir=s',
 		    'logtincdir=s',
 		    'logtlibdir=s',
 		    'ncursesincdir=s',
@@ -240,6 +244,8 @@ if ($help || !$err) {
   print "--dlmcontrollibdir=\tthe base directory for dlmcontrol libraries.  (Default: ./dlm/libdlmcontrol)\n";
   print "--fenceincdir=\tthe base directory for fence include files.  (Default: ./fence/libfence)\n";
   print "--fencelibdir=\tthe base directory for fence libraries.  (Default: ./fence/libfence)\n";
+  print "--fencedincdir=\tthe base directory for fence include files.  (Default: ./fence/libfenced)\n";
+  print "--fencedlibdir=\tthe base directory for fence libraries.  (Default: ./fence/libfenced)\n";
   print "--logtincdir=\tthe base directory for logthread include files.  (Default: ./common/liblogthread)\n";
   print "--logtlibdir=\tthe base directory for logthread libraries.  (Default: ./common/liblogthread)\n";
   print "--ncursesincdir=\tthe base directory for ncurses include files.  (Default: {incdir})\n";
@@ -471,6 +477,12 @@ if (!$fenceincdir) {
 }
 if (!$fencelibdir) {
   $fencelibdir="${objdir}/fence/libfence";
+}
+if (!$fencedincdir) {
+  $fencedincdir="${cdir}/fence/libfenced";
+}
+if (!$fencedlibdir) {
+  $fencedlibdir="${objdir}/fence/libfenced";
 }
 if (!$logtincdir) {
   $logtincdir="${cdir}/common/liblogthread";
@@ -719,6 +731,8 @@ while (<IFILE>) {
   $_ =~ s/\@DLMCONTROLLIBDIR\@/$dlmcontrollibdir/;
   $_ =~ s/\@FENCEINCDIR\@/$fenceincdir/;
   $_ =~ s/\@FENCELIBDIR\@/$fencelibdir/;
+  $_ =~ s/\@FENCEDINCDIR\@/$fencedincdir/;
+  $_ =~ s/\@FENCEDLIBDIR\@/$fencedlibdir/;
   $_ =~ s/\@LOGTINCDIR\@/$logtincdir/;
   $_ =~ s/\@LOGTLIBDIR\@/$logtlibdir/;
   $_ =~ s/\@NCURSESINCDIR\@/$ncursesincdir/;
