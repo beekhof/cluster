@@ -1289,8 +1289,6 @@ static int display_indirect(struct iinfo *ind, int indblocks, int level, uint64_
 	int offsets[5];
 
 	last_entry_onscreen[dmode] = 0;
-	if (!level)
-		eol(0);
 	if (!has_indirect_blocks())
 		return -1;
 	if (!level) {
@@ -1306,7 +1304,6 @@ static int display_indirect(struct iinfo *ind, int indblocks, int level, uint64_
 			print_gfs2("This indirect block contains %d indirect blocks",
 				   indblocks);
 	}
-	eol(0);
 	total_dirents = 0;
 	/* Figure out multiplication factors for indirect pointers. */
 	if (!S_ISDIR(di.di_mode)) {
@@ -1340,9 +1337,9 @@ static int display_indirect(struct iinfo *ind, int indblocks, int level, uint64_
 				factor[i + 1] = factor[i] * inptrs;
 		}
 		if (!level)
-			print_gfs2("  (at height=%d)", cur_height);
-		eol(0);
+			print_gfs2("  (at height %d)", cur_height);
 	}
+	eol(0);
 	if (!level && indblocks) {
 		print_gfs2("Indirect blocks:");
 		eol(0);
