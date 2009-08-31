@@ -711,10 +711,27 @@ void savemeta(char *out_fn, int saveoption)
 	exit(0);
 }
 
+/**
+ * anthropomorphize - make a uint64_t number more human
+ */
+static const char *anthropomorphize(unsigned long long inhuman_value)
+{
+	const char *symbols = " KMGTPE";
+	int i;
+	unsigned long long val = inhuman_value;
+	static char out_val[32];
+
+	memset(out_val, 0, sizeof(out_val));
+	for (i = 0; i < 6 && val > 1024; i++)
+		val /= 1024;
+	sprintf(out_val, "%llu%c", val, symbols[i]);
+	return out_val;
+}
+
 static int restore_data(int fd, int in_fd, int printblocksonly)
 {
 	size_t rs;
-	uint64_t buf64, writes = 0;
+	uint64_t buf64, writes = 0, highest_valid_block = 0;
 	uint16_t buf16;
 	int first = 1, pos;
 	char rdbuf[256];
@@ -794,9 +811,9 @@ static int restore_data(int fd, int in_fd, int printblocksonly)
 				    sbd1->sb_header.mh_format ==
 				    GFS_FORMAT_SB &&
 				    sbd1->sb_multihost_format ==
-				    GFS_FORMAT_MULTI)
-					;
-				else if (check_sb(&sbd.sd_sb)) {
+				    GFS_FORMAT_MULTI) {
+					gfs1 = TRUE;
+				} else if (check_sb(&sbd.sd_sb)) {
 					fprintf(stderr,"Error: Invalid superblock data.\n");
 					return -1;
 				}
@@ -809,6 +826,9 @@ static int restore_data(int fd, int in_fd, int printblocksonly)
 					       "%u bytes in the destination" \
 					       " file system.\n\n",
 					       last_fs_block, sbd.bsize);
+				} else {
+					printf("This is %s metadata\n", gfs1 ?
+					       "gfs (not gfs2)" : "gfs2");
 				}
 				first = 0;
 			}
@@ -816,6 +836,8 @@ static int restore_data(int fd, int in_fd, int printblocksonly)
 				print_gfs2("%d (l=0x%x): ", blks_saved,
 					   savedata->siglen);
 				block = savedata->blk;
+				if (block > highest_valid_block)
+					highest_valid_block = block;
 				display_block_type(savedata->buf, TRUE);
 			} else {
 				warm_fuzzy_stuff(savedata->blk, FALSE, FALSE);
@@ -857,6 +879,11 @@ static int restore_data(int fd, int in_fd, int printblocksonly)
 	}
 	if (!printblocksonly)
 		warm_fuzzy_stuff(savedata->blk, TRUE, FALSE);
+	else
+		printf("File system size: %lld (0x%llx) blocks, aka %sB\n",
+		       (unsigned long long)highest_valid_block,
+		       (unsigned long long)highest_valid_block,
+		       anthropomorphize(highest_valid_block * sbd.bsize));
 	return 0;
 }
 
