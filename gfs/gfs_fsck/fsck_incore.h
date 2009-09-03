@@ -89,6 +89,7 @@ struct fsck_sb {
 
 	/* journal stuff */
 	unsigned int  journals;  /* Number of journals in the FS */
+	uint32_t ji_nsegment;    /* number of journal segments per journal */
 	struct gfs_jindex  *jindex;   /* Array of Jindex structs for
 				       * this FS's journals */
 	struct gfs_jindex  jdesc;     /* Jindex struct for this

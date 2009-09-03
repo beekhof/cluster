@@ -28,6 +28,19 @@
 		rgindex_modified = TRUE; \
 	}
 
+struct mkfs_subdevice
+{
+	uint64 start;
+	uint64 length;
+	int is_journal;
+};
+
+struct mkfs_device
+{
+	unsigned int nsubdev;
+	struct mkfs_subdevice *subdev;
+};
+
 static uint64 total_journal_space;
 
 /**
@@ -197,6 +210,7 @@ int ji_update(struct fsck_sb *sdp)
 
 		journ = sdp->jindex + j;
 		gfs_jindex_in(journ, buf);
+		sdp->ji_nsegment = journ->ji_nsegment;
 		total_journal_space += journ->ji_nsegment * sdp->sb.sb_seg_size;
 	}
 
@@ -218,39 +232,6 @@ int ji_update(struct fsck_sb *sdp)
 	free(sdp->jindex);
 	return -1;
 }
-
-/* Print out debugging information in same format as gfs_edit. */
-static int hexdump(uint64 startaddr, const unsigned char *lpBuffer, int len)
-{
-	const unsigned char *pointer, *ptr2;
-	int i;
-	uint64 l;
-
-	pointer = (unsigned char *)lpBuffer;
-	ptr2 = (unsigned char *)lpBuffer;
-	l = 0;
-	while (l < len) {
-		log_info("%.8" PRIX64, startaddr + l);
-		for (i = 0; i < 16; i++) { /* first print it in hex */
-			if (i % 4 == 0)
-				log_info(" ");
-			log_info("%02X", *pointer);
-			pointer++;
-		}
-		log_info(" [");
-		for (i = 0; i < 16; i++) { /* now print it in character format */
-			if ((*ptr2 >= ' ') && (*ptr2 <= '~'))
-				log_info("%c", *ptr2);
-			else
-				log_info(".");
-			ptr2++;
-		}
-		log_info("] \n");
-		l += 16;
-	}
-	return (len);
-}
-
 
 /**
  * rgrplength2bitblocks - Stolen from gfs_mkfs.
@@ -698,12 +679,16 @@ static int gfs_rgindex_rebuild(struct fsck_sb *sdp, osi_list_t *ret_list,
 	/* rgindex and hope to God it's correct.  That's the only way we're  */
 	/* going to be able to recover RGs in the third section.             */
 	/* ----------------------------------------------------------------- */
+	/* I know it looks like prev_rgd should be set to NULL inside the
+	   following for loop, but that actually causes the last rindex
+	   entry to be improperly left with 0 values for ri_data and
+	   ri_bitbytes.  So leave "prev_rgd = NULL" right here:  */
+	prev_rgd = NULL;
 	block_bump = first_rg_dist[0];
 	corrupt_rgs = 0;
 	for (subd = 0; subd < 3; subd++) { /* third subdevice is for all RGs
 					      extended past the normal 2 with
 					      gfs_grow, etc. */
-		prev_rgd = NULL;
 		if (subd == 0) {
 			start_block = (GFS_SB_ADDR >> sdp->fsb2bb_shift) + 1;
 			end_block = subdevice_size - 1;
@@ -923,16 +908,76 @@ static int gfs_rgindex_rebuild(struct fsck_sb *sdp, osi_list_t *ret_list,
 		log_debug("%d: %x / 0x%" PRIx64 " / 0x%08X / 0x%08X\n",
 				 rgi + 1, calc_rgd->rd_ri.ri_length, calc_rgd->rd_ri.ri_data1,
 				 calc_rgd->rd_ri.ri_data, calc_rgd->rd_ri.ri_bitbytes);
-		/*memset(rgindex_buf_ondisk, 0, sizeof(rgindex_buf_ondisk));*/
-		/*gfs_rindex_out(&calc_rgd->rd_ri, rgindex_buf_ondisk);*/
-		/* Note: rgindex_buf_ondisk is ONLY used for debug to see what
-		   the entry would look like on disk. */
-		/*hexdump(rgi*sizeof(struct gfs_rindex), rgindex_buf_ondisk,
-		  sizeof(struct gfs_rindex));*/
 	}
 	*num_rgs = number_of_rgs;
 	log_debug("Number of RGs = %d.\n", number_of_rgs);
 	return 0;
+}
+
+/**
+ * calc_device_journals - morphed from gfs_mkfs's add_journals_to_device()
+ * journals: The number of journals
+ * jsize: The journal size
+ * @dvice: The mkfs device structure to be used
+ *
+ */
+static void calc_device_journals(struct fsck_sb *sdp, uint32 jsize,
+				 struct mkfs_device *dvice)
+{
+	struct mkfs_subdevice *old;
+	unsigned int x;
+
+	jsize = jsize * (1 << 20) / GFS_BASIC_BLOCK;
+	old = dvice->subdev;
+
+	dvice->nsubdev = sdp->journals + 2;
+	dvice->subdev = malloc(dvice->nsubdev * sizeof(struct mkfs_subdevice));
+	memset(dvice->subdev, 0, (dvice->nsubdev *
+				  sizeof(struct mkfs_subdevice)));
+
+	dvice->subdev[0].start = old->start;
+	dvice->subdev[0].length = (old->length - sdp->journals * jsize) / 2;
+
+	for (x = 1; x <= sdp->journals; x++) {
+		dvice->subdev[x].start = dvice->subdev[x - 1].start +
+			dvice->subdev[x - 1].length;
+		dvice->subdev[x].length = jsize;
+		dvice->subdev[x].is_journal = TRUE;
+	}
+
+	dvice->subdev[x].start = dvice->subdev[x - 1].start +
+		dvice->subdev[x - 1].length;
+	dvice->subdev[x].length = dvice->subdev[0].length;
+
+	free(old);
+}
+
+/**
+ * fix_device_geometry - round off address and lengths and convert to FS blocks
+ * @comline: the command line
+ * @device: the description of the underlying device
+ *
+ */
+
+static void fix_device_geometry(struct fsck_sb *sdp, struct mkfs_device *dvice)
+{
+	unsigned int x;
+	uint64 offset, len;
+	uint32 bbsize = sdp->sb.sb_bsize >> GFS_BASIC_BLOCK_SHIFT;
+
+	/*  Make sure all the subdevices are aligned  */
+	for (x = 0; x < dvice->nsubdev; x++) {
+		offset = dvice->subdev[x].start;
+		len = dvice->subdev[x].length;
+
+		if (offset % bbsize) {
+			len -= bbsize - (offset % bbsize);
+			offset += bbsize - (offset % bbsize);
+		}
+
+		dvice->subdev[x].start = offset / bbsize;
+		dvice->subdev[x].length = len / bbsize;
+	}
 }
 
 /*
@@ -963,35 +1008,52 @@ static int gfs_rgindex_calculate(struct fsck_sb *sdp, osi_list_t *ret_list,
 			  unsigned int *num_rgs)
 {
 	osi_buf_t *bh; /* buffer handle */
-	uint64 subdevice_size, adjust_subdevice_size, fs_total_size;
+	uint64 subdevice_size, fs_total_size;
 	int number_of_rgs; /* min of 4 per segment * 2 segments = 8 */
-	int rgnum_within_subdevice;
-	int first_half;
 	int error;
 	int rgi, rgs_per_subd;
 	uint64 subdevice_start;
-	uint64 addr = 0, prev_addr, length = 0, prev_length;
+	uint64 prev_addr = 0, prev_length = 0, length = 0;
 	uint64 blocks;
 	struct fsck_rgrp *calc_rgd;
-	char rgindex_buf_ondisk[sizeof(struct gfs_rindex)];
 	struct gfs_rindex buf, tmpndx;
+	struct mkfs_device dvice;
+	uint32 jsize;
+	struct mkfs_subdevice *sdev;
+	int x;
+
+	memset(&dvice, 0, sizeof(dvice));
 
 	osi_list_init(ret_list);
 	*num_rgs = 0;
 	/* Get the total size of the device */
 	error = ioctl(sdp->diskfd, BLKGETSIZE64,
 				  &fs_total_size); /* Size in bytes */
+
+	dvice.subdev = malloc(sizeof(struct mkfs_subdevice));
+	dvice.subdev->start = 0;
+	dvice.subdev->length = fs_total_size >> GFS_BASIC_BLOCK_SHIFT;
+	dvice.subdev->is_journal = 0;
+
 	fs_total_size /= sdp->sb.sb_bsize;
 	log_debug("fs_total_size = 0x%" PRIX64 " blocks.\n", fs_total_size);
 
 	/* The end of the first subdevice is also where the first journal is.*/
 	subdevice_size = sdp->jindex->ji_addr; /* addr of 1st journal (blks) */
+	jsize = sdp->ji_nsegment * sdp->sb.sb_seg_size * sdp->sb.sb_bsize;
+	/* Round up to the nearest megabyte */
+	jsize = (jsize + (1024*1024) - 1) / (1024*1024);
+
 	log_debug("subdevice_size = 0x%" PRIX64 ".\n", subdevice_size);
+	log_debug("jsize = 0x%x\n", jsize);
+
+	calc_device_journals(sdp, jsize, &dvice);
+	fix_device_geometry(sdp, &dvice);
 
 	/* ----------------------------------------------------------------- */
 	/* Read the first block of the subdevice and make sure it's an RG.   */
 	/* ----------------------------------------------------------------- */
-	subdevice_start = fs_total_size - subdevice_size;
+	subdevice_start = dvice.subdev[sdp->journals + 1].start;
 	error = get_and_read_buf(sdp, subdevice_start, &bh, 0);
 	if (error){
 		log_crit("Unable to read start of last subdevice.\n");
@@ -1044,59 +1106,57 @@ static int gfs_rgindex_calculate(struct fsck_sb *sdp, osi_list_t *ret_list,
 	/* exactly where we think they should be and build our index with it.    */
 	/* --------------------------------------------------------------------- */
 	rgs_per_subd = (number_of_rgs / 2);
-	for (rgi = 0; rgi < number_of_rgs; rgi++) {
+	for (x = 0; x < dvice.nsubdev; x++) {
+		sdev = &dvice.subdev[x];
 
-		first_half = (rgi < rgs_per_subd ? 1 : 0);
-		adjust_subdevice_size = subdevice_size;
-		if (first_half) {
-			adjust_subdevice_size -= ((GFS_SB_ADDR >> sdp->fsb2bb_shift) + 1);
-			rgnum_within_subdevice = rgi;
-		}
-		else
-			rgnum_within_subdevice = rgi - rgs_per_subd;
-		prev_length = length;
-		if (rgnum_within_subdevice)
-			length = adjust_subdevice_size / rgs_per_subd;
-		else
-			length = adjust_subdevice_size - 
-				(rgs_per_subd - 1) * (adjust_subdevice_size / rgs_per_subd);
-		
-		calc_rgd = (struct fsck_rgrp *)malloc(sizeof(struct fsck_rgrp));
-		// FIXME: handle failed malloc
-		memset(calc_rgd, 0, sizeof(struct fsck_rgrp));
-		calc_rgd->rd_sbd = sdp; /* hopefully this is not used */
-		osi_list_add_prev(&calc_rgd->rd_list, ret_list);
-		prev_addr = addr;
-		if (!rgnum_within_subdevice) {
-			if (!rgi) {
-				/* The first RG immediately follows the superblock */
-				addr = (GFS_SB_ADDR >> sdp->fsb2bb_shift) + 1;
+		if (sdev->is_journal)
+			continue;
+		/* If this is the first subdevice reserve space for the
+		   superblock */
+
+		if (!x)
+			sdev->length -= (GFS_SB_ADDR * GFS_BASIC_BLOCK /
+					 sdp->sb.sb_bsize) + 1;
+		for (rgi = 0; rgi < rgs_per_subd; rgi++) {
+			calc_rgd = (struct fsck_rgrp *)
+				malloc(sizeof(struct fsck_rgrp));
+			memset(calc_rgd, 0, sizeof(struct fsck_rgrp));
+			calc_rgd->rd_sbd = sdp; /* this may not be used */
+			if (rgi) {
+				calc_rgd->rd_ri.ri_addr = prev_addr +
+					prev_length;
+				length = sdev->length / rgs_per_subd;
+			} else {
+				calc_rgd->rd_ri.ri_addr = sdev->start;
+				length = sdev->length - (rgs_per_subd - 1) *
+					(sdev->length / rgs_per_subd);
+				if (!x)
+					calc_rgd->rd_ri.ri_addr +=
+						(GFS_SB_ADDR *
+						 GFS_BASIC_BLOCK /
+						 sdp->sb.sb_bsize) + 1;
 			}
-			else /* First RG on second subdevice is at the beginning of it */
-				addr = subdevice_start;
-		}
-		else
-			addr = prev_addr + prev_length;
-		calc_rgd->rd_ri.ri_addr = addr;
-		log_debug("ri_addr[%d] = 0x%"PRIX64 " / ", rgi, 
+			osi_list_add_prev(&calc_rgd->rd_list, ret_list);
+
+			log_info("ri_addr[%d] = 0x%"PRIx64 " / ", rgi,
 				  calc_rgd->rd_ri.ri_addr);
-		blocks = length - rgrplength2bitblocks(sdp, length);
-		blocks -= blocks % GFS_NBBY;
-		calc_rgd->rd_ri.ri_length = rgrplength2bitblocks(sdp, length);
-		calc_rgd->rd_ri.ri_data1 = calc_rgd->rd_ri.ri_addr +
-			calc_rgd->rd_ri.ri_length;
-		calc_rgd->rd_ri.ri_data = blocks;
-		calc_rgd->rd_ri.ri_bitbytes = calc_rgd->rd_ri.ri_data / GFS_NBBY;
-		log_info("%d / %08X / %08X / %08X\n", calc_rgd->rd_ri.ri_length,
-			   calc_rgd->rd_ri.ri_data1, calc_rgd->rd_ri.ri_data,
-			   calc_rgd->rd_ri.ri_bitbytes);
-		memset(rgindex_buf_ondisk, 0, sizeof(rgindex_buf_ondisk));
-		gfs_rindex_out(&calc_rgd->rd_ri, rgindex_buf_ondisk);
-		/* Note: rgindex_buf_ondisk is ONLY used for debug to see what the
-		   entry would look like on disk. */
-		hexdump(rgi*sizeof(struct gfs_rindex),
-			(unsigned char *)rgindex_buf_ondisk,
-			sizeof(struct gfs_rindex));
+			blocks = length - rgrplength2bitblocks(sdp, length);
+			blocks -= blocks % GFS_NBBY;
+			calc_rgd->rd_ri.ri_length =
+				rgrplength2bitblocks(sdp, length);
+			calc_rgd->rd_ri.ri_data1 = calc_rgd->rd_ri.ri_addr +
+				calc_rgd->rd_ri.ri_length;
+			calc_rgd->rd_ri.ri_data = blocks;
+			calc_rgd->rd_ri.ri_bitbytes =
+				calc_rgd->rd_ri.ri_data / GFS_NBBY;
+			log_info("%d / %08x / %08x / %08x\n",
+				 calc_rgd->rd_ri.ri_length,
+				 calc_rgd->rd_ri.ri_data1,
+				 calc_rgd->rd_ri.ri_data,
+				 calc_rgd->rd_ri.ri_bitbytes);
+			prev_addr = calc_rgd->rd_ri.ri_addr;
+			prev_length = length;
+		}
 	} /* for */
 	relse_buf(sdp, bh); /* release the read buffer if we have one */
 	return 0;
