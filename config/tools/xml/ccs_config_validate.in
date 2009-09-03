@@ -2,8 +2,6 @@
 
 set -e
 
-[ -n "$1" ] && export COROSYNC_CLUSTER_CONFIG_FILE="$1"
-
 # rpm based distros
 if [ -d /etc/sysconfig ]; then
 	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
@@ -18,6 +16,8 @@ fi
 
 [ -z "$CONFIG_LOADER" ] && CONFIG_LOADER=xmlconfig
 export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
+
+[ -n "$1" ] && export COROSYNC_CLUSTER_CONFIG_FILE="$1"
 
 tempfile=$(mktemp)
 
