@@ -78,3 +78,7 @@ ifdef PKGCONF
 	install -d ${pkgconfigdir}
 	install -m644 ${PKGCONF} ${pkgconfigdir}
 endif
+ifdef SHAREDIRT
+	install -d ${sharedir}
+	install -m644 ${SHAREDIRT} ${sharedir}
+endif

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+# rpm based distros
+if [ -d /etc/sysconfig ]; then
+	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
+	[ -f /etc/sysconfig/cman ] && . /etc/sysconfig/cman
+fi
+
+# deb based distros
+if [ -d /etc/default ]; then
+	[ -f /etc/default/cluster ] && . /etc/default/cluster
+	[ -f /etc/default/cman ] && . /etc/default/cman
+fi
+
+[ -z "$CONFIG_LOADER" ] && CONFIG_LOADER=xmlconfig
+export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
+
+ccs_config_dump | xmllint \
+		--relaxng @SHAREDIR@/cluster.rng \
+		- >/dev/null
+exit $?

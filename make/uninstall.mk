@@ -47,3 +47,6 @@ endif
 ifdef PKGCONF
 	${UNINSTALL} ${PKGCONF} ${pkgconfigdir}
 endif
+ifdef SHAREDIRT
+	${UNINSTALL} ${SHAREDIRT} ${sharedir}
+endif
