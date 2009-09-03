@@ -17,7 +17,23 @@ fi
 [ -z "$CONFIG_LOADER" ] && CONFIG_LOADER=xmlconfig
 export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
 
-ccs_config_dump | xmllint \
-		--relaxng @SHAREDIR@/cluster.rng \
-		- >/dev/null
-exit $?
+tempfile=$(mktemp)
+
+if [ -z "$tempfile" ]; then
+	echo "Unable to create temp file"
+	exit 255
+fi
+
+if ! ccs_config_dump > $tempfile; then
+	rm -f $tempfile
+	echo "Unable to get the configuration"
+	exit 255
+fi
+
+xmllint \
+	--relaxng @SHAREDIR@/cluster.rng \
+	$tempfile >/dev/null
+res=$?
+
+rm -f $tempfile
+exit $res
