@@ -339,6 +339,13 @@ groupd_enabled()
 	return 0
 }
 
+ocfs2_enabled()
+{
+	ocfs2_cluster="$(cat /sys/fs/ocfs2/cluster_stack 2>/dev/null || true)"
+	[ "$ocfs2_cluster" != cman ] && return 1
+	return 0
+}
+
 cmannotifyd_enabled()
 {
 	case "$CMAN_NOTIFYD_START" in
@@ -614,6 +621,11 @@ stop_gfs_controld()
 	stop_daemon gfs_controld
 }
 
+start_ocfs2_controld()
+{
+	start_daemon ocfs2_controld.cman
+}
+
 start_cmannotifyd()
 {
 	start_daemon cmannotifyd
@@ -720,6 +732,10 @@ start()
 	runwrap start_gfs_controld \
 		none \
 		"Starting gfs_controld"
+
+	runwrap start_ocfs2_controld \
+		ocfs2_enabled \
+		"Starting ocfs2_controld"
 
 	runwrap start_cmannotifyd \
 		cmannotifyd_enabled \
