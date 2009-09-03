@@ -2,6 +2,8 @@
 
 set -e
 
+[ -n "$1" ] && export COROSYNC_CLUSTER_CONFIG_FILE="$1"
+
 # rpm based distros
 if [ -d /etc/sysconfig ]; then
 	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
