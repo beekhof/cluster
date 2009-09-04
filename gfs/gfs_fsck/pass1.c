@@ -442,7 +442,6 @@ static int finish_eattr_indir(struct fsck_inode *ip, int leaf_pointers,
 	/* Mark the inode as having an eattr in the block map
 	   so pass1c can check it. */
 	block_mark(ip->i_sbd->bl, ip->i_di.di_num.no_addr, eattr_block);
-	bc->ea_count++;
 	if (!leaf_pointer_errors)
 		return 0;
 	log_err("Inode %lld has recoverable indirect "
