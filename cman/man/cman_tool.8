@@ -411,3 +411,8 @@ for the details.
 Note that cmanpreconfig will not overwrite corosync keys that are explicitly set in the configuration file, allowing you to provide
 custom values for token timeouts etc, even though cman has its own defaults for some of those values. The exception to this is the node
 name/address and multicast values, which are always taken from the cman configuration keys.
+.br
+Most of the extra keys that cmanpreconfig adds are outside of the /cluster/ tree and will only be seen if you dump the whole of 
+corosync's object database. However it does add some keys into /cluster/cman that you would not normally see in a normal cluster.conf
+file. These are harmless, though could be confusing. The most obvious of these is the "nodename" option which is passed from 
+cmanpreconfig to the name cman module, to save it recalculating the node name again.
