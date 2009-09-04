@@ -12,7 +12,7 @@ static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_han
 	char object_name[PATH_MAX], key_name[PATH_MAX], key_value[PATH_MAX];
 	size_t key_value_len = 0, key_name_len = 0, object_name_len = 0;
 	int current_level = level+1;
-	int has_childs = 0;
+	int has_children = 0;
 
 	if (confdb_key_iter_start(dump_handle, parent_object_handle) != CS_OK)
 		return -1;
@@ -33,12 +33,12 @@ static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_han
 				   &object_name_len) == CS_OK) {
 		hdb_handle_t parent;
 		int i;
-		int found_childs;
+		int found_children;
 
-		if ((!has_childs) && (parent_object_handle > 0))
+		if ((!has_children) && (parent_object_handle > 0))
 			printf(">\n");
 
-		has_childs = 1;
+		has_children = 1;
 
 		if (confdb_object_parent_get(dump_handle, object_handle, &parent) != CS_OK)
 			return -1;
@@ -49,11 +49,11 @@ static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_han
 		}
 		printf("<%s", object_name);
 
-		found_childs = dump_objdb_buff(dump_handle, cluster_handle, object_handle, current_level);
-		if (found_childs < 0)
+		found_children = dump_objdb_buff(dump_handle, cluster_handle, object_handle, current_level);
+		if (found_children < 0)
 			return -1;
 
-		if ((object_handle != parent_object_handle) && (found_childs)) {
+		if ((object_handle != parent_object_handle) && (found_children)) {
 			for (i=0; i<current_level; i++) {
 				printf("\t");
 			}
@@ -61,10 +61,10 @@ static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_han
 		}
 	}
 
-	if(!has_childs)
+	if(!has_children)
 		printf("/>\n");
 
-	return has_childs;
+	return has_children;
 }
 
 int main(void) {
