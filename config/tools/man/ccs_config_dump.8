@@ -1,0 +1,35 @@
+.TH "ccs_config_dump" "8" "" "" ""
+.SH "NAME"
+ccs_config_dump \- Tool to generate XML output of running configuration.
+
+.SH "SYNOPSIS"
+.B ccs_config_dump
+[\fIOPTION\fR]..
+
+.SH "DESCRIPTION"
+
+\fBccs_config_dump\fP is part of the Cluster Configuration System (CCS).
+It is used to dump the current running configuration in XML format.
+The running configuration is, sometimes, different from the stored
+configuration on file or ldap because some subsystems store or set
+some default information into the configuration. Those values are
+generally not present on the on-disk version of the configuration
+but are required at runtime for the cluster to work properly.
+
+.SH "OPTIONS"
+.TP 
+\fB\-h\fP
+Help.  Print out the usage.
+.TP 
+\fB\-V\fP
+Print the version information.
+.TP
+\fB\-r\fP
+Force config dump from running cluster. This option is only for expert users
+and debugging sessions. Don't use it for random purposes.
+ccs_config_dump can be configured to use different configuration sources via
+environment variables. This option will clear them to use the default and use
+only the runtime configuration.
+
+.SH "SEE ALSO"
+ccs_config_validate(8), cluster.conf(5)
