@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <limits.h>
+#include <unistd.h>
 #include <corosync/corotypes.h>
 #include <corosync/confdb.h>
+
+#include "copyright.cf"
+
+#define OPTION_STRING	"hVr"
 
 static confdb_callbacks_t callbacks = {};
 
@@ -67,9 +72,68 @@ static int dump_objdb_buff(confdb_handle_t dump_handle, hdb_handle_t cluster_han
 	return has_children;
 }
 
-int main(void) {
+static void print_usage(void)
+{
+	printf("Usage:\n");
+	printf("\n");
+	printf("ccs_config_dump [options]\n");
+	printf("\n");
+	printf("Options:\n");
+	printf("  -r               Force dump of runtime configuration (see man page)\n");
+	printf("  -h               Print this help, then exit\n");
+	printf("  -V               Print program version information, then exit\n");
+	printf("\n");
+	return;
+}
+
+static void read_arguments(int argc, char **argv)
+{
+	int cont = 1;
+	int optchar;
+
+	while (cont) {
+		optchar = getopt(argc, argv, OPTION_STRING);
+
+		switch (optchar) {
+
+		case 'h':
+			print_usage();
+			exit(EXIT_SUCCESS);
+			break;
+
+		case 'V':
+			printf("ccs_config_dump %s (built %s %s)\n%s\n",
+				RELEASE_VERSION, __DATE__, __TIME__,
+				REDHAT_COPYRIGHT);
+			exit(EXIT_SUCCESS);
+			break;
+
+		case 'r':
+			if(unsetenv("COROSYNC_DEFAULT_CONFIG_IFACE") < 0) {
+				fprintf(stderr, "Unable to unset env vars\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+
+		case EOF:
+			cont = 0;
+			break;
+
+		default:
+			fprintf(stderr, "unknown option: %c\n", optchar);
+			print_usage();
+			exit(EXIT_FAILURE);
+			break;
+		}
+	}
+}
+
+int main(int argc, char *argv[], char *envp[])
+{
 	confdb_handle_t handle = 0;
 	hdb_handle_t cluster_handle;
+
+	read_arguments(argc, argv);
 
 	if (confdb_initialize(&handle, &callbacks) != CS_OK)
 		return -1;
