@@ -80,18 +80,24 @@ To validate your cluster.conf against this schema, run:
          is present. If qdisk takes more time to send a hello message
          to cman and ais than by quorum_dev_poll, then cman declares
          qdisk dead and prints a message indicating that connection to
-         the quorum device has been lost." rha:sample="50000"/>
+         the quorum device has been lost." rha:sample="50000">
+      <data type="nonNegativeInteger"/>
+     </attribute>
     </optional>
     <!--FIXME: Clarify the following. What is meant by "service"? Also, is
      there a default value? What is a good sample value?-->
     <optional>
      <attribute name="shutdown_timeout" rha:description="Timeout period,
          in milliseconds, to allow a service to respond during a
-         shutdown." rha:sample="5000"/>
+         shutdown." rha:sample="5000">
+      <data type="nonNegativeInteger"/>
+     </attribute>
     </optional>
     <optional>
      <attribute name="ccsd_poll" rha:description="" rha:sample=""
-         rha:default="1000"/>
+         rha:default="1000">
+      <data type="nonNegativeInteger"/>
+     </attribute>
     </optional>
     <optional>
      <attribute name="debug_mask" rha:description="" rha:sample=""/>
