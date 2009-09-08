@@ -12,28 +12,7 @@
 confdb_callbacks_t callbacks = {
 };
 
-/* This structure maps object parent names to object classes */
-struct objectclasses
-{
-	const char *name;
-	const char *class;
-} objectclasses[] =
-{
-	{ "cluster", "rhcsCluster" },
-	{ "cman", "rhcsCman" },
-	{ "totem", "rhcsTotem" },
-	{ "clusternode", "rhcsClusternode" },
-	{ "device", "rhcsDevice" },
-	{ "fencedevice", "rhcsFencedevice" },
-	{ "method", "rhcsmethod" },
-	{ "logging", "rhcsLoggersubsys" },
-	{ "fence_daemon", "rhcsFencedaemon" },
-	{ "dlm", "rhcsDlm" },
-/* TODO: Add more here as the schema gets filled in */
-};
-
-
-static char *ldap_attr_name(char *attrname)
+static const char *ldap_attr_name(const char *attrname)
 {
 	static char newname[1024];
 	int i;
@@ -67,7 +46,6 @@ static void print_config_tree(confdb_handle_t handle, hdb_handle_t parent_object
 	size_t key_value_len;
 	char cumulative_dn[4096];
 	int res;
-	int i;
 	int keycount=0;
 
 	printf("\ndn: %s\n", fulldn);
@@ -97,10 +75,7 @@ static void print_config_tree(confdb_handle_t handle, hdb_handle_t parent_object
 		printf("objectclass: nsContainer\n");
 	}
 	else {
-		for (i = 0; i < sizeof(objectclasses)/sizeof(struct objectclasses); i++) {
-			if (strcmp(objectclasses[i].name, dn) == 0)
-				printf("objectclass: %s\n", objectclasses[i].class);
-		}
+		printf("objectclass: %s\n", ldap_attr_name(dn));
 	}
 
 	/* Show sub-objects */
