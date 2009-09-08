@@ -22,14 +22,15 @@ struct objectclasses
 	{ "cluster", "rhcsCluster" },
 	{ "cman", "rhcsCman" },
 	{ "totem", "rhcsTotem" },
-	{ "clusternode", "rhcsNode" },
+	{ "clusternode", "rhcsClusternode" },
 	{ "device", "rhcsDevice" },
 	{ "fencedevice", "rhcsFencedevice" },
-	{ "method", "rhcsFencemethod" },
+	{ "method", "rhcsmethod" },
 	{ "logging", "rhcsLoggersubsys" },
 	{ "fence_daemon", "rhcsFencedaemon" },
-};
+	{ "dlm", "rhcsDlm" },
 /* TODO: Add more here as the schema gets filled in */
+};
 
 
 static char *ldap_attr_name(char *attrname)
