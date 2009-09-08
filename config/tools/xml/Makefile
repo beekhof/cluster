@@ -29,6 +29,7 @@ ${TARGET2}: $(S)/${TARGET2}.in
 	cat $(S)/$(TARGET2).in | sed \
 		-e 's#@SBINDIR@#${sbindir}#g' \
 		-e 's#@SHAREDIR@#${sharedir}#g' \
+		-e 's#@VERSION@#${RELEASE_VERSION}#g' \
 	> $(TARGET2)
 
 ${TARGET3}: $(S)/${TARGET3}.in

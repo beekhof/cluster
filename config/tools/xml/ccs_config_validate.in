@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # rpm based distros
 if [ -d /etc/sysconfig ]; then
 	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
@@ -17,25 +15,155 @@ fi
 [ -z "$CONFIG_LOADER" ] && CONFIG_LOADER=xmlconfig
 export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
 
-[ -n "$1" ] && export COROSYNC_CLUSTER_CONFIG_FILE="$1"
+print_usage() {
+	echo "Usage:"
+	echo ""
+	echo "ccs_config_validate [options]"
+	echo ""
+	echo "Options:"
+	echo "  -h               Print this help, then exit"
+	echo "  -V               Print program version information, then exit"
+	echo "  -v               Produce verbose output"
+	echo ""
+	echo "  -r               Force validation of runtime config"
+	echo "  -C config_loader Override config plugin loader"
+	echo ""
+	echo "Validating XML configuraton files:"
+	echo "  -f configfile    Validate an alternate config file"
+	echo "  -l               Do not perform load test (requires -f)"
+	echo ""
+	echo "Debugging options:"
+	echo "  -t tempfile      Force temporay file to tempfile"
+	echo "  -n               Do not remove temporary file"
+	echo "  -o               Overwrite temporary file (dangerous)"
+}
 
-tempfile=$(mktemp)
+check_opts() {
+	while [ "$1" != "--" ]; do
+		case $1 in
+		-h)
+			print_usage
+			exit 0
+		;;
+		-V)
+			echo "ccs_config_validate version @VERSION@"
+			exit 0
+		;;
+		-t)
+			shift
+			tempfile="$1"
+		;;
+		-n)
+			notempfilerm=1
+		;;
+		-o)
+			overwritetempfile=1
+		;;
+		-C)
+			shift
+			COROSYNC_DEFAULT_CONFIG_IFACE=$1:cmanpreconfig
+			loaderoverride=1
+			if [ -n "$runtimetest" ] || \
+			   [ -n "$filetest" ] || \
+			   [ -n "$noloadtest" ]; then
+				echo "Error: invalid options. -C can not be set together with -l or -r or -f" >&2
+				exit 255
+			fi
+		;;
+		-f)
+			shift
+			COROSYNC_CLUSTER_CONFIG_FILE=$1
+			COROSYNC_DEFAULT_CONFIG_IFACE=xmlconfig:cmanpreconfig
+			filetest=1
+			if [ -n "$loaderoverride" ] || \
+			   [ -n "$runtimetest" ]; then
+				echo "Error: invalid options. -f can not be set together with -r or -C" >&2
+				exit 255
+			fi
+		;;
+		-l)
+			noloadtest=1
+		;;
+		-r)
+			unset COROSYNC_DEFAULT_CONFIG_IFACE
+			runtimetest=1
+			if [ -n "$noloadtest" ] || \
+			   [ -n "$loaderoverride" ] || \
+			   [ -n "$filetest" ]; then
+				echo "Error: invalid options. -r can not be set together with -l or -C or -f" >&2
+				exit 255
+			fi
+		;;
+		-v)
+			verbose=1
+		;;
+		esac
+		shift
+	done
 
-if [ -z "$tempfile" ]; then
-	echo "Unable to create temp file"
+	if [ -n "$noloadtest" ] && [ -z "$COROSYNC_CLUSTER_CONFIG_FILE" ]; then
+		echo "Error: -l requires -f option" >&2
+		exit 255
+	fi
+
+}
+
+lecho()
+{
+	[ -n "$verbose" ] && echo $@
+	return 0
+}
+
+export COROSYNC_DEFAULT_CONFIG_IFACE
+export COROSYNC_CLUSTER_CONFIG_FILE
+
+opts=$(getopt t:hVnC:f:lrov $@)
+if [ "$?" != 0 ]; then
+	print_usage >&2
 	exit 255
 fi
+check_opts $opts
 
-if ! ccs_config_dump > $tempfile; then
-	rm -f $tempfile
-	echo "Unable to get the configuration"
-	exit 255
+if [ -n "$tempfile" ]; then
+	if [ -f "$tempfile" ] && [ -z "$overwritetempfile" ]; then
+		echo "Selected temporary file $tempfile already exists" >&2
+		echo "Use -o to force overwrite (dangerous)" >&2
+		exit 255
+	fi
+else
+	tempfile=$(mktemp)
+	if [ -z "$tempfile" ]; then
+		echo "Unable to create temporary file" >&2
+		exit 255
+	fi
 fi
+lecho "Creating temporary file: $tempfile"
+lecho "Config interface set to: $COROSYNC_DEFAULT_CONFIG_IFACE"
 
-xmllint \
+if [ -n "$noloadtest" ]; then
+	cp $COROSYNC_CLUSTER_CONFIG_FILE $tempfile
+else
+	if ! ccs_config_dump > $tempfile; then
+		[ -z "$notempfilerm" ] && rm -f $tempfile
+		echo "Unable to get the configuration" >&2
+		exit 255
+	fi
+fi
+lecho "Configuration stored in temporary file"
+
+lecho "Validating.."
+
+xmlout=$(xmllint --noout \
 	--relaxng @SHAREDIR@/cluster.rng \
-	$tempfile >/dev/null
+	$tempfile 2>&1)
 res=$?
 
-rm -f $tempfile
+echo "$xmlout" | sed \
+	-e 's#.*validates$#Configuration validates#g' \
+	-e 's#.*validate$#Configuration fails to validate#g' \
+	-e 's#'$tempfile'#tempfile#g'
+
+lecho "Validation completed"
+
+[ -z "$notempfilerm" ] && rm -f $tempfile
 exit $res
