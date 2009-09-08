@@ -1,5 +1,5 @@
-# Max attribute value: 238
-# Max object class value: 56
+# Max attribute value: 239
+# Max object class value: 57
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
 obj,rhcsTotem,totem,4
@@ -293,3 +293,5 @@ attr,rhcsXmlfile,xmlfile,235
 attr,rhcsHypervisor,hypervisor,236
 attr,rhcsHypervisor-uri,hypervisor_uri,237
 attr,rhcsMigration-uri,migration_uri,238
+attr,rhcsSkip-undefined,skip_undefined,239
+obj,rhcsLogging-daemon,logging_daemon,57
