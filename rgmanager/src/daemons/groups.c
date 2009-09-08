@@ -1579,7 +1579,6 @@ static int
 copy_incarnations(resource_t **leftres, resource_t **rightres)
 {
 	resource_t *lc, *rc;
-	int ret;
 
 	list_do(leftres, lc) {
 		rc = find_resource_by_ref(rightres, lc->r_rule->rr_type,
