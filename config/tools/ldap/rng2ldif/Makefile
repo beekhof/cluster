@@ -10,8 +10,9 @@ include $(OBJDIR)/make/install.mk
 include $(OBJDIR)/make/uninstall.mk
 
 CFLAGS += -D_GNU_SOURCE
-CFLAGS += -I. -I${incdir}
+CFLAGS += -I. 
 CFLAGS += `xml2-config --cflags`
+CFLAGS += -I${incdir}
 
 LDFLAGS += `xml2-config --libs`
 LDFLAGS += -L${libdir}
@@ -27,17 +28,16 @@ SHAREDOBJS= zalloc.o \
 	    name.o
 
 ${TARGET1}: ${SHAREDOBJS} ${OBJS1}
-	$(CC) -o $@ $^ $(EXTRA_LDFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 ${TARGET2}: ${SHAREDOBJS} ${OBJS2}
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-ldif-update: all ../../../plugins/ldap/ldap-base.csv
-	make -C ../../xml cluster.rng
-	./rng2ldif ../../xml/cluster.rng \
-		../../../plugins/ldap/ldap-base.csv \
-		../../../plugins/ldap/99cluster.ldif
-	
+ldif-update: all $(SRCDIR)/config/plugins/ldap/ldap-base.csv
+	make -C $(OBJDIR)/config/tools/xml cluster.rng
+	./rng2ldif $(OBJDIR)/config/tools/xml/cluster.rng \
+		$(SRCDIR)/config/plugins/ldap/ldap-base.csv \
+		$(SRCDIR)/config/plugins/ldap/99cluster.ldif
 
 clean: generalclean
 
