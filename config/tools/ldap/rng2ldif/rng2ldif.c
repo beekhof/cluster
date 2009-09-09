@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -126,6 +127,9 @@ write_ldap_schema(const char *rng, const char *arg,
 	struct ldap_object_node *obj = NULL;
 	char filename[4096];
 	FILE *out_ldap = NULL;
+	char now_asc[128];
+	time_t now;
+	struct tm now_tm;
 	int fd = -1;
 
 	if (!strcmp(arg, "-")) {
@@ -146,7 +150,15 @@ write_ldap_schema(const char *rng, const char *arg,
 		}
 	}
 
-	fprintf(out_ldap, "# Auto-generated from %s\n", rng);
+	now = time(NULL);
+	memset(&now_tm, 0, sizeof(now_tm));
+	if (localtime_r(&now, &now_tm) == NULL) {
+		snprintf(now_asc, sizeof(now_asc), "???");
+	} else {
+		strftime(now_asc, sizeof(now_asc), "%F %T", &now_tm);
+	}
+
+	fprintf(out_ldap, "# Auto-generated @ %s\n", now_asc);
 	fprintf(out_ldap, "dn: cn=schema\n");
 
 	for (attr = attrs; attr; attr = attr->next)
