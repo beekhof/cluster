@@ -106,6 +106,7 @@ int read_sb(struct gfs2_sbd *sdp)
 		error = -1;
 	}
 	sdp->fssize = lseek(sdp->device_fd, 0, SEEK_END) / sdp->sd_sb.sb_bsize;
+	sdp->sb_addr = GFS2_SB_ADDR * GFS2_BASIC_BLOCK / sdp->bsize;
 
  out:
 
