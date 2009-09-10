@@ -13,7 +13,7 @@
 
 
 static struct ldap_attr_node *
-find_attr(struct ldap_attr_node *attrs, const char *name)
+find_attr_byname(struct ldap_attr_node *attrs, const char *name)
 {
 	struct ldap_attr_node *n;
 
@@ -32,6 +32,19 @@ find_meta_attr(struct ldap_attr_meta_node *metas, struct ldap_attr_node *attr)
 
 	for (n = metas; n; n = n->next) {
 		if (n->node == attr)
+			return n;
+	}
+	return NULL;
+}
+
+
+static struct ldap_attr_meta_node *
+find_meta_attr_byname(struct ldap_attr_meta_node *metas, const char *name)
+{
+	struct ldap_attr_meta_node *n;
+
+	for (n = metas; n; n = n->next) {
+		if (!strcmp(n->node->name, name))
 			return n;
 	}
 	return NULL;
@@ -82,7 +95,7 @@ get_attr(xmlNodePtr curr_node, struct ldap_attr_node **attrs,
 	name = (char *)xmlGetProp(curr_node, (xmlChar *)"name");
 	normalized = normalize_name((const char *)name);
 
-	n = find_attr(*attrs, normalized);
+	n = find_attr_byname(*attrs, normalized);
 	if (n) {
 		free(normalized);
 		return n;
@@ -249,8 +262,10 @@ parse_element_tag(xmlNodePtr curr_node,
 		  struct idinfo *ids)
 {
 	struct ldap_object_node *obj;
+	struct ldap_attr_meta_node *attrm;
 	char *n, *normalized;
 	struct idval *v;
+	int need_cn = 1;
 	
 	dbg_printf("Trying to parse element tag\n");
 	n = (char *)xmlGetProp(curr_node, (xmlChar *)"name");
@@ -273,13 +288,29 @@ parse_element_tag(xmlNodePtr curr_node,
 		obj->idval = v;
 		obj->next = *objs;
 		*objs = obj;
-		dbg_printf("New object class %s \n",obj->name);
+		printf("New object class %s \n",obj->name);
 	}
 
 	find_optional_attributes(curr_node->xmlChildrenNode, 0,
 				 obj, attrs, ids);
 	find_required_attributes(curr_node->xmlChildrenNode,
 				 obj, attrs, ids);
+
+	if (find_meta_attr_byname(obj->required_attrs, "name") ||
+	    find_meta_attr_byname(obj->required_attrs, "cn")) {
+		need_cn = 0;
+	}
+
+	if (need_cn &&
+	    (find_meta_attr_byname(obj->optional_attrs, "name") ||
+	     find_meta_attr_byname(obj->optional_attrs, "cn"))) {
+		need_cn = 0;
+	}
+
+	if (need_cn) {
+		dbg_printf("Object class might %s need 'MUST ( cn )' for proper LDIF\n", obj->name);
+		obj->need_cn = 1;
+	}
 }
 
 
@@ -289,8 +320,6 @@ find_objects(xmlNodePtr curr_node,
 	     struct ldap_attr_node **attrs,
 	     struct idinfo *ids)
 {
-	//xmlNodePtr node;
-
 	if (!curr_node)
 		return 0;
 

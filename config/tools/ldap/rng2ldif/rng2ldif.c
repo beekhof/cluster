@@ -81,10 +81,20 @@ print_obj_node(FILE *fp, struct ldap_object_node *node)
 
 	if (node->required_attrs) {
 		fprintf(fp, "%s     MUST ( ", cmt);
+
+		if (node->need_cn) {
+			fprintf(fp, "cn $ ");
+		}
+
 		for (n = node->required_attrs; n->next != NULL; n = n->next)
 			fprintf(fp, "%s $ ", n->node->name);
 		fprintf(fp, "%s )\n", n->node->name);
+	} else {
+		if (node->need_cn) {
+			fprintf(fp, "%s     MUST ( cn )\n", cmt);
+		}
 	}
+
 	if (node->optional_attrs) {
 		fprintf(fp, "%s     MAY ( ", cmt);
 		for (n = node->optional_attrs; n->next != NULL; n = n->next)

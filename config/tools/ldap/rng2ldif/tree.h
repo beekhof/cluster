@@ -26,6 +26,8 @@ struct ldap_object_node {
 	struct idval *idval;
 	struct ldap_attr_meta_node *optional_attrs;
 	struct ldap_attr_meta_node *required_attrs;
+	int need_cn; /* If we don't have a 'name' or a 'cn' attribute,
+			add one when we output the LDIF */
 };
 
 int
