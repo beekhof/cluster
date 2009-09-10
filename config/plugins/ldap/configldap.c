@@ -195,6 +195,9 @@ static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, hdb_handle_
 						     parsed_dn[0][0][0].la_value.bv_len);
 			}
 			else {
+ 			        /* Remove redundant empty parent. */
+			        objdb->object_destroy(object_handle);
+
 				parent_handle = find_parent(objdb, parsed_dn, 2, object);
 				/* Create a new object with the same name as the current one */
 				objdb->object_create(parent_handle, &object_handle, parsed_dn[1][0][0].la_value.bv_val,
@@ -264,7 +267,7 @@ static int init_config(struct objdb_iface_ver0 *objdb)
 
 	/* Connect to the LDAP server */
 	if (ldap_initialize(&ld, ldap_url)) {
-		sprintf(error_reason, "ldap_simple_bind failed: %s\n", strerror(errno));
+		sprintf(error_reason, "ldap_initialize failed: %s\n", strerror(errno));
 		return -1;
 	}
 	version = LDAP_VERSION3;
