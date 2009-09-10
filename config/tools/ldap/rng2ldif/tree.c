@@ -288,7 +288,7 @@ parse_element_tag(xmlNodePtr curr_node,
 		obj->idval = v;
 		obj->next = *objs;
 		*objs = obj;
-		printf("New object class %s \n",obj->name);
+		dbg_printf("New object class %s \n",obj->name);
 	}
 
 	find_optional_attributes(curr_node->xmlChildrenNode, 0,
