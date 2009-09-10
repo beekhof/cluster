@@ -218,9 +218,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (find_objects(xmlDocGetRootElement(doc),
-			 &objs, &attrs, &info) < 0)
-		return 1;
+	find_objects(xmlDocGetRootElement(doc), &objs, &attrs, &info);
 
 	reverse((struct faux_list **)&attrs);
 	reverse((struct faux_list **)&objs);

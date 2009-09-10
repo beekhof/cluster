@@ -255,14 +255,13 @@ find_required_attributes(xmlNodePtr curr_node,
 }
 
 
-static void
+static struct ldap_object_node *
 parse_element_tag(xmlNodePtr curr_node,
 		  struct ldap_object_node **objs,
 		  struct ldap_attr_node **attrs,
 		  struct idinfo *ids)
 {
 	struct ldap_object_node *obj;
-	struct ldap_attr_meta_node *attrm;
 	char *n, *normalized;
 	struct idval *v;
 	int need_cn = 1;
@@ -311,6 +310,8 @@ parse_element_tag(xmlNodePtr curr_node,
 		dbg_printf("Object class might %s need 'MUST ( cn )' for proper LDIF\n", obj->name);
 		obj->need_cn = 1;
 	}
+
+	return obj;
 }
 
 
@@ -320,21 +321,43 @@ find_objects(xmlNodePtr curr_node,
 	     struct ldap_attr_node **attrs,
 	     struct idinfo *ids)
 {
+	struct ldap_object_node *obj = NULL;
+	int ret = 0;
+
 	if (!curr_node)
+		/* no objects found */
 		return 0;
 
 	for (; curr_node; curr_node = curr_node->next) {
 		if (curr_node->type != XML_ELEMENT_NODE)
 			continue;
 		if (!strcasecmp((char *)curr_node->name, "element")) {
-			parse_element_tag(curr_node, objs, attrs, ids);
+			obj = parse_element_tag(curr_node, objs, attrs, ids);
+			ret = 1;
 		} else {
 			dbg_printf("Descend on %s\n", curr_node->name);
 		}
-		find_objects(curr_node->xmlChildrenNode,
-			     objs, attrs, ids);
 
+		if (find_objects(curr_node->xmlChildrenNode, 
+		    		 objs, attrs, ids)) {
+			ret = 1;
+		} else if (obj) {
+			/*
+			 * We have an object, but when we 
+			 * looked for children, it did not
+			 * have any.  So, we can omit the
+			 * requirement for 'cn' in the
+			 * output LDIF here
+			 */
+			if (obj->need_cn) {
+				dbg_printf("Object class %s does not have"
+					   " any children; not outputting "
+					   "'MUST ( cn )'\n", obj->name);
+			}
+			obj->need_cn = 0;
+		}
 	}
 
-	return 0;
+	/* Child objects were found */
+	return ret;
 }
