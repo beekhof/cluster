@@ -25,14 +25,13 @@ print_usage() {
 	echo "  -V               Print program version information, then exit"
 	echo "  -v               Produce verbose output"
 	echo ""
-	echo "  -r               Force validation of runtime config"
-	echo "  -C config_loader Override config plugin loader"
-	echo ""
 	echo "Validating XML configuraton files:"
 	echo "  -f configfile    Validate an alternate config file"
-	echo "  -l               Do not perform load test (requires -f)"
+	echo "  -l configfile    Validate an alternate config file (load test)"
 	echo ""
-	echo "Debugging options:"
+	echo "Advanced options:"
+	echo "  -r               Force validation of runtime config"
+	echo "  -C config_loader Override config plugin loader"
 	echo "  -t tempfile      Force temporay file to tempfile"
 	echo "  -n               Do not remove temporary file"
 	echo "  -o               Overwrite temporary file (dangerous)"
@@ -70,19 +69,29 @@ check_opts() {
 				exit 255
 			fi
 		;;
-		-f)
+		-l)
 			shift
 			COROSYNC_CLUSTER_CONFIG_FILE=$1
 			COROSYNC_DEFAULT_CONFIG_IFACE=xmlconfig:cmanpreconfig
 			filetest=1
 			if [ -n "$loaderoverride" ] || \
-			   [ -n "$runtimetest" ]; then
-				echo "Error: invalid options. -f can not be set together with -r or -C" >&2
+			   [ -n "$runtimetest" ] || \
+			   [ -n "$noloadtest" ]; then
+				echo "Error: invalid options. -l can not be set together with -r or -C or -f" >&2
 				exit 255
 			fi
 		;;
-		-l)
+		-f)
+			shift
+			COROSYNC_CLUSTER_CONFIG_FILE=$1
+			unset COROSYNC_DEFAULT_CONFIG_IFACE
 			noloadtest=1
+			if [ -n "$loaderoverride" ] || \
+			   [ -n "$runtimetest" ] || \
+			   [ -n "$filetest" ]; then
+				echo "Error: invalid options. -f can not be set together with -r or -C or -l" >&2
+				exit 255
+			fi
 		;;
 		-r)
 			unset COROSYNC_DEFAULT_CONFIG_IFACE
@@ -100,12 +109,6 @@ check_opts() {
 		esac
 		shift
 	done
-
-	if [ -n "$noloadtest" ] && [ -z "$COROSYNC_CLUSTER_CONFIG_FILE" ]; then
-		echo "Error: -l requires -f option" >&2
-		exit 255
-	fi
-
 }
 
 lecho()
@@ -114,10 +117,7 @@ lecho()
 	return 0
 }
 
-export COROSYNC_DEFAULT_CONFIG_IFACE
-export COROSYNC_CLUSTER_CONFIG_FILE
-
-opts=$(getopt t:hVnC:f:lrov $@)
+opts=$(getopt t:hVnC:f:l:rov $@)
 if [ "$?" != 0 ]; then
 	print_usage >&2
 	exit 255
