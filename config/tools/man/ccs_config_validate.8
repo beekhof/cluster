@@ -1,0 +1,52 @@
+.TH CCS_CONFIG_VALIDATE "8" "September 2009"
+.SH NAME
+ccs_config_validate
+.SH DESCRIPTION
+Usage:
+.PP
+ccs_config_validate [options]
+.SH OPTIONS
+.TP
+\fB\-h\fR
+Print this help, then exit
+.TP
+\fB\-V\fR
+Print program version information, then exit
+.TP
+\fB\-v\fR
+Produce verbose output
+.SS "Validating XML configuraton files:"
+.TP
+\fB\-f\fR configfile
+Validate an alternate config file without preloading it with default values.
+.TP
+\fB\-l\fR configfile
+Validate an alternate config file with preloading of default values (recommended option).
+.SS "Advanced options:"
+.TP
+\fB\-r\fR
+Force validation of runtime config
+.HP
+\fB\-C\fR config_loader
+Override config plugin loader
+.TP
+\fB\-t\fR tempfile
+Force temporay file to tempfile
+.TP
+\fB\-n\fR
+Do not remove temporary file
+.TP
+\fB\-o\fR
+Overwrite temporary file (dangerous)
+.SH "DEFAULT"
+Default operation for ccs_config_validate is to load the currently configured environment
+and verify the outcoming configuration.
+.TP
+Example 1: current environment uses a configuration file (/etc/cluster/cluster.conf).
+The user modifies cluser.conf and executes ccs_config_validate without options.
+The tool will validate the modified cluster.conf after including default values.
+.TP
+Example 2: current environment is set to load the configuration from LDAP. Users
+modifies LDAP databse and before pushing the change to the nodes, she/he can issue
+ccs_config_validate to verify the contents o the LDAP database automatically
+(as long as the correct LDAP environment is set in the cman/cluster sysconfig/defaults files).
