@@ -282,7 +282,7 @@ static int init_config(struct objdb_iface_ver0 *objdb)
 		return -1;
 	}
 
-	rc = read_config_for(ld, objdb, OBJECT_PARENT_HANDLE, "cluster", "cn=cluster", 1);
+	rc = read_config_for(ld, objdb, OBJECT_PARENT_HANDLE, "cluster", "name=cluster", 1);
 
 	ldap_unbind(ld);
 	return 0;
