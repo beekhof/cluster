@@ -314,7 +314,7 @@ int is_cman_member_reread(int nodeid)
 	if (rv)
 		return 1;
 
-	log_debug("cman_member %d not member", nodeid);
+	/* log_debug("cman_member %d not member", nodeid); */
 	return 0;
 }
 

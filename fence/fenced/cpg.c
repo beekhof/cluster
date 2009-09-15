@@ -2119,7 +2119,7 @@ int is_clean_daemon_member(int nodeid)
 			return 0;
 		}
 	}
-	log_debug("daemon_member %d not member", nodeid);
+	/* log_debug("daemon_member %d not member", nodeid); */
 	return 0;
 }
 

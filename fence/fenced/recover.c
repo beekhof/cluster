@@ -278,13 +278,15 @@ static const char *fe_str(int r)
 
 #define FL_SIZE 32
 static struct fence_log flog[FL_SIZE];
+static struct fence_log prev_flog[FL_SIZE];
 
 void fence_victims(struct fd *fd)
 {
 	struct node *node;
-	int error, i, ll, flog_count;
+	int error, i, ll, flog_count, prev_flog_count;
 	int override = -1;
 	int cman_member, cpg_member, ext;
+	unsigned int limit, retries;
 
 	list_for_each_entry(node, &fd->victims, list) {
 		if (node->local_victim_done) {
@@ -304,7 +306,22 @@ void fence_victims(struct fd *fd)
 				  node->nodeid);
 			continue;
 		}
+
+		/* limit repeated logging of the same failure messages
+		   when retrying fencing */
+
+		limit = 0;
+		retries = 0;
+		memset(&prev_flog, 0, sizeof(flog));
+		prev_flog_count = 0;
+
  retry:
+		if (retries > 2)
+			limit = 1;
+		if (limit && !(retries % 600))
+			log_level(LOG_INFO, "fencing node %s still retrying",
+				  node->name);
+
 		/* for queries */
 		fd->current_victim = node->nodeid;
 
@@ -329,7 +346,8 @@ void fence_victims(struct fd *fd)
 		memset(&flog, 0, sizeof(flog));
 		flog_count = 0;
 
-		log_level(LOG_INFO, "fencing node %s", node->name);
+		if (!limit)
+			log_level(LOG_INFO, "fencing node %s", node->name);
 
 		query_unlock();
 		error = fence_node(node->name, flog, FL_SIZE, &flog_count);
@@ -339,6 +357,15 @@ void fence_victims(struct fd *fd)
 			log_error("fence_node log overflow %d", flog_count);
 			flog_count = FL_SIZE;
 		}
+
+		if (limit && error &&
+		    flog_count == prev_flog_count &&
+		    !memcmp(&flog, &prev_flog, sizeof(flog))) {
+			goto skip_log_message;
+		}
+
+		memcpy(&prev_flog, &flog, sizeof(flog));
+		prev_flog_count = flog_count;
 
 		for (i = 0; i < flog_count; i++) {
 			ll = (flog[i].error == FE_AGENT_SUCCESS) ? LOG_DEBUG:
@@ -354,6 +381,7 @@ void fence_victims(struct fd *fd)
 		log_error("fence %s %s", node->name,
 			  error ? "failed" : "success");
 
+ skip_log_message:
 		if (!error) {
 			node->local_victim_done = 1;
 			victim_done(fd, node->nodeid, VIC_DONE_AGENT);
@@ -364,6 +392,7 @@ void fence_victims(struct fd *fd)
 			query_unlock();
 			sleep(5);
 			query_lock();
+			retries++;
 			goto retry;
 		}
 
@@ -379,6 +408,7 @@ void fence_victims(struct fd *fd)
 			continue;
 		} else {
 			close_override(&override, cfgd_override_path);
+			retries++;
 			goto retry;
 		}
 	}
