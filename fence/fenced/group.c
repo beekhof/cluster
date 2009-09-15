@@ -173,7 +173,7 @@ static void _add_first_victims(struct fd *fd)
 		log_debug("first complete list empty warning");
 
 	list_for_each_entry_safe(prev_node, safe, &fd->complete, list) {
-		if (!is_cman_member(prev_node->nodeid)) {
+		if (!is_cman_member_reread(prev_node->nodeid)) {
 			list_del(&prev_node->list);
 			list_add(&prev_node->list, &fd->victims);
 			log_debug("add first victim %s", prev_node->name);
@@ -381,8 +381,10 @@ int fd_join_group(struct fd *fd)
 		log_error("group_join error %d", rv);
 		list_del(&fd->list);
 		free(fd);
+		return rv;
 	}
-	return rv;
+	set_cman_dirty();
+	return 0;
 }
 
 int fd_leave_group(struct fd *fd)

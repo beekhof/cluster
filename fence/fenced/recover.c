@@ -67,8 +67,8 @@ static int reduce_victims(struct fd *fd)
 	num_victims = list_count(&fd->victims);
 
 	list_for_each_entry_safe(node, safe, &fd->victims, list) {
-		if (is_cman_member(node->nodeid) &&
-		    in_daemon_member_list(node->nodeid)) {
+		if (is_cman_member_reread(node->nodeid) &&
+		    is_clean_daemon_member(node->nodeid)) {
 			log_debug("reduce victim %s", node->name);
 			victim_done(fd, node->nodeid, VIC_DONE_MEMBER);
 			list_del(&node->list);
@@ -286,14 +286,30 @@ void fence_victims(struct fd *fd)
 	int override = -1;
 	int cman_member, cpg_member, ext;
 
-	while (!list_empty(&fd->victims)) {
-		node = list_entry(fd->victims.next, struct node, list);
+	list_for_each_entry(node, &fd->victims, list) {
+		if (node->local_victim_done) {
+			/* local_victim_done means we've successfully fenced
+			   this node and will remove it from victims list
+			   upon receipt of the victim_done message we sent */
 
+			/* I don't believe fence_victims() can come across
+			   a node with local_victim_done set.  That would
+			   mean: pass 1 through fence_victims() fences node A,
+			   send victim_done(A), return, process confchgs
+			   adding and removing A again, receive msgs for start
+			   cycle, but *not* receive victim_done(A) msg before
+			   coming through fence_victims() again. */
+
+			log_error("skip local_victim_done node %d",
+				  node->nodeid);
+			continue;
+		}
+ retry:
 		/* for queries */
 		fd->current_victim = node->nodeid;
 
-		cman_member = is_cman_member(node->nodeid);
-		cpg_member = in_daemon_member_list(node->nodeid);
+		cman_member = is_cman_member_reread(node->nodeid);
+		cpg_member = is_clean_daemon_member(node->nodeid);
 		if (group_mode == GROUP_LIBCPG)
 			ext = is_fenced_external(fd, node->nodeid);
 		else
@@ -303,10 +319,10 @@ void fence_victims(struct fd *fd)
 			log_debug("averting fence of node %s "
 				  "cman member %d cpg member %d external %d",
 				  node->name, cman_member, cpg_member, ext);
+
+			node->local_victim_done = 1;
 			victim_done(fd, node->nodeid,
 				    ext ? VIC_DONE_EXTERNAL : VIC_DONE_MEMBER);
-			list_del(&node->list);
-			free(node);
 			continue;
 		}
 
@@ -339,9 +355,8 @@ void fence_victims(struct fd *fd)
 			  error ? "failed" : "success");
 
 		if (!error) {
+			node->local_victim_done = 1;
 			victim_done(fd, node->nodeid, VIC_DONE_AGENT);
-			list_del(&node->list);
-			free(node);
 			continue;
 		}
 
@@ -349,7 +364,7 @@ void fence_victims(struct fd *fd)
 			query_unlock();
 			sleep(5);
 			query_lock();
-			continue;
+			goto retry;
 		}
 
 		/* Check for manual intervention */
@@ -358,11 +373,14 @@ void fence_victims(struct fd *fd)
 				   cfgd_override_time) > 0) {
 			log_level(LOG_WARNING, "fence %s overridden by "
 				  "administrator intervention", node->name);
+			node->local_victim_done = 1;
 			victim_done(fd, node->nodeid, VIC_DONE_OVERRIDE);
-			list_del(&node->list);
-			free(node);
+			close_override(&override, cfgd_override_path);
+			continue;
+		} else {
+			close_override(&override, cfgd_override_path);
+			goto retry;
 		}
-		close_override(&override, cfgd_override_path);
 	}
 
 	fd->current_victim = 0;

@@ -1,6 +1,8 @@
 #include "fd.h"
 #include "config.h"
 
+#define PV_STATEFUL 0x0001
+
 struct protocol_version {
 	uint16_t major;
 	uint16_t minor;
@@ -22,6 +24,10 @@ struct protocol {
 struct node_daemon {
 	struct list_head list;
 	int nodeid;
+	int is_member;
+	int killed;
+	uint64_t join_time;
+	uint64_t left_time;
 	struct protocol proto;
 };
 
@@ -67,11 +73,64 @@ struct id_info {
 };
 
 static cpg_handle_t cpg_handle_daemon;
-static int daemon_cpg_fd;
+static int cpg_fd_daemon;
 static struct protocol our_protocol;
 static struct list_head daemon_nodes;
 static struct cpg_address daemon_member[MAX_NODES];
 static int daemon_member_count;
+
+static void log_config(const struct cpg_name *group_name,
+		       const struct cpg_address *member_list,
+		       size_t member_list_entries,
+		       const struct cpg_address *left_list,
+		       size_t left_list_entries,
+		       const struct cpg_address *joined_list,
+		       size_t joined_list_entries)
+{
+	char m_buf[128];
+	char j_buf[32];
+	char l_buf[32];
+	size_t i, len, pos;
+	int ret;
+
+	memset(m_buf, 0, sizeof(m_buf));
+	memset(j_buf, 0, sizeof(j_buf));
+	memset(l_buf, 0, sizeof(l_buf));
+
+	len = sizeof(m_buf);
+	pos = 0;
+	for (i = 0; i < member_list_entries; i++) {
+		ret = snprintf(m_buf + pos, len - pos, " %d",
+			       member_list[i].nodeid);
+		if (ret >= len - pos)
+			break;
+		pos += ret;
+	}
+
+	len = sizeof(j_buf);
+	pos = 0;
+	for (i = 0; i < joined_list_entries; i++) {
+		ret = snprintf(j_buf + pos, len - pos, " %d",
+			       joined_list[i].nodeid);
+		if (ret >= len - pos)
+			break;
+		pos += ret;
+	}
+
+	len = sizeof(l_buf);
+	pos = 0;
+	for (i = 0; i < left_list_entries; i++) {
+		ret = snprintf(l_buf + pos, len - pos, " %d",
+			       left_list[i].nodeid);
+		if (ret >= len - pos)
+			break;
+		pos += ret;
+	}
+
+	log_debug("%s conf %zu %zu %zu memb%s join%s left%s", group_name->value,
+		  member_list_entries, joined_list_entries, left_list_entries,
+		  m_buf, j_buf, l_buf);
+}
 
 static void fd_info_in(struct fd_info *fi)
 {
@@ -225,6 +284,17 @@ void free_cg(struct change *cg)
 	free(cg);
 }
 
+static struct node *get_node_victim(struct fd *fd, int nodeid)
+{
+	struct node *node;
+
+	list_for_each_entry(node, &fd->victims, list) {
+		if (node->nodeid == nodeid)
+			return node;
+	}
+	return NULL;
+}
+
 static struct node_history *get_node_history(struct fd *fd, int nodeid)
 {
 	struct node_history *node;
@@ -251,6 +321,41 @@ void node_history_init(struct fd *fd, int nodeid)
 
 	node->nodeid = nodeid;
 	list_add_tail(&node->list, &fd->node_history);
+}
+
+void node_history_cman_add(int nodeid)
+{
+	struct fd *fd;
+	struct node_history *node;
+
+	list_for_each_entry(fd, &domains, list) {
+		node_history_init(fd, nodeid);
+
+		node = get_node_history(fd, nodeid);
+		if (!node) {
+			log_error("node_history_cman_add no nodeid %d", nodeid);
+			return;
+		}
+
+		node->cman_add_time = time(NULL);
+	}
+}
+
+void node_history_cman_remove(int nodeid)
+{
+	struct fd *fd;
+	struct node_history *node;
+
+	list_for_each_entry(fd, &domains, list) {
+		node = get_node_history(fd, nodeid);
+		if (!node) {
+			log_error("node_history_cman_remove no nodeid %d",
+				  nodeid);
+			return;
+		}
+
+		node->cman_remove_time = time(NULL);
+	}
 }
 
 static void node_history_start(struct fd *fd, int nodeid)
@@ -460,7 +565,7 @@ void send_victim_done(struct fd *fd, int victim)
 	hd->type = FD_MSG_VICTIM_DONE;
 	hd->msgdata = cg->seq;
 
-	if (fd->init_complete)
+	if (fd->init_complete || fd->local_init_complete)
 		hd->flags |= FD_MFLG_COMPLETE;
 
 	node = get_node_history(fd, victim);
@@ -483,11 +588,18 @@ void send_victim_done(struct fd *fd, int victim)
 	free(buf);
 }
 
+/* The master needs to remove the victim upon receiving its own victim_done
+   message, just like everyone else.  Otherwise, when a partitioned node is
+   remerged and then killed, the others will see it's already a victim, but
+   the master won't see that confchg until after it's done fencing the
+   victim for the initial partition.  So when the master sees the second
+   failure (due to the kill), the node won't be a victim already so it'll
+   become a victim again. */
+
 static void receive_victim_done(struct fd *fd, struct fd_header *hd, int len)
 {
 	struct node *node;
 	uint32_t seq = hd->msgdata;
-	int found;
 	struct id_info *id;
 
 	log_debug("receive_victim_done %d:%u flags %x len %d", hd->nodeid, seq,
@@ -495,33 +607,34 @@ static void receive_victim_done(struct fd *fd, struct fd_header *hd, int len)
 
 	/* check that hd->nodeids is fd->master ? */
 
-	/* I don't think there's any problem with the master removing the
-	   victim when it's done instead of waiting to remove it when it
-	   receives its own victim_done message, like the other nodes do */
-
-	if (hd->nodeid == our_nodeid)
-		return;
-
 	id = (struct id_info *)((char *)hd + sizeof(struct fd_header));
 	id_info_in(id);
 
-	found = 0;
-	list_for_each_entry(node, &fd->victims, list) {
-		if (node->nodeid == id->nodeid) {
-			log_debug("receive_victim_done remove nodeid %d how %d",
-				  id->nodeid, id->fence_how);
-			node_history_fence(fd, id->nodeid, id->fence_master,
-					   id->fence_how, id->fence_time);
-			list_del(&node->list);
-			free(node);
-			found = 1;
-			break;
-		}
+	node = get_node_victim(fd, id->nodeid);
+	if (!node) {
+		log_debug("receive_victim_done %d:%u no victim nodeid %d",
+			  hd->nodeid, seq, id->nodeid);
+		return;
 	}
 
-	if (!found)
-		log_debug("receive_victim_done no nodeid %d from %d",
-			  id->nodeid, hd->nodeid);
+	log_debug("receive_victim_done %d:%u remove victim %d how %d",
+		  hd->nodeid, seq, id->nodeid, id->fence_how);
+
+	if (hd->nodeid == our_nodeid) {
+		/* sanity check, I don't think this should happen;
+		   see comment in fence_victims() */
+		if (!node->local_victim_done)
+			log_error("expect local_victim_done");
+		node->local_victim_done = 0;
+	} else {
+		/* save details of fencing operation from master, which
+		   master saves at the time it completes it */
+		node_history_fence(fd, id->nodeid, id->fence_master,
+				   id->fence_how, id->fence_time);
+	}
+
+	list_del(&node->list);
+	free(node);
 }
 
 static int check_quorum_done(struct fd *fd)
@@ -542,7 +655,7 @@ static int check_quorum_done(struct fd *fd)
 		if (!node->check_quorum)
 			continue;
 
-		if (!is_cman_member(node->nodeid)) {
+		if (!is_cman_member_reread(node->nodeid)) {
 			node->check_quorum = 0;
 		} else {
 			log_debug("check_quorum %d is_cman_member",
@@ -659,6 +772,7 @@ static int match_change(struct fd *fd, struct change *cg, struct fd_header *hd,
 {
 	struct id_info *id;
 	struct member *memb;
+	struct node_history *node;
 	uint32_t seq = hd->msgdata;
 	int i, members_mismatch;
 
@@ -679,6 +793,30 @@ static int match_change(struct fd *fd, struct change *cg, struct fd_header *hd,
 	if (!memb) {
 		log_debug("match_change %d:%u skip cg %u sender not member",
 			  hd->nodeid, seq, cg->seq);
+		return 0;
+	}
+
+	if (memb->start) {
+		log_debug("match_change %d:%u skip cg %u already start",
+			  hd->nodeid, seq, cg->seq);
+		return 0;
+	}
+
+	/* a node's start can't match a change if the node joined the cluster
+	   more recently than the change was created */
+
+	node = get_node_history(fd, hd->nodeid);
+	if (!node) {
+		log_debug("match_change %d:%u skip cg %u no node history",
+			  hd->nodeid, seq, cg->seq);
+		return 0;
+	}
+
+	if (node->cman_add_time > cg->create_time) {
+		log_debug("match_change %d:%u skip cg %u created %llu "
+			  "cman add %llu", hd->nodeid, seq, cg->seq,
+			  (unsigned long long)cg->create_time,
+			  (unsigned long long)node->cman_add_time);
 		return 0;
 	}
 
@@ -738,6 +876,39 @@ static int match_change(struct fd *fd, struct change *cg, struct fd_header *hd,
  
    In step 4, how do the nodes know whether the start message from C is
    for confchg1 or confchg2?  Hopefully by comparing the counts and members. */
+
+/* fails to handle partition, merge, kill, failing/manual fence, rejoin.
+   a. m=A,B,C,D
+   b. m=A/B,C,D partition, node B fencing node A, manual, or agent failing
+   c. m=A,B,C,D merge, nodes B,C,D kill cman on node A
+   d. m=B,C,D
+   e. m=A,B,C,D clean rejoin by node A
+   f. node B quits fencing retries on node A and sends victim_done/MEMBER/A
+
+   The problem is that node A in step e receives node B's start message
+   from step c and wrongly thinks it's for step e (member and join lists
+   are the same m=A,B,C,D j=A).  Node B sends the start message for step c
+   so late because it was busy retrying fencing until node A cleanly rejoined
+   in step e, then moved on to process cpg events c, d and e.
+
+   Second problem with this test (not related to change matching) is node B
+   gets stuck on cman is_member checks for the failure of node A due to the
+   kill.  It's waiting for B to become a non-member in cman due to the failure,
+   but B has rejoined since that past failure and won't go away again.
+
+   Possible solution to both problmes:
+   Wait for cpg and cman to be in sync with each other (matching ringid's
+   from both api's?) in wait_conditions.
+
+   a) To replace quorum_done check. (it would be ok for cman ringid to
+      be > cpg ringid for this check but not for other).  This ensures that
+      cman is not lagging behind cpg.  Waits for cman to catch up with cpg.
+
+   b) To avoid sending start for an old cpg confchg.  If cman ringid
+      is > cpg ringid, then return 0 for conditions_done so we won't send
+      start and will wait until the most recent cpg confchg (matching the
+      current cman one) to send a start.  Waits for cpg to catch up with cman.
+*/
 
 static struct change *find_change(struct fd *fd, struct fd_header *hd,
 				  struct fd_info *fi, struct id_info *ids)
@@ -799,7 +970,7 @@ static void receive_start(struct fd *fd, struct fd_header *hd, int len)
 
 	added = is_added(fd, hd->nodeid);
 
-	if (added && fi->started_count) {
+	if (added && fi->started_count && fd->started_count) {
 		log_error("receive_start %d:%u add node with started_count %u",
 			  hd->nodeid, seq, fi->started_count);
 
@@ -816,6 +987,12 @@ static void receive_start(struct fd *fd, struct fd_header *hd, int len)
 		/* This method of detecting a merge of a partitioned cpg
 		   assumes a joining node won't ever see an existing node
 		   as "added" under normal circumstances. */
+
+		/* The fd->started_count condition is needed for the case
+		   where a node begins partitioned, has never started, and then
+		   is merged with other nodes that have started.  We don't
+		   want this unstarted node to reject the started ones even
+		   though it sees them as "added". */
 
 		memb->disallowed = 1;
 		return;
@@ -911,7 +1088,7 @@ static void send_info(struct fd *fd, int type)
 	hd->msgdata = cg->seq;
 	if (cg->we_joined)
 		hd->flags |= FD_MFLG_JOINING;
-	if (fd->init_complete)
+	if (fd->init_complete || fd->local_init_complete)
 		hd->flags |= FD_MFLG_COMPLETE;
 
 	/* fill in fd_info */
@@ -984,7 +1161,7 @@ static int nodes_added(struct fd *fd)
    victims list.  So, we need to assume that any node in cluster.conf that's
    not a cluster member when we're added to the fd is already a victim.
    We can go back on that assumption, and clear out any presumed victims, when
-   we see a message from a previous member saying that are no current victims. */
+   we see a message from a previous member saying that are no current victims.*/
 
 static void add_victims(struct fd *fd, struct change *cg)
 {
@@ -1000,7 +1177,7 @@ static void add_victims(struct fd *fd, struct change *cg)
 			   disallowed node is killed.  The original
 			   partition makes the node a victim, and killing
 			   it after a merge will find it already a victim. */
-			log_debug("add_victims nodeid %d already victim",
+			log_debug("add_victims node %d already victim",
 				  memb->nodeid);
 			continue;
 		}
@@ -1008,7 +1185,7 @@ static void add_victims(struct fd *fd, struct change *cg)
 		if (!node)
 			return;
 		list_add(&node->list, &fd->victims);
-		log_debug("add nodeid %d to victims", node->nodeid);
+		log_debug("add_victims node %d", node->nodeid);
 	}
 }
 
@@ -1048,6 +1225,7 @@ static void apply_changes(struct fd *fd)
 
 	case CGST_WAIT_MESSAGES:
 		if (wait_messages_done(fd)) {
+			our_protocol.dr_ver.flags |= PV_STATEFUL;
 			set_master(fd);
 			cg->state = CGST_WAIT_FENCING;  /* for queries */
 
@@ -1055,6 +1233,7 @@ static void apply_changes(struct fd *fd)
 				delay_fencing(fd, nodes_added(fd));
 				fence_victims(fd);
 				send_complete(fd);
+				fd->local_init_complete = 1;
 			} else {
 				defer_fencing(fd);
 			}
@@ -1100,6 +1279,7 @@ static int add_change(struct fd *fd,
 	INIT_LIST_HEAD(&cg->removed);
 	cg->seq = ++fd->change_seq;
 	cg->state = CGST_WAIT_CONDITIONS;
+	cg->create_time = time(NULL);
 
 	cg->member_count = member_list_entries;
 	cg->joined_count = joined_list_entries;
@@ -1187,7 +1367,7 @@ static void add_victims_init(struct fd *fd, struct change *cg)
 	list_for_each_entry_safe(node, safe, &fd->complete, list) {
 		list_del(&node->list);
 
-		if (!is_cman_member(node->nodeid) &&
+		if (!is_cman_member_reread(node->nodeid) &&
 		    !find_memb(cg, node->nodeid) &&
 		    !is_victim(fd, node->nodeid)) {
 			node->init_victim = 1;
@@ -1199,7 +1379,8 @@ static void add_victims_init(struct fd *fd, struct change *cg)
 	}
 }
 
-static int we_left(const struct cpg_address *left_list, size_t left_list_entries)
+static int we_left(const struct cpg_address *left_list,
+		   size_t left_list_entries)
 {
 	int i;
 
@@ -1210,18 +1391,22 @@ static int we_left(const struct cpg_address *left_list, size_t left_list_entries
 	return 0;
 }
 
-static void confchg_cb(cpg_handle_t handle,
-		       const struct cpg_name *group_name,
-		       const struct cpg_address *member_list,
-		       size_t member_list_entries,
-		       const struct cpg_address *left_list,
-		       size_t left_list_entries,
-		       const struct cpg_address *joined_list,
-		       size_t joined_list_entries)
+static void confchg_cb_domain(cpg_handle_t handle,
+			      const struct cpg_name *group_name,
+			      const struct cpg_address *member_list,
+			      size_t member_list_entries,
+			      const struct cpg_address *left_list,
+			      size_t left_list_entries,
+			      const struct cpg_address *joined_list,
+			      size_t joined_list_entries)
 {
 	struct fd *fd;
 	struct change *cg;
 	int rv;
+
+	log_config(group_name, member_list, member_list_entries,
+		   left_list, left_list_entries,
+		   joined_list, joined_list_entries);
 
 	fd = find_fd_handle(handle);
 	if (!fd) {
@@ -1275,10 +1460,10 @@ static void fd_header_in(struct fd_header *hd)
 	hd->msgdata     = le32_to_cpu(hd->msgdata);
 }
 
-static void deliver_cb(cpg_handle_t handle,
-		       const struct cpg_name *group_name,
-		       uint32_t nodeid, uint32_t pid,
-		       void *data, size_t len)
+static void deliver_cb_domain(cpg_handle_t handle,
+			      const struct cpg_name *group_name,
+			      uint32_t nodeid, uint32_t pid,
+			      void *data, size_t len)
 {
 	struct fd *fd;
 	struct fd_header *hd;
@@ -1332,19 +1517,19 @@ static void deliver_cb(cpg_handle_t handle,
 	apply_changes(fd);
 }
 
-static cpg_callbacks_t cpg_callbacks = {
-	.cpg_deliver_fn = deliver_cb,
-	.cpg_confchg_fn = confchg_cb,
+static cpg_callbacks_t cpg_callbacks_domain = {
+	.cpg_deliver_fn = deliver_cb_domain,
+	.cpg_confchg_fn = confchg_cb_domain,
 };
 
-static void process_fd_cpg(int ci)
+static void process_cpg_domain(int ci)
 {
 	struct fd *fd;
 	cpg_error_t error;
 
 	fd = find_fd_ci(ci);
 	if (!fd) {
-		log_error("process_fd_cpg no fence domain for ci %d", ci);
+		log_error("process_cpg_domain no fence domain for ci %d", ci);
 		return;
 	}
 
@@ -1362,7 +1547,7 @@ int fd_join(struct fd *fd)
 	struct cpg_name name;
 	int i = 0, f, ci;
 
-	error = cpg_initialize(&h, &cpg_callbacks);
+	error = cpg_initialize(&h, &cpg_callbacks_domain);
 	if (error != CPG_OK) {
 		log_error("cpg_initialize error %d", error);
 		goto fail_free;
@@ -1370,7 +1555,7 @@ int fd_join(struct fd *fd)
 
 	cpg_fd_get(h, &f);
 
-	ci = client_add(f, process_fd_cpg, NULL);
+	ci = client_add(f, process_cpg_domain, NULL);
 
 	list_add(&fd->list, &domains);
 	fd->cpg_handle = h;
@@ -1614,19 +1799,6 @@ static void receive_protocol(struct fd_header *hd, int len)
 		return;
 	}
 
-	/* if we have zero run values, and this msg has non-zero run values,
-	   then adopt them as ours; otherwise save this proto message */
-
-	if (our_protocol.daemon_run[0])
-		return;
-
-	if (p->daemon_run[0]) {
-		memcpy(&our_protocol.daemon_run, &p->daemon_run,
-		       sizeof(struct protocol_version));
-		log_debug("run protocol from nodeid %d", hd->nodeid);
-		return;
-	}
-
 	/* save this node's proto so we can tell when we've got all, and
 	   use it to select a minimum protocol from all */
 
@@ -1635,7 +1807,71 @@ static void receive_protocol(struct fd_header *hd, int len)
 		log_error("receive_protocol no node %d", hd->nodeid);
 		return;
 	}
+
+	if (!node->is_member) {
+		log_error("receive_protocol node %d not member", hd->nodeid);
+		return;
+	}
+
+	log_debug("receive_protocol from %d max %u.%u.%u.%x run %u.%u.%u.%x",
+		  hd->nodeid,
+		  p->daemon_max[0], p->daemon_max[1],
+		  p->daemon_max[2], p->daemon_max[3],
+		  p->daemon_run[0], p->daemon_run[1],
+		  p->daemon_run[2], p->daemon_run[3]);
+	log_debug("daemon node %d max %u.%u.%u.%x run %u.%u.%u.%x",
+		  hd->nodeid,
+		  node->proto.daemon_max[0], node->proto.daemon_max[1],
+		  node->proto.daemon_max[2], node->proto.daemon_max[3],
+		  node->proto.daemon_run[0], node->proto.daemon_run[1],
+		  node->proto.daemon_run[2], node->proto.daemon_run[3]);
+	log_debug("daemon node %d join %llu left %llu local quorum %llu",
+		  hd->nodeid,
+		  (unsigned long long)node->join_time,
+		  (unsigned long long)node->left_time,
+		  (unsigned long long)quorate_time);
+
+	/* checking zero node->daemon_max[0] is a way to tell if we've received
+	   an acceptable (non-stateful) proto message from the node since we
+	   saw it join the daemon cpg */
+
+	if (hd->nodeid != our_nodeid &&
+	    !node->proto.daemon_max[0] &&
+	    (p->dr_ver.flags & PV_STATEFUL) &&
+	    (our_protocol.dr_ver.flags & PV_STATEFUL)) {
+
+		log_debug("daemon node %d stateful merge", hd->nodeid);
+
+		if (cman_quorate && node->left_time &&
+		    quorate_time < node->left_time) {
+			log_debug("daemon node %d kill due to stateful merge",
+				  hd->nodeid);
+			if (!node->killed)
+				kick_node_from_cluster(hd->nodeid);
+			node->killed = 1;
+		}
+
+		/* don't save p->proto into node->proto; we need to come
+		   through here based on zero daemon_max[0] for other proto
+		   messages like this one from the same node */
+
+		return;
+	}
+
 	memcpy(&node->proto, p, sizeof(struct protocol));
+
+	/* if we have zero run values, and this msg has non-zero run values,
+	   then adopt them as ours; otherwise save this proto message */
+
+	if (our_protocol.daemon_run[0])
+		return;
+
+	if (p->daemon_run[0]) {
+		our_protocol.daemon_run[0] = p->daemon_run[0];
+		our_protocol.daemon_run[1] = p->daemon_run[1];
+		our_protocol.daemon_run[2] = p->daemon_run[2];
+		log_debug("run protocol from nodeid %d", hd->nodeid);
+	}
 }
 
 static void send_protocol(struct protocol *proto)
@@ -1673,7 +1909,7 @@ int set_protocol(void)
 	int rv;
 
 	memset(&pollfd, 0, sizeof(pollfd));
-	pollfd.fd = daemon_cpg_fd;
+	pollfd.fd = cpg_fd_daemon;
 	pollfd.events = POLLIN;
 
 	while (1) {
@@ -1716,7 +1952,7 @@ int set_protocol(void)
 		}
 
 		if (pollfd.revents & POLLIN)
-			process_cpg(0);
+			process_cpg_daemon(0);
 		if (pollfd.revents & (POLLERR | POLLHUP | POLLNVAL)) {
 			log_error("set_protocol poll revents %u",
 				  pollfd.revents);
@@ -1743,14 +1979,17 @@ int set_protocol(void)
 		  our_protocol.daemon_max[0],
 		  our_protocol.daemon_max[1],
 		  our_protocol.daemon_max[2]);
+
+	send_protocol(&our_protocol);
 	return 0;
 }
 
-/* process_cpg(), setup_cpg(), close_cpg() are for the "daemon" cpg which
-   tracks the presence of other daemons; it's not the fenced domain cpg.
-   Joining this cpg tells others that we don't have uncontrolled dlm/gfs
-   kernel state and they can skip fencing us if we're a victim.  (We have
-   to check for that uncontrolled state before calling setup_cpg, obviously.) */
+/* process_cpg_daemon(), setup_cpg_daemon(), close_cpg_daemon() are for the
+   "daemon" cpg which tracks the presence of other daemons; it's not the
+   fence domain cpg.  Joining this cpg tells others that we don't have
+   uncontrolled dlm/gfs kernel state and they can skip fencing us if we're
+   a victim.  (We have to check for that uncontrolled state before calling
+   setup_cpg_daemon, obviously.) */
 
 static void deliver_cb_daemon(cpg_handle_t handle,
 			      const struct cpg_name *group_name,
@@ -1776,6 +2015,17 @@ static void deliver_cb_daemon(cpg_handle_t handle,
 	}
 }
 
+static int in_daemon_member_list(int nodeid)
+{
+	int i;
+
+	for (i = 0; i < daemon_member_count; i++) {
+		if (daemon_member[i].nodeid == nodeid)
+			return 1;
+	}
+	return 0;
+}
+
 static void confchg_cb_daemon(cpg_handle_t handle,
 			      const struct cpg_name *group_name,
 			      const struct cpg_address *member_list,
@@ -1785,7 +2035,12 @@ static void confchg_cb_daemon(cpg_handle_t handle,
 			      const struct cpg_address *joined_list,
 			      size_t joined_list_entries)
 {
+	struct node_daemon *node;
 	int i;
+
+	log_config(group_name, member_list, member_list_entries,
+		   left_list, left_list_entries,
+		   joined_list, joined_list_entries);
 
 	if (joined_list_entries)
 		send_protocol(&our_protocol);
@@ -1795,7 +2050,28 @@ static void confchg_cb_daemon(cpg_handle_t handle,
 
 	for (i = 0; i < member_list_entries; i++) {
 		daemon_member[i] = member_list[i];
+		/* add struct for nodes we've not seen before */
 		add_node_daemon(member_list[i].nodeid);
+	}
+
+	list_for_each_entry(node, &daemon_nodes, list) {
+		if (in_daemon_member_list(node->nodeid)) {
+			if (node->is_member)
+				continue;
+
+			/* node joined daemon cpg */
+			node->is_member = 1;
+			node->join_time = time(NULL);
+		} else {
+			if (!node->is_member)
+				continue;
+
+			/* node left daemon cpg */
+			node->is_member = 0;
+			node->killed = 0;
+			memset(&node->proto, 0, sizeof(struct protocol));
+			node->left_time = time(NULL);
+		}
 	}
 }
 
@@ -1804,7 +2080,7 @@ static cpg_callbacks_t cpg_callbacks_daemon = {
 	.cpg_confchg_fn = confchg_cb_daemon,
 };
 
-void process_cpg(int ci)
+void process_cpg_daemon(int ci)
 {
 	cpg_error_t error;
 
@@ -1813,20 +2089,41 @@ void process_cpg(int ci)
 		log_error("daemon cpg_dispatch error %d", error);
 }
 
-int in_daemon_member_list(int nodeid)
+/* For a new properly started node, it will join the daemon cpg then send a
+   proto message indicating it's not stateful.  For a node merged after a
+   partition, it will join the daemon cpg and then send a proto message
+   indicating it's stateful.  To skip fencing a node we need to know it's
+   joining after starting cleanly, so we need to see the daemon cpg joined
+   followed by a proto message without the STATEFUL flag. */
+
+int is_clean_daemon_member(int nodeid)
 {
-	int i;
+	struct node_daemon *node;
+
+	/* process confchg's and protocol messages for daemon cpg,
+	   need to dispatch here because this is called from fence_victims()
+	   outside the poll() loop */
 
 	cpg_dispatch(cpg_handle_daemon, CPG_DISPATCH_ALL);
 
-	for (i = 0; i < daemon_member_count; i++) {
-		if (daemon_member[i].nodeid == nodeid)
+	node = get_node_daemon(nodeid);
+	if (node && node->is_member) {
+		/* have we received a non-stateful proto message from it?
+		   if so then daemon_max[0] will be non-zero */
+		if (node->proto.daemon_max[0]) {
+			/* assert !(node->proto.dr_ver.flags & PV_STATEFUL) ? */
+			log_debug("daemon_member %d is clean", nodeid);
 			return 1;
+		} else {
+			log_debug("daemon_member %d zero proto", nodeid);
+			return 0;
+		}
 	}
+	log_debug("daemon_member %d not member", nodeid);
 	return 0;
 }
 
-int setup_cpg(void)
+int setup_cpg_daemon(void)
 {
 	cpg_error_t error;
 	struct cpg_name name;
@@ -1845,7 +2142,7 @@ int setup_cpg(void)
 		goto ret;
 	}
 
-	cpg_fd_get(cpg_handle_daemon, &daemon_cpg_fd);
+	cpg_fd_get(cpg_handle_daemon, &cpg_fd_daemon);
 
 	memset(&name, 0, sizeof(name));
 	sprintf(name.value, "fenced:daemon");
@@ -1864,8 +2161,8 @@ int setup_cpg(void)
 		goto fail;
 	}
 
-	log_debug("setup_cpg %d", daemon_cpg_fd);
-	return daemon_cpg_fd;
+	log_debug("setup_cpg_daemon %d", cpg_fd_daemon);
+	return cpg_fd_daemon;
 
  fail:
 	cpg_finalize(cpg_handle_daemon);
@@ -1873,7 +2170,7 @@ int setup_cpg(void)
 	return -1;
 }
 
-void close_cpg(void)
+void close_cpg_daemon(void)
 {
 	struct fd *fd;
 	cpg_error_t error;

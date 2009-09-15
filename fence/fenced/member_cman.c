@@ -7,6 +7,8 @@
 
 static cman_handle_t	ch;
 static cman_handle_t	ch_admin;
+static cman_node_t	old_nodes[MAX_NODES];
+static int		old_node_count;
 static cman_node_t	cman_nodes[MAX_NODES];
 static int		cman_node_count;
 
@@ -29,6 +31,27 @@ void kick_node_from_cluster(int nodeid)
 			  nodeid);
 		cman_kill_node(ch_admin, nodeid);
 	}
+}
+
+static int is_member(cman_node_t *node_list, int count, int nodeid)
+{
+	int i;
+
+	for (i = 0; i < count; i++) {
+		if (node_list[i].cn_nodeid == nodeid)
+			return node_list[i].cn_member;
+	}
+	return 0;
+}
+
+static int is_old_member(int nodeid)
+{
+	return is_member(old_nodes, old_node_count, nodeid);
+}
+
+static int is_cman_member(int nodeid)
+{
+	return is_member(cman_nodes, cman_node_count, nodeid);
 }
 
 static int name_equal(char *name1, char *name2)
@@ -125,15 +148,46 @@ int name_to_nodeid(char *name)
 
 static void statechange(void)
 {
-	int rv;
+	int quorate = cman_quorate;
+	int i, rv;
 
 	cman_quorate = cman_is_quorate(ch);
+
+	if (!quorate && cman_quorate)
+		quorate_time = time(NULL);
+
+	old_node_count = cman_node_count;
+	memcpy(&old_nodes, &cman_nodes, sizeof(old_nodes));
+
 	cman_node_count = 0;
 	memset(&cman_nodes, 0, sizeof(cman_nodes));
-
 	rv = cman_get_nodes(ch, MAX_NODES, &cman_node_count, cman_nodes);
-	if (rv < 0)
+	if (rv < 0) {
 		log_error("cman_get_nodes error %d %d", rv, errno);
+		return;
+	}
+
+	for (i = 0; i < old_node_count; i++) {
+		if (old_nodes[i].cn_member &&
+		    !is_cman_member(old_nodes[i].cn_nodeid)) {
+
+			log_debug("cman node %d removed",
+				  old_nodes[i].cn_nodeid);
+
+			node_history_cman_remove(old_nodes[i].cn_nodeid);
+		}
+	}
+
+	for (i = 0; i < cman_node_count; i++) {
+		if (cman_nodes[i].cn_member &&
+		    !is_old_member(cman_nodes[i].cn_nodeid)) {
+
+			log_debug("cman node %d added",
+				  cman_nodes[i].cn_nodeid);
+
+			node_history_cman_add(cman_nodes[i].cn_nodeid);
+		}
+	}
 }
 
 static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
@@ -248,19 +302,19 @@ void close_cman(void)
 	cman_finish(ch_admin);
 }
 
-int is_cman_member(int nodeid)
+int is_cman_member_reread(int nodeid)
 {
-	cman_node_t *cn;
+	int rv;
 
 	/* Note: in fence delay loop we aren't processing callbacks so won't
 	   have done a statechange() in response to a cman callback */
 	statechange();
 
-	cn = find_cman_node(nodeid);
-	if (cn && cn->cn_member)
+	rv = is_cman_member(nodeid);
+	if (rv)
 		return 1;
 
-	log_debug("node %d not a cman member, cn %d", nodeid, cn ? 1 : 0);
+	log_debug("cman_member %d not member", nodeid);
 	return 0;
 }
 

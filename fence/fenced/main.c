@@ -189,12 +189,13 @@ struct fd *find_fd(char *name)
 
 /* We don't require cman dirty/disallowed to detect and handle cpg merges after
    a partition, because we already do that with started_count checks and our
-   own disallowed flag.  But, we do need cman dirty/disallowed to deal with
-   correctly skipping victims that rejoin the cluster.  Without cman
-   dirty/disallowed, we'd skip fencing a node after a merge of a partition
-   since the merged node would be a cman member and a fenced:daemon cpg member.
-   By setting the dirty flag, cman won't report a dirty merged node as a
-   member, so we'll continue fencing it. */
+   own disallowed flag.  We also don't require cman dirty/disallowed to deal
+   with correctly skipping victims that rejoin the cluster.  If a victim
+   joins the fenced:daemon cpg and sends a proto message without the STATEFUL
+   flag, then we safely skip fencing it.  This is what happens when the node
+   starts cleanly.  If a node is added back after a partition, we see it join
+   the fenced:daemon cpg and it send a proto message with the STATEFUL flag set.
+   In this case it remains a victim and we will continue with fencing it. */
 
 static int do_join(char *name)
 {
@@ -224,9 +225,6 @@ static int do_join(char *name)
 		rv = fd_join_group(fd);
 	else
 		rv = fd_join(fd);
-
-	if (!rv)
-		set_cman_dirty();
  out:
 	return rv;
 }
@@ -681,7 +679,7 @@ static int check_controlled_dir(char *path)
 	return count;
 }
 
-/* Joining the "fenced:daemon" cpg (in setup_cpg()) tells fenced on other
+/* Joining the "fenced:daemon" cpg (in setup_cpg_daemon()) tells fenced on other
    nodes that we are in a "clean state", and don't need fencing.  So, if
    we're a pending fence victim on another node, they'll skip fencing us
    once we start fenced and join the "daemon" cpg (it's not the fence domain
@@ -758,10 +756,10 @@ static void loop(void)
 	if (rv < 0)
 		goto out;
 
-	rv = setup_cpg();
+	rv = setup_cpg_daemon();
 	if (rv < 0)
 		goto out;
-	client_add(rv, process_cpg, cluster_dead);
+	client_add(rv, process_cpg_daemon, cluster_dead);
 
 	group_mode = GROUP_LIBCPG;
 
@@ -830,7 +828,7 @@ static void loop(void)
  out:
 	if (cfgd_groupd_compat)
 		close_groupd();
-	close_cpg();
+	close_cpg_daemon();
 	close_logging();
 	close_ccs();
 	close_cman();
@@ -1071,6 +1069,7 @@ int daemon_quit;
 int cluster_down;
 struct list_head domains;
 int cman_quorate;
+uint64_t quorate_time;
 int our_nodeid;
 char our_name[MAX_NODENAME_LEN+1];
 char daemon_debug_buf[256];
