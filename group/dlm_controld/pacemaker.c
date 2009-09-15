@@ -11,10 +11,15 @@
 
 #include <pacemaker/crm/crm.h>
 #include <pacemaker/crm/ais.h>
+#include <pacemaker/crm/attrd.h>
 /* heartbeat support is irrelevant here */
 #undef SUPPORT_HEARTBEAT 
 #define SUPPORT_HEARTBEAT 0
 #include <pacemaker/crm/common/cluster.h>
+#include <pacemaker/crm/common/stack.h>
+#include <pacemaker/crm/common/ipc.h>
+#include <pacemaker/crm/msg_xml.h>
+#include <pacemaker/crm/cib.h>
 
 #define COMMS_DIR     "/sys/kernel/config/dlm/cluster/comms"
 
@@ -24,7 +29,7 @@ int setup_ccs(void)
      * only allow configuration from the command-line until CoroSync is stable
      * enough to be used with Pacemaker
      */
-    cfgd_groupd_compat = 0; /* always use libcpg and disable backward compatability */
+    cfgd_groupd_compat = 0; /* always use libcpg and disable backward compat */
     return 0;
 }
 
@@ -46,57 +51,17 @@ void close_logging(void) {
 
 extern int ais_fd_async;
 
-int local_node_id = 0;
 char *local_node_uname = NULL;
 void dlm_process_node(gpointer key, gpointer value, gpointer user_data);
 
 int setup_cluster(void)
 {
-    int retries = 0;
-    int rc = SA_AIS_OK;
-    struct utsname name;
-
-    crm_peer_init();
-
-    if(local_node_uname == NULL) {
-	if(uname(&name) < 0) {
-	    cl_perror("uname(2) call failed");
-	    exit(100);
-	}
-	local_node_uname = crm_strdup(name.nodename);
-	log_debug("Local node name: %s", local_node_uname);
-    }
+    ais_fd_async = -1;
+    crm_log_init("cluster-dlm", LOG_INFO, FALSE, TRUE, 0, NULL);
     
-    /* 16 := CRM_SERVICE */
-  retry:
-    log_debug("Creating connection to our AIS plugin");
-    rc = saServiceConnect (&ais_fd_sync, &ais_fd_async, CRM_SERVICE);
-    if (rc != SA_AIS_OK) {
-	log_error("Connection to our AIS plugin (%d) failed: %s (%d)", CRM_SERVICE, ais_error2text(rc), rc);
-    }
-
-    switch(rc) {
-	case SA_AIS_OK:
-	    break;
-	case SA_AIS_ERR_TRY_AGAIN:
-	    if(retries < 30) {
-		sleep(1);
-		retries++;
-		goto retry;
-	    }
-	    log_error("Retry count exceeded");
-	    return 0;
-	default:
-	    return 0;
-    }
-
-    log_debug("AIS connection established");
-
-    {
-	int pid = getpid();
-	char *pid_s = crm_itoa(pid);
-	send_ais_text(0, pid_s, TRUE, NULL, crm_msg_ais);
-	crm_free(pid_s);
+    if(init_ais_connection(NULL, NULL, NULL, &local_node_uname, &our_nodeid) == FALSE) {
+	log_error("Connection to our AIS plugin failed");
+	return -1;
     }
 
     /* Sign up for membership updates */
@@ -105,166 +70,28 @@ int setup_cluster(void)
     /* Requesting the current list of known nodes */
     send_ais_text(crm_class_members, __FUNCTION__, TRUE, NULL, crm_msg_ais);
 
-    our_nodeid = get_ais_nodeid();
-    log_debug("Local node id: %d", our_nodeid);
-
     return ais_fd_async;
 }
 
-static void statechange(void)
+void update_cluster(void)
 {
     static uint64_t last_membership = 0;
     cluster_quorate = crm_have_quorum;
     if(last_membership < crm_peer_seq) {
 	log_debug("Processing membership %llu", crm_peer_seq);
-	g_hash_table_foreach(crm_peer_cache, dlm_process_node, &last_membership);
+	g_hash_table_foreach(crm_peer_id_cache, dlm_process_node, &last_membership);
 	last_membership = crm_peer_seq;
     }
 }
 
-void update_cluster(void)
-{
-    statechange();
-}
-
 void process_cluster(int ci)
 {
-/* ci ::= client number */    
-    char *data = NULL;
-    char *uncompressed = NULL;
-
-    AIS_Message *msg = NULL;
-    SaAisErrorT rc = SA_AIS_OK;
-    mar_res_header_t *header = NULL;
-    mar_res_header_t *h_new;
-    static int header_len = sizeof(mar_res_header_t);
-
-    if ((header = malloc(header_len)) == NULL)
-	goto bail;
-    memset(header, 0, header_len);
-    
-    errno = 0;
-    rc = saRecvRetry(ais_fd_async, header, header_len);
-    if (rc != SA_AIS_OK) {
-	cl_perror("Receiving message header failed: (%d) %s", rc, ais_error2text(rc));
-	goto bail;
-
-    } else if(header->size == header_len) {
-	log_error("Empty message: id=%d, size=%d, error=%d, header_len=%d",
-		  header->id, header->size, header->error, header_len);
-	goto done;
-	
-    } else if(header->size == 0 || header->size < header_len) {
-	log_error("Mangled header: size=%d, header=%d, error=%d",
-		  header->size, header_len, header->error);
-	goto done;
-	
-    } else if(header->error != 0) {
-	log_error("Header contined error: %d", header->error);
-    }
-
-    h_new = realloc(header, header->size);
-    if (h_new == NULL)
-	goto bail;
-    header = h_new;
-
-    /* Use a char* so we can store the remainder into an offset */
-    data = (char*)header;
-
-    errno = 0;
-    rc = saRecvRetry(ais_fd_async, data+header_len, header->size - header_len);
-    msg = (AIS_Message*)data;
-
-    if (rc != SA_AIS_OK) {
-	cl_perror("Receiving message body failed: (%d) %s", rc, ais_error2text(rc));
-	goto bail;
-    }
-    
-    data = msg->data;
-    if(msg->is_compressed && msg->size > 0) {
-	int rc = BZ_OK;
-	unsigned int new_size = msg->size;
-
-	if(check_message_sanity(msg, NULL) == FALSE) {
-	    goto badmsg;
-	}
-
-	log_debug("Decompressing message data");
-	uncompressed = malloc(new_size);
-	// FIXME: handle malloc failure
-	memset(uncompressed, 0, new_size);
-	
-	rc = BZ2_bzBuffToBuffDecompress(
-	    uncompressed, &new_size, data, msg->compressed_size, 1, 0);
-
-	if(rc != BZ_OK) {
-	    log_error("Decompression failed: %d", rc);
-	    goto badmsg;
-	}
-	
-	CRM_ASSERT(rc == BZ_OK);
-	CRM_ASSERT(new_size == msg->size);
-
-	data = uncompressed;
-
-    } else if(check_message_sanity(msg, data) == FALSE) {
-	goto badmsg;
-
-    } else if(safe_str_eq("identify", data)) {
-	int pid = getpid();
-	char *pid_s = crm_itoa(pid);
-	send_ais_text(0, pid_s, TRUE, NULL, crm_msg_ais);
-	crm_free(pid_s);
-	goto done;
-    }
-
-    if(msg->header.id == crm_class_members) {
-	xmlNode *xml = string2xml(data);
-
-	if(xml != NULL) {
-	    const char *value = crm_element_value(xml, "id");
-	    if(value) {
-		crm_peer_seq = crm_int_helper(value, NULL);
-	    }
-
-	    log_debug("Updating membership %llu", crm_peer_seq);
-	    /* crm_log_xml_info(xml, __PRETTY_FUNCTION__); */
-	    xml_child_iter(xml, node, crm_update_ais_node(node, crm_peer_seq));
-	    crm_calculate_quorum();
-	    statechange();
-	    free_xml(xml);
-	    
-	} else {
-	    log_error("Invalid peer update: %s", data);
-	}
-
-    } else {
-	log_error("Unexpected AIS message type: %d", msg->header.id);
-    }
-
-  done:
-    free(uncompressed);
-    free(msg);
-    return;
-
-  badmsg:
-    log_error("Invalid message (id=%d, dest=%s:%s, from=%s:%s.%d):"
-	      " min=%d, total=%d, size=%d, bz2_size=%d",
-	      msg->id, ais_dest(&(msg->host)), msg_type2text(msg->host.type),
-	      ais_dest(&(msg->sender)), msg_type2text(msg->sender.type),
-	      msg->sender.pid, (int)sizeof(AIS_Message),
-	      msg->header.size, msg->size, msg->compressed_size);
-    goto done;
-    
-  bail:
-    free (header);
-    log_error("AIS connection failed");
-    return;
+    ais_dispatch(ais_fd_async, NULL);
+    update_cluster();
 }
 
 void close_cluster(void) {
-    /* TODO: Implement something for this */
-    return;
+    terminate_ais_connection();
 }
 
 #include <arpa/inet.h>
@@ -316,16 +143,10 @@ void dlm_process_node(gpointer key, gpointer value, gpointer user_data)
 	    action = "Added";
 	}
 	
-	if(local_node_id == 0) {
-	    crm_node_t *local_node = g_hash_table_lookup(
-		crm_peer_cache, local_node_uname);
-	    local_node_id = local_node->id;
-	}
-	
 	do {
 	    char ipaddr[1024];
 	    int addr_family = AF_INET;
-	    int cna_len = 0, rc = 0;
+	    int cna_len = 0;
 	    struct sockaddr_storage cna_addr;
 	    struct totem_ip_address totem_addr;
 	    
@@ -372,17 +193,17 @@ void dlm_process_node(gpointer key, gpointer value, gpointer user_data)
 		continue;
 	    }
 
-	    log_debug("Adding address %s to configfs for node %u/%s ", addr, node->id, node->uname);
-	    add_configfs_node(node->id, ((char*)&cna_addr), cna_len, (node->id == local_node_id));
+	    log_debug("Adding address %s to configfs for node %u", addr, node->id);
+	    add_configfs_node(node->id, ((char*)&cna_addr), cna_len, (node->id == our_nodeid));
 
 	} while(addr != NULL);
 	free(addr_top);
     }
 
-    log_debug("%s %sctive node %u '%s': born-on=%llu, last-seen=%llu, this-event=%llu, last-event=%llu",
-	      action, crm_is_member_active(value)?"a":"ina",
-	      node->id, node->uname, node->born, node->last_seen,
-	      crm_peer_seq, (unsigned long long)*last);
+    log_debug("%s %sctive node %u: born-on=%llu, last-seen=%llu, this-event=%llu, last-event=%llu",
+	       action, crm_is_member_active(value)?"a":"ina",
+	       node->id, node->born, node->last_seen,
+	       crm_peer_seq, (unsigned long long)*last);
 }
 
 int is_cluster_member(int nodeid)
@@ -399,18 +220,143 @@ char *nodeid2name(int nodeid) {
     return strdup(node->uname);
 }
 
-void kick_node_from_cluster(int nodeid)
+static int pcmk_cluster_fd = 0;
+
+static void attrd_deadfn(int ci) 
 {
-    log_error("%s not yet implemented", __FUNCTION__);
+    log_error("%s: Lost connection to the cluster", __FUNCTION__);
+    pcmk_cluster_fd = 0;
     return;
 }
 
-int fence_node_time(int nodeid, uint64_t *last_fenced_time)
+void kick_node_from_cluster(int nodeid)
 {
-	return 0;
+    int fd = pcmk_cluster_fd;
+    int rc = crm_terminate_member_no_mainloop(nodeid, NULL, &fd);
+    
+    if(fd > 0 && fd != pcmk_cluster_fd) {
+	pcmk_cluster_fd = fd;
+	client_add(pcmk_cluster_fd, NULL, attrd_deadfn);
+    }
+    
+    switch(rc) {
+	case 1:
+	    log_debug("Requested that node %d be kicked from the cluster", nodeid);
+	    break;
+	case -1:
+	    log_error("Don't know how to kick node %d from the cluster", nodeid);
+	    break;
+	case 0:
+	    log_error("Could not kick node %d from the cluster", nodeid);
+	    break;
+	default:
+	    log_error("Unknown result when kicking node %d from the cluster", nodeid);
+	    break;
+    }
+    return;
 }
 
-int fence_in_progress(int *count)
+cib_t *cib = NULL;
+
+static void cib_deadfn(int ci) 
 {
+    log_error("Lost connection to the cib");
+    cib = NULL; /* TODO: memory leak in unlikely error path */
+    return;
+}
+
+static cib_t *cib_connect(void) 
+{
+    int rc = 0;
+    int cib_fd = 0;
+    if(cib) {
+	return cib;
+    }
+    
+    cib = cib_new();
+    rc = cib->cmds->signon_raw(cib, crm_system_name, cib_command, &cib_fd, NULL);
+    if(rc != cib_ok) {
+	log_error("Signon to cib failed: %s", cib_error2string(rc));
+	cib = NULL; /* TODO: memory leak in unlikely error path */
+
+    } else {
+	client_add(cib_fd, NULL, cib_deadfn);
+    }
+    return cib;
+}
+
+
+int fence_in_progress(int *in_progress)
+{
+    int rc = 0;
+    xmlNode *xpath_data;
+
+    cib_connect();    
+    if(cib == NULL) {
+	return -1;
+    }
+
+    /* TODO: Not definitive - but a good approximation */
+    rc = cib->cmds->query(cib, "//nvpar[@name='terminate']", &xpath_data,
+			  cib_xpath|cib_scope_local|cib_sync_call);
+
+    if(xpath_data == NULL) {
+	*in_progress = 0;
 	return 0;
+    }
+
+    log_debug("Fencing in progress: %s", xpath_data?"true":"false");	
+    free_xml(xpath_data);
+    *in_progress = 1;
+    return 1;
+}
+
+#define XPATH_MAX  1024
+
+int fence_node_time(int nodeid, uint64_t *last_fenced_time)
+{
+    int rc = 0;
+    static time_t last_log = 0;
+
+    xmlNode *xpath_data;
+    char xpath_query[XPATH_MAX];
+    crm_node_t *node = crm_get_peer(nodeid, NULL);
+
+    if(last_fenced_time) {
+	*last_fenced_time = 0;
+    }
+
+    if(node == NULL || node->uname == NULL) {
+	log_error("Nothing known about node %d", nodeid);	
+	return 0;
+    }
+
+    cib_connect();
+    if(cib == NULL) {
+	return -1;
+    }
+
+    snprintf(xpath_query, XPATH_MAX, "//lrm[@id='%s']", node->uname);
+    rc = cib->cmds->query(
+	cib, xpath_query, &xpath_data, cib_xpath|cib_scope_local|cib_sync_call);
+
+    if(xpath_data == NULL) {
+	/* the node has been shot - return 'now' */
+	log_level(LOG_INFO, "Node %d/%s was last shot 'now'", nodeid, node->uname);	
+	*last_fenced_time = time(NULL);
+	last_log = 0;
+
+    } else {
+	time_t now = time(NULL);
+	if(last_log == 0) {
+	    log_level(LOG_INFO, "Node %d/%s has not been shot yet", nodeid, node->uname);
+
+	} else if(now - last_log > 30) {
+	    log_level(LOG_DEBUG, "Node %d/%s has still not been shot yet", nodeid, node->uname);
+	}
+	last_log = now;
+    }
+
+    free_xml(xpath_data);
+    return 0;
 }
