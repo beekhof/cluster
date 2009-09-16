@@ -70,7 +70,7 @@ extern int poll_ignore_plock;
 extern int plock_fd;
 extern int plock_ci;
 extern struct list_head mountgroups;
-extern int cman_quorate;
+extern int cluster_quorate;
 extern int our_nodeid;
 extern char *clustername;
 extern char daemon_debug_buf[256];
@@ -221,9 +221,9 @@ int read_ccs_int(const char *path, int *config_val);
 void read_ccs_nodir(struct mountgroup *mg, char *buf);
 
 /* cpg-new.c */
-int setup_cpg(void);
-void close_cpg(void);
-void process_cpg(int ci);
+int setup_cpg_daemon(void);
+void close_cpg_daemon(void);
+void process_cpg_daemon(int ci);
 int setup_dlmcontrol(void);
 void process_dlmcontrol(int ci);
 int set_protocol(void);
@@ -240,6 +240,8 @@ int set_mountgroups(int *count, struct gfsc_mountgroup **mgs_out);
 int set_mountgroup_nodes(struct mountgroup *mg, int option, int *node_count,
 	struct gfsc_node **nodes_out);
 void free_mg(struct mountgroup *mg);
+void node_history_cluster_add(int nodeid);
+void node_history_cluster_remove(int nodeid);
 
 /* cpg-old.c */
 int setup_cpg_old(void);
@@ -294,9 +296,9 @@ void process_connection(int ci);
 void cluster_dead(int ci);
 
 /* member_cman.c */
-int setup_cman(void);
-void close_cman(void);
-void process_cman(int ci);
+int setup_cluster(void);
+void close_cluster(void);
+void process_cluster(int ci);
 void kick_node_from_cluster(int nodeid);
 
 /* plock.c */

@@ -1131,10 +1131,10 @@ static void loop(void)
 		goto out;
 	client_add(rv, process_listener, NULL);
 
-	rv = setup_cman();
+	rv = setup_cluster();
 	if (rv < 0)
 		goto out;
-	client_add(rv, process_cman, cluster_dead);
+	client_add(rv, process_cluster, cluster_dead);
 
 	rv = setup_ccs();
 	if (rv < 0)
@@ -1184,10 +1184,10 @@ static void loop(void)
 		 * code in: cpg-new.c
 		 */
 
-		rv = setup_cpg();
+		rv = setup_cpg_daemon();
 		if (rv < 0)
 			goto out;
-		client_add(rv, process_cpg, cluster_dead);
+		client_add(rv, process_cpg_daemon, cluster_dead);
 
 		rv = set_protocol();
 		if (rv < 0)
@@ -1291,7 +1291,7 @@ static void loop(void)
 	}
  out:
 	if (group_mode == GROUP_LIBCPG)
-		close_cpg();
+		close_cpg_daemon();
 	else if (group_mode == GROUP_LIBGROUP) {
 		close_plocks();
 		close_cpg_old();
@@ -1300,7 +1300,7 @@ static void loop(void)
 		close_groupd();
 	close_logging();
 	close_ccs();
-	close_cman();
+	close_cluster();
 
 	if (!list_empty(&mountgroups))
 		log_error("mountgroups abandoned");
@@ -1565,7 +1565,7 @@ int poll_dlm;
 int plock_fd;
 int plock_ci;
 struct list_head mountgroups;
-int cman_quorate;
+int cluster_quorate;
 int our_nodeid;
 char *clustername;
 char daemon_debug_buf[256];

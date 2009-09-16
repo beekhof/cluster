@@ -36,7 +36,7 @@ static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
 	}
 }
 
-void process_cman(int ci)
+void process_cluster(int ci)
 {
 	int rv;
 
@@ -45,7 +45,7 @@ void process_cman(int ci)
 		cluster_dead(0);
 }
 
-int setup_cman(void)
+int setup_cluster(void)
 {
 	cman_node_t node;
 	int rv, fd;
@@ -119,7 +119,7 @@ int setup_cman(void)
 	return fd;
 }
 
-void close_cman(void)
+void close_cluster(void)
 {
 	cman_finish(ch);
 	cman_finish(ch_admin);
