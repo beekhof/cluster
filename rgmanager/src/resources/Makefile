@@ -74,6 +74,7 @@ uninstall:
 		     ${sharedir}
 
 clean: generalclean
+	rm -f resources.rng
 
 check: $(RESOURCES) $(TARGET2) $(TARGET3) ra-api-1-modified.dtd
 	@echo Validating resource agent meta-data
