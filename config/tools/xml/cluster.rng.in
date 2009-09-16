@@ -1990,6 +1990,9 @@ To validate your cluster.conf against this schema, run:
           <attribute name="migrate"/>
         </optional>
         <optional>
+          <attribute name="path"/>
+        </optional>
+        <optional>
           <attribute name="snapshot"/>
         </optional>
         <optional>
@@ -2223,6 +2226,32 @@ To validate your cluster.conf against this schema, run:
   </define>
 
 
+  <define name="DRBD">
+    <element name="drbd">
+      <!-- This is a DRBD resource. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="resource"/>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
   <define name="FS">
     <element name="fs">
       <!-- Defines a file system mount. -->
@@ -2334,6 +2363,7 @@ To validate your cluster.conf against this schema, run:
         <ref name="SAPDATABASE"/>
         <ref name="NAMED"/>
         <ref name="ASEHAAGENT"/>
+        <ref name="DRBD"/>
         <ref name="FS"/>
         <ref name="ORACLEDB"/>
       <ref name="RESOURCEACTION"/>
