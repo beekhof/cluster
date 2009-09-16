@@ -173,7 +173,7 @@ static void _add_first_victims(struct fd *fd)
 		log_debug("first complete list empty warning");
 
 	list_for_each_entry_safe(prev_node, safe, &fd->complete, list) {
-		if (!is_cman_member_reread(prev_node->nodeid)) {
+		if (!is_cluster_member_reread(prev_node->nodeid)) {
 			list_del(&prev_node->list);
 			list_add(&prev_node->list, &fd->victims);
 			log_debug("add first victim %s", prev_node->name);

@@ -49,7 +49,7 @@ static int is_old_member(int nodeid)
 	return is_member(old_nodes, old_node_count, nodeid);
 }
 
-static int is_cman_member(int nodeid)
+static int is_cluster_member(int nodeid)
 {
 	return is_member(cman_nodes, cman_node_count, nodeid);
 }
@@ -146,14 +146,14 @@ int name_to_nodeid(char *name)
 	return -1;
 }
 
-static void statechange(void)
+static void update_cluster(void)
 {
-	int quorate = cman_quorate;
+	int quorate = cluster_quorate;
 	int i, rv;
 
-	cman_quorate = cman_is_quorate(ch);
+	cluster_quorate = cman_is_quorate(ch);
 
-	if (!quorate && cman_quorate)
+	if (!quorate && cluster_quorate)
 		quorate_time = time(NULL);
 
 	old_node_count = cman_node_count;
@@ -169,12 +169,12 @@ static void statechange(void)
 
 	for (i = 0; i < old_node_count; i++) {
 		if (old_nodes[i].cn_member &&
-		    !is_cman_member(old_nodes[i].cn_nodeid)) {
+		    !is_cluster_member(old_nodes[i].cn_nodeid)) {
 
-			log_debug("cman node %d removed",
+			log_debug("cluster node %d removed",
 				  old_nodes[i].cn_nodeid);
 
-			node_history_cman_remove(old_nodes[i].cn_nodeid);
+			node_history_cluster_remove(old_nodes[i].cn_nodeid);
 		}
 	}
 
@@ -182,17 +182,34 @@ static void statechange(void)
 		if (cman_nodes[i].cn_member &&
 		    !is_old_member(cman_nodes[i].cn_nodeid)) {
 
-			log_debug("cman node %d added",
+			log_debug("cluster node %d added",
 				  cman_nodes[i].cn_nodeid);
 
-			node_history_cman_add(cman_nodes[i].cn_nodeid);
+			node_history_cluster_add(cman_nodes[i].cn_nodeid);
 		}
 	}
 }
 
+/* Note: in fence delay loop we aren't processing callbacks so won't
+   have done an update_cluster() in response to a cman callback */
+
+int is_cluster_member_reread(int nodeid)
+{
+	int rv;
+
+	update_cluster();
+
+	rv = is_cluster_member(nodeid);
+	if (rv)
+		return 1;
+
+	/* log_debug("cman_member %d not member", nodeid); */
+	return 0;
+}
+
 static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
 {
-	int quorate = cman_quorate;
+	int quorate = cluster_quorate;
 
 	switch (reason) {
 	case CMAN_REASON_TRY_SHUTDOWN:
@@ -204,10 +221,10 @@ static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
 		}
 		break;
 	case CMAN_REASON_STATECHANGE:
-		statechange();
+		update_cluster();
 
 		/* domain may have been waiting for quorum */
-		if (!quorate && cman_quorate && (group_mode == GROUP_LIBCPG))
+		if (!quorate && cluster_quorate && (group_mode == GROUP_LIBCPG))
 			process_fd_changes();
 		break;
 
@@ -218,7 +235,7 @@ static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
 	}
 }
 
-void process_cman(int ci)
+void process_cluster(int ci)
 {
 	int rv;
 
@@ -227,7 +244,7 @@ void process_cman(int ci)
 		cluster_dead(0);
 }
 
-int setup_cman(void)
+int setup_cluster(void)
 {
 	cman_node_t node;
 	int rv, fd;
@@ -272,7 +289,7 @@ int setup_cman(void)
 		return rv;
 	}
 
-	statechange();
+	update_cluster();
 
 	fd = cman_get_fd(ch);
 
@@ -296,26 +313,10 @@ int setup_cman(void)
 	return fd;
 }
 
-void close_cman(void)
+void close_cluster(void)
 {
 	cman_finish(ch);
 	cman_finish(ch_admin);
-}
-
-int is_cman_member_reread(int nodeid)
-{
-	int rv;
-
-	/* Note: in fence delay loop we aren't processing callbacks so won't
-	   have done a statechange() in response to a cman callback */
-	statechange();
-
-	rv = is_cman_member(nodeid);
-	if (rv)
-		return 1;
-
-	/* log_debug("cman_member %d not member", nodeid); */
-	return 0;
 }
 
 struct node *get_new_node(struct fd *fd, int nodeid)

@@ -323,7 +323,7 @@ void node_history_init(struct fd *fd, int nodeid)
 	list_add_tail(&node->list, &fd->node_history);
 }
 
-void node_history_cman_add(int nodeid)
+void node_history_cluster_add(int nodeid)
 {
 	struct fd *fd;
 	struct node_history *node;
@@ -333,15 +333,16 @@ void node_history_cman_add(int nodeid)
 
 		node = get_node_history(fd, nodeid);
 		if (!node) {
-			log_error("node_history_cman_add no nodeid %d", nodeid);
+			log_error("node_history_cluster_add no nodeid %d",
+				  nodeid);
 			return;
 		}
 
-		node->cman_add_time = time(NULL);
+		node->cluster_add_time = time(NULL);
 	}
 }
 
-void node_history_cman_remove(int nodeid)
+void node_history_cluster_remove(int nodeid)
 {
 	struct fd *fd;
 	struct node_history *node;
@@ -349,12 +350,12 @@ void node_history_cman_remove(int nodeid)
 	list_for_each_entry(fd, &domains, list) {
 		node = get_node_history(fd, nodeid);
 		if (!node) {
-			log_error("node_history_cman_remove no nodeid %d",
+			log_error("node_history_cluster_remove no nodeid %d",
 				  nodeid);
 			return;
 		}
 
-		node->cman_remove_time = time(NULL);
+		node->cluster_remove_time = time(NULL);
 	}
 }
 
@@ -642,10 +643,10 @@ static int check_quorum_done(struct fd *fd)
 	struct node_history *node;
 	int wait_count = 0;
 
-	/* We don't want to trust the cman_quorate value until we know
+	/* We don't want to trust the cluster_quorate value until we know
 	   that cman has seen the same nodes fail that we have.  So, we
 	   first make sure that all nodes we've seen fail are also
-	   failed in cman, then we can just check cman_quorate.  This
+	   failed in cman, then we can just check cluster_quorate.  This
 	   assumes that we'll get to this function to do all the checks
 	   before any of the failed nodes can actually rejoin and become
 	   cman members again (if that assumption doesn't hold, perhaps
@@ -655,10 +656,10 @@ static int check_quorum_done(struct fd *fd)
 		if (!node->check_quorum)
 			continue;
 
-		if (!is_cman_member_reread(node->nodeid)) {
+		if (!is_cluster_member_reread(node->nodeid)) {
 			node->check_quorum = 0;
 		} else {
-			log_debug("check_quorum %d is_cman_member",
+			log_debug("check_quorum %d is_cluster_member",
 				  node->nodeid);
 			wait_count++;
 		}
@@ -667,7 +668,7 @@ static int check_quorum_done(struct fd *fd)
 	if (wait_count)
 		return 0;
 
-	if (!cman_quorate) {
+	if (!cluster_quorate) {
 		log_debug("check_quorum not quorate");
 		return 0;
 	}
@@ -812,11 +813,11 @@ static int match_change(struct fd *fd, struct change *cg, struct fd_header *hd,
 		return 0;
 	}
 
-	if (node->cman_add_time > cg->create_time) {
+	if (node->cluster_add_time > cg->create_time) {
 		log_debug("match_change %d:%u skip cg %u created %llu "
-			  "cman add %llu", hd->nodeid, seq, cg->seq,
+			  "cluster add %llu", hd->nodeid, seq, cg->seq,
 			  (unsigned long long)cg->create_time,
-			  (unsigned long long)node->cman_add_time);
+			  (unsigned long long)node->cluster_add_time);
 		return 0;
 	}
 
@@ -1367,7 +1368,7 @@ static void add_victims_init(struct fd *fd, struct change *cg)
 	list_for_each_entry_safe(node, safe, &fd->complete, list) {
 		list_del(&node->list);
 
-		if (!is_cman_member_reread(node->nodeid) &&
+		if (!is_cluster_member_reread(node->nodeid) &&
 		    !find_memb(cg, node->nodeid) &&
 		    !is_victim(fd, node->nodeid)) {
 			node->init_victim = 1;
@@ -1842,7 +1843,7 @@ static void receive_protocol(struct fd_header *hd, int len)
 
 		log_debug("daemon node %d stateful merge", hd->nodeid);
 
-		if (cman_quorate && node->left_time &&
+		if (cluster_quorate && node->left_time &&
 		    quorate_time < node->left_time) {
 			log_debug("daemon node %d kill due to stateful merge",
 				  hd->nodeid);

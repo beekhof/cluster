@@ -63,7 +63,7 @@ extern int daemon_debug_opt;
 extern int daemon_quit;
 extern int cluster_down;
 extern struct list_head domains;
-extern int cman_quorate;
+extern int cluster_quorate;
 extern uint64_t quorate_time;
 extern int our_nodeid;
 extern char our_name[MAX_NODENAME_LEN+1];
@@ -140,8 +140,8 @@ struct node_history {
 	uint64_t fail_time;
 	uint64_t fence_time;
 	uint64_t fence_external_time;
-	uint64_t cman_add_time;
-	uint64_t cman_remove_time;
+	uint64_t cluster_add_time;
+	uint64_t cluster_remove_time;
 	int fence_external_node;
 	int fence_master;
 	int fence_how; /* VIC_DONE_ */
@@ -223,8 +223,8 @@ int set_domain_info(struct fd *fd, struct fenced_domain *domain);
 int set_domain_nodes(struct fd *fd, int option, int *node_count,
 		     struct fenced_node **nodes);
 int is_clean_daemon_member(int nodeid);
-void node_history_cman_add(int nodeid);
-void node_history_cman_remove(int nodeid);
+void node_history_cluster_add(int nodeid);
+void node_history_cluster_remove(int nodeid);
 
 /* group.c */
 
@@ -251,10 +251,10 @@ void cluster_dead(int ci);
 
 /* member_cman.c */
 
-void process_cman(int ci);
-int setup_cman(void);
-void close_cman(void);
-int is_cman_member_reread(int nodeid);
+void process_cluster(int ci);
+int setup_cluster(void);
+void close_cluster(void);
+int is_cluster_member_reread(int nodeid);
 char *nodeid_to_name(int nodeid);
 int name_to_nodeid(char *name);
 struct node *get_new_node(struct fd *fd, int nodeid);

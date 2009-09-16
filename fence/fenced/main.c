@@ -741,10 +741,10 @@ static void loop(void)
 		goto out;
 	client_add(rv, process_listener, NULL);
 
-	rv = setup_cman();
+	rv = setup_cluster();
 	if (rv < 0)
 		goto out;
-	client_add(rv, process_cman, cluster_dead);
+	client_add(rv, process_cluster, cluster_dead);
 
 	rv = setup_ccs();
 	if (rv < 0)
@@ -831,7 +831,7 @@ static void loop(void)
 	close_cpg_daemon();
 	close_logging();
 	close_ccs();
-	close_cman();
+	close_cluster();
 
 	if (!list_empty(&domains))
 		log_error("domain abandoned");
@@ -1068,7 +1068,7 @@ int daemon_debug_opt;
 int daemon_quit;
 int cluster_down;
 struct list_head domains;
-int cman_quorate;
+int cluster_quorate;
 uint64_t quorate_time;
 int our_nodeid;
 char our_name[MAX_NODENAME_LEN+1];

@@ -67,7 +67,7 @@ static int reduce_victims(struct fd *fd)
 	num_victims = list_count(&fd->victims);
 
 	list_for_each_entry_safe(node, safe, &fd->victims, list) {
-		if (is_cman_member_reread(node->nodeid) &&
+		if (is_cluster_member_reread(node->nodeid) &&
 		    is_clean_daemon_member(node->nodeid)) {
 			log_debug("reduce victim %s", node->name);
 			victim_done(fd, node->nodeid, VIC_DONE_MEMBER);
@@ -285,7 +285,7 @@ void fence_victims(struct fd *fd)
 	struct node *node;
 	int error, i, ll, flog_count, prev_flog_count;
 	int override = -1;
-	int cman_member, cpg_member, ext;
+	int cluster_member, cpg_member, ext;
 	unsigned int limit, retries;
 
 	list_for_each_entry(node, &fd->victims, list) {
@@ -325,17 +325,17 @@ void fence_victims(struct fd *fd)
 		/* for queries */
 		fd->current_victim = node->nodeid;
 
-		cman_member = is_cman_member_reread(node->nodeid);
+		cluster_member = is_cluster_member_reread(node->nodeid);
 		cpg_member = is_clean_daemon_member(node->nodeid);
 		if (group_mode == GROUP_LIBCPG)
 			ext = is_fenced_external(fd, node->nodeid);
 		else
 			ext = 0;
 
-		if ((cman_member && cpg_member) || ext) {
+		if ((cluster_member && cpg_member) || ext) {
 			log_debug("averting fence of node %s "
-				  "cman member %d cpg member %d external %d",
-				  node->name, cman_member, cpg_member, ext);
+				  "cluster member %d cpg member %d external %d",
+				  node->name, cluster_member, cpg_member, ext);
 
 			node->local_victim_done = 1;
 			victim_done(fd, node->nodeid,
