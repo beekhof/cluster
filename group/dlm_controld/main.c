@@ -938,10 +938,10 @@ static void loop(void)
 	log_debug("group_mode %d compat %d", group_mode, cfgd_groupd_compat);
 
 	if (group_mode == GROUP_LIBCPG) {
-		rv = setup_cpg();
+		rv = setup_cpg_daemon();
 		if (rv < 0)
 			goto out;
-		client_add(rv, process_cpg, cluster_dead);
+		client_add(rv, process_cpg_daemon, cluster_dead);
 
 		rv = set_protocol();
 		if (rv < 0)
@@ -1024,7 +1024,7 @@ static void loop(void)
 	if (cfgd_groupd_compat)
 		close_groupd();
 	if (group_mode == GROUP_LIBCPG) {
-		close_cpg();
+		close_cpg_daemon();
 		close_plocks();
 	}
 	clear_configfs();

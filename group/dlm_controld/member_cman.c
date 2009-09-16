@@ -99,8 +99,10 @@ static void statechange(void)
 		if (old_nodes[i].cn_member &&
 		    !is_cluster_member(old_nodes[i].cn_nodeid)) {
 
-			log_debug("cman: node %d removed",
-				   old_nodes[i].cn_nodeid);
+			log_debug("cluster node %d removed",
+				  old_nodes[i].cn_nodeid);
+
+			node_history_cluster_remove(old_nodes[i].cn_nodeid);
 
 			del_configfs_node(old_nodes[i].cn_nodeid);
 		}
@@ -119,8 +121,10 @@ static void statechange(void)
 				addrptr = &cman_nodes[i].cn_address;
 			}
 
-			log_debug("cman: node %d added",
+			log_debug("cluster node %d added",
 				  cman_nodes[i].cn_nodeid);
+
+			node_history_cluster_add(cman_nodes[i].cn_nodeid);
 
 			for (j = 0; j < num_addrs; j++) {
 				add_configfs_node(cman_nodes[i].cn_nodeid,
