@@ -1,4 +1,4 @@
-# Auto-generated @ 2009-09-10 13:42:25
+# Auto-generated @ 2009-09-16 12:13:26
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.15 NAME 'rhcsAlias'
@@ -1303,6 +1303,12 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.240 NAME 'rhcsResource'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.227 NAME 'rhcsQuick-status'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
@@ -1566,7 +1572,7 @@ objectClasses: (
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.46 NAME 'rhcsVm' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsMigration-uri $ rhcsHypervisor-uri $ rhcsHypervisor $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsSnapshot $ rhcsMigrate $ rhcsXmlfile $ rhcsUse-virsh $ rhcsMigration-mapping $ rhcsRecovery $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
+     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsMigration-uri $ rhcsHypervisor-uri $ rhcsHypervisor $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsSnapshot $ rhcsPath $ rhcsMigrate $ rhcsXmlfile $ rhcsUse-virsh $ rhcsMigration-mapping $ rhcsRecovery $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.47 NAME 'rhcsSAPInstance' SUP top STRUCTURAL
@@ -1583,6 +1589,10 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.50 NAME 'rhcsASEHAagent' SUP top STRUCTURAL
      MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsDeep-probe-timeout $ rhcsStart-timeout $ rhcsShutdown-timeout $ rhcsSybase-user $ rhcsInterfaces-file $ rhcsLogin-file $ rhcsServer-name $ rhcsSybase-ocs $ rhcsSybase-ase $ rhcsSybase-home $ name $ rhcsRef )
+   )
+objectClasses: (
+     1.3.6.1.4.1.2312.8.1.2.58 NAME 'rhcsDrbd' SUP top STRUCTURAL
+     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsResource $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.51 NAME 'rhcsFs' SUP top STRUCTURAL
