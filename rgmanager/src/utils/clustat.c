@@ -568,6 +568,20 @@ build_service_field_sizes(int cols, int *svcsize, int *nodesize, int *statsize)
 }
 
 
+static void
+print_svc_header(int svcsize, int nodesize, int statsize)
+{
+	printf(" %-*.*s %-*.*s %-*.*s\n",
+	       svcsize, svcsize, "Service Name",
+	       nodesize, nodesize, "Owner (Last)",
+       	       statsize, statsize, "State");
+	printf(" %-*.*s %-*.*s %-*.*s\n",
+	       svcsize, svcsize, "------- ----",
+	       nodesize, nodesize, "----- ------",
+	       statsize, statsize, "-----");
+}
+
+
 static int
 txt_rg_states(rg_state_list_t *rgl, cluster_member_list_t *members, 
 	      char *svcname, int flags)
@@ -583,24 +597,20 @@ txt_rg_states(rg_state_list_t *rgl, cluster_member_list_t *members,
 	build_service_field_sizes(dimx, &svcsize, &nodesize, &statsize);
 
 	if (!(flags & RG_VERBOSE)) {
-
-		printf(" %-*.*s %-*.*s %-*.*s\n",
-		       svcsize, svcsize, "Service Name",
-		       nodesize, nodesize, "Owner (Last)",
-	       	       statsize, statsize, "State");
-		printf(" %-*.*s %-*.*s %-*.*s\n",
-		       svcsize, svcsize, "------- ----",
-		       nodesize, nodesize, "----- ------",
-		       statsize, statsize, "-----");
+		if (!svcname)
+			print_svc_header(svcsize, nodesize, statsize);
 	} else {
 		printf("Service Information\n"
 		       "------- -----------\n\n");
 	}
 
 	for (x = 0; x < rgl->rgl_count; x++) {
-		if (svcname &&
-		    strcmp(rgl->rgl_states[x].rs_name, svcname))
-			continue;
+		if (svcname) {
+			if (strcmp(rgl->rgl_states[x].rs_name, svcname)) {
+				continue;
+			}
+			print_svc_header(svcsize, nodesize, statsize);
+		}
 		txt_rg_state(&rgl->rgl_states[x], members, flags,
 			     svcsize, nodesize, statsize);
 		if (svcname) {
@@ -777,10 +787,20 @@ xml_member_state(cman_node_t *node)
 }
 
 
+static void
+print_member_header(nodesize)
+{
+	printf(" %-*.*s", nodesize, nodesize, "Member Name");
+	printf("%-4.4s %s\n", "ID", "Status");
+	printf(" %-*.*s", nodesize, nodesize, "------ ----");
+	printf("%-4.4s %s\n", "----", "------");
+}
+
+
 static int
 txt_member_states(cluster_member_list_t *membership, char *name)
 {
-	int x, ret = 0, nodesize;
+	int x, ret = -1, nodesize;
 
   	if (!membership) {
   		printf("Membership information not available\n");
@@ -789,19 +809,30 @@ txt_member_states(cluster_member_list_t *membership, char *name)
 
 	build_member_field_size(dimx, &nodesize);
 
-	printf(" %-*.*s", nodesize, nodesize, "Member Name");
-	printf("%-4.4s %s\n", "ID", "Status");
-	printf(" %-*.*s", nodesize, nodesize, "------ ----");
-	printf("%-4.4s %s\n", "----", "------");
-
-	for (x = 0; x < membership->cml_count; x++) {
-		if (name && strcmp(membership->cml_members[x].cn_name, name))
-			continue;
-		txt_member_state(&membership->cml_members[x], nodesize);
- 		ret = !(membership->cml_members[x].cn_member & FLAG_UP);
+	if (!name) {
+		printf(" %-*.*s", nodesize, nodesize, "Member Name");
+		printf("%-4.4s %s\n", "ID", "Status");
+		printf(" %-*.*s", nodesize, nodesize, "------ ----");
+		printf("%-4.4s %s\n", "----", "------");
+		ret = 0;
 	}
 
-	printf("\n");
+	for (x = 0; x < membership->cml_count; x++) {
+		if (name) {
+		        if (strcmp(membership->cml_members[x].cn_name, name)) {
+				continue;
+			}
+			print_member_header(nodesize);
+		}
+		txt_member_state(&membership->cml_members[x], nodesize);
+		if (name) {
+ 			ret = !(membership->cml_members[x].cn_member & FLAG_UP);
+			return ret;
+		}
+	}
+
+	if (!name)
+		printf("\n");
 	return ret;
 }
 
