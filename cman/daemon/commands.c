@@ -488,7 +488,7 @@ static int do_cmd_set_version(char *cmdbuf, int *retlen)
 	/* If the passed-in version number is 0 then read the file now, then
 	 * tell the other nodes to look for that version number.
 	 * That means we also have to send the notification here, because it will
-	 * beskipped when we get our own RECONFIGURE message back as the version
+	 * be skipped when we get our own RECONFIGURE message back, as the version
 	 * number will match.
 	 */
 	if (!version->config) {
@@ -1106,38 +1106,49 @@ static int do_cmd_register_quorum_device(char *cmdbuf, int *retlen)
 	if (!we_are_a_cluster_member)
 		return -ENOENT;
 
-	if (quorum_device)
-                return -EBUSY;
-
 	if (strlen(name) > MAX_CLUSTER_MEMBER_NAME_LEN)
 		return -EINVAL;
+
+	/* Allow re-registering of a quorum device if the name is the same */
+	if (quorum_device && strcmp(name, quorum_device->name))
+                return -EBUSY;
 
 	if (find_node_by_name(name))
                 return -EALREADY;
 
 	memcpy(&votes, cmdbuf, sizeof(int));
 
-	quorum_device = malloc(sizeof(struct cluster_node));
-        if (!quorum_device)
-                return -ENOMEM;
-        memset(quorum_device, 0, sizeof(struct cluster_node));
+	/* A new quorum device */
+	if (!quorum_device)
+	{
+		quorum_device = malloc(sizeof(struct cluster_node));
+		if (!quorum_device)
+			return -ENOMEM;
+		memset(quorum_device, 0, sizeof(struct cluster_node));
 
-        quorum_device->name = malloc(strlen(name) + 1);
-        if (!quorum_device->name) {
-                free(quorum_device);
-                quorum_device = NULL;
-                return -ENOMEM;
-        }
+		quorum_device->name = malloc(strlen(name) + 1);
+		if (!quorum_device->name) {
+			free(quorum_device);
+			quorum_device = NULL;
+			return -ENOMEM;
+		}
 
-        strcpy(quorum_device->name, name);
+		strcpy(quorum_device->name, name);
+		quorum_device->state = NODESTATE_DEAD;
+		gettimeofday(&quorum_device->join_time, NULL);
+
+		/* Keep this list valid so it doesn't confuse other code */
+		list_init(&quorum_device->addr_list);
+		log_printf(LOG_INFO, "quorum device registered\n");
+	}
+	else
+	{
+		log_printf(LOG_INFO, "quorum device re-registered\n");
+	}
+
+	/* Update votes even if it existed before */
         quorum_device->votes = votes;
-        quorum_device->state = NODESTATE_DEAD;
-	gettimeofday(&quorum_device->join_time, NULL);
 
-        /* Keep this list valid so it doesn't confuse other code */
-        list_init(&quorum_device->addr_list);
-
-	log_printf(LOG_INFO, "quorum device registered\n");
         return 0;
 }
 
