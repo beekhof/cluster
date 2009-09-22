@@ -140,7 +140,7 @@ gfs_create(struct inode *dir, struct dentry *dentry,
 
 	if (!inode)
 		error = -ENOMEM;
-	else
+	else if (new)
 		error = gfs_security_init(dip, ip);
 
 	gfs_glock_dq_uninit(&d_gh);
