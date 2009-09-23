@@ -1,5 +1,4 @@
 #include <linux/sched.h>
-#include <linux/fs_struct.h>
 #include <linux/slab.h>
 #include <linux/smp_lock.h>
 #include <linux/spinlock.h>

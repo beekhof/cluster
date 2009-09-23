@@ -470,6 +470,7 @@ gfs_proc_init(void)
 	if (!pde)
 		return -ENOMEM;
 
+	pde->owner = THIS_MODULE;
 	pde->proc_fops = &gfs_proc_fops;
 
 	return 0;
