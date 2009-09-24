@@ -685,6 +685,8 @@ stop_fence_xvmd()
 
 start()
 {
+	breakpoint="$1"
+
 	sshd_enabled && service sshd start
 
 	if [ "$INITLOGLEVEL" = "quiet" ]; then
@@ -719,9 +721,13 @@ start()
 		none \
 		"Setting network parameters"
 
+	[ "$breakpoint" = "setup" ] && exit 0
+
 	runwrap start_cman \
 		none \
 		"Starting cman"
+
+	[ "$breakpoint" = "join" ] && exit 0
 
 	runwrap unfence_self \
 		none \
@@ -734,6 +740,8 @@ start()
 	runwrap wait_for_quorum \
 		none \
 		"Waiting for quorum"
+
+	[ "$breakpoint" = "quorum" ] && exit 0
 
 	runwrap start_groupd \
 		groupd_enabled \
@@ -758,6 +766,8 @@ start()
 	runwrap start_cmannotifyd \
 		cmannotifyd_enabled \
 		"Starting cmannotifyd"
+
+	[ "$breakpoint" = "daemons" ] && exit 0
 
 	runwrap join_fence_domain \
 		fence_join_enabled \
@@ -867,7 +877,7 @@ rtrn=0
 # See how we were called.
 case "$1" in
 start)
-	start && touch $LOCK_FILE
+	start "$2" && touch $LOCK_FILE
 	if [ "$INITLOGLEVEL" = "quiet" ]; then
 		success
 		echo
