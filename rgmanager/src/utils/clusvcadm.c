@@ -150,7 +150,7 @@ printf("  -e <group> -F          Enable <group> according to failover\n"
        "                         case when using central processing)\n");
 printf("  -e <group> -m <member> Enable <group> on <member>\n");
 printf("  -r <group> -m <member> Relocate <group> [to <member>]\n"
-       "                         Stops a group and starts it on another"
+       "                         Stops a group and starts it on another\n"
        "                         cluster member.\n");
 printf("  -M <group> -m <member> Migrate <group> to <member>\n");
 printf("                         (e.g. for live migration of VMs)\n");
@@ -160,6 +160,14 @@ printf("  -s <group>             Stop <group>.  This temporarily stops\n"
        "                         a group.  After the next group or\n"
        "                         or cluster member transition, the group\n"
        "                         will be restarted (if possible).\n");
+printf("  -Z <group>             Freeze resource group.  This prevents\n"
+       "                         transitions and status checks, and is \n"
+       "                         useful if an administrator needs to \n"
+       "                         administer part of a service without \n"
+       "                         stopping the whole service.\n");
+printf("  -U <group>             Unfreeze (thaw) resource group.  Restores\n"
+       "                         a group to normal operation.\n");
+
 printf("Resource Group Locking (for cluster Shutdown / Debugging):\n");
 printf("  -l                     Lock local resource group managers.\n"
        "                         This prevents resource groups from\n"
