@@ -298,7 +298,8 @@ while qdiskd is running.
 .in 12
 If set to 1 (on), qdiskd will watch internal timers and reboot the node
 if qdisk is not able to write to disk after (interval * tko) seconds.
-The default for this value is 0 (off).
+The default for this value is 0 (off). If io_timeout is active
+max_error_cycles is overridden and set to off.
 
 .in 9
 \fIscheduler\fP\fB="\fPrr\fB"\fP
@@ -366,7 +367,7 @@ If we receive an I/O error during a cycle, we do not poll CMAN and tell
 it we are alive.  If specified, this value will cause qdiskd to exit
 after the specified number of consecutive cycles during which I/O errors
 occur.  The default is 0 (no maximum).  This option can be changed while
-qdiskd is running.
+qdiskd is running.  This option is ignored if io_timeout is set to 1.
 
 .in 8
 \fB/>\fP

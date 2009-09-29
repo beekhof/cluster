@@ -1428,12 +1428,15 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 	/*
 	 * How many consecutive error cycles do we allow before
 	 * giving up?
+	 *
+	 * Notice that max_error_cycles is disabled if io_timeout is
+	 * active.
 	 */
 	/* default = no max */
 	snprintf(query, sizeof(query), "/cluster/quorumd/@max_error_cycles");
 	if (ccs_get(ccsfd, query, &val) == 0) {
 		ctx->qc_max_error_cycles = atoi(val);
-		if (ctx->qc_max_error_cycles <= 0)
+		if ((ctx->qc_max_error_cycles <= 0) || (ctx->qc_flags & RF_IOTIMEOUT))
 			ctx->qc_max_error_cycles = 0;
 		free(val);
 	}
