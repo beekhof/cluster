@@ -53,7 +53,8 @@ typedef enum {
 	RF_PARANOID = 0x8,
 	RF_ALLOW_KILL = 0x10,
 	RF_UPTIME = 0x20,
-	RF_CMAN_LABEL = 0x40
+	RF_CMAN_LABEL = 0x40,
+	RF_IOTIMEOUT = 0x80
 } run_flag_t;
 
 

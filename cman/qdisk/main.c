@@ -907,7 +907,7 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 	int low_id, bid_pending = 0, score, score_max, score_req,
 	    upgrade = 0, count, errors, error_cycles = 0;
 	memb_mask_t mask, master_mask;
-	struct timeval maxtime, oldtime, newtime, diff, sleeptime, interval;
+	struct timeval maxtime, oldtime, newtime, diff, sleeptime, interval, lastok;
 
 	ctx->qc_status = S_NONE;
 	
@@ -916,6 +916,9 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 	
 	interval.tv_usec = 0;
 	interval.tv_sec = ctx->qc_interval;
+	
+	lastok.tv_usec = 0;
+	lastok.tv_sec = 0;
 	
 	get_my_score(&score, &score_max);
 	if (score_max < ctx->qc_scoremin) {
@@ -1110,6 +1113,8 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 			logt_print(LOG_ERR, "Error writing to quorum disk\n");
 			errors++; /* this value isn't really used 
 				     at this point */
+ 		} else {
+ 			get_time(&lastok, ctx->qc_flags&RF_UPTIME);
 		}
 
 		/* write out our local status */
@@ -1118,11 +1123,27 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 		/* Cycle. We could time the loop and sleep
 		   (interval-looptime), but this is fine for now.*/
 		get_time(&newtime, ctx->qc_flags&RF_UPTIME);
-		_diff_tv(&diff, &oldtime, &newtime);
 		
+ 		/*
+		 * Reboot if the last successful hearbeat was longer ago than interval*TKO_COUNT
+		 */
+		_diff_tv(&diff, &lastok, &newtime);
+		if (_cmp_tv(&maxtime, &diff) == 1 &&
+		    ctx->qc_flags & RF_IOTIMEOUT) {
+			logt_print(LOG_EMERG, "Failed to send a heartbeat "
+				   "within %d second%s (%d.%06d) - REBOOTING\n",
+				   (int)maxtime.tv_sec,
+				   maxtime.tv_sec==1?"":"s",
+				   (int)diff.tv_sec,
+				   (int)diff.tv_usec);
+			if (!(ctx->qc_flags & RF_DEBUG)) 
+				reboot(RB_AUTOBOOT);
+		}
+	
 		/*
 		 * Reboot if we didn't send a heartbeat in interval*TKO_COUNT
 		 */
+		_diff_tv(&diff, &oldtime, &newtime);
 		if (_cmp_tv(&maxtime, &diff) == 1 &&
 		    ctx->qc_flags & RF_PARANOID) {
 			logt_print(LOG_EMERG, "Failed to complete a cycle within "
@@ -1366,6 +1387,16 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 		free(val);
 	}
 	
+	/* default = off, so, 1 to turn on */
+	snprintf(query, sizeof(query), "/cluster/quorumd/@io_timeout");
+	if (ccs_get(ccsfd, query, &val) == 0) {
+		if (!atoi(val))
+			ctx->qc_flags &= ~RF_IOTIMEOUT;
+		else
+			ctx->qc_flags |= RF_IOTIMEOUT;
+		free(val);
+	}
+  	
 	/*
 	 * Get flag to see if we're supposed to reboot if we can't complete
 	 * a pass in failure time

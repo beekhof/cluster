@@ -294,6 +294,13 @@ pass.  The default for this value is 0 (off).  This option can be changed
 while qdiskd is running.
 
 .in 9
+\fIio_timeout\fP\fB="\fP0\fB"\fP
+.in 12
+If set to 1 (on), qdiskd will watch internal timers and reboot the node
+if qdisk is not able to write to disk after (interval * tko) seconds.
+The default for this value is 0 (off).
+
+.in 9
 \fIscheduler\fP\fB="\fPrr\fB"\fP
 .in 12
 Valid values are 'rr', 'fifo', and 'other'.  Selects the scheduling queue
