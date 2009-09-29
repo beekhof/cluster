@@ -57,6 +57,13 @@ enum format_opt
 	FMT_STATE,
 };
 
+enum validate_options
+{
+	VALIDATE_FAIL = 0,
+	VALIDATE_WARN,
+	VALIDATE_NONE,
+};
+
 struct commandline
 {
 	int operation;
@@ -82,6 +89,7 @@ struct commandline
 	unsigned int config_version;
 
 	int config_version_opt;
+	int config_validate_opt;
 	int votes_opt;
 	int expected_votes_opt;
 	int port_opt;
@@ -91,6 +99,7 @@ struct commandline
 	int wait_quorate_opt;
 	int addresses_opt;
 	int noconfig_opt;
+	int nosync_opt;
 	int nosetpri_opt;
 	int noopenais_opt;
 };

@@ -69,12 +69,11 @@ with -r to tell cluster members to update.
 .br
 The argument to -r is the version number that cman should look for. If 
 that version is not currently available then cman will poll for it. If
-a version of 0 is specified then cman will simply re-read the configuration
-and use the version number it finds there. 
+a version of 0 is specified then cman will read the configuration file,
+validate it, distribute it around the cluster (if necessary) and
+activate it.
 .br
-NOTE: this happens cluster-wide and the highest version number in the
-cluster will be the one everyone looks for. version -r0 is not a way
-to have different config versions across nodes in the cluster!
+The -D flag can disable the validation stage. This is NOT recommended.
 
 .TP
 .I wait 
@@ -151,6 +150,9 @@ cman_tool version on its own will always show the current version
 and not the one being looked for. So be aware that the display
 will possible not update immediately after you have run
 cman_tool version -r.
+.TP
+.I -D<option>
+see "JOIN" options
 .SH "WAIT" OPTIONS
 .TP
 .I -q
@@ -290,6 +292,17 @@ Don't load openais services. Normally cman_tool join will load the configuration
 module 'openaisserviceenablestable' which will load the services installed by openais.
 If you don't want to use these services or have not installed openais then
 this switch will disable them.
+.TP
+.I -D
+Tells cman_tool whether to validate the configuration before loading or reloading it.
+By default the configuration
+.B is
+validated, which is equivalent to -Dfail.
+.br
+-Dwarn will validate the configuration and print any messages arising, but will attempt
+to use it regardless of its validity.
+.br
+-Dnone (or just -D) will skip the validation completely.
 .SH "NODES" OPTIONS
 .TP
 .I -a

@@ -13,12 +13,14 @@ include $(OBJDIR)/make/uninstall.mk
 OBJS=	main.o \
 	join.o
 
-CFLAGS += -DCOROSYNCBIN=\"${corosyncbin}\"
+CFLAGS += -DCOROSYNCBIN=\"${corosyncbin}\" -DSBINDIR=\"${sbindir}\"
 CFLAGS += -I${cmanincdir}
 CFLAGS += -I${incdir}
+CFLAGS += -I${ccsincdir}
 
 LDFLAGS += -L${cmanlibdir} -lcman
 LDFLAGS += -L${libdir}
+LDFLAGS += -L${ccslibdir} -lconfdb -lccs
 
 ${TARGET}: ${OBJS}
 	$(CC) -o $@ $^ $(LDFLAGS)

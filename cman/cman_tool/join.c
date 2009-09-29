@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <signal.h>
 #include <netinet/in.h>
+#include <corosync/confdb.h>
 #include "libcman.h"
 #include "cman_tool.h"
 
@@ -111,10 +112,19 @@ int join(commandline_t *comline, char *main_envp[])
 	int envptr = 0;
 	int argvptr = 0;
 	char scratch[1024];
+	char config_modules[1024];
 	cman_handle_t h = NULL;
 	int status;
+	hdb_handle_t object_handle;
+	confdb_handle_t confdb_handle;
+	int res;
 	pid_t corosync_pid;
 	int p[2];
+	confdb_callbacks_t callbacks = {
+		.confdb_key_change_notify_fn = NULL,
+		.confdb_object_create_change_notify_fn = NULL,
+		.confdb_object_delete_change_notify_fn = NULL
+	};
 
         /*
 	 * If we can talk to cman then we're already joined (or joining);
@@ -166,15 +176,15 @@ int join(commandline_t *comline, char *main_envp[])
 	}
 	if (comline->noconfig_opt) {
 		envp[envptr++] = strdup("CMAN_NOCONFIG=true");
-		snprintf(scratch, sizeof(scratch), "COROSYNC_DEFAULT_CONFIG_IFACE=cmanpreconfig%s",
+		snprintf(config_modules, sizeof(config_modules), "cmanpreconfig%s",
 			 comline->noopenais_opt?"":":openaisserviceenablestable");
-		envp[envptr++] = strdup(scratch);
 	}
 	else {
-		snprintf(scratch, sizeof(scratch), "COROSYNC_DEFAULT_CONFIG_IFACE=%s:cmanpreconfig%s", comline->config_lcrso,
+		snprintf(config_modules, sizeof(config_modules), "%s:cmanpreconfig%s", comline->config_lcrso,
 			 comline->noopenais_opt?"":":openaisserviceenablestable");
-		envp[envptr++] = strdup(scratch);
 	}
+	snprintf(scratch, sizeof(scratch), "COROSYNC_DEFAULT_CONFIG_IFACE=%s", config_modules);
+	envp[envptr++] = strdup(scratch);
 
 	/* Copy any COROSYNC_* env variables to the new daemon */
 	i=0;
@@ -324,5 +334,19 @@ int join(commandline_t *comline, char *main_envp[])
 		fprintf(stderr, "corosync started, but not joined the cluster yet.\n");
 
 	cman_finish(h);
+
+	/* Save the configuration information in corosync's objdb so we know where we came from */
+	res = confdb_initialize (&confdb_handle, &callbacks);
+	if (res != CS_OK)
+		goto join_exit;
+
+	res = confdb_object_create(confdb_handle, OBJECT_PARENT_HANDLE, "cman_private", strlen("cman_private"), &object_handle);
+	if (res == CS_OK) {
+		res = confdb_key_create(confdb_handle, object_handle, "config_modules", strlen("config_modules"), config_modules, strlen(config_modules));
+
+	}
+	confdb_finalize (confdb_handle);
+
+join_exit:
 	return 0;
 }

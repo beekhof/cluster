@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
+#include <ccs.h>
 #include <netinet/in.h>
 #include "copyright.cf"
 #include "libcman.h"
@@ -9,7 +10,7 @@
 
 #define DEFAULT_CONFIG_MODULE "xmlconfig"
 
-#define OPTION_STRING		("m:n:v:e:2p:c:r:i:N:t:o:k:F:C:VAPwfqah?Xd::")
+#define OPTION_STRING		("m:n:v:e:2p:c:r:i:N:t:o:k:F:C:VAPwfqah?XD::Sd::")
 #define OP_JOIN			1
 #define OP_LEAVE		2
 #define OP_EXPECTED		3
@@ -21,7 +22,6 @@
 #define OP_NODES		9
 #define OP_SERVICES		10
 #define OP_DEBUG		11
-
 
 static void print_usage(int subcmd)
 {
@@ -57,6 +57,9 @@ static void print_usage(int subcmd)
 		printf("  -P               Don't set corosync to realtime priority\n");
 		printf("  -X               Use internal cman defaults for configuration\n");
 		printf("  -A               Don't load openais services\n");
+		printf("  -D <fail,warn,none> What to do about the config. Default (without -D) is to validate\n");
+		printf("                   the config. with -D no validation will be done. -Dwarn will print errors\n");
+		printf("                   but allow the operation to continue\n");
 		printf("\n");
 	}
 
@@ -116,6 +119,10 @@ static void print_usage(int subcmd)
 	if (!subcmd || subcmd == OP_VERSION) {
 		printf("version\n");
 		printf("  -r <config>      A new config version to set on all members\n");
+		printf("  -D <fail,warn,none> What to do about the config. Default (without -D) is to validate\n");
+		printf("                   the config. with -D no validation will be done. -Dwarn will print errors\n");
+		printf("                   but allow the operation to continue\n");
+		printf("  -S               Don't run ccs_sync to distribute cluster.conf (if appropriate)\n");
 		printf("\n");
 	}
 }
@@ -642,11 +649,62 @@ static void set_votes(commandline_t *comline)
 	cman_finish(h);
 }
 
+static int validate_config(commandline_t *comline, char *config_value)
+{
+	struct stat st;
+	char command[PATH_MAX];
+	char validator[PATH_MAX];
+	int cmd_res;
+
+	/* Look for ccs_config_validate */
+	snprintf(validator, sizeof(validator), "%s/ccs_config_validate", SBINDIR);
+	if (stat(validator, &st) != 0 || !(st.st_mode & S_IXUSR)) {
+		fprintf(stderr, "Cannot find ccs_config_validate, configuration was not checked but assumed to be OK.\n");
+		return 0;
+	}
+
+	snprintf(command, sizeof(command), "%s -C %s", validator, config_value);
+
+	if (comline->verbose > 1)
+		printf("calling '%s'\n", command);
+
+	cmd_res = system(command);
+
+	return cmd_res;
+}
+
+
+static int get_config_variable(commandline_t *comline, char **config_modules)
+{
+	int ccs_handle;
+	int ccs_res;
+	char *config_value;
+
+	/* Get the config modules that corosync was loaded with */
+	ccs_handle = ccs_connect();
+	if (!ccs_handle) {
+		fprintf(stderr, "Cannot contact ccs to get configuration information\n");
+		return 1;
+	}
+
+	ccs_res = ccs_get(ccs_handle, "/cman_private/@config_modules", &config_value);
+	ccs_disconnect(ccs_handle);
+	if (ccs_res) {
+		fprintf(stderr, "Cannot work out where corosync got it's configuration information from so I\n");
+		fprintf(stderr, "can't validate it. Use the -D switch to bypass this and load the\n");
+		fprintf(stderr, "configuration unchecked.\n");
+		return 1;
+	}
+	*config_modules = config_value;
+	return 0;
+}
+
 static void version(commandline_t *comline)
 {
 	struct cman_version ver;
 	cman_handle_t h;
 	int result;
+	char *config_modules = NULL;
 
 	h = open_cman_handle(1);
 
@@ -659,10 +717,35 @@ static void version(commandline_t *comline)
 		goto out;
 	}
 
-	ver.cv_config = comline->config_version;
+	if (comline->verbose)
+	        printf("Getting config variables\n");
+	if (get_config_variable(comline, &config_modules))
+	        die("");
 
-	if ((result = cman_set_version(h, &ver)))
-		die("can't set version: %s", cman_error(errno));
+	/* By default we validate the configuration first */
+	if (comline->config_validate_opt != VALIDATE_NONE) {
+
+		if (comline->verbose)
+			printf("Validating configuration\n");
+		if (validate_config(comline, config_modules) &&
+		    comline->config_validate_opt == VALIDATE_FAIL)
+			die("Not reloading, configuration is not valid\n");
+	}
+
+	if (strstr(config_modules, "xmlconfig") && !comline->nosync_opt) {
+		if (comline->verbose > 1)
+			printf("calling ccs_sync\n");
+		result = system("/usr/bin/ccs_sync");
+	}
+	else {
+		if (comline->verbose)
+			printf("Telling cman the new version number\n");
+
+		ver.cv_config = comline->config_version;
+
+		if ((result = cman_set_version(h, &ver)))
+			die("can't set version: %s", cman_error(errno));
+	}
  out:
 	cman_finish(h);
 }
@@ -752,6 +835,7 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 {
 	int cont = TRUE;
 	int optchar, i;
+	int suboptchar;
 	int show_help = 0;
 
 	while (cont) {
@@ -765,6 +849,34 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 
 		case 'a':
 			comline->addresses_opt = 1;
+			break;
+
+		case 'D':
+			/* Just look at the upper-cased version of the first letter of the argument */
+			if (optarg) {
+				suboptchar = optarg[0] & 0x5F;
+				switch (suboptchar)
+				{
+				case 'F':
+					comline->config_validate_opt = VALIDATE_FAIL;
+					break;
+				case 'W':
+					comline->config_validate_opt = VALIDATE_WARN;
+					break;
+				case 'N':
+					comline->config_validate_opt = VALIDATE_NONE;
+					break;
+				default:
+					die("invalid option to -D, it should be 'force', 'warn' or 'none'\n");
+					break;
+				}
+			}
+			else {
+				comline->config_validate_opt = VALIDATE_NONE;
+			}
+			break;
+		case 'S':
+			comline->nosync_opt = 1;
 			break;
 
 		case 'n':
@@ -981,10 +1093,43 @@ static void check_arguments(commandline_t *comline)
 		die("timeout is only appropriate with wait");
 }
 
+
+static void do_join(commandline_t *comline, char *envp[])
+{
+	int ret;
+
+	check_arguments(comline);
+
+	if (comline->timeout) {
+		signal(SIGALRM, sigalarm_handler);
+		alarm(comline->timeout);
+	}
+
+	/* By default we validate the configuration first */
+	if (comline->config_validate_opt != VALIDATE_NONE) {
+
+		if (comline->verbose)
+			printf("Validating configuration\n");
+
+		if (validate_config(comline, comline->config_lcrso) &&
+		    comline->config_validate_opt == VALIDATE_FAIL)
+			die("Not reloading, configuration is not valid\n");
+	}
+
+	join(comline, envp);
+	if (comline->wait_opt || comline->wait_quorate_opt) {
+		do {
+			ret = cluster_wait(comline);
+			if (ret == ENOTCONN)
+				join(comline, envp);
+
+		} while (ret == ENOTCONN);
+	}
+}
+
 int main(int argc, char *argv[], char *envp[])
 {
 	commandline_t comline;
-	int ret;
 
 	prog_name = argv[0];
 
@@ -994,22 +1139,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	switch (comline.operation) {
 	case OP_JOIN:
-		check_arguments(&comline);
-
-		if (comline.timeout) {
-			signal(SIGALRM, sigalarm_handler);
-			alarm(comline.timeout);
-		}
-
-		join(&comline, envp);
-		if (comline.wait_opt || comline.wait_quorate_opt) {
-			do {
-				ret = cluster_wait(&comline);
-				if (ret == ENOTCONN)
-					join(&comline, envp);
-
-			} while (ret == ENOTCONN);
-		}
+		do_join(&comline, envp);
 		break;
 
 	case OP_LEAVE:
