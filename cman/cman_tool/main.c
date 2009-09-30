@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
-#include <ccs.h>
+#include <corosync/confdb.h>
 #include <netinet/in.h>
 #include "copyright.cf"
 #include "libcman.h"
@@ -673,30 +673,62 @@ static int validate_config(commandline_t *comline, char *config_value)
 	return cmd_res;
 }
 
-
-static int get_config_variable(commandline_t *comline, char **config_modules)
+/* Here we set the COROSYNC_ variables that might be needed by the corosync
+   configuration modules. We just put them into the environment and leave
+   them for the sub-process to pick up.
+   'config_modules' is returned separately because it's needed internally to
+   and it saves the caller from extracting it all over again.
+   We only return 0 (success) if config_modules is returned as without that
+   the caller can't really do anything at all.
+*/
+static int get_config_variables(commandline_t *comline, char **config_modules)
 {
-	int ccs_handle;
-	int ccs_res;
-	char *config_value;
+	int res;
+	int got_iface = 1;
+	char key_name[1024];
+	size_t key_name_len;
+	char key_value[1024];
+	size_t key_value_len;
+	hdb_handle_t confdb_handle;
+	hdb_handle_t cmanp_handle;
+	confdb_callbacks_t callbacks = {
+		.confdb_key_change_notify_fn = NULL,
+		.confdb_object_create_change_notify_fn = NULL,
+		.confdb_object_delete_change_notify_fn = NULL
+	};
 
-	/* Get the config modules that corosync was loaded with */
-	ccs_handle = ccs_connect();
-	if (!ccs_handle) {
-		fprintf(stderr, "Cannot contact ccs to get configuration information\n");
-		return 1;
+	*config_modules = NULL;
+	res = confdb_initialize (&confdb_handle, &callbacks);
+	if (res != CS_OK)
+		return 0;
+
+	res = confdb_object_find_start(confdb_handle, OBJECT_PARENT_HANDLE);
+	if (res != CS_OK)
+		goto finish;
+
+	res = confdb_object_find(confdb_handle, OBJECT_PARENT_HANDLE, "cman_private", strlen("cman_private"), &cmanp_handle);
+	if (res != CS_OK)
+		goto finish;
+
+	res = confdb_key_iter_start(confdb_handle, cmanp_handle);
+	if (res != CS_OK)
+		goto finish;
+
+	while ( (res = confdb_key_iter(confdb_handle, cmanp_handle, key_name, &key_name_len,
+				       key_value, &key_value_len)) == CS_OK) {
+		key_name[key_name_len] = '\0';
+		key_value[key_value_len] = '\0';
+
+		setenv(key_name, key_value, 1);
+		if (strcmp(key_name, "COROSYNC_DEFAULT_CONFIG_IFACE") == 0) {
+			*config_modules = strdup(key_value);
+			got_iface = 0;
+		}
 	}
 
-	ccs_res = ccs_get(ccs_handle, "/cman_private/@config_modules", &config_value);
-	ccs_disconnect(ccs_handle);
-	if (ccs_res) {
-		fprintf(stderr, "Cannot work out where corosync got it's configuration information from so I\n");
-		fprintf(stderr, "can't validate it. Use the -D switch to bypass this and load the\n");
-		fprintf(stderr, "configuration unchecked.\n");
-		return 1;
-	}
-	*config_modules = config_value;
-	return 0;
+finish:
+	confdb_finalize(confdb_handle);
+	return got_iface;
 }
 
 static void version(commandline_t *comline)
@@ -719,8 +751,8 @@ static void version(commandline_t *comline)
 
 	if (comline->verbose)
 	        printf("Getting config variables\n");
-	if (get_config_variable(comline, &config_modules))
-	        die("");
+	if (get_config_variables(comline, &config_modules))
+	        die("cannot get COROSYNC_DEFAULT_CONFIG_IFACE");
 
 	/* By default we validate the configuration first */
 	if (comline->config_validate_opt != VALIDATE_NONE) {
@@ -732,6 +764,12 @@ static void version(commandline_t *comline)
 			die("Not reloading, configuration is not valid\n");
 	}
 
+	/* We don't bother looking for ccs_sync here - just assume it's in /usr/bin and
+	   that it exists. If this is not true then then user can choose to bypass
+	   the disibution and do it themselves.
+	   Note that ccs_sync might prompt on stderr for passwords the first time it is
+	   run.
+	*/
 	if (strstr(config_modules, "xmlconfig") && !comline->nosync_opt) {
 		if (comline->verbose > 1)
 			printf("calling ccs_sync\n");

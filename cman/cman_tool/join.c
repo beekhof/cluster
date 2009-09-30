@@ -335,16 +335,31 @@ int join(commandline_t *comline, char *main_envp[])
 
 	cman_finish(h);
 
-	/* Save the configuration information in corosync's objdb so we know where we came from */
+	/* Copy all COROSYNC_* environment variables into objdb so they can be used to validate new configurations later */
 	res = confdb_initialize (&confdb_handle, &callbacks);
 	if (res != CS_OK)
 		goto join_exit;
 
 	res = confdb_object_create(confdb_handle, OBJECT_PARENT_HANDLE, "cman_private", strlen("cman_private"), &object_handle);
 	if (res == CS_OK) {
-		res = confdb_key_create(confdb_handle, object_handle, "config_modules", strlen("config_modules"), config_modules, strlen(config_modules));
+		int envnum = 0;
+		const char *envvar = main_envp[envnum];
+		const char *equal;
 
+		while (envvar) {
+			if (strncmp("COROSYNC_", envvar, 9) == 0) {
+				equal = strchr(envvar, '=');
+				if (equal) {
+					res = confdb_key_create(confdb_handle, object_handle, envvar, equal-envvar,
+								equal+1, strlen(equal+1));
+				}
+			}
+			envvar = main_envp[++envnum];
+		}
 	}
+	res = confdb_key_create(confdb_handle, object_handle,
+				"COROSYNC_DEFAULT_CONFIG_IFACE", strlen("COROSYNC_DEFAULT_CONFIG_IFACE"),
+				config_modules, strlen(config_modules));
 	confdb_finalize (confdb_handle);
 
 join_exit:
