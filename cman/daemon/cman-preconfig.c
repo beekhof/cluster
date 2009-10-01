@@ -1272,7 +1272,7 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
 
 	/* Set up STABLE2/RHEL5 compatibility modes */
 	objdb_get_string(objdb, object_handle, "upgrading", &str);
-	if (str && strcasecmp(str, "on")==0) {
+	if (str && (strcasecmp(str, "on")==0 || strcasecmp(str, "yes")==0)) {
 		setup_old_compat(objdb, cluster_parent_handle);
 	}
 
