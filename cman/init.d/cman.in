@@ -154,6 +154,16 @@ fi
 # openaisparser   - use internal openais config file parser.
 [ -n "$CONFIG_LOADER" ] && cman_join_opts+=" -C $CONFIG_LOADER"
 
+# CONFIG_VALIDATION -- select default config validation behaviour
+# This can be:
+# FAIL - Use a very strict checking. The config will not be loaded if there
+#        for any kind of warnings/errors.
+# WARN - Same as FAIL, but will allow the config to load (this is temporary
+#        the default behaviour)
+# NONE - Disable config validation. Highly discouraged.
+[ -z "$CONFIG_VALIDATION" ] && CONFIG_VALIDATION=WARN
+cman_join_opts+=" -D$CONFIG_VALIDATION"
+
 # CMAN_LEAVE_OPTS -- allows extra options to be passed to cman_tool when leave
 #     operation is performed.
 [ -n "$CMAN_LEAVE_OPTS" ] && cman_leave_opts="$CMAN_LEAVE_OPTS"
@@ -522,6 +532,9 @@ start_cman()
 		ret=1
 	else
 		ret=0
+		if [ "$CONFIG_VALIDATION" = "WARN" ] && [ -s $tmpfile ]; then
+			cat $tmpfile >&2
+		fi
 	fi
 
 	rm -f $tmpfile
