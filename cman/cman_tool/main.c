@@ -649,7 +649,7 @@ static void set_votes(commandline_t *comline)
 	cman_finish(h);
 }
 
-static int validate_config(commandline_t *comline, char *config_value)
+static int validate_config(commandline_t *comline)
 {
 	struct stat st;
 	char command[PATH_MAX];
@@ -663,7 +663,7 @@ static int validate_config(commandline_t *comline, char *config_value)
 		return 0;
 	}
 
-	snprintf(command, sizeof(command), "%s -C %s", validator, config_value);
+	snprintf(command, sizeof(command), "%s -q", validator);
 
 	if (comline->verbose > 1)
 		printf("calling '%s'\n", command);
@@ -759,7 +759,7 @@ static void version(commandline_t *comline)
 
 		if (comline->verbose)
 			printf("Validating configuration\n");
-		if (validate_config(comline, config_modules) &&
+		if (validate_config(comline) &&
 		    comline->config_validate_opt == VALIDATE_FAIL)
 			die("Not reloading, configuration is not valid\n");
 	}
@@ -1149,7 +1149,7 @@ static void do_join(commandline_t *comline, char *envp[])
 		if (comline->verbose)
 			printf("Validating configuration\n");
 
-		if (validate_config(comline, comline->config_lcrso) &&
+		if (validate_config(comline) &&
 		    comline->config_validate_opt == VALIDATE_FAIL)
 			die("Not joining, configuration is not valid\n");
 	}
