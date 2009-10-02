@@ -14,13 +14,13 @@ OBJS=	main.o \
 	join.o
 
 CFLAGS += -DCOROSYNCBIN=\"${corosyncbin}\" -DSBINDIR=\"${sbindir}\"
-CFLAGS += -I${cmanincdir}
+CFLAGS += -I${cmanincdir} -I${ccsincdir}
+CFLAGS += -I${corosyncincdir}
 CFLAGS += -I${incdir}
-CFLAGS += -I${ccsincdir}
 
-LDFLAGS += -L${cmanlibdir} -lcman
+LDFLAGS += -L${cmanlibdir} -lcman -L${ccslibdir} -lccs
+LDFLAGS += -L${corosynclibdir} -lconfdb
 LDFLAGS += -L${libdir}
-LDFLAGS += -L${ccslibdir} -lconfdb -lccs
 
 ${TARGET}: ${OBJS}
 	$(CC) -o $@ $^ $(LDFLAGS)
