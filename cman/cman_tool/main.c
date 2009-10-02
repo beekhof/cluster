@@ -1151,7 +1151,7 @@ static void do_join(commandline_t *comline, char *envp[])
 
 		if (validate_config(comline, comline->config_lcrso) &&
 		    comline->config_validate_opt == VALIDATE_FAIL)
-			die("Not reloading, configuration is not valid\n");
+			die("Not joining, configuration is not valid\n");
 	}
 
 	join(comline, envp);
