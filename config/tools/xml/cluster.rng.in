@@ -73,6 +73,18 @@ To validate your cluster.conf against this schema, run:
      </attribute>
     </optional>
     <optional>
+     <attribute name="upgrading" rha:description="Set this if you are
+         performing a rolling upgrade of the cluster between major
+         releases." rha:sample="no"/>
+    </optional>
+    <optional>
+      <attribute name="disallowed" rha:description="Set this to 1 enable
+         cman's Disallowed mode. This is usually only needed for 
+         backwards compatibility." rha:sample="1">
+       <data type="nonNegativeInteger"/>
+      </attribute>
+    </optional>
+    <optional>
      <attribute name="quorum_dev_poll" rha:description="The amount of time
          after a qdisk poll, in milliseconds, before a quorum disk is
          considered dead. The quorum disk daemon, qdisk, periodically
