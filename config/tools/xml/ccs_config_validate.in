@@ -1,19 +1,21 @@
 #!/bin/bash
 
-# rpm based distros
-if [ -d /etc/sysconfig ]; then
-	[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
-	[ -f /etc/sysconfig/cman ] && . /etc/sysconfig/cman
-fi
+if [ -z "$COROSYNC_DEFAULT_CONFIG_IFACE" ]; then
+	# rpm based distros
+	if [ -d /etc/sysconfig ]; then
+		[ -f /etc/sysconfig/cluster ] && . /etc/sysconfig/cluster
+		[ -f /etc/sysconfig/cman ] && . /etc/sysconfig/cman
+	fi
 
-# deb based distros
-if [ -d /etc/default ]; then
-	[ -f /etc/default/cluster ] && . /etc/default/cluster
-	[ -f /etc/default/cman ] && . /etc/default/cman
-fi
+	# deb based distros
+	if [ -d /etc/default ]; then
+		[ -f /etc/default/cluster ] && . /etc/default/cluster
+		[ -f /etc/default/cman ] && . /etc/default/cman
+	fi
 
-[ -z "$CONFIG_LOADER" ] && CONFIG_LOADER=xmlconfig
-export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
+	[ -z "$CONFIG_LOADER" ] && CONFIG_LOADER=xmlconfig
+	export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
+fi
 
 print_usage() {
 	echo "Usage:"
@@ -24,6 +26,7 @@ print_usage() {
 	echo "  -h               Print this help, then exit"
 	echo "  -V               Print program version information, then exit"
 	echo "  -v               Produce verbose output"
+	echo "  -q               Be very quiet"
 	echo ""
 	echo "Validating XML configuraton files:"
 	echo "  -f configfile    Validate an alternate config file"
@@ -105,6 +108,17 @@ check_opts() {
 		;;
 		-v)
 			verbose=1
+			if [ -n "$quiet" ]; then
+				echo "Error: invalid options. -v can not be set together with -q" >&2
+				exit 255
+			fi
+		;;
+		-q)
+			quiet=1
+			if [ -n "$verbose" ]; then
+				echo "Error: invalid options. -q can not be set together with -v" >&2
+				exit 255
+			fi
 		;;
 		esac
 		shift
@@ -117,7 +131,7 @@ lecho()
 	return 0
 }
 
-opts=$(getopt t:hVnC:f:l:rov $@)
+opts=$(getopt t:hVnC:f:l:rovq $@)
 if [ "$?" != 0 ]; then
 	print_usage >&2
 	exit 255
@@ -158,10 +172,12 @@ xmlout=$(xmllint --noout \
 	$tempfile 2>&1)
 res=$?
 
-echo "$xmlout" | sed \
-	-e 's#.*validates$#Configuration validates#g' \
-	-e 's#.*validate$#Configuration fails to validate#g' \
-	-e 's#'$tempfile'#tempfile#g'
+if [ -z "$quiet" ] || [ "$res" != "0" ]; then
+	echo "$xmlout" | sed \
+		-e 's#.*validates$#Configuration validates#g' \
+		-e 's#.*validate$#Configuration fails to validate#g' \
+		-e 's#'$tempfile'#tempfile#g'
+fi
 
 lecho "Validation completed"
 
