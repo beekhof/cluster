@@ -585,6 +585,17 @@ fail:
 	return error;
 }
 
+void gfs_online_uevent(struct gfs_sbd *sdp)
+{
+	struct super_block *sb = sdp->sd_vfs;
+	char ro[20];
+	char spectator[20];
+	char *envp[] = { ro, spectator, NULL };
+	sprintf(ro, "RDONLY=%d", (sb->s_flags & MS_RDONLY) ? 1 : 0);
+	sprintf(spectator, "SPECTATOR=%d", sdp->sd_args.ar_spectator ? 1 : 0);
+	kobject_uevent_env(&sdp->sd_kobj, KOBJ_ONLINE, envp);
+}
+
 /**
  * fill_super - Read in superblock
  * @sb: The VFS superblock
@@ -715,6 +726,7 @@ static int fill_super(struct super_block *sb, void *data, int silent)
 
 	gfs_proc_fs_add(sdp);
 	gfs_glock_dq_uninit(&mount_gh);
+	gfs_online_uevent(sdp);
 
 	return 0;
 

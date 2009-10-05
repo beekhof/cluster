@@ -49,5 +49,6 @@ int gfs_lock_fs_check_clean(struct gfs_sbd *sdp, unsigned int state,
 			    struct gfs_holder *t_gh);
 int gfs_freeze_fs(struct gfs_sbd *sdp);
 void gfs_unfreeze_fs(struct gfs_sbd *sdp);
+void gfs_online_uevent(struct gfs_sbd *sdp);
 
 #endif /* __SUPER_DOT_H__ */

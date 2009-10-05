@@ -8,6 +8,7 @@
 #include <linux/proc_fs.h>
 #include <linux/module.h>
 #include <asm/uaccess.h>
+#include <linux/genhd.h>
 
 #include "gfs.h"
 #include "glock.h"
@@ -76,20 +77,34 @@ static struct kset *gfs_kset;
 
 int gfs_sys_fs_add(struct gfs_sbd *sdp)
 {
+	struct super_block *sb = sdp->sd_vfs;
 	int error;
+	char ro[20];
+	char spectator[20];
+	char *envp[] = { ro, spectator, NULL };
+
+	sprintf(ro, "RDONLY=%d", (sb->s_flags & MS_RDONLY) ? 1 : 0);
+	sprintf(spectator, "SPECTATOR=%d", sdp->sd_args.ar_spectator ? 1 : 0);
 
 	sdp->sd_kobj.kset = gfs_kset;
-
 	error = kobject_init_and_add(&sdp->sd_kobj, &gfs_ktype, NULL,
 				     "%s", sdp->sd_table_name);
 	if (error)
 		goto fail;
 
-	kobject_uevent(&sdp->sd_kobj, KOBJ_ADD);
+	error = sysfs_create_link(&sdp->sd_kobj,
+				  &disk_to_dev(sb->s_bdev->bd_disk)->kobj,
+				  "device");
+	if (error)
+		goto fail_put;
+
+	kobject_uevent_env(&sdp->sd_kobj, KOBJ_ADD, envp);
 
 	return 0;
 
- fail:
+fail_put:
+	kobject_put(&sdp->sd_kobj);
+fail:
 	return error;
 }
 
@@ -104,6 +119,8 @@ static int gfs_uevent(struct kset *kset, struct kobject *kobj,
 	struct gfs_sbd *sdp = container_of(kobj, struct gfs_sbd, sd_kobj);
 	add_uevent_var(env, "LOCKTABLE=%s", sdp->sd_table_name);
 	add_uevent_var(env, "LOCKPROTO=%s", sdp->sd_proto_name);
+	if (!sdp->sd_args.ar_spectator)
+		add_uevent_var(env, "JOURNALID=%u", sdp->sd_lockstruct.ls_jid);
 	return 0;
 }
 

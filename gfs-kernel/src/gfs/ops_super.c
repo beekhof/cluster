@@ -356,6 +356,8 @@ gfs_remount_fs(struct super_block *sb, int *flags, char *data)
 	/*  Don't let the VFS update atimes.  GFS handles this itself. */
 	*flags |= MS_NOATIME | MS_NODIRATIME;
 
+	if (error == 0)
+		gfs_online_uevent(sdp);
 out:
 	kfree(args);
 	return error;
