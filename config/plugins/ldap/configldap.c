@@ -146,10 +146,11 @@ static hdb_handle_t find_parent(struct objdb_iface_ver0 *objdb, LDAPDN dn, int s
 
 
 static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, hdb_handle_t parent,
-			   const char *object, const char *sub_dn, int always_create)
+			   const char *object, const char *sub_dn)
 {
 	char search_dn[4096];
 	int rc;
+	int first_entry = 1;
 	char *dn;
 	LDAPMessage *result, *e;
 	hdb_handle_t parent_handle = OBJECT_PARENT_HANDLE;
@@ -187,12 +188,13 @@ static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, hdb_handle_
 			 */
 			convert_dn_underscores(parsed_dn);
 
-			/* Create a new object if the top-level is NOT name= */
-			if (strncmp(parsed_dn[0][0][0].la_attr.bv_val, "name", 4)) {
+			/* Create a new object if the top-level is NOT name= OR we are the first "cluster" entry */
+			if (strncmp(parsed_dn[0][0][0].la_attr.bv_val, "name", 4) || first_entry) {
 				parent_handle = find_parent(objdb, parsed_dn, 0, object);
 
 				objdb->object_create(parent_handle, &object_handle, parsed_dn[0][0][0].la_value.bv_val,
 						     parsed_dn[0][0][0].la_value.bv_len);
+				first_entry = 0;
 			}
 			else {
  			        /* Remove redundant empty parent. */
@@ -282,7 +284,7 @@ static int init_config(struct objdb_iface_ver0 *objdb)
 		return -1;
 	}
 
-	rc = read_config_for(ld, objdb, OBJECT_PARENT_HANDLE, "cluster", "name=cluster", 1);
+	rc = read_config_for(ld, objdb, OBJECT_PARENT_HANDLE, "cluster", "name=cluster");
 
 	ldap_unbind(ld);
 	return 0;
