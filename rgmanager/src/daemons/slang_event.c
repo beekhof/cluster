@@ -1135,7 +1135,7 @@ S_service_event(const char *file, const char *script, char *name,
 
 static int
 S_user_event(const char *file, const char *script, char *name,
-	     int request, int arg1, int arg2, int target, msgctx_t *ctx)
+	     int request, int arg1, int arg2, int target, msgctx_t **ctx)
 {
 	int ret = RG_SUCCESS;
 
@@ -1159,20 +1159,21 @@ S_user_event(const char *file, const char *script, char *name,
 
 	/* XXX Send response code to caller - that 0 should be the
 	   new service owner, if there is one  */
-	if (ctx) {
+	if (*ctx) {
 		if (_user_return > 0) {
 			/* sl_start_service() squashes return code and
 			   node ID into one value.  <0 = error, >0 =
 			   success, return-value == node id running
 			   service */
-			send_ret(ctx, name, 0, request, _user_return);
+			send_ret(*ctx, name, 0, request, _user_return);
 		} else {
 			/* return value < 0 ... pass directly back;
 			   don't transpose */
-			send_ret(ctx, name, _user_return, request, 0);
+			send_ret(*ctx, name, _user_return, request, 0);
 		}
-		msg_close(ctx);
-		msg_free_ctx(ctx);
+		msg_close(*ctx);
+		msg_free_ctx(*ctx);
+		*ctx = NULL;
 	}
 	_user_return = 0;
 	return ret;
@@ -1213,7 +1214,7 @@ slang_do_script(event_t *pattern, event_t *ev)
 				ev->ev.user.u_arg1,
 				ev->ev.user.u_arg2,
 				ev->ev.user.u_target,
-				ev->ev.user.u_ctx);
+				&ev->ev.user.u_ctx);
 		break;
 	default:
 		break;
