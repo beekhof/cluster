@@ -348,35 +348,35 @@ static int fill_super_block(struct fsck_sb *sdp)
 }
 
 /**
- * init_sbp - initialize superblock pointer
+ * initialize - initialize superblock pointer
  *
  */
-static int init_sbp(struct fsck_sb *sbp)
+int initialize(struct fsck_sb *sbp)
 {
 	if(sbp->opts->no) {
 		if ((sbp->diskfd = open(sbp->opts->device, O_RDONLY)) < 0) {
 			log_crit("Unable to open device: %s\n", sbp->opts->device);
-			return -1;
+			return FSCK_USAGE;
 		}
 	} else {
 		/* read in sb from disk */
 		if ((sbp->diskfd = open(sbp->opts->device, O_RDWR)) < 0){
 			log_crit("Unable to open device: %s\n", sbp->opts->device);
-			return -1;
+			return FSCK_USAGE;
 		}
 	}
 
 	/* initialize lists and read in the sb */
 	if(read_super_block(sbp)) {
 		stack;
-		return -1;
+		return FSCK_ERROR;
 	}
 
 	/* Change lock protocol to be fsck_* instead of lock_* */
 	if(!sbp->opts->no) {
 		if(block_mounters(sbp, 1)) {
 			log_err("Unable to block other mounters\n");
-			return -1;
+			return FSCK_ERROR;
 		}
 	}
 
@@ -385,7 +385,7 @@ static int init_sbp(struct fsck_sb *sbp)
 		if(!sbp->opts->no)
 			block_mounters(sbp, 0);
 		stack;
-		return -1;
+		return FSCK_ERROR;
 	}
 
 	/* verify various things */
@@ -394,10 +394,10 @@ static int init_sbp(struct fsck_sb *sbp)
 		if(!sbp->opts->no)
 			block_mounters(sbp, 0);
 		stack;
-		return -1;
+		return FSCK_ERROR;
 	}
 
-	return 0;
+	return FSCK_OK;
 }
 
 static void destroy_sbp(struct fsck_sb *sbp)
@@ -412,13 +412,6 @@ static void destroy_sbp(struct fsck_sb *sbp)
 	}
 	empty_super_block(sbp);
 	close(sbp->diskfd);
-}
-
-int initialize(struct fsck_sb *sbp)
-{
-
-	return init_sbp(sbp);
-
 }
 
 void destroy(struct fsck_sb *sbp)

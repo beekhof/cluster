@@ -35,6 +35,7 @@ static int ask_remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 				  struct gfs_ea_header *prev,
 				  int fix_curr, int fix_curr_len)
 {
+	errors_found++;
 	if (query(sdp, "Remove the bad Extended Attribute? (y/n) ")) {
 		if (fix_curr)
 			curr->ea_flags |= GFS_EAFLAG_LAST;
@@ -48,6 +49,7 @@ static int ask_remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 			stack;
 			return -1;
 		}
+		errors_corrected++;
 	} else {
 		log_err("Bad Extended Attribute not removed.\n");
 	}
@@ -56,13 +58,16 @@ static int ask_remove_eattr_entry(struct fsck_sb *sdp, osi_buf_t *leaf_bh,
 
 static int ask_remove_eattr(struct fsck_inode *ip)
 {
+	errors_found++;
 	if (query(ip->i_sbd, "Remove the bad Extended Attribute? (y/n) ")) {
 		ip->i_di.di_eattr = 0;
 		if (fs_copyout_dinode(ip))
 			log_err("Bad Extended Attribute could not be "
 				"removed.\n");
-		else
+		else {
+			errors_corrected++;
 			log_err("Bad Extended Attribute removed.\n");
+		}
 	} else
 		log_err("Bad Extended Attribute not removed.\n");
 	return 1;
@@ -251,15 +256,15 @@ int pass1c(struct fsck_sb *sbp)
 	while (!find_next_block_type(sbp->bl, eattr_block, &block_no)) {
 
 		if (skip_this_pass || fsck_abort) /* if asked to skip the rest */
-			return 0;
+			return FSCK_OK;
 		log_info("EA in inode %"PRIu64"\n", block_no);
 		if(get_and_read_buf(sbp, block_no, &bh, 0)) {
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 		if(copyin_inode(sbp, bh, &ip)) {
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 
 		block_unmark(sbp->bl, block_no, eattr_block);
@@ -268,7 +273,7 @@ int pass1c(struct fsck_sb *sbp)
 		error = check_inode_eattr(ip, &pass1c_fxns);
 		if(error < 0) {
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 
 		if(update) {
@@ -281,5 +286,5 @@ int pass1c(struct fsck_sb *sbp)
 
 		block_no++;
 	}
-	return 0;
+	return FSCK_OK;
 }

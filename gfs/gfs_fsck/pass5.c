@@ -202,6 +202,7 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 				  rg_status, block_status, q.block_type);
 			if((rg_status == GFS_BLKST_FREEMETA) &&
 			   (block_status == GFS_BLKST_FREE)) {
+				errors_found++;
 				log_info("Converting free metadata block at %"
 					 PRIu64" to a free data block\n", block);
 				if(!sbp->opts->no) {
@@ -209,7 +210,8 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 						log_warn("Failed to convert free metadata block to free data block at %PRIu64.\n", block);
 					}
 					else {
-						log_info("Succeeded.\n");
+						log_err("Succeeded.\n");
+						errors_corrected++;
 					}
 				}
 			}
@@ -229,12 +231,15 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 					q.block_type,
 					block_type_string(&q));
 
+				errors_found++;
 				if(query(sbp, "Fix bitmap for block %"
 					 PRIu64"? (y/n) ", block)) {
 					if(fs_set_bitmap(sbp, block, block_status))
 						log_err("Failed.\n");
-					else
+					else {
 						log_err("Succeeded.\n");
+						errors_corrected++;
+					}
 				} else
 					log_err("Bitmap at block %"PRIu64
 						" left inconsistent\n", block);
@@ -331,8 +336,10 @@ static int update_rgrp(struct fsck_rgrp *rgp, uint32_t *count, int rgcount)
 			rgp->rd_rg.rg_freemeta = count[4];
 		}
 
+		errors_found++;
 		if(query(rgp->rd_sbd,
 			 "Update resource group counts? (y/n) ")) {
+			errors_corrected++;
 			log_warn("Resource group counts updated\n");
 			/* write out the rgrp */
 			gfs_rgrp_out(&rgp->rd_rg, BH_DATA(rgp->rd_bh[0]));
@@ -361,14 +368,14 @@ int pass5(struct fsck_sb *sbp, struct options *opts)
 	/* Reconcile RG bitmaps with fsck bitmap */
 	for(tmp = sbp->rglist.next; tmp != &sbp->rglist; tmp = tmp->next){
 		if (skip_this_pass || fsck_abort) /* if asked to skip the rest */
-			return 0;
+			return FSCK_OK;
 		log_info("Updating Resource Group %"PRIu64"\n", rg_count);
 		memset(count, 0, sizeof(*count) * 5);
 		rgp = osi_list_entry(tmp, struct fsck_rgrp, rd_list);
 
 		if(fs_rgrp_read(rgp, FALSE)){
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 		/* Compare the bitmaps and report the differences */
 		update_rgrp(rgp, count, rg_count);
@@ -379,5 +386,5 @@ int pass5(struct fsck_sb *sbp, struct options *opts)
 	 * anything to do here... */
 
 
-	return 0;
+	return FSCK_OK;
 }

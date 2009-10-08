@@ -1293,6 +1293,7 @@ int ri_update(struct fsck_sb *sdp)
 						   ri_bitbytes, PRIx32);
 				/* If we modified the index, write it back to disk. */
 				if (rgindex_modified) {
+					errors_found++;
 					if(query(sdp, "Fix the index? (y/n)")) {
 						gfs_rindex_out(&rgd->rd_ri, (char *)&buf);
 						error = writei(sdp->riinode, (char *)&buf,
@@ -1302,6 +1303,8 @@ int ri_update(struct fsck_sb *sdp)
 							log_err("Unable to fix resource group index %u.\n",
 									rg + 1);
 							goto fail;
+						} else {
+							errors_corrected++;
 						}
 					}
 					else
@@ -1314,8 +1317,11 @@ int ri_update(struct fsck_sb *sdp)
 				if (rgd->rd_ri.ri_data == (uint32_t)-4) {
 					if (!fix_grow_problems) {
 						log_err("A problem with the rindex file caused by gfs_grow was detected.\n");
-						if(query(sdp, "Fix the rindex problem? (y/n)"))
+						errors_found++;
+						if(query(sdp, "Fix the rindex problem? (y/n)")) {
+							errors_corrected++;
 							fix_grow_problems = 1;
+						}
 					}
 					/* Keep a counter in case we hit it more than once. */
 					grow_problems++;

@@ -223,11 +223,14 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 	if(check_range(ip->i_sbd, entryblock)) {
 		log_err("Block # referenced by directory entry %s is out of range\n",
 			tmp_name);
+		errors_found++;
 		if(query(ip->i_sbd, "Clear directory entry tp out of range block? (y/n) ")) {
 			log_err("Clearing %s\n", tmp_name);
 			if(dirent_del(ip, bh, prev_de, dent))
 				log_err("Error encountered while removing bad "
 					"directory entry.  Skipping.\n");
+			else
+				errors_corrected++;
 			*update = 1;
 			return 1;
 		} else {
@@ -249,8 +252,10 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 		log_err("Found a bad directory entry: %s at block %lld.\n",
 			filename, de->de_inum.no_addr);
 
+		errors_found++;
 		if(query(sbp, "Delete the inode containing bad blocks? "
 			 "(y/n)")) {
+			errors_corrected++;
 			if (!load_inode(sbp, de->de_inum.no_addr, &entry_ip)) {
 				check_inode_eattr(entry_ip,
 						  &pass2_fxns_delete);
@@ -281,6 +286,7 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 			q.block_type, q.block_type == meta_inval ?
 			"previously marked invalid" : "is not an inode");
 
+		errors_found++;
 		if(query(sbp, "Clear directory entry to non-inode block? "
 			 "(y/n) ")) {
 			osi_buf_t *bhi;
@@ -290,6 +296,7 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 					"directory entry.  Skipping.\n");
 				return -1;
 			}
+			errors_corrected++;
 			*update = 1;
 			log_warn("Directory entry '%s' cleared\n", tmp_name);
 
@@ -331,6 +338,7 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 		log_warn("Type in dir entry (%s, %"PRIu64") conflicts with "
 			 "type in dinode. (Dir entry is stale.)\n",
 			 tmp_name, de->de_inum.no_addr);
+		errors_found++;
 		if(query(sbp, "Clear stale directory entry? (y/n) ")) {
 			load_inode(sbp, de->de_inum.no_addr, &entry_ip);
 			check_inode_eattr(entry_ip, &clear_eattrs);
@@ -339,8 +347,11 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 			if(dirent_del(ip, bh, prev_de, dent))
 				log_err("Error encountered while removing bad "
 					"directory entry.  Skipping.\n");
-			*update = 1;
-			log_err("Stale directory entry deleted\n");
+			else {
+				errors_corrected++;
+				*update = 1;
+				log_err("Stale directory entry deleted\n");
+			}
 			return 1;
 		} else {
 			log_err("Stale directory entry remains\n");
@@ -355,8 +366,10 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 
 		if(ds->dotdir) {
 			log_err("already found '.' entry\n");
+			errors_found++;
 			if(query(sbp, "Clear duplicate '.' entry? (y/n) ")) {
 
+				errors_corrected++;
 				load_inode(sbp, de->de_inum.no_addr, &entry_ip);
 				check_inode_eattr(entry_ip, &clear_eattrs);
 				free_inode(&entry_ip);
@@ -387,7 +400,9 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 				PRIu64".\n",
 				de->de_inum.no_addr,
 				ip->i_num.no_addr);
+			errors_found++;
 			if(query(sbp, "remove '.' reference? (y/n) ")) {
+				errors_corrected++;
 				load_inode(sbp, de->de_inum.no_addr, &entry_ip);
 				check_inode_eattr(entry_ip, &clear_eattrs);
 				free_inode(&entry_ip);
@@ -418,8 +433,10 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 		log_debug("Found .. dentry\n");
 		if(ds->dotdotdir) {
 			log_err("already found '..' entry\n");
+			errors_found++;
 			if(query(sbp, "Clear duplicate '..' entry? (y/n) ")) {
 
+				errors_corrected++;
 				load_inode(sbp, de->de_inum.no_addr, &entry_ip);
 				check_inode_eattr(entry_ip, &clear_eattrs);
 				free_inode(&entry_ip);
@@ -442,7 +459,9 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 		if(q.block_type != inode_dir) {
 			log_err("Found '..' entry pointing to"
 				" something that's not a directory");
+			errors_found++;
 			if(query(sbp, "Clear bad '..' directory entry? (y/n) ")) {
+				errors_corrected++;
 				load_inode(sbp, de->de_inum.no_addr, &entry_ip);
 				check_inode_eattr(entry_ip, &clear_eattrs);
 				free_inode(&entry_ip);
@@ -494,7 +513,9 @@ static int check_dentry(struct fsck_inode *ip, struct gfs_dirent *dent,
 	if(error > 0) {
 		log_err("Hard link to block %"PRIu64" detected.\n", filename, entryblock);
 
+		errors_found++;
 		if(query(sbp, "Clear hard link to directory? (y/n) ")) {
+			errors_corrected++;
 			*update = 1;
 
 			dirent_del(ip, bh, prev_de, dent);
@@ -624,11 +645,13 @@ static int check_root_dir(struct fsck_sb *sbp)
 	if(ds.q.block_type != inode_dir) {
 		log_err("Block %"PRIu64" marked as root inode in"
 			" superblock not a directory\n", rootblock);
+		errors_found++;
 		if(query(sbp, "Create new root inode? (y/n) ")) {
 			if(build_rooti(sbp)) {
 				stack;
 				return -1;
 			}
+			errors_corrected++;
 		} else {
 			log_err("Cannot continue without valid root inode\n");
 			return -1;
@@ -681,6 +704,7 @@ static int check_root_dir(struct fsck_sb *sbp)
 
 	if(!ds.dotdir) {
 		log_err("No '.' entry found\n");
+		errors_found++;
 		if (query(sbp, "Is it okay to add '.' entry? (y/n) ")) {
 			sprintf(tmp_name, ".");
 			filename.len = strlen(tmp_name); /* no trailing NULL */
@@ -704,6 +728,7 @@ static int check_root_dir(struct fsck_sb *sbp)
 					"directory.\n");
 				return -1;
 			}
+			errors_corrected++;
 			increment_link(ip->i_sbd, ip->i_num.no_addr);
 			ds.entry_count++;
 			free(filename.name);
@@ -728,10 +753,12 @@ static int check_root_dir(struct fsck_sb *sbp)
 	if(ip->i_di.di_entries != ds.entry_count) {
 		log_err("Entries is %d - should be %d for %"PRIu64"\n",
 			ip->i_di.di_entries, ds.entry_count, ip->i_di.di_num.no_addr);
+		errors_found++;
 		if(query(sbp, "Fix entries for %"PRIu64"? (y/n) ",
 			 ip->i_di.di_num.no_addr)) {
 			ip->i_di.di_entries = ds.entry_count;
-			log_warn("Entries updated\n");
+			log_err("Entries updated\n");
+			errors_corrected++;
 			update = 1;
 		} else {
 			log_err("Entries for %"PRIu64" left out of sync\n",
@@ -774,7 +801,7 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 
 	if(check_root_dir(sbp)) {
 		stack;
-		return -1;
+		return FSCK_ERROR;
 	}
 
 	log_info("Checking directory inodes.\n");
@@ -783,7 +810,7 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 		need_update = 0;
 		warm_fuzzy_stuff(i);
 		if (skip_this_pass || fsck_abort) /* if asked to skip the rest */
-			return 0;
+			return FSCK_OK;
 
 		/* Skip the root inode - it's checked above */
 		if(i == sbp->sb.sb_root_di.no_addr)
@@ -792,7 +819,7 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 		if(block_check(sbp->bl, i, &q)) {
 			log_err("Can't get block %"PRIu64 " from block list\n",
 				i);
-			return -1;
+			return FSCK_ERROR;
 		}
 
 		if(q.block_type != inode_dir)
@@ -810,24 +837,25 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 			if(check_metatree(ip, &pass2_fxns)) {
 				stack;
 				free_inode(&ip);
-				return -1;
+				return FSCK_ERROR;
 			}
 			free_inode(&ip);
 		}
 		error = check_dir(sbp, i, &pass2_fxns);
 		if(error < 0) {
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 		if (error > 0) {
 			struct dir_info *di = NULL;
 			error = find_di(sbp, i, &di);
 			if(error < 0) {
 				stack;
-				return -1;
+				return FSCK_ERROR;
 			}
 			if(error == 0) {
 				/* FIXME: factor */
+				errors_found++;
 				if(query(sbp, "Remove directory entry for bad"
 					 " inode %"PRIu64" in %"PRIu64
 					 "? (y/n)", i, di->treewalk_parent)) {
@@ -836,13 +864,14 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 								       i);
 					if(error < 0) {
 						stack;
-						return -1;
+						return FSCK_ERROR;
 					}
 					if(error > 0) {
 						log_warn("Unable to find dentry for %"
 							 PRIu64" in %"PRIu64"\n",
 							 i, di->treewalk_parent);
 					}
+					errors_corrected++;
 					log_warn("Directory entry removed\n");
 				} else {
 					log_err("Directory entry to invalid inode remains\n");
@@ -856,18 +885,19 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 			log_err("Unable to retrieve block #%"PRIu64
 				" for directory\n",
 				i);
-			return -1;
+			return FSCK_ERROR;
 		}
 
 		if(copyin_inode(sbp, bh, &ip)) {
 			stack;
 			relse_buf(sbp, bh);
-			return -1;
+			return FSCK_ERROR;
 		}
 
 		if(!ds.dotdir) {
 			log_err("No '.' entry found for directory inode at "
 				"block %" PRIu64 "\n", i);
+			errors_found++;
 			if (query(sbp,
 				  "Is it okay to add '.' entry? (y/n) ")) {
 				sprintf(tmp_name, ".");
@@ -877,13 +907,13 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 							    filename.len))) {
 					log_err("Unable to allocate name\n");
 					stack;
-					return -1;
+					return FSCK_ERROR;
 				}
 				if(!memset(filename.name, 0, sizeof(char) *
 					   filename.len)) {
 					log_err("Unable to zero name\n");
 					stack;
-					return -1;
+					return FSCK_ERROR;
 				}
 				memcpy(filename.name, tmp_name, filename.len);
 
@@ -891,8 +921,9 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 					      ip->i_di.di_type)){
 					log_err("Failed to link \".\" entry "
 						"to directory.\n");
-					return -1;
+					return FSCK_ERROR;
 				}
+				errors_corrected++;
 				increment_link(ip->i_sbd, ip->i_num.no_addr);
 				ds.entry_count++;
 				free(filename.name);
@@ -908,7 +939,9 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 				"block %" PRIu64 "\n",
 				ip->i_di.di_entries, ds.entry_count,
 				ip->i_di.di_num.no_addr);
+			errors_found++;
 			if (query(sbp, "Fix the entry count? (y/n) ")) {
+				errors_corrected++;
 				ip->i_di.di_entries = ds.entry_count;
 				need_update = 1;
 			} else {
@@ -922,7 +955,7 @@ int pass2(struct fsck_sb *sbp, struct options *opts)
 			relse_buf(sbp, bh);
 		}
 	}
-	return 0;
+	return FSCK_OK;
 }
 
 

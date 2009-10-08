@@ -56,7 +56,7 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int type,
 
 	while(1) {
 		if (skip_this_pass || fsck_abort)
-			return 0;
+			return FSCK_OK;
 		memset(&de, 0, sizeof(struct gfs_dirent));
 		gfs_dirent_in(&de, (char *)dent);
 		filename = (char *)dent + sizeof(struct gfs_dirent);
@@ -68,6 +68,7 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int type,
 				PRIu64 ", entry %d of directory %"
 				PRIu64 " is corrupt.\n", BH_BLKNO(bh),
 				(*count) + 1, ip->i_di.di_num.no_addr);
+			errors_found++;
 			if (query(ip->i_sbd, "Attempt to repair it? (y/n) ")) {
 				if (dirent_repair(ip, bh, &de, dent, type,
 						  first)) {
@@ -79,10 +80,12 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int type,
 					log_err("Unable to repair corrupt "
 						"directory entry; the entry "
 						"was removed instead.\n");
+					errors_corrected++;
 					return 0;
 				} else {
 					log_err("Corrupt directory entry "
 						"repaired.\n");
+					errors_corrected++;
 					*update = 1;
 					/* keep looping through dentries */
 				}
@@ -102,12 +105,14 @@ static int check_entries(struct fsck_inode *ip, osi_buf_t *bh, int type,
 					"zero in leaf %"PRIu64" of directory "
 					"%"PRIu64"!\n", BH_BLKNO(bh),
 					ip->i_di.di_num.no_addr);
+				errors_found++;
 				if (query(ip->i_sbd,
 					  "Attempt to remove it? (y/n) ")) {
 					dirblk_truncate(ip, prev, bh);
 					*update = 1;
 					log_err("The corrupt directory entry "
 						"was removed.\n");
+					errors_corrected++;
 				} else {
 					log_err("Corrupt directory entry "
 						"ignored, stopped after "
@@ -157,8 +162,10 @@ static void warn_and_patch(struct fsck_inode *ip, uint64_t *leaf_no,
 			PRIu64 " %s.\n", ip->i_di.di_num.no_addr, *leaf_no,
 			msg);
 	}
+	errors_found++;
 	if (*leaf_no == *bad_leaf ||
 	    query(ip->i_sbd, "Attempt to patch around it? (y/n) ")) {
+		errors_corrected++;
 		if (check_range(ip->i_sbd, old_leaf) == 0)
 			put_leaf_nr(ip, lindex, old_leaf);
 		else
@@ -238,9 +245,11 @@ static int check_leaf_blks(struct fsck_inode *ip, int *update,
 				"\tFound: %u,  Expected: %u\n",
 				ip->i_num.no_addr, old_leaf, ref_count,
 				exp_count);
+			errors_found++;
 			if (query(ip->i_sbd, "Attempt to fix it? (y/n) ")) {
 				int factor = 0, divisor = ref_count;
 
+				errors_corrected++;
 				get_and_read_buf(sbp, old_leaf, &lbh, 0);
 				while (divisor > 1) {
 					factor++;
@@ -343,7 +352,9 @@ static int check_leaf_blks(struct fsck_inode *ip, int *update,
 					gfs_leaf_in(&leaf, BH_DATA(lbh));
 
 					log_err("Leaf(%"PRIu64") entry count in directory %"PRIu64" doesn't match number of entries found - is %u, found %u\n", leaf_no, ip->i_num.no_addr, leaf.lf_entries, count);
+					errors_found++;
 					if(query(sbp, "Update leaf entry count? (y/n) ")) {
+						errors_corrected++;
 						leaf.lf_entries = count;
 						gfs_leaf_out(&leaf, BH_DATA(lbh));
 						write_buf(sbp, lbh, 0);
@@ -419,9 +430,11 @@ static int check_eattr_entries(struct fsck_inode *ip, osi_buf_t *bh,
 							      bh, ea_hdr,
 							      ea_hdr_prev,
 							      pass->private)) {
+					errors_found++;
 					if (query(ip->i_sbd,
 						  "Repair the bad Extended "
 						  "Attribute? (y/n) ")) {
+						errors_corrected++;
 						ea_hdr->ea_num_ptrs = i;
 						ea_hdr->ea_data_len =
 							cpu_to_be32(tot_ealen);
@@ -535,9 +548,11 @@ static int check_indirect_eattr(struct fsck_inode *ip, uint64_t indirect,
 			if (error) {
 				leaf_pointer_errors++;
 				if (!update_indir_block) {
+					errors_found++;
 					if (query(sdp, "Fix the indirect "
 						  "block too? (y/n) ")) {
 						update_indir_block = 1;
+						errors_corrected++;
 						*ea_leaf_ptr = 0;
 					}
 				} else

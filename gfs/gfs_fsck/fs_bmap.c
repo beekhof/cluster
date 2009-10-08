@@ -223,7 +223,7 @@ static int build_height(struct fsck_inode *ip, int height)
 			  dibh, sizeof(struct gfs_dinode));
 			*/
 			log_err("ATTENTION -- Not doing copy_tail...\n");
-			exit(1);
+			exit(FSCK_ERROR);
 			error = -1;
 			goto fail_drelse;
 			if((error = write_buf(sdp, bh, 0))){

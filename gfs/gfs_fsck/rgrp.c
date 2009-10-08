@@ -162,7 +162,7 @@ int fs_rgrp_read(struct fsck_rgrp *rgd, int repair_if_corrupted)
 	for (x = 0; x < length; x++){
 		if(rgd->rd_bh[x]){
 			log_err("Programmer error!  Bitmaps are already present in rgrp.\n");
-			exit(1);
+			exit(FSCK_ERROR);
 		}
 		error = get_and_read_buf(sdp, rgd->rd_ri.ri_addr + x,
 								 &(rgd->rd_bh[x]), 0);
@@ -177,6 +177,7 @@ int fs_rgrp_read(struct fsck_rgrp *rgd, int repair_if_corrupted)
 					BH_BLKNO(rgd->rd_bh[x]), BH_BLKNO(rgd->rd_bh[x]),
 					(int)x+1, (int)length);
 			if (repair_if_corrupted) {
+				errors_found++;
 				if (query(sdp, "Fix the RG? (y/n)")) {
 					log_err("Attempting to repair the RG.\n");
 					if (x) {
@@ -203,6 +204,7 @@ int fs_rgrp_read(struct fsck_rgrp *rgd, int repair_if_corrupted)
 							     BH_DATA(rgd->rd_bh[x]));
 					}
 					write_buf(sdp, rgd->rd_bh[x], BW_WAIT);
+					errors_corrected++;
 				}
 			}
 			else {

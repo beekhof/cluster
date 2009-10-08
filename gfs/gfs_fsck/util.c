@@ -141,7 +141,7 @@ int next_rg_meta(struct fsck_rgrp *rgd, uint64 *block, int first)
 
   if(!first && (*block < rgd->rd_ri.ri_data1)){
     log_err("next_rg_meta:  Start block is outside rgrp bounds.\n");
-    exit(1);
+    exit(FSCK_ERROR);
   }
 
   for(i=0; i < length; i++){
@@ -194,7 +194,7 @@ int next_rg_meta_free(struct fsck_rgrp *rgd, uint64 *block, int first, int *mfre
 
   if(!first && (*block < rgd->rd_ri.ri_data1)){
     log_err("next_rg_meta:  Start block is outside rgrp bounds.\n");
-    exit(1);
+    exit(FSCK_ERROR);
   }
 
   for(i=0; i < length; i++){
@@ -258,13 +258,13 @@ int next_rg_metatype(struct fsck_rgrp *rgd, uint64 *block, uint32 type, int firs
     if(get_and_read_buf(sdp, *block, &bh, 0)){
       log_err("next_rg_metatype:  Unable to read meta block "
 	      "#%"PRIu64" from disk\n", *block);
-      exit(1);
+      exit(FSCK_ERROR);
     }
 
     if(check_meta(bh,0)){
       log_err("next_rg_metatype:  next_rg_meta returned block #%"PRIu64",\n"
 	      "                   which is not a valid meta block.\n", *block);
-      exit(1);
+      exit(FSCK_ERROR);
     }
 
     first = 0;

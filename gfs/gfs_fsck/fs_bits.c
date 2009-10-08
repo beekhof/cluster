@@ -24,7 +24,7 @@ static void fs_setbit(unsigned char *buffer, unsigned int buflen,
 
 	if(byte >= end){
 		log_err("fs_setbit:  byte >= end\n");
-		exit(1);
+		exit(FSCK_ERROR);
 	}
 	cur_state = (*byte >> bit) & GFS_BIT_MASK;
 

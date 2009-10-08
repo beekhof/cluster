@@ -422,7 +422,9 @@ static int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
 				 "data block %"PRIu64", but "
 				 "the block is really metadata.\n",
 				 id->name, id->block_no, b->block_no);
+			errors_found++;
 			if (query(sbp, "Clear the inode? (y/n) ")) {
+				errors_corrected++;
 				log_warn("Clearing inode %lld...\n",
 					 id->block_no);
 				load_inode(sbp, id->block_no, &ip);
@@ -452,12 +454,14 @@ static int handle_dup_blk(struct fsck_sb *sbp, struct blocks *b)
 	}
 	osi_list_foreach(tmp, &b->ref_inode_list) {
 		id = osi_list_entry(tmp, struct inode_with_dups, list);
+		errors_found++;
 		if (!query(sbp, "Okay to clear inode %lld? (y/n) ",
 			   id->block_no)) {
 			log_warn("The inode %lld was not cleared...\n",
 				 id->block_no);
 			continue;
 		}
+		errors_corrected++;
 		log_warn("Clearing inode %lld...\n", id->block_no);
 		load_inode(sbp, id->block_no, &ip);
 		dh.b = b;
@@ -493,7 +497,7 @@ int pass1b(struct fsck_sb *sbp)
 	struct block_query q;
 	osi_list_t *tmp = NULL, *x;
 	struct metawalk_fxns find_dirents = {0};
-	int rc = 0;
+	int rc = FSCK_OK;
 
 	find_dirents.check_dentry = &find_dentry;
 
@@ -505,7 +509,7 @@ int pass1b(struct fsck_sb *sbp)
 	/* If there were no dups in the bitmap, we don't need to do anymore */
 	if(osi_list_empty(&sbp->dup_list)) {
 		log_info("No duplicate blocks found\n");
-		return 0;
+		return FSCK_OK;
 	}
 
 	/* Rescan the fs looking for pointers to blocks that are in
@@ -519,7 +523,7 @@ int pass1b(struct fsck_sb *sbp)
 		log_debug("Scanning block %"PRIu64" for inodes\n", i);
 		if(block_check(sbp->bl, i, &q)) {
 			stack;
-			rc = -1;
+			rc = FSCK_ERROR;
 			goto out;
 		}
 		if((q.block_type == inode_dir) ||
@@ -533,7 +537,7 @@ int pass1b(struct fsck_sb *sbp)
 				b = osi_list_entry(tmp, struct blocks, list);
 				if(find_block_ref(sbp, i, b)) {
 					stack;
-					rc = -1;
+					rc = FSCK_ERROR;
 					goto out;
 				}
 			}

@@ -216,7 +216,7 @@ static int make_dinode(struct fsck_inode *dip, struct fsck_sb *sdp,
 	rgd = fs_blk2rgrpd(sdp, inum->no_addr);
 	if(!rgd){
 		log_crit("Unable to map block #%"PRIu64" to rgrp\n", inum->no_addr);
-		exit(1);
+		exit(FSCK_ERROR);
 	}
 
 	di.di_rgrp = rgd->rd_ri.ri_addr;

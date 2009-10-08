@@ -169,7 +169,7 @@ int writei(struct fsck_inode *ip, void *bufin, uint64_t offset, unsigned int siz
 				log_crit("fs_writei:  "
 					"Unable to map logical block to real block.\n");
 				log_crit("Uncircumventable error.\n");
-				exit(EXIT_FAILURE);
+				exit(FSCK_ERROR);
 			}
 		}
 

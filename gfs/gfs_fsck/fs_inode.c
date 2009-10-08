@@ -153,6 +153,7 @@ static int make_dinode(struct fsck_inode *dip, struct gfs_inum *inum,
 	if(check_meta(dibh, 0)){
 		log_err("make_dinode:  Buffer #%"PRIu64" has no meta header.\n",
 			BH_BLKNO(dibh));
+		errors_found++;
 		if(query(dip->i_sbd, "Add header? (y/n) ")){
 			struct gfs_meta_header mh;
 			memset(&mh, 0, sizeof(struct gfs_meta_header));
@@ -160,6 +161,7 @@ static int make_dinode(struct fsck_inode *dip, struct gfs_inum *inum,
 			mh.mh_type = GFS_METATYPE_NONE;
 			gfs_meta_header_out(&mh, BH_DATA(dibh));
 			log_warn("meta header added.\n");
+			errors_corrected++;
 		} else {
 			log_err("meta header not added.  Failing make_dinode.\n");
 			relse_buf(sdp, dibh);
@@ -200,7 +202,7 @@ static int make_dinode(struct fsck_inode *dip, struct gfs_inum *inum,
 	rgd = fs_blk2rgrpd(sdp, inum->no_addr);
 	if(!rgd){
 		log_err( "Unable to map block #%"PRIu64" to rgrp\n", inum->no_addr);
-		exit(1);
+		exit(FSCK_ERROR);
 	}
 
 	di.di_rgrp = rgd->rd_ri.ri_addr;

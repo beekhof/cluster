@@ -333,7 +333,7 @@ static int leaf_search(osi_buf_t *bh, identifier_t *id,
 		} while (dirent_next(bh, &dent) == 0);
 	} else {
 		log_err("leaf_search:  Invalid type for identifier.\n");
-		exit(1);
+		exit(FSCK_ERROR);
 	}
 
 	return -ENOENT;
@@ -435,7 +435,7 @@ static int linked_leaf_search(struct fsck_inode *dip, identifier_t *id,
 		}
 	} else {
 		log_err("linked_leaf_search:  Invalid type for identifier.\n");
-		exit(1);
+		exit(FSCK_ERROR);
 	}
 	return error;
 }
@@ -463,7 +463,7 @@ static int dir_e_search(struct fsck_inode *dip, identifier_t *id, unsigned int *
 	if(id->type == ID_FILENAME){
 		if(id->inum){
 			log_err("dir_e_search:  Illegal parameter.  inum must be NULL.\n");
-			exit(1);
+			exit(FSCK_ERROR);
 		}
 		if(!(id->inum = (struct gfs_inum *)malloc(sizeof(struct gfs_inum)))) {
 			log_err("Unable to allocate inum structure\n");
@@ -478,7 +478,7 @@ static int dir_e_search(struct fsck_inode *dip, identifier_t *id, unsigned int *
 	} else {
 		if(id->filename){
 			log_err("dir_e_search:  Illegal parameter.  name must be NULL.\n");
-			exit(1);
+			exit(FSCK_ERROR);
 		}
 		if(!(id->filename = (osi_filename_t *)malloc(sizeof(osi_filename_t)))) {
 			log_err("Unable to allocate osi_filename structure\n");
@@ -546,7 +546,7 @@ static int dir_l_search(struct fsck_inode *dip, identifier_t *id, unsigned int *
 	if(id->type == ID_FILENAME){
 		if(id->inum){
 			log_err("dir_l_search:  Illegal parameter.  inum must be NULL.\n");
-			exit(1);
+			exit(FSCK_ERROR);
 		}
 		id->inum = (struct gfs_inum *)malloc(sizeof(struct gfs_inum));
 		// FIXME: don't dereference NULL on failed malloc
@@ -556,7 +556,7 @@ static int dir_l_search(struct fsck_inode *dip, identifier_t *id, unsigned int *
 	} else {
 		if(id->filename){
 			log_err("dir_l_search:  Illegal parameter.  name must be NULL.\n");
-			exit(1);
+			exit(FSCK_ERROR);
 		}
 		id->filename = (osi_filename_t *)malloc(sizeof(osi_filename_t));
 		// FIXME: don't dereference NULL on failed malloc
@@ -1341,7 +1341,7 @@ static int dir_e_add(struct fsck_inode *dip, osi_filename_t *filename,
 
 				if (fs_dirent_alloc(dip, nbh, filename->len, &dent)){
 					log_err("dir_e_add:  Uncircumventible error!\n");
-					exit(EXIT_FAILURE);
+					exit(FSCK_ERROR);
 				}
 
 				dip->i_di.di_blocks++;

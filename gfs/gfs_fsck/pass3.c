@@ -114,6 +114,7 @@ static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 					 "is bad - reattaching to l+f");
 
 				/* FIXME: add a dinode for this entry instead? */
+				errors_found++;
 				if(query(sbp, "Remove directory entry for bad"
 					 " inode %"PRIu64" in %"PRIu64
 					 "? (y/n)", di->dinode,
@@ -130,6 +131,7 @@ static struct dir_info *mark_and_return_parent(struct fsck_sb *sbp,
 							 PRIu64" in %"PRIu64"\n",
 							 di->dinode, di->treewalk_parent);
 					}
+					errors_corrected++;
 					log_warn("Directory entry removed\n");
 				} else {
 					log_err("Directory entry to invalid inode remains\n");
@@ -199,20 +201,22 @@ int pass3(struct fsck_sb *sbp, struct options *opts)
 			 * failure and put the parent inode in a
 			 * param */
 			if (skip_this_pass || fsck_abort) /* if asked to skip the rest */
-				return 0;
+				return FSCK_OK;
 			tdi = mark_and_return_parent(sbp, di);
 
 			/* FIXME: Factor this ? */
 			if(!tdi) {
 				if(block_check(sbp->bl, di->dinode, &q)) {
 					stack;
-					return -1;
+					return FSCK_ERROR;
 				}
 				if(q.bad_block) {
 					log_err("Found unlinked directory containing"
 						"bad block\n");
+					errors_found++;
 					if(query(sbp, "Clear unlinked directory with bad blocks? (y/n) ")) {
 						block_set(sbp->bl, di->dinode, block_free);
+						errors_corrected++;
 						break;
 					} else {
 						log_err("Unlinked directory with bad blocks remains\n");
@@ -237,7 +241,9 @@ int pass3(struct fsck_sb *sbp, struct options *opts)
 				 * with eattrs */
 				if(!ip->i_di.di_size && !ip->i_di.di_eattr){
 					log_err("Unlinked directory has zero size.\n");
+					errors_found++;
 					if(query(sbp, "Remove zero-size unlinked directory? (y/n) ")) {
+						errors_corrected++;
 						block_set(sbp->bl, di->dinode, block_free);
 						free_inode(&ip);
 						break;
@@ -245,11 +251,13 @@ int pass3(struct fsck_sb *sbp, struct options *opts)
 						log_err("Zero-size unlinked directory remains\n");
 					}
 				}
+				errors_found++;
 				if(query(sbp, "Add unlinked directory to l+f? (y/n) ")) {
+					errors_corrected++;
 					if(add_inode_to_lf(ip)) {
 						stack;
 						free_inode(&ip);
-						return -1;
+						return FSCK_ERROR;
 					}
 					log_warn("Directory relinked to l+f\n");
 				} else {
@@ -269,5 +277,5 @@ int pass3(struct fsck_sb *sbp, struct options *opts)
 	if(sbp->lf_dip)
 		log_debug("At end of pass3, l+f entries is %u\n",
 			  sbp->lf_dip->i_di.di_entries);
-	return 0;
+	return FSCK_OK;
 }

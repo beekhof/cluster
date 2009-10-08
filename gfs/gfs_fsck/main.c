@@ -12,6 +12,7 @@
 
 uint64_t last_fs_block, last_reported_block = -1;
 int skip_this_pass = FALSE, fsck_abort = FALSE, fsck_query = FALSE;
+int errors_found = 0, errors_corrected = 0;
 const char *pass = "";
 
 #if 0
@@ -60,7 +61,7 @@ static int read_cmdline(int argc, char **argv, struct options *opts)
 
 		case 'h':
 			usage(argv[0]);
-			exit(0);
+			exit(FSCK_OK);
 			break;
 		case 'n':
 			opts->no = 1;
@@ -73,7 +74,7 @@ static int read_cmdline(int argc, char **argv, struct options *opts)
 			break;
 		case 'V':
 			version();
-			exit(0);
+			exit(FSCK_OK);
 			break;
 		case 'y':
 			opts->yes = 1;
@@ -81,12 +82,12 @@ static int read_cmdline(int argc, char **argv, struct options *opts)
 		case ':':
 		case '?':
 			fprintf(stderr, "Please use '-h' for usage.\n");
-			exit(1);
+			exit(FSCK_USAGE);
 			break;
 		default:
 			fprintf(stderr, "Bad programmer! You forgot to catch"
 				" the %c flag\n", c);
-			exit(1);
+			exit(FSCK_USAGE);
 			break;
 
 		}
@@ -95,11 +96,11 @@ static int read_cmdline(int argc, char **argv, struct options *opts)
 		opts->device = (argv[optind]);
 		if(!opts->device) {
 			fprintf(stderr, "Please use '-h' for usage.\n");
-			exit(1);
+			exit(FSCK_USAGE);
 		}
 	} else {
 		fprintf(stderr, "No device specified.  Use '-h' for usage.\n");
-		exit(1);
+		exit(FSCK_USAGE);
 	}
 	return 0;
 }
@@ -165,25 +166,25 @@ int main(int argc, char **argv)
 {
 	struct fsck_sb sb;
 	struct options opts = {0};
-
 	struct fsck_sb *sbp = &sb;
-	memset(sbp, 0, sizeof(*sbp));
+	int error = 0;
 
+	memset(sbp, 0, sizeof(*sbp));
 	sbp->opts = &opts;
 
-	if(read_cmdline(argc, argv, &opts))
-		return 1;
+	if((error = read_cmdline(argc, argv, &opts)))
+		exit(error);
 	setbuf(stdout, NULL);
 	log_notice("Initializing fsck\n");
-	if (initialize(sbp))
-		return 1;
+	if ((error = initialize(sbp)))
+		exit(error);
 
 	signal(SIGINT, interrupt);
 	log_notice("Starting pass1\n");
 	pass = "pass 1";
 	last_reported_block = 0;
-	if (pass1(sbp))
-		return 1;
+	if ((error = pass1(sbp)))
+		exit(error);
 	if (skip_this_pass || fsck_abort) {
 		skip_this_pass = FALSE;
 		log_notice("Pass1 interrupted   \n");
@@ -195,8 +196,8 @@ int main(int argc, char **argv)
 		last_reported_block = 0;
 		pass = "pass 1b";
 		log_notice("Starting pass1b\n");
-		if(pass1b(sbp))
-			return 1;
+		if((error = pass1b(sbp)))
+			exit(error);
 		if (skip_this_pass || fsck_abort) {
 			skip_this_pass = FALSE;
 			log_notice("Pass1b interrupted   \n");
@@ -208,8 +209,8 @@ int main(int argc, char **argv)
 		last_reported_block = 0;
 		pass = "pass 1c";
 		log_notice("Starting pass1c\n");
-		if(pass1c(sbp))
-			return 1;
+		if((error = pass1c(sbp)))
+			exit(error);
 		if (skip_this_pass || fsck_abort) {
 			skip_this_pass = FALSE;
 			log_notice("Pass1c interrupted   \n");
@@ -221,8 +222,8 @@ int main(int argc, char **argv)
 		last_reported_block = 0;
 		pass = "pass 2";
 		log_notice("Starting pass2\n");
-		if (pass2(sbp, &opts))
-			return 1;
+		if ((error = pass2(sbp, &opts)))
+			exit(error);
 		if (skip_this_pass || fsck_abort) {
 			skip_this_pass = FALSE;
 			log_notice("Pass2 interrupted   \n");
@@ -234,8 +235,8 @@ int main(int argc, char **argv)
 		last_reported_block = 0;
 		pass = "pass 3";
 		log_notice("Starting pass3\n");
-		if (pass3(sbp, &opts))
-			return 1;
+		if ((error = pass3(sbp, &opts)))
+			exit(error);
 		if (skip_this_pass || fsck_abort) {
 			skip_this_pass = FALSE;
 			log_notice("Pass3 interrupted   \n");
@@ -247,8 +248,8 @@ int main(int argc, char **argv)
 		last_reported_block = 0;
 		pass = "pass 4";
 		log_notice("Starting pass4\n");
-		if (pass4(sbp, &opts))
-			return 1;
+		if ((error = pass4(sbp, &opts)))
+			exit(error);
 		if (skip_this_pass || fsck_abort) {
 			skip_this_pass = FALSE;
 			log_notice("Pass4 interrupted   \n");
@@ -260,8 +261,8 @@ int main(int argc, char **argv)
 		last_reported_block = 0;
 		pass = "pass 5";
 		log_notice("Starting pass5\n");
-		if (pass5(sbp, &opts))
-			return 1;
+		if ((error = pass5(sbp, &opts)))
+			exit(error);
 		if (skip_this_pass || fsck_abort) {
 			skip_this_pass = FALSE;
 			log_notice("Pass5 interrupted   \n");
@@ -269,10 +270,20 @@ int main(int argc, char **argv)
 		else
 			log_notice("Pass5 complete      \n");
 		log_notice("Writing changes to disk\n");
+	} else {
+		error = FSCK_CANCELED;
 	}
-	destroy(sbp);
 
-	return 0;
+	destroy(sbp);
+	if (!error) {
+		if (!errors_found)
+			error = FSCK_OK;
+		else if (errors_found == errors_corrected)
+			error = FSCK_NONDESTRUCT;
+		else
+			error = FSCK_UNCORRECTED;
+	}
+	exit(error);
 }
 
 

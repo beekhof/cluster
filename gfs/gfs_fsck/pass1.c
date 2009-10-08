@@ -248,8 +248,10 @@ static int check_data(struct fsck_inode *ip, uint64_t block, void *private)
 			log_err("Block #%llu seems to be journaled data, but "
 				"is marked as %s.\n",
 				(unsigned long long)block, allocdesc[btype]);
+			errors_found++;
 			if(query(sdp, "Okay to mark it as 'journaled data'? "
 				 "(y/n)")) {
+				errors_corrected++;
 				fs_set_bitmap(sdp, block, GFS_BLKST_USEDMETA);
 				log_err("The block was reassigned as "
 					"journaled data.\n");
@@ -260,8 +262,10 @@ static int check_data(struct fsck_inode *ip, uint64_t block, void *private)
 			log_err("Block #%llu seems to be data, but "
 				"is marked as %s.\n",
 				(unsigned long long)block, allocdesc[btype]);
+			errors_found++;
 			if(query(sdp, "Okay to mark it as 'data'? "
 				 "(y/n)")) {
+				errors_corrected++;
 				fs_set_bitmap(sdp, block, GFS_BLKST_USED);
 				log_err("The block was reassigned as "
 					"journaled data.\n");
@@ -311,6 +315,7 @@ static int ask_remove_inode_eattr(struct fsck_inode *ip,
 {
 	log_err("Inode %lld has unrecoverable Extended Attribute "
 		"errors.\n", (unsigned long long)ip->i_di.di_num.no_addr);
+	errors_found++;
 	if (query(ip->i_sbd, "Clear all Extended Attributes from the "
 		  "inode? (y/n) ")) {
 		struct block_query q;
@@ -319,9 +324,10 @@ static int ask_remove_inode_eattr(struct fsck_inode *ip,
 			stack;
 			return -1;
 		}
-		if (!remove_inode_eattr(ip, bc, q.dup_block))
+		if (!remove_inode_eattr(ip, bc, q.dup_block)) {
+			errors_corrected++;
 			log_err("Extended attributes were removed.\n");
-		else
+		} else
 			log_err("Unable to remove inode eattr pointer; "
 				"the error remains.\n");
 	} else {
@@ -347,6 +353,7 @@ static int clear_eas(struct fsck_inode *ip, struct block_count *bc,
 	log_err("Inode #%" PRIu64 " (0x%" PRIx64 "): %s",
 		ip->i_di.di_num.no_addr, ip->i_di.di_num.no_addr, emsg);
 	log_err(" at block #%" PRIu64 ".\n", block);
+	errors_found++;
 	if (query(sdp, "Clear the bad Extended Attribute? (y/n) ")) {
 		if (block == ip->i_di.di_eattr) {
 			remove_inode_eattr(ip, bc, duplicate);
@@ -357,6 +364,7 @@ static int clear_eas(struct fsck_inode *ip, struct block_count *bc,
 			log_err("The bad Extended Attribute was "
 				"removed.\n");
 		}
+		errors_corrected++;
 		return 1;
 	} else {
 		log_err("The bad Extended Attribute was not fixed.\n");
@@ -447,10 +455,12 @@ static int finish_eattr_indir(struct fsck_inode *ip, int leaf_pointers,
 	log_err("Inode %lld has recoverable indirect "
 		"Extended Attribute errors.\n",
 		(unsigned long long)ip->i_di.di_num.no_addr);
+	errors_found++;
 	if (query(ip->i_sbd, "Okay to fix the block count for the inode? "
 		  "(y/n) ")) {
 		ip->i_di.di_blocks = 1 + bc->indir_count +
 			bc->data_count + bc->ea_count;
+		errors_corrected++;
 		log_err("Block count fixed.\n");
 		return 1;
 	}
@@ -734,12 +744,14 @@ static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfr
 			goto success;
 		} else {
 			log_err("Found unused inode marked in-use\n");
+			errors_found++;
 			if(query(sdp, "Clear unused inode at block %"
 				 PRIu64"? (y/n) ", block)) {
 				if(block_set(sdp->bl, block, meta_inval)) {
 					stack;
 					goto fail;
 				}
+				errors_corrected++;
 				goto success;
 			} else {
 				log_err("Unused inode still marked in-use\n");
@@ -761,6 +773,7 @@ static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfr
 			"Found %"PRIu64", "
 			"Expected %"PRIu64"\n",
 			ip->i_di.di_num.no_addr, block);
+		errors_found++;
 		if(query(sdp, "Fix address in inode at block %"
 			 PRIu64"? (y/n) ", block)) {
 			ip->i_di.di_num.no_addr =
@@ -770,6 +783,7 @@ static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfr
 				log_crit("Bad dinode address can not be reset.\n");
 				goto fail;
 			} else {
+				errors_corrected++;
 				log_err("Bad dinode address reset.\n");
 			}
 		} else {
@@ -925,6 +939,7 @@ static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfr
 			 "%lld + data: %lld + ea: %lld\n",
 			 ip->i_di.di_blocks, bc.indir_count, bc.data_count,
 			 bc.ea_count);
+		errors_found++;
 		if(query(sdp, "Fix ondisk block count? (y/n) ")) {
 			ip->i_di.di_blocks = 1 + bc.indir_count +
 				bc.data_count + bc.ea_count;
@@ -938,7 +953,8 @@ static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfr
 					stack;
 					log_crit("Bad block count remains\n");
 				} else {
-					log_warn("Bad block count fixed\n");
+					errors_corrected++;
+					log_err("Bad block count fixed\n");
 				}
 				relse_buf(sdp, di_bh);
 			}
@@ -962,12 +978,14 @@ static int handle_di(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfr
 static int scan_meta(struct fsck_sb *sdp, osi_buf_t *bh, uint64_t block, int mfree)
 {
 	if (check_meta(bh, 0)) {
+		errors_found++;
 		log_err("Found invalid metadata block at %"PRIu64"\n", block);
 		if(block_set(sdp->bl, block, meta_inval)) {
 			stack;
 			return -1;
 		}
 		if(query(sdp, "Okay to free the invalid block? (y/n)")) {
+			errors_corrected++;
 			fs_set_bitmap(sdp, block, GFS_BLKST_FREE);
 			log_err("The invalid block was freed.\n");
 		} else {
@@ -1031,7 +1049,7 @@ int pass1(struct fsck_sb *sbp)
 		    j++) {
 			if(block_set(sbp->bl, j, journal_blk)) {
 				stack;
-				return -1;
+				return FSCK_ERROR;
 			}
 		}
 	}
@@ -1054,7 +1072,7 @@ int pass1(struct fsck_sb *sbp)
 		rgd = osi_list_entry(tmp, struct fsck_rgrp, rd_list);
 		if(fs_rgrp_read(rgd, FALSE)){
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 		log_debug("RG at %"PRIu64" is %u long\n", rgd->rd_ri.ri_addr,
 				  rgd->rd_ri.ri_length);
@@ -1062,7 +1080,7 @@ int pass1(struct fsck_sb *sbp)
 			if(block_set(sbp->bl, rgd->rd_ri.ri_addr + i,
 				     meta_other)){
 				stack;
-				return -1;
+				return FSCK_ERROR;
 			}
 		}
 
@@ -1076,7 +1094,7 @@ int pass1(struct fsck_sb *sbp)
 				break;
 			warm_fuzzy_stuff(block);
 			if (fsck_abort) /* if asked to abort */
-				return 0;
+				return FSCK_OK;
 			if (skip_this_pass) {
 				printf("Skipping pass 1 is not a good idea.\n");
 				skip_this_pass = FALSE;
@@ -1087,14 +1105,14 @@ int pass1(struct fsck_sb *sbp)
 				log_crit("Unable to retrieve block %"PRIu64
 					 "\n", block);
 				fs_rgrp_relse(rgd);
-				return -1;
+				return FSCK_ERROR;
 			}
 
 			if(scan_meta(sbp, bh, block, mfree)) {
 				stack;
 				relse_buf(sbp, bh);
 				fs_rgrp_relse(rgd);
-				return -1;
+				return FSCK_ERROR;
 			}
 			relse_buf(sbp, bh);
 			first = 0;
@@ -1102,5 +1120,5 @@ int pass1(struct fsck_sb *sbp)
 		fs_rgrp_relse(rgd);
 	}
 
-	return 0;
+	return FSCK_OK;
 }

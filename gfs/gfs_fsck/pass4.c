@@ -49,7 +49,7 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 			return 0;
 		if(!(ii = osi_list_entry(tmp, struct inode_info, list))) {
 			log_crit("osi_list_foreach broken in scan_info_list!!\n");
-			exit(1);
+			exit(FSCK_ERROR);
 		}
 		/* Don't check reference counts on the special gfs files */
 		if((ii->inode == sbp->sb.sb_rindex_di.no_addr) ||
@@ -70,8 +70,10 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 				log_err("Unlinked inode contains"
 					"bad blocks\n",
 					ii->inode);
+				errors_found++;
 				if(query(sbp, "Delete unlinked inode with bad "
 					 "blocks? (y/n) ")) {
+					errors_corrected++;
 					load_inode(sbp, ii->inode, &ip);
 					check_inode_eattr(ip,
 							  &pass4_fxns_delete);
@@ -79,6 +81,7 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 					free_inode(&ip);
 					block_set(sbp->bl, ii->inode,
 						  block_free);
+					log_err("Unlinked inode with bad blocks cleared\n");
 					continue;
 				} else
 					log_err("Unlinked inode with bad blocks not cleared\n");
@@ -92,8 +95,10 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 			   q.block_type != inode_sock) {
 				log_err("Unlinked block marked as an inode is "
 					"not an inode (%d)\n", q.block_type);
+				errors_found++;
 				if(query(sbp, "Delete unlinked inode"
 					 "? (y/n) ")) {
+					errors_corrected++;
 					if (!load_inode(sbp, ii->inode, &ip)) {
 						check_inode_eattr(ip,
 							   &pass4_fxns_delete);
@@ -118,22 +123,32 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 			 * them. */
 			if(!ip->i_di.di_size && !ip->i_di.di_eattr){
 				log_err("Unlinked inode has zero size\n");
+				errors_found++;
 				if(query(sbp, "Clear zero-size unlinked inode? (y/n) ")) {
+					errors_corrected++;
 					block_set(sbp->bl, ii->inode, block_free);
 					free_inode(&ip);
+					log_err("Unlinked inode with zero size cleared\n");
 					continue;
-				}
+				} else
+					log_err("Unlinked inode with zero size"
+						" not cleared\n");
 
 			}
+			errors_found++;
 			if(query(sbp, "Add unlinked inode to l+f? (y/n)")) {
 				if(add_inode_to_lf(ip)) {
 					stack;
 					free_inode(&ip);
+					log_err("Unable to unlinked inode to "
+						"l+f\n");
 					return -1;
-				}
-				else {
+				} else {
 					fix_inode_count(sbp, ii, ip);
 					lf_addition = 1;
+					errors_corrected++;
+					log_err("Unlinked inode added to "
+						"l+f\n");
 				}
 			} else
 				log_err("Unlinked inode left unlinked\n");
@@ -145,8 +160,10 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 				ii->inode, ii->link_count, ii->counted_links);
 			/* Read in the inode, adjust the link count,
 			 * and write it back out */
+			errors_found++;
 			if(query(sbp, "Update link count for inode %"
 				 PRIu64"? (y/n) ", ii->inode)) {
+				errors_corrected++;
 				load_inode(sbp, ii->inode, &ip);
 				fix_inode_count(sbp, ii, ip);
 				free_inode(&ip);
@@ -193,16 +210,16 @@ int pass4(struct fsck_sb *sbp, struct options *opts)
 	log_info("Checking inode reference counts.\n");
 	for (i = 0; i < FSCK_HASH_SIZE; i++) {
 		if (skip_this_pass || fsck_abort) /* if asked to skip the rest */
-			return 0;
+			return FSCK_OK;
 		list = &sbp->inode_hash[i];
 		if(scan_inode_list(sbp, list)) {
 			stack;
-			return -1;
+			return FSCK_ERROR;
 		}
 	}
 
 	if(sbp->lf_dip)
 		log_debug("At end of pass4, l+f entries is %u\n",
 			  sbp->lf_dip->i_di.di_entries);
-	return 0;
+	return FSCK_OK;
 }
