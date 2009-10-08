@@ -139,6 +139,7 @@ struct node_history {
 	uint64_t left_time;
 	uint64_t fail_time;
 	uint64_t fence_time;
+	uint64_t fence_time_local;
 	uint64_t fence_external_time;
 	uint64_t cluster_add_time;
 	uint64_t cluster_remove_time;

@@ -600,6 +600,7 @@ void send_victim_done(struct fd *fd, int victim)
 static void receive_victim_done(struct fd *fd, struct fd_header *hd, int len)
 {
 	struct node *node;
+	struct node_history *nodeh;
 	uint32_t seq = hd->msgdata;
 	struct id_info *id;
 
@@ -618,8 +619,15 @@ static void receive_victim_done(struct fd *fd, struct fd_header *hd, int len)
 		return;
 	}
 
-	log_debug("receive_victim_done %d:%u remove victim %d how %d",
-		  hd->nodeid, seq, id->nodeid, id->fence_how);
+	log_debug("receive_victim_done %d:%u remove victim %d time %llu how %d",
+		  hd->nodeid, seq, id->nodeid,
+		  (unsigned long long)id->fence_time, id->fence_how);
+
+	nodeh = get_node_history(fd, id->nodeid);
+	if (!nodeh)
+		log_error("receive_victim_done no node history %d", id->nodeid);
+	else
+		nodeh->fence_time_local = time(NULL);
 
 	if (hd->nodeid == our_nodeid) {
 		/* sanity check, I don't think this should happen;
@@ -2229,7 +2237,7 @@ int set_node_info(struct fd *fd, int nodeid, struct fenced_node *nodeinfo)
 	if (node) {
 		nodeinfo->last_fenced_master = node->fence_master;
 		nodeinfo->last_fenced_how = node->fence_how;
-		nodeinfo->last_fenced_time = node->fence_time;
+		nodeinfo->last_fenced_time = node->fence_time_local;
 	}
 
 	return 0;
