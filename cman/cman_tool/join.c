@@ -96,7 +96,7 @@ static int check_corosync_status(pid_t pid)
 
 		return 0;
 	}
-	if ((status == 0 || status == pid) && pidstatus != 0) {
+	if (status == pid && pidstatus != 0) {
 		if (WIFEXITED(pidstatus))
 			fprintf(stderr, "corosync died: %s\n", corosync_exit_reason(WEXITSTATUS(pidstatus)));
 		if (WIFSIGNALED(pidstatus))
@@ -234,7 +234,7 @@ int join(commandline_t *comline, char *main_envp[])
 		be_daemon();
 
 		sprintf(scratch, "FORKED: %d\n", getpid());
-		err = write(p[1], scratch, strlen(scratch));
+		err = write(p[1], scratch, strlen(scratch)+1);
 
 		execve(COROSYNCBIN, argv, envp);
 
@@ -288,6 +288,7 @@ int join(commandline_t *comline, char *main_envp[])
 				if (sscanf(messageptr, "SUCCESS: %d", &corosync_pid) == 1) {
 					if (comline->verbose & DEBUG_STARTUP_ONLY)
 						fprintf(stderr, "corosync running, process ID is %d\n", corosync_pid);
+					status = 0;
 					break;
 				}
 				else if (messageptr) {
@@ -301,6 +302,8 @@ int join(commandline_t *comline, char *main_envp[])
 			}
 			else { /* Error or EOF - check the child status */
 				status = check_corosync_status(corosync_pid);
+				if (status == 0)
+					break;
 			}
 		}
 
