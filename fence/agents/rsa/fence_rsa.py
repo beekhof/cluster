@@ -20,7 +20,7 @@ BUILD_DATE="March, 2009"
 def get_power_status(conn, options):
 	try:
 		conn.send("power state\r\n")
-		conn.log_expect(options, options["-c"], SHELL_TIMEOUT)
+		conn.log_expect(options, options["-c"], int(options["-Y"]))
 	except pexpect.EOF:
 		fail(EC_CONNECTION_LOST)
 	except pexpect.TIMEOUT:
@@ -32,7 +32,7 @@ def get_power_status(conn, options):
 def set_power_status(conn, options):
 	try:
 		conn.send("power " + options["-o"] + "\r\n")
-		conn.log_expect(options, options["-c"], POWER_TIMEOUT)
+		conn.log_expect(options, options["-c"], int(options["-g"]))
 	except pexpect.EOF:
 		fail(EC_CONNECTION_LOST)
 	except pexpect.TIMEOUT:
@@ -41,7 +41,8 @@ def set_power_status(conn, options):
 def main():
 	device_opt = [  "help", "version", "agent", "quiet", "verbose", "debug",
 			"action", "ipaddr", "login", "passwd", "passwd_script",
-			"cmd_prompt", "secure", "ipport" ]
+			"cmd_prompt", "secure", "ipport",
+			"power_timeout", "shell_timeout", "login_timeout", "power_wait" ]
 
 	atexit.register(atexit_handler)
 
