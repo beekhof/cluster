@@ -87,26 +87,30 @@ int gfs_lm_withdraw(struct gfs_sbd *sdp, char *fmt, ...)
 {
 	va_list args;
 
-	if (test_and_set_bit(SDF_SHUTDOWN, &sdp->sd_flags))
+	if (sdp->sd_args.ar_errors == GFS_ERRORS_WITHDRAW &&
+	    test_and_set_bit(SDF_SHUTDOWN, &sdp->sd_flags))
 		return 0;
 
 	va_start(args, fmt);
 	vprintk(fmt, args);
 	va_end(args);
 
-	printk("GFS: fsid=%s: about to withdraw from the cluster\n",
-	       sdp->sd_fsname);
+	if (sdp->sd_args.ar_errors == GFS_ERRORS_WITHDRAW) {
+		printk("GFS: fsid=%s: about to withdraw from the cluster\n",
+		       sdp->sd_fsname);
 
-	BUG_ON(sdp->sd_args.ar_debug);
+		BUG_ON(sdp->sd_args.ar_debug);
 
-	printk("GFS: fsid=%s: telling LM to withdraw\n",
-	       sdp->sd_fsname);
+		printk("GFS: fsid=%s: telling LM to withdraw\n",
+		       sdp->sd_fsname);
 
-	gfs_withdraw_lockproto(&sdp->sd_lockstruct);
+		gfs_withdraw_lockproto(&sdp->sd_lockstruct);
 
-	printk("GFS: fsid=%s: withdrawn\n",
-	       sdp->sd_fsname);
+		printk("GFS: fsid=%s: withdrawn\n", sdp->sd_fsname);
+	}
 	dump_stack();
+	if (sdp->sd_args.ar_errors == GFS_ERRORS_PANIC)
+		panic("GFS: fsid=%s: panic requested.\n", sdp->sd_fsname);
 
 	return -1;
 }

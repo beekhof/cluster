@@ -441,7 +441,11 @@ gfs_show_options(struct seq_file *s, struct vfsmount *mnt)
 		seq_printf(s, ",noquota");
 	if (args->ar_suiddir)
 		seq_printf(s, ",suiddir");
-
+	if (args->ar_errors) {
+		seq_printf(s, ",errors=");
+		if (args->ar_errors == GFS_ERRORS_PANIC)
+			seq_printf(s, "panic");
+	}
 	return 0;
 }
 

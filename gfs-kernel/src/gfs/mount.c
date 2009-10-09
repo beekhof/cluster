@@ -39,6 +39,7 @@ gfs_make_args(char *data_arg, struct gfs_args *args, int remount)
 
 	memset(args, 0, sizeof(struct gfs_args));
 	args->ar_num_glockd = GFS_GLOCKD_DEFAULT;
+	args->ar_errors = GFS_ERRORS_WITHDRAW;
 
 	if (!remount) {
 		/*  If someone preloaded options, use those instead  */
@@ -106,10 +107,21 @@ gfs_make_args(char *data_arg, struct gfs_args *args, int remount)
 		else if (!strcmp(x, "localcaching"))
 			args->ar_localcaching = TRUE;
 
-		else if (!strcmp(x, "oopses_ok"))
+		else if (!strcmp(x, "oopses_ok")) {
+			if (args->ar_errors == GFS_ERRORS_PANIC) {
+				printk("GFS: -o oopses_ok and -o errors=panic "
+				       "are mutually exclusive.\n");
+				error = -EINVAL;
+				break;
+			}
 			args->ar_oopses_ok = TRUE;
-
-		else if (!strcmp(x, "debug")) {
+		} else if (!strcmp(x, "debug")) {
+			if (args->ar_errors == GFS_ERRORS_PANIC) {
+				printk("GFS: -o debug and -o errors=panic "
+				       "are mutually exclusive.\n");
+				error = -EINVAL;
+				break;
+			}
 			args->ar_oopses_ok = TRUE;
 			args->ar_debug = TRUE;
 
@@ -145,6 +157,37 @@ gfs_make_args(char *data_arg, struct gfs_args *args, int remount)
 
 		else if (!strcmp(x, "gfs_noatime"))
 			args->ar_noatime = TRUE;
+
+		else if (!strcmp(x, "errors")) {
+			if (!y) {
+				printk("GFS: need argument to errors\n");
+				error = -EINVAL;
+				break;
+			}
+			if (!strcmp(y, "withdraw"))
+				args->ar_errors = GFS_ERRORS_WITHDRAW;
+			else if (!strcmp(y, "panic")) {
+				if (args->ar_debug) {
+					printk("GFS: -o debug and -o errors="
+					       "panic are mutually "
+					       "exclusive.\n");
+					error = -EINVAL;
+					break;
+				} else if (args->ar_oopses_ok) {
+					printk("GFS: -o oopses_ok and -o "
+					       "errors=panic are mutually "
+					       "exclusive.\n");
+					error = -EINVAL;
+					break;
+				}
+				args->ar_errors = GFS_ERRORS_PANIC;
+			} else {
+				printk("GFS: errors= must be either withdraw "
+				       "or panic.\n");
+				error = -EINVAL;
+				break;
+			}
+		}
 
 		/*  Unknown  */
 

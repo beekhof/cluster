@@ -10,6 +10,7 @@
 #include "gfs.h"
 #include "glock.h"
 #include "lm.h"
+#include "super.h"
 
 uint32_t gfs_random_number;
 
@@ -195,7 +196,8 @@ gfs_assert_i(struct gfs_sbd *sdp,
 		       sdp->sd_fsname, function,
 		       sdp->sd_fsname, file, line,
 		       sdp->sd_fsname, get_seconds());
-		BUG();
+		if (sdp->sd_args.ar_errors == GFS_ERRORS_WITHDRAW)
+			BUG();
 	}
 	dump_stack();
 	panic("GFS: fsid=%s: assertion \"%s\" failed\n"
@@ -262,19 +264,30 @@ gfs_assert_warn_i(struct gfs_sbd *sdp,
 			gfs_tune_get(sdp, gt_complain_secs) * HZ))
 		return -2;
 
-	printk("GFS: fsid=%s: warning: assertion \"%s\" failed\n"
-	       "GFS: fsid=%s:   function = %s\n"
-	       "GFS: fsid=%s:   file = %s, line = %u\n"
-	       "GFS: fsid=%s:   time = %lu\n",
-	       sdp->sd_fsname, assertion,
-	       sdp->sd_fsname, function,
-	       sdp->sd_fsname, file, line,
-	       sdp->sd_fsname, get_seconds());
+	if (sdp->sd_args.ar_errors == GFS_ERRORS_WITHDRAW)
+		printk("GFS: fsid=%s: warning: assertion \"%s\" failed\n"
+		       "GFS: fsid=%s:   function = %s\n"
+		       "GFS: fsid=%s:   file = %s, line = %u\n"
+		       "GFS: fsid=%s:   time = %lu\n",
+		       sdp->sd_fsname, assertion,
+		       sdp->sd_fsname, function,
+		       sdp->sd_fsname, file, line,
+		       sdp->sd_fsname, get_seconds());
 
+	if (sdp->sd_args.ar_errors != GFS_ERRORS_WITHDRAW)
+		dump_stack();
 	sdp->sd_last_warning = jiffies;
 	if (sdp->sd_args.ar_debug)
 		BUG();
-
+	if (sdp->sd_args.ar_errors == GFS_ERRORS_PANIC)
+		panic("GFS: fsid=%s: assertion \"%s\" failed\n"
+		      "GFS: fsid=%s:   function = %s\n"
+		      "GFS: fsid=%s:   file = %s, line = %u\n"
+		      "GFS: fsid=%s:   time = %lu\n",
+		      sdp->sd_fsname, assertion,
+		      sdp->sd_fsname, function,
+		      sdp->sd_fsname, file, line,
+		      sdp->sd_fsname, get_seconds());
 
 	return -1;
 }

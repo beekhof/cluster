@@ -817,6 +817,10 @@ struct gfs_trans {
 #define GFS_DATA_WRITEBACK     1
 #define GFS_DATA_ORDERED       2
 
+#define GFS_ERRORS_WITHDRAW    0
+#define GFS_ERRORS_CONTINUE    1 /* place holder for future feature */
+#define GFS_ERRORS_RO          2 /* place holder for future feature */
+#define GFS_ERRORS_PANIC       3
 
 struct gfs_args {
 	char ar_lockproto[GFS_LOCKNAME_LEN]; /* The name of the Lock Protocol */
@@ -839,6 +843,7 @@ struct gfs_args {
 	int ar_oopses_ok; /* Allow oopses */
 
 	int ar_debug; /* Oops on errors instead of trying to be graceful */
+	int ar_errors; /* errors=default | panic */
 	int ar_upgrade; /* Upgrade ondisk/multihost format */
 
 	unsigned int ar_num_glockd; /* # of glock cleanup daemons to run
