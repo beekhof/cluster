@@ -113,7 +113,8 @@ static int run_agent(char *agent, char *args, int *agent_result)
 static int make_args(int cd, char *victim, char *method, int d,
 		     char *device, char **args_out)
 {
-	char path[PATH_MAX], *args, *str;
+	char path[PATH_MAX], arg[PATH_MAX];
+	char *args, *str;
 	int error, cnt = 0;
 
 	args = malloc(FENCE_AGENT_ARGS_MAX);
@@ -140,6 +141,14 @@ static int make_args(int cd, char *victim, char *method, int d,
 		strcat(args, str);
 		strcat(args, "\n");
 		free(str);
+	}
+
+	/* add nodename of victim to args */
+
+	if (!strstr(args, "nodename=")) {
+		memset(arg, 0, PATH_MAX);
+		snprintf(arg, PATH_MAX, "nodename=%s\n", victim);
+		strcat(args, arg);
 	}
 
 	/* device-specific args */
