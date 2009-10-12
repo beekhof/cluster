@@ -262,7 +262,7 @@ static int use_device(int cd, char *victim, char *method, int d,
 		goto out;
 	}
 
-	strncpy(lp->agent_name, agent, FENCE_AGENT_NAME_MAX);
+	strncpy(lp->agent_name, agent, FENCE_AGENT_NAME_MAX-1);
 
 	error = make_args(cd, victim, method, d, device, &args);
 	if (error) {
@@ -270,7 +270,7 @@ static int use_device(int cd, char *victim, char *method, int d,
 		goto out_agent;
 	}
 
-	strncpy(lp->agent_args, args, FENCE_AGENT_ARGS_MAX);
+	strncpy(lp->agent_args, args, FENCE_AGENT_ARGS_MAX-1);
 
 	error = run_agent(agent, args, &lp->error);
 
@@ -529,7 +529,7 @@ static int use_device_unfence(int cd, char *victim, int d,
 		goto out;
 	}
 
-	strncpy(lp->agent_name, agent, FENCE_AGENT_NAME_MAX);
+	strncpy(lp->agent_name, agent, FENCE_AGENT_NAME_MAX-1);
 
 	error = make_args_unfence(cd, victim, d, device, &args);
 	if (error) {

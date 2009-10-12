@@ -16,15 +16,15 @@ extern "C" {
 #define FE_READ_METHOD		9	/* read (ccs) error on method */
 #define FE_READ_DEVICE		10	/* read (ccs) error on method/device */
 
-#define FENCE_AGENT_NAME_MAX 256
-#define FENCE_AGENT_ARGS_MAX 1024
+#define FENCE_AGENT_NAME_MAX 256	/* including terminating \0 */
+#define FENCE_AGENT_ARGS_MAX 4096	/* including terminating \0 */
 
 struct fence_log {
 	int error;
 	int method_num;
 	int device_num;
-	char agent_name[FENCE_AGENT_NAME_MAX+1];
-	char agent_args[FENCE_AGENT_ARGS_MAX+1];
+	char agent_name[FENCE_AGENT_NAME_MAX];
+	char agent_args[FENCE_AGENT_ARGS_MAX];
 };
 
 int fence_node(char *name, struct fence_log *log, int log_size, int *log_count);
