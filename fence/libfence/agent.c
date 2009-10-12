@@ -113,14 +113,18 @@ static int run_agent(char *agent, char *args, int *agent_result)
 static int make_args(int cd, char *victim, char *method, int d,
 		     char *device, char **args_out)
 {
-	char path[PATH_MAX], arg[PATH_MAX];
+	char path[PATH_MAX];
 	char *args, *str;
-	int error, cnt = 0;
+	int error, ret, cnt = 0;
+	size_t len, pos;
 
 	args = malloc(FENCE_AGENT_ARGS_MAX);
 	if (!args)
 		return -ENOMEM;
 	memset(args, 0, FENCE_AGENT_ARGS_MAX);
+
+	len = FENCE_AGENT_ARGS_MAX - 1;
+	pos = 0;
 
 	/* node-specific args for victim */
 
@@ -138,17 +142,26 @@ static int make_args(int cd, char *victim, char *method, int d,
 			continue;
 		}
 
-		strcat(args, str);
-		strcat(args, "\n");
+		ret = snprintf(args + pos, len - pos, "%s\n", str);
+
 		free(str);
+
+		if (ret >= len - pos) {
+			error = -E2BIG;
+			goto out;
+		}
+		pos += ret;
 	}
 
 	/* add nodename of victim to args */
 
 	if (!strstr(args, "nodename=")) {
-		memset(arg, 0, PATH_MAX);
-		snprintf(arg, PATH_MAX, "nodename=%s\n", victim);
-		strcat(args, arg);
+		ret = snprintf(args + pos, len - pos, "nodename=%s\n", victim);
+		if (ret >= len - pos) {
+			error = -E2BIG;
+			goto out;
+		}
+		pos += ret;
 	}
 
 	/* device-specific args */
@@ -167,13 +180,20 @@ static int make_args(int cd, char *victim, char *method, int d,
 			continue;
 		}
 
-		strcat(args, str);
-		strcat(args, "\n");
+		ret = snprintf(args + pos, len - pos, "%s\n", str);
+
 		free(str);
+
+		if (ret >= len - pos) {
+			error = -E2BIG;
+			goto out;
+		}
+		pos += ret;
 	}
 
 	if (cnt)
 		error = 0;
+ out:
 	if (error) {
 		free(args);
 		args = NULL;
@@ -412,14 +432,18 @@ int fence_node(char *victim, struct fence_log *log, int log_size,
 static int make_args_unfence(int cd, char *victim, int d,
 			     char *device, char **args_out)
 {
-	char path[PATH_MAX], arg[PATH_MAX];
+	char path[PATH_MAX];
 	char *args, *str;
-	int error, cnt = 0;
+	int error, ret, cnt = 0;
+	size_t len, pos;
 
 	args = malloc(FENCE_AGENT_ARGS_MAX);
 	if (!args)
 		return -ENOMEM;
 	memset(args, 0, FENCE_AGENT_ARGS_MAX);
+
+	len = FENCE_AGENT_ARGS_MAX - 1;
+	pos = 0;
 
 	/* node-specific args for victim */
 
@@ -437,17 +461,26 @@ static int make_args_unfence(int cd, char *victim, int d,
 			continue;
 		}
 
-		strcat(args, str);
-		strcat(args, "\n");
+		ret = snprintf(args + pos, len - pos, "%s\n", str);
+
 		free(str);
+		
+		if (ret >= len - pos) {
+			error = -E2BIG;
+			goto out;
+		}
+		pos += ret;
 	}
 
 	/* add nodename of victim to args */
 
 	if (!strstr(args, "nodename=")) {
-		memset(arg, 0, PATH_MAX);
-		snprintf(arg, PATH_MAX, "nodename=%s\n", victim);
-		strcat(args, arg);
+		ret = snprintf(args + pos, len - pos, "nodename=%s\n", victim);
+		if (ret >= len - pos) {
+			error = -E2BIG;
+			goto out;
+		}
+		pos += ret;
 	}
 
 	/* device-specific args */
@@ -466,13 +499,20 @@ static int make_args_unfence(int cd, char *victim, int d,
 			continue;
 		}
 
-		strcat(args, str);
-		strcat(args, "\n");
+		ret = snprintf(args + pos, len - pos, "%s\n", str);
+
 		free(str);
+
+		if (ret >= len - pos) {
+			error = -E2BIG;
+			goto out;
+		}
+		pos += ret;
 	}
 
 	if (cnt)
 		error = 0;
+ out:
 	if (error) {
 		free(args);
 		args = NULL;
