@@ -412,7 +412,8 @@ int fence_node(char *victim, struct fence_log *log, int log_size,
 static int make_args_unfence(int cd, char *victim, int d,
 			     char *device, char **args_out)
 {
-	char path[PATH_MAX], *args, *str;
+	char path[PATH_MAX], arg[PATH_MAX];
+	char *args, *str;
 	int error, cnt = 0;
 
 	args = malloc(FENCE_AGENT_ARGS_MAX);
@@ -439,6 +440,14 @@ static int make_args_unfence(int cd, char *victim, int d,
 		strcat(args, str);
 		strcat(args, "\n");
 		free(str);
+	}
+
+	/* add nodename of victim to args */
+
+	if (!strstr(args, "nodename=")) {
+		memset(arg, 0, PATH_MAX);
+		snprintf(arg, PATH_MAX, "nodename=%s\n", victim);
+		strcat(args, arg);
 	}
 
 	/* device-specific args */
