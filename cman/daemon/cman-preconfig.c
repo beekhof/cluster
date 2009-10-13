@@ -690,8 +690,9 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 		/* Set the token timeout is 10 seconds, but don't overrride anything that
 		   might be in cluster.conf */
 		if (objdb_get_string(objdb, object_handle, "token", &value)) {
+			snprintf(tmp, sizeof(tmp), "%d", DEFAULT_TOKEN_TIMEOUT);
 			objdb->object_key_create(object_handle, "token", strlen("token"),
-						 "10000", strlen("10000")+1);
+						 tmp, strlen(tmp)+1);
 		}
 		if (objdb_get_string(objdb, object_handle, "token_retransmits_before_loss_const", &value)) {
 			objdb->object_key_create(object_handle, "token_retransmits_before_loss_const",

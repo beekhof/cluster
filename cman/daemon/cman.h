@@ -11,6 +11,7 @@ extern int our_nodeid(void);
 #define DEFAULT_PORT            5405
 #define DEFAULT_CLUSTER_NAME    "RHCluster"
 #define DEFAULT_MAX_QUEUED       128
+#define DEFAULT_TOKEN_TIMEOUT    10000
 #define DEFAULT_QUORUMDEV_POLL   10000
 #define DEFAULT_SHUTDOWN_TIMEOUT 5000
 #define DEFAULT_CCSD_POLL        1000
