@@ -902,7 +902,7 @@ static void loop(void)
 
 	setup_monitor();
 
-	rv = setup_configfs();
+	rv = setup_configfs();		/* calls update_cluster() */
 	if (rv < 0)
 		goto out;
 

@@ -59,7 +59,11 @@ void kick_node_from_cluster(int nodeid)
 void process_cluster(int ci)
 {
     ais_dispatch(ais_fd_async, NULL);
-    cluster_quorate = crm_have_quorum;
+    /* cluster_quorate = crm_have_quorum; */
+}
+
+void update_cluster(void)
+{
 }
 
 int setup_cluster(void)

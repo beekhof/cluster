@@ -70,7 +70,6 @@ extern int poll_ignore_plock;
 extern int plock_fd;
 extern int plock_ci;
 extern struct list_head mountgroups;
-extern int cluster_quorate;
 extern int our_nodeid;
 extern char *clustername;
 extern char daemon_debug_buf[256];
@@ -299,6 +298,7 @@ void cluster_dead(int ci);
 int setup_cluster(void);
 void close_cluster(void);
 void process_cluster(int ci);
+void update_cluster(void);
 void kick_node_from_cluster(int nodeid);
 
 /* plock.c */

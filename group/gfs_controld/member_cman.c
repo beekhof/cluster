@@ -2,9 +2,13 @@
 #include "config.h"
 #include <libcman.h>
 
-static cman_handle_t ch;
-static cman_handle_t ch_admin;
-static cman_cluster_t cluster;
+static cman_handle_t	ch;
+static cman_handle_t	ch_admin;
+static cman_cluster_t	cluster;
+static cman_node_t      old_nodes[MAX_NODES];
+static int              old_node_count;
+static cman_node_t      cman_nodes[MAX_NODES];
+static int              cman_node_count;
 
 void kick_node_from_cluster(int nodeid)
 {
@@ -18,6 +22,73 @@ void kick_node_from_cluster(int nodeid)
 	}
 }
 
+static int is_member(cman_node_t *node_list, int count, int nodeid)
+{
+	int i;
+
+	for (i = 0; i < count; i++) {
+		if (node_list[i].cn_nodeid == nodeid)
+			return node_list[i].cn_member;
+	}
+	return 0;
+}
+
+static int is_old_member(int nodeid)
+{
+	return is_member(old_nodes, old_node_count, nodeid);
+}
+
+static int is_cluster_member(int nodeid)
+{
+	return is_member(cman_nodes, cman_node_count, nodeid);
+}
+
+static void statechange(void)
+{
+	int i, rv;
+
+	old_node_count = cman_node_count;
+	memcpy(&old_nodes, &cman_nodes, sizeof(old_nodes));
+
+	cman_node_count = 0;
+	memset(&cman_nodes, 0, sizeof(cman_nodes));
+	rv = cman_get_nodes(ch, MAX_NODES, &cman_node_count, cman_nodes);
+	if (rv < 0) {
+		log_debug("cman_get_nodes error %d %d", rv, errno);
+		return;
+	}
+
+	/* Never allow node ID 0 to be considered a member #315711 */
+	for (i = 0; i < cman_node_count; i++) {
+		if (cman_nodes[i].cn_nodeid == 0) {
+			cman_nodes[i].cn_member = 0;
+			break;
+		}
+	}
+
+	for (i = 0; i < old_node_count; i++) {
+		if (old_nodes[i].cn_member &&
+		    !is_cluster_member(old_nodes[i].cn_nodeid)) {
+
+			log_debug("cluster node %d removed",
+				  old_nodes[i].cn_nodeid);
+
+			node_history_cluster_remove(old_nodes[i].cn_nodeid);
+		}
+	}
+
+	for (i = 0; i < cman_node_count; i++) {
+		if (cman_nodes[i].cn_member &&
+		    !is_old_member(cman_nodes[i].cn_nodeid)) {
+
+			log_debug("cluster node %d added",
+				  cman_nodes[i].cn_nodeid);
+
+			node_history_cluster_add(cman_nodes[i].cn_nodeid);
+		}
+	}
+}
+
 static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
 {
 	switch (reason) {
@@ -28,6 +99,9 @@ static void cman_callback(cman_handle_t h, void *private, int reason, int arg)
 			log_debug("no to cman shutdown");
 			cman_replyto_shutdown(ch, 0);
 		}
+		break;
+	case CMAN_REASON_STATECHANGE:
+		statechange();
 		break;
 	case CMAN_REASON_CONFIG_UPDATE:
 		setup_logging();
@@ -115,6 +189,11 @@ int setup_cluster(void)
 		goto out;
 	}
 	our_nodeid = node.cn_nodeid;
+
+ 	old_node_count = 0;
+	memset(&old_nodes, 0, sizeof(old_nodes));
+	cman_node_count = 0;
+	memset(&cman_nodes, 0, sizeof(cman_nodes));
  out:
 	return fd;
 }
@@ -123,5 +202,11 @@ void close_cluster(void)
 {
 	cman_finish(ch);
 	cman_finish(ch_admin);
+}
+
+/* Force re-read of cman nodes */
+void update_cluster(void)
+{
+	statechange();
 }
 

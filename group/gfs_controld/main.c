@@ -1136,6 +1136,8 @@ static void loop(void)
 		goto out;
 	client_add(rv, process_cluster, cluster_dead);
 
+	update_cluster();
+
 	rv = setup_ccs();
 	if (rv < 0)
 		goto out;
@@ -1565,7 +1567,6 @@ int poll_dlm;
 int plock_fd;
 int plock_ci;
 struct list_head mountgroups;
-int cluster_quorate;
 int our_nodeid;
 char *clustername;
 char daemon_debug_buf[256];
