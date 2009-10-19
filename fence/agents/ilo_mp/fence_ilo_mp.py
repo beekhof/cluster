@@ -41,7 +41,10 @@ def main():
 	if 0 == options.has_key("-c"):
 		options["-c"] = "MP>"
 		
-	show_docs(options)
+	docs = { }
+	docs["shortdesc"] = "Fence agent for HP iLO MP"
+	docs["longdesc"] = ""
+	show_docs(options, docs)
 	
 	conn = fence_login(options)
 	conn.send("SMCLP\n")

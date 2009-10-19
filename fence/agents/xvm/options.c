@@ -562,7 +562,7 @@ args_metadata(char *progname, const char *optstr)
 	struct arg_info *arg;
 
 	printf("<?xml version=\"1.0\" ?>\n");
-	printf("<resource-agent name=\"%s\" >\n", basename(progname));
+	printf("<resource-agent name=\"%s\" shortdesc=\"Fence agent for virtual machines\">\n", basename(progname));
 	printf("<parameters>\n");
 
 	for (x = 0; x < strlen(optstr); x++) {
