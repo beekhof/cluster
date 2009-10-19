@@ -803,7 +803,8 @@ svc_start(const char *svcName, int req)
 
 
 /**
- * Migrate a service to another node.
+ * Migrate a service to another node.  Relies on agent
+ * operating synchronously
  */
 int
 svc_migrate(const char *svcName, int target)
@@ -875,21 +876,8 @@ svc_migrate(const char *svcName, int target)
 		rg_unlock(&lockp);
 		return RG_EFROZEN;
 	}
-
-	/* LOCK HELD */
-	svcStatus.rs_owner = target;
-	svcStatus.rs_last_owner = my_id();
-	svcStatus.rs_state = RG_STATE_MIGRATE;
-	svcStatus.rs_transition = (uint64_t)time(NULL);
-
-	if (set_rg_state(svcName, &svcStatus) != 0) {
-		logt_print(LOG_ERR,
-		       "#75: Failed changing service status\n");
-		rg_unlock(&lockp);
-		return RG_EFAIL;
-	}
 	rg_unlock(&lockp);
-       
+
 	ret = group_migrate(svcName, target);
 
 	switch(ret) {
@@ -902,51 +890,34 @@ svc_migrate(const char *svcName, int target)
 		   the target node simply died; in this case, set status
 		   back to started */
 		return RG_EFAIL;
-		break;
 	case OCF_RA_NOT_RUNNING:
 		/* For these two, the VM was either not running or 
 		   migration is simply impossible. */
 		/* Don't mark the service as failed; since it's either
 		   recoverable or still running. */
-		ret = RG_EFAIL;
-		break;
+		return RG_EFAIL;
 	case OCF_RA_NOT_CONFIGURED:
-		ret = RG_EINVAL;
-		break;
+		return RG_EINVAL;
 	case 0:
-		return 0;
+		break;
 	}
 
-	/* Ok, we've hit a recoverable condition.  Since VMs and migratory
-	   services are ... well, migratable, we can just flip the state
-	   back to 'started' and error checking will fix it later. */
-	if (rg_lock(svcName, &lockp) < 0) {
-		logt_print(LOG_ERR, "#45: Unable to obtain cluster lock: %s\n",
-		       strerror(errno));
-		return ret;
+	/* Success - flip owner in state info */
+  	if (rg_lock(svcName, &lockp) < 0) {
+ 		logt_print(LOG_ERR, "#45b: Unable to obtain cluster lock: %s\n",
+			   strerror(errno));
+		return RG_EFAIL;
 	}
-
-	if (get_rg_state(svcName, &svcStatus) != 0) {
-		rg_unlock(&lockp);
-		logt_print(LOG_ERR, "#46: Failed getting status for RG %s\n",
-		       svcName);
-		return ret;
-	}
-
-	if (svcStatus.rs_last_owner != (uint32_t)my_id() ||
-	    svcStatus.rs_owner != (uint32_t)target ||
-	    svcStatus.rs_state != RG_STATE_MIGRATE) {
-		rg_unlock(&lockp);
-		return ret;
-	}
-
-	svcStatus.rs_owner = my_id();
+	
+	/* No need for a 'get' here since the service is still STARTED */
+	svcStatus.rs_last_owner = svcStatus.rs_owner;
+	svcStatus.rs_owner = target;
 	svcStatus.rs_state = RG_STATE_STARTED;
-
+  
 	set_rg_state(svcName, &svcStatus);
 	rg_unlock(&lockp);
-
-	return ret;
+  
+ 	return 0;
 }
 
 
