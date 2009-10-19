@@ -508,7 +508,7 @@ set_networking_params()
 
 	if [ "$(cat $rmemmax)" -lt $NET_RMEM_MAX ]; then
 		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
-		[ "$(cat $rmemmax)" -lt $NET_RMEM_MAX ] && return 1
+		[ "$(cat $rmemmax)" != $NET_RMEM_MAX ] && return 1
 	fi
 
 	return 0
