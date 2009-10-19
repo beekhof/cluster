@@ -499,15 +499,19 @@ set_networking_params()
 
 	[ ! -f $rmemdefault ] && return 0
 
-	value="$(cat $rmemdefault)"
-
-	[ $value -le $NET_RMEM_DEFAULT ] && \
+	if [ "$(cat $rmemdefault)" -lt $NET_RMEM_DEFAULT ]; then
 		echo $NET_RMEM_DEFAULT > $rmemdefault
+		[ "$(cat $rmemdefault)" != $NET_RMEM_DEFAULT ] && return 1
+	fi
 
-	value="$(cat /proc/sys/net/core/rmem_max)"
+	rmemmax="/proc/sys/net/core/rmem_max"
 
-	[ $value -le $NET_RMEM_MAX ] && \
+	if [ "$(cat $rmemmax)" -lt $NET_RMEM_MAX ]; then
 		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
+		[ "$(cat $rmemmax)" -lt $NET_RMEM_MAX ] && return 1
+	fi
+
+	return 0
 }
 
 start_cman()
