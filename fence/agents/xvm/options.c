@@ -563,6 +563,12 @@ args_metadata(char *progname, const char *optstr)
 
 	printf("<?xml version=\"1.0\" ?>\n");
 	printf("<resource-agent name=\"%s\" shortdesc=\"Fence agent for virtual machines\">\n", basename(progname));
+	printf("<longdesc>fence_xvm  is  an I/O Fencing agent which can be used with any "
+"virtual machines for which libvirt has a backend.  When used on virtual "
+"machines which are backed by clustered storage (and thus, may "
+"be migrated about several physical machines), there is a "
+"requirement that the host machines are also a part of a CMAN/OpenAIS based "
+"cluster, such as linux-cluster.</longdesc>\n");
 	printf("<parameters>\n");
 
 	for (x = 0; x < strlen(optstr); x++) {
