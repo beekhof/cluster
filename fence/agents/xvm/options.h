@@ -39,6 +39,9 @@ struct arg_info {
 	const char opt;
 	const char *opt_desc;
 	const char *stdin_opt;
+	const int required;
+	const char *content_type;
+	const char *default_value;
 	const char *desc;
 	void (*assign)(fence_xvm_args_t *, struct arg_info *, char *);
 };

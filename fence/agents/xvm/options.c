@@ -286,99 +286,122 @@ assign_uri(fence_xvm_args_t *args, struct arg_info *arg, char *value)
 /** ALL valid command line and stdin arguments for this fencing agent */
 static struct arg_info _arg_info[] = {
 	{ '\xff', NULL, "agent",
+	  0, "boolean", NULL,
 	  "Not user serviceable",
 	  NULL },
 
 	{ '\xff', NULL, "self",
+	  0, "boolean", NULL,
 	  "Not user serviceable", 
 	  NULL },
 
 	{ 'd', "-d", "debug",
+	  0, "boolean", NULL,
 	  "Specify (CCS) / increment (command line) debug level",
 	  assign_debug },
 
 	{ 'f', "-f", NULL,
+	  0, "boolean", NULL,
 	  "Foreground mode (do not fork)",
 	  assign_foreground },
 
 	{ 'i', "-i <family>", "ip_family",
+	  0, "string", "auto",
 	  "IP Family ([auto], ipv4, ipv6)",
 	  assign_family },
 
 	{ 'a', "-a <address>", "multicast_address",
+	  0, "string", NULL,
 	  "Multicast address (default=225.0.0.12 / ff02::3:1)",
 	  assign_address },
 
 	{ 'T', "-T <ttl>", "multicast_ttl",
+	  0, "string", "2",
 	  "Multicast time-to-live (in hops; default=2)",
 	  assign_ttl },
 
 	{ 'p', "-p <port>", "port",
+	  0, "string", "1229",
 	  "IP port (default=1229)",
 	  assign_port },
 
 	{ 'I', "-I <interface>", "interface",
+	  0, "string", NULL,
 	  "Network interface name to listen on",
 	  assign_interface },
 
 	{ 'r', "-r <retrans>", "retrans", 
+	  0, "string", "20",
 	  "Multicast retransmit time (in 1/10sec; default=20)",
 	  assign_retrans },
 
 	{ 'c', "-c <hash>", "hash",
+	  0, "string", "sha256",
 	  "Packet hash strength (none, sha1, [sha256], sha512)",
 	  assign_hash },
 
 	{ 'C', "-C <auth>", "auth",
+	  0, "string", "sha256",
 	  "Authentication (none, sha1, [sha256], sha512)",
 	  assign_auth },
 
 	{ 'k', "-k <file>", "key_file",
+	  0, "string", DEFAULT_KEY_FILE,
 	  "Shared key file (default=" DEFAULT_KEY_FILE ")",
 	  assign_key },
 
 	{ 'o', "-o <operation>", "option",
+	  0, "string", "reboot",
 	  "Fencing operation (null, off, [reboot])",
 	  assign_op },
 
 	{ 'H', "-H <domain>", "domain",
+	  1, "string", NULL,
 	  "Xen host (domain name) to fence",
 	  assign_domain },
 
 	{ 'u', "-u", "use_uuid",
+	  0, "string", NULL,
 	  "Treat <domain> as UUID instead of domain name",
 	  assign_uuid_lookup },
 
 	{ 't', "-t <timeout>", "timeout",
+	  0, "string", "30",
 	  "Fencing timeout (in seconds; default=30)",
 	  assign_timeout },
 
 	{ 'h', "-h", NULL,
+	  0, "boolean", NULL,
  	  "Help",
 	  assign_help },
 
 	{ '?', "-?", NULL,
+	  0, "boolean", NULL,
  	  "Help (alternate)", 
 	  assign_help },
 
 	{ 'X', "-X", NULL,
+	  0, "boolean", NULL,
  	  "Do not connect to CCS for configuration", 
 	  assign_noccs }, 
 
 	{ 'L', "-L", NULL,
+	  0, "boolean", NULL,
  	  "Local mode only (no cluster; implies -X)",
 	  assign_nocluster }, 
 
 	{ 'U', "-U", "uri",
+	  0, "string", DEFAULT_HYPERVISOR_URI,
 	  "URI for Hypervisor (default: " DEFAULT_HYPERVISOR_URI ")",
 	  assign_uri },
 	  
 	{ 'V', "-V", NULL,
+	  0, "string", NULL,
  	  "Display version and exit", 
 	  assign_version },
 
 	/* Terminator */
-	{ 0, NULL, NULL, NULL, NULL }
+	{ 0, NULL, NULL, 0, NULL, NULL, NULL, NULL }
 };
 
 
@@ -550,13 +573,24 @@ args_metadata(char *progname, const char *optstr)
 			continue;
 
 		printf("\t<parameter name=\"%s\">\n",arg->stdin_opt);
-		printf("\t\t<shortdesc lang=\"C\">");
+                printf("\t\t<getopt mixed=\"-%c\" />\n",arg->opt);
+                if (arg->default_value) {
+                  printf("\t\t<content type=\"%s\" default=\"%s\" />\n", arg->content_type, arg->default_value);
+                } else {
+                  printf("\t\t<content type=\"%s\" />\n", arg->content_type);
+                }
+		printf("\t\t<shortdesc lang=\"en\">");
 		print_desc_xml(arg->desc);
 		printf("</shortdesc>\n");
 		printf("\t</parameter>\n");
 	}
 
 	printf("</parameters>\n");
+	printf("<actions>\n");
+	printf("\t<action name=\"off\" />\n");
+	printf("\t<action name=\"reboot\" />\n");
+	printf("\t<action name=\"metadata\" />\n");	
+	printf("</actions>\n");
 	printf("</resource-agent>\n");
 }
 
