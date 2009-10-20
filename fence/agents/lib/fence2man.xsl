@@ -28,7 +28,7 @@
 </xsl:template>
 
 <xsl:template match="/resource-agent">
-.TH FENCE_AGENT 8 2009-01-20 "<xsl:value-of select="@name"/> (Fence Agent)"
+.TH FENCE_AGENT 8 2009-10-20 "<xsl:value-of select="@name"/> (Fence Agent)"
 .SH NAME
 <xsl:value-of select="@name" /> - <xsl:value-of select="@shortdesc" />
 .SH DESCRIPTION
