@@ -167,7 +167,9 @@ static int cman_exec_init_fn(struct corosync_api_v1 *api)
 {
 	hdb_handle_t object_handle;
 	hdb_handle_t find_handle;
+	hdb_handle_t totem_handle;
 	char pipe_msg[256];
+	unsigned int totem_token;
 
 	corosync = api;
 
@@ -179,10 +181,19 @@ static int cman_exec_init_fn(struct corosync_api_v1 *api)
 	corosync->object_find_next(find_handle, &cluster_parent_handle);
 	corosync->object_find_destroy(find_handle);
 
+	/*
+	 * quorum_dev_poll should default to the token timeout so that quorum devices behave
+	 * like nodes
+	 */
+	corosync->object_find_create(OBJECT_PARENT_HANDLE, "totem", strlen("totem"), &find_handle);
+	corosync->object_find_next(find_handle, &totem_handle);
+	objdb_get_int(api, totem_handle, "token", &totem_token, 1000);
+	corosync->object_find_destroy(find_handle);
+
 	corosync->object_find_create(cluster_parent_handle, "cman", strlen("cman"), &find_handle);
 	if (corosync->object_find_next(find_handle, &object_handle) == 0)
 	{
-		objdb_get_int(api, object_handle, "quorum_dev_poll", &quorumdev_poll, DEFAULT_QUORUMDEV_POLL);
+		objdb_get_int(api, object_handle, "quorum_dev_poll", &quorumdev_poll, totem_token);
 		objdb_get_int(api, object_handle, "shutdown_timeout", &shutdown_timeout, DEFAULT_SHUTDOWN_TIMEOUT);
 		objdb_get_int(api, object_handle, "ccsd_poll", &ccsd_poll_interval, DEFAULT_CCSD_POLL);
 		objdb_get_int(api, object_handle, "disallowed", &enable_disallowed, DEFAULT_DISALLOWED);
