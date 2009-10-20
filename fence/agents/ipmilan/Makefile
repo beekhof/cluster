@@ -2,7 +2,9 @@ TARGET= fence_ipmilan
 
 SBINDIRT=$(TARGET)
 
-all: ${TARGET}
+MANTARGET=$(TARGET).8
+
+all: ${TARGET} ${MANTARGET}
 
 include ../../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -20,6 +22,12 @@ LDFLAGS += -L${libdir}
 ${TARGET}: ${OBJS}
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+$(MANTARGET): $(TARGET) ${SRCDIR}/fence/agents/lib/fence2man.xsl
+	set -e && \
+	./$(TARGET) -o metadata > .$@.tmp && \
+	xsltproc ${SRCDIR}/fence/agents/lib/fence2man.xsl .$@.tmp > $@
+
 clean: generalclean
+	rm -f $(MANTARGET) .$(MANTARGET).tmp
 
 -include $(OBJS:.o=.d)

@@ -4,7 +4,9 @@ TARGET3= testprog
 
 SBINDIRT=$(TARGET1) $(TARGET2)
 
-all: ${TARGET1} ${TARGET2}
+MANTARGET= fence_xvm.8
+
+all: ${TARGET1} ${TARGET2} ${MANTARGET}
 
 include ../../../make/defines.mk
 include $(OBJDIR)/make/cobj.mk
@@ -57,7 +59,13 @@ ${TARGET2}: ${SHAREDOBJS} ${OBJS2}
 ${TARGET3}: ${OBJS3}
 	$(CC) -o $@ $^ $(XML_LDFLAGS)
 
+$(MANTARGET): $(TARGET1) ${SRCDIR}/fence/agents/lib/fence2man.xsl
+	set -e && \
+	./$(TARGET1) -o metadata > .$@.tmp && \
+	xsltproc ${SRCDIR}/fence/agents/lib/fence2man.xsl .$@.tmp > $@
+
 clean: generalclean
+	rm -f $(MANTARGET) .$(MANTARGET).tmp
 
 -include $(OBJS1:.o=.d)
 -include $(OBJS2:.o=.d)

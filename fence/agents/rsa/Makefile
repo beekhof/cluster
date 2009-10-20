@@ -1,4 +1,7 @@
+include ../../../make/defines.mk
+
 TARGET= fence_rsa
 
-include ../../../make/defines.mk
+MANTARGET= $(TARGET).8
+
 include $(OBJDIR)/make/fencebuild.mk

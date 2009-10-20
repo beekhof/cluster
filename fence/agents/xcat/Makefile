@@ -1,4 +1,5 @@
+include ../../../make/defines.mk
+
 TARGET= fence_xcat
 
-include ../../../make/defines.mk
 include $(OBJDIR)/make/fencebuild.mk

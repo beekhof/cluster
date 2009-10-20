@@ -82,3 +82,11 @@ ifdef SHAREDIRT
 	install -d ${sharedir}
 	install -m644 ${SHAREDIRT} ${sharedir}
 endif
+ifdef MANTARGET
+	set -e; \
+	for i in ${MANTARGET}; do \
+		p=`echo $$i | sed -e 's#.*\.##g'`; \
+		install -d ${mandir}/man$$p; \
+		install -m644 $(S)/$$i ${mandir}/man$$p; \
+	done
+endif

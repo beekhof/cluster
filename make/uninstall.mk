@@ -50,3 +50,10 @@ endif
 ifdef SHAREDIRT
 	${UNINSTALL} ${SHAREDIRT} ${sharedir}
 endif
+ifdef MANTARGET
+	set -e; \
+	for i in ${MANTARGET}; do \
+		p=`echo $$i | sed -e 's#.*\.##g'`; \
+		${UNINSTALL} $$i ${mandir}/man$$p; \
+	done
+endif

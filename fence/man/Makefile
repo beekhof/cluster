@@ -1,9 +1,9 @@
 include ../../make/defines.mk
 
-TARGET = fence.8 fenced.8 fence_node.8 fence_tool.8
+MANTARGET = fence.8 fenced.8 fence_node.8 fence_tool.8
 
 ifdef fence_agents
-TARGET += \
+MANTARGET += \
 	fence_ack_manual.8 \
 	fence_alom.8 \
 	fence_apc.8 \
@@ -40,4 +40,9 @@ TARGET += \
 	fence_zvm.8
 endif
 
-include $(OBJDIR)/make/man.mk
+include $(OBJDIR)/make/install.mk
+include $(OBJDIR)/make/uninstall.mk
+
+all:
+
+clean:

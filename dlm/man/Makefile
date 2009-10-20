@@ -1,4 +1,5 @@
-TARGET= dlm_cleanup.3 \
+MANTARGET= \
+	dlm_cleanup.3 \
 	dlm_close_lockspace.3 \
 	dlm_create_lockspace.3 \
 	dlm_dispatch.3 \
@@ -21,4 +22,9 @@ TARGET= dlm_cleanup.3 \
 	dlm_tool.8
 
 include ../../make/defines.mk
-include $(OBJDIR)/make/man.mk
+include $(OBJDIR)/make/install.mk
+include $(OBJDIR)/make/uninstall.mk
+
+all:
+
+clean:

@@ -4,7 +4,7 @@ ifndef FENCEAGENTSLIB
 	endif
 endif
 
-all: $(TARGET)
+all: $(TARGET) $(MANTARGET)
 
 include $(OBJDIR)/make/clean.mk
 include $(OBJDIR)/make/install.mk
@@ -22,4 +22,11 @@ $(TARGET):
 		-e 's#@SBINDIR@#${sbindir}#g' \
 	> $@
 
+$(MANTARGET): $(MANTARGET:.8=) ${SRCDIR}/fence/agents/lib/fence2man.xsl
+	set -e && \
+	PYTHONPATH=${OBJDIR}/fence/agents/lib \
+		python $^ -o metadata > .$@.tmp && \
+	xsltproc ${SRCDIR}/fence/agents/lib/fence2man.xsl .$@.tmp > $@
+
 clean: generalclean
+	rm -f $(MANTARGET) .$(MANTARGET).tmp
