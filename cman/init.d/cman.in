@@ -535,10 +535,12 @@ start_cman()
 		errmsg="$(cat $tmpfile)"
 		ret=1
 	else
-		ret=0
-		if [ "$CONFIG_VALIDATION" = "WARN" ] && [ -s $tmpfile ]; then
+		if [ "$CONFIG_VALIDATION" = "WARN" ] && \
+		   [ -s $tmpfile ] && \
+		   grep -q Relax-NG $tmpfile ; then
 			cat $tmpfile >&2
 		fi
+		ret=0
 	fi
 
 	rm -f $tmpfile
