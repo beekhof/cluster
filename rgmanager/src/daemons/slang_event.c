@@ -580,6 +580,63 @@ out:
 }
 
 
+static int
+sl_migrate_service(void)
+{
+	char *svcname = NULL;
+	int target_node = 0;
+	int nargs, t, newowner = 0, ret = -1;
+
+	nargs = SLang_Num_Function_Args;
+
+	/* Takes one, two, or three */
+	if (nargs != 2) {
+		SLang_verror(SL_Syntax_Error,
+		     (char *)"%s: Wrong # of args (%d), must be 2: service_name target_node\n",
+		     __FUNCTION__, nargs);
+		return -1;
+	}
+
+	t = SLang_peek_at_stack();
+	if (t != SLANG_INT_TYPE) {
+		SLang_verror(SL_Syntax_Error,
+			     (char *)"%s: expected type %d got %d\n",
+			     __FUNCTION__, SLANG_INT_TYPE, t);
+		goto out;
+	}
+
+	if (SLang_pop_integer(&target_node) < 0) {
+		SLang_verror(SL_Syntax_Error,
+		    (char *)"%s: Failed to pop integer from stack!\n",
+		    __FUNCTION__);
+		goto out;
+	}
+
+	t = SLang_peek_at_stack();
+	if (t != SLANG_STRING_TYPE) {
+		SLang_verror(SL_Syntax_Error,
+			     (char *)"%s: expected type %d got %d\n",
+			     __FUNCTION__,
+			     SLANG_STRING_TYPE, t);
+		goto out;
+	}
+
+	if (SLpop_string(&svcname) < 0) {
+		goto out;
+	}
+
+	ret = service_op_migrate(svcname, target_node);
+
+	if (ret == 0)
+		ret = target_node;
+out:
+	if (svcname)
+		free(svcname);
+	_user_return = ret;
+	return ret;
+}
+
+
 /* Take an array of integers given its length and
    push it on to the S/Lang stack */
 void
@@ -978,6 +1035,8 @@ static SLang_Intrin_Fun_Type rgmanager_slang[] =
 	MAKE_INTRINSIC_0((char *)"service_stop", sl_stop_service,
 			 SLANG_INT_TYPE),
 	MAKE_INTRINSIC_0((char *)"service_start", sl_start_service,
+			 SLANG_INT_TYPE),
+	MAKE_INTRINSIC_0((char *)"service_migrate", sl_migrate_service,
 			 SLANG_INT_TYPE),
 	MAKE_INTRINSIC_S((char *)"service_status", sl_service_status,
 			 SLANG_VOID_TYPE),
