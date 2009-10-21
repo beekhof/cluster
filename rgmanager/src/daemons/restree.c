@@ -1376,8 +1376,9 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		   incarnations there are. */
 		pthread_mutex_lock(&node->rn_resource->r_mutex);
 		if (node->rn_state == RES_STARTED) {
-			assert(node->rn_resource->r_incarnations > 0);
-			--node->rn_resource->r_incarnations;
+			assert(node->rn_resource->r_incarnations >= 0);
+			if (node->rn_resource->r_incarnations > 0)
+				--node->rn_resource->r_incarnations;
 		}
 
 		node->rn_flags &= ~RF_NEEDSTOP;
