@@ -939,9 +939,9 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 
 		/* XXX this was getuptime() in clumanager */
 		get_time(&oldtime, (ctx->qc_flags&RF_UPTIME));
-		
+
 		/* Read everyone else's status */
-		if ( (errors = read_node_blocks(ctx, ni, max) == 0 )) 
+		if ((errors = read_node_blocks(ctx, ni, max)) == 0 ) 
 			get_time(&rd_lastok, ctx->qc_flags&RF_UPTIME);
 
 		/* Check for node transitions */
