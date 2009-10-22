@@ -1640,14 +1640,14 @@ svc_start_remote(const char *svcName, int request, uint32_t target)
  * @param new_owner	Member who actually ends up owning the service.
  */
 int
-handle_relocate_req(char *svcName, int request, int preferred_target,
+handle_relocate_req(char *svcName, int orig_request, int preferred_target,
 		    int *new_owner)
 {
 	cluster_member_list_t *allowed_nodes = NULL, *backup = NULL;
 	cman_node_t *m;
-	int target = preferred_target, me = my_id();
-	int ret, x;
 	rg_state_t svcStatus;
+	int target = preferred_target, me = my_id();
+	int ret, x, request = orig_request;
 	
 	get_rg_state_local(svcName, &svcStatus);
 	if (svcStatus.rs_state == RG_STATE_DISABLED ||
@@ -1749,6 +1749,13 @@ handle_relocate_req(char *svcName, int request, int preferred_target,
 				 */
 				return 0;
 			}
+
+			/*
+			 * Failed to start on that node.
+			 * Use the START_RECOVER operation on subsequent
+			 * attempts.
+			 */
+			request = RG_START_RECOVER;
 		}
 	}
 
@@ -1783,6 +1790,10 @@ handle_relocate_req(char *svcName, int request, int preferred_target,
 			return 0;
 		case RG_EDEPEND:
 		case RG_EFAIL:
+			/* Uh oh - we failed to relocate to this node.
+			   ensure that we tell the next node to start it from
+			   the 'recovering' state. */
+			request = RG_START_RECOVER;
 			memb_mark_down(allowed_nodes, target);
 			continue;
 		case RG_EABORT:
@@ -1815,7 +1826,7 @@ handle_relocate_req(char *svcName, int request, int preferred_target,
 	 * We got sent here from handle_start_req.
 	 * We're DONE.
 	 */
-	if (request == RG_START_RECOVER) {
+	if (orig_request == RG_START_RECOVER) {
 		_svc_stop_finish(svcName, 0, RG_STATE_STOPPED);
 		return RG_EFAIL;
 	}
