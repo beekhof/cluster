@@ -2052,7 +2052,8 @@ handle_start_remote_req(char *svcName, int req)
 	if (need_check)
 		pthread_mutex_unlock(&exclusive_mutex);
 
-	if (svc_stop(svcName, RG_STOP_RECOVER) == 0)
+	if (svc_stop(svcName, central_events_enabled() ?
+		     RG_STATE_STOPPED : RG_STOP_RECOVER) == 0)
 		return RG_EFAIL;
 
 	svc_fail(svcName);
