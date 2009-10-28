@@ -40,7 +40,7 @@ OBJS2=	test-noccs.o \
 	rg_locks-noccs.o \
 	event_config-noccs.o
 
-CFLAGS += -DSHAREDIR=\"${sharedir}\"
+CFLAGS += -DSHAREDIR=\"${sharedir}\" -D_GNU_SOURCE
 CFLAGS += -fPIC
 CFLAGS += -I${ccsincdir} -I${cmanincdir} -I${dlmincdir} -I${logtincdir}
 CFLAGS += `xml2-config --cflags` -I${slangincdir}

@@ -90,6 +90,7 @@ typedef struct ALIGNED _msgctx {
 		} cluster_info;
 		struct {
 			int sockfd;
+			struct ucred cred;
 			int pad;
 		} local_info;
 	} u;

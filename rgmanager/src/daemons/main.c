@@ -14,6 +14,7 @@
 #include <msgsimple.h>
 #include <vf.h>
 #include <lock.h>
+#include <sys/socket.h>
 #include <message.h>
 #include <rg_queue.h>
 #include <malloc.h>
@@ -338,10 +339,16 @@ do_lockreq(msgctx_t *ctx, int req)
 static int
 dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 {
-	int ret = 0, sz = -1, nid;
+	int ret = 0, sz = -1, nid, read_only = 1;
 	char msgbuf[4096];
 	generic_msg_hdr	*msg_hdr = (generic_msg_hdr *)msgbuf;
 	SmMessageSt	*msg_sm = (SmMessageSt *)msgbuf;
+
+	if (ctx->type == MSG_CLUSTER) {
+		read_only = 0;
+	} else if (ctx->u.local_info.cred.uid == 0) {
+		read_only = 0;
+	}
 
 	memset(msgbuf, 0, sizeof(msgbuf));
 
@@ -396,6 +403,10 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 
 	case RG_LOCK:
 	case RG_UNLOCK:
+		if (read_only) {
+			msg_send_simple(ctx, RG_FAIL, RG_EPERM, 0);
+			goto out;
+		}
 		if (rg_quorate())
 			do_lockreq(ctx, msg_hdr->gh_command);
 		break;
@@ -408,6 +419,10 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 		break;
 
 	case RG_ACTION_REQUEST:
+		if (read_only) {
+			msg_send_simple(ctx, RG_FAIL, RG_EPERM, 0);
+			goto out;
+		}
 
 		if (sz < (int)sizeof(msg_sm)) {
 			logt_print(LOG_ERR,
@@ -476,6 +491,11 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 		return 0;
 
 	case RG_EVENT:
+		if (read_only) {
+			msg_send_simple(ctx, RG_FAIL, RG_EPERM, 0);
+			goto out;
+		}
+
 		/* Service event.  Run a dependency check */
 		if (sz < (int)sizeof(msg_sm)) {
 			logt_print(LOG_ERR,
@@ -498,6 +518,11 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 		break;
 
 	case RG_EXITING:
+		if (read_only) {
+			msg_send_simple(ctx, RG_FAIL, RG_EPERM, 0);
+			goto out;
+		}
+
 		if (!member_online(msg_hdr->gh_arg1))
 			break;
 
@@ -508,6 +533,11 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 		break;
 
 	case VF_MESSAGE:
+		if (read_only) {
+			msg_send_simple(ctx, RG_FAIL, RG_EPERM, 0);
+			goto out;
+		}
+
 		/* Ignore; our VF thread handles these
 		    - except for VF_CURRENT XXX (bad design) */
 		if (msg_hdr->gh_arg1 == VF_CURRENT)
@@ -515,6 +545,10 @@ dispatch_msg(msgctx_t *ctx, int nodeid, int need_close)
 		break;
 
 	default:
+		if (read_only) {
+			goto out;
+		}
+
 		logt_print(LOG_DEBUG, "unhandled message request %d\n",
 		       msg_hdr->gh_command);
 		break;

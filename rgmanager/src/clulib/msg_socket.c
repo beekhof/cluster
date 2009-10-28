@@ -312,6 +312,8 @@ static int
 sock_msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx)
 {
 	errno = EINVAL;
+	struct ucred cred;
+	socklen_t credlen = sizeof(cred);
 
 	if (!listenctx || !acceptctx)
 		return -1;
@@ -326,6 +328,18 @@ sock_msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx)
 
 	if (acceptctx->u.local_info.sockfd < 0)
 		return -1;
+
+	memset(&cred, 0, sizeof(cred));
+	if (getsockopt(acceptctx->u.local_info.sockfd, SOL_SOCKET,
+		       SO_PEERCRED, (void *)&cred, &credlen) < 0) {
+		perror("getsockopt");
+		cred.uid = (uid_t)-1;
+		cred.gid = (gid_t)-1;
+		cred.pid = (pid_t)-1;
+	}
+
+	memcpy(&acceptctx->u.local_info.cred, &cred,
+	       sizeof(cred));
 
 	set_cloexec(acceptctx->u.local_info.sockfd);
 
@@ -354,7 +368,7 @@ sock_msg_listen(int me, const void *portp, msgctx_t **listen_ctx)
 
 	set_cloexec(sock);
 	unlink(RGMGR_SOCK);
-	om = umask(077);
+	om = umask(0117);
 	su.sun_family = PF_LOCAL;
 	snprintf(su.sun_path, sizeof(su.sun_path), "%s", path);
 

@@ -8,7 +8,9 @@ struct string_val {
 
 
 const struct string_val rg_error_strings[] = {
+	{ RG_EPERM,	"Permissing denied" },
 	{ RG_ERELO,	"Failed; service running on original owner" },
+	{ RG_EEXCL,	"Service not runnable: cannot run exclusive" },
 	{ RG_EDOMAIN,   "Service not runnable" },
 	{ RG_ESCRIPT,   "S/Lang Script Error" },
 	{ RG_EFENCE,    "Fencing operation pending; try again later" },

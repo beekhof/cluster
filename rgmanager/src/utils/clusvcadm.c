@@ -235,11 +235,6 @@ main(int argc, char **argv)
 	const char *actionstr = NULL;
 	cluster_member_list_t *membership;
 
-	if (geteuid() != (uid_t) 0) {
-		fprintf(stderr, "%s must be run as the root user.\n", argv[0]);
-		return 1;
-	}
-
 	while ((opt = getopt(argc, argv, "lSue:M:d:r:n:m:FvR:s:Z:U:qh?")) != EOF) {
 		switch (opt) {
 		case 'l':
