@@ -234,7 +234,7 @@ int join(commandline_t *comline, char *main_envp[])
 		be_daemon();
 
 		sprintf(scratch, "FORKED: %d\n", getpid());
-		err = write(p[1], scratch, strlen(scratch)+1);
+		err = write(p[1], scratch, strlen(scratch));
 
 		execve(COROSYNCBIN, argv, envp);
 

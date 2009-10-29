@@ -237,7 +237,7 @@ static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr,
 	/* Check it's not bound to localhost, sigh */
 	get_localhost(if_addr.ss_family, &localhost);
 	if (ipaddr_equal(&localhost, &if_addr)) {
-		sprintf(error_reason, "Node address is localhost, please choose a real host address");
+		sprintf(error_reason, "Node name resolves to localhost, please check /etc/hosts and assign this node a network IP address");
 		return -1;
 	}
 
