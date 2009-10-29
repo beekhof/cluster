@@ -157,8 +157,10 @@ lecho "Config interface set to: $COROSYNC_DEFAULT_CONFIG_IFACE"
 if [ -n "$noloadtest" ]; then
 	cp $COROSYNC_CLUSTER_CONFIG_FILE $tempfile
 else
+	export CMAN_PIPE=2
 	if ! ccs_config_dump > $tempfile; then
 		[ -z "$notempfilerm" ] && rm -f $tempfile
+		echo
 		echo "Unable to get the configuration" >&2
 		exit 255
 	fi
