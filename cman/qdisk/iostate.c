@@ -49,11 +49,12 @@ io_state(iostate_t state)
 	pthread_mutex_lock(&state_mutex);
 	main_state = state;
 	main_incarnation++; /* it does not matter if this wraps. */
-	pthread_mutex_unlock(&state_mutex);
 
 	/* Optimization: Don't signal on STATE_NONE */
 	if (state != STATE_NONE)
 		pthread_cond_broadcast(&state_cond);
+
+	pthread_mutex_unlock(&state_mutex);
 }
 
 
