@@ -61,7 +61,7 @@ ${TARGET3}: ${OBJS3}
 
 $(MANTARGET): $(TARGET1) ${SRCDIR}/fence/agents/lib/fence2man.xsl
 	set -e && \
-	LD_PRELOAD=${logtlibdir}/liblogthread.so.$(SOMAJOR) ./$(TARGET1) -o metadata > .$@.tmp && \
+	LD_LIBRARY_PATH=${logtlibdir} ./$(TARGET1) -o metadata > .$@.tmp && \
 	xsltproc ${SRCDIR}/fence/agents/lib/fence2man.xsl .$@.tmp > $@
 
 clean: generalclean
