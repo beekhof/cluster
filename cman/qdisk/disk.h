@@ -54,7 +54,8 @@ typedef enum {
 	RF_ALLOW_KILL = 0x10,
 	RF_UPTIME = 0x20,
 	RF_CMAN_LABEL = 0x40,
-	RF_IOTIMEOUT = 0x80
+	RF_IOTIMEOUT = 0x80,
+	RF_MASTER_WINS = 0x100
 } run_flag_t;
 
 

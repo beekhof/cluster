@@ -278,6 +278,24 @@ this value is 1 (on).  This option can be changed while qdiskd is
 running.
 
 .in 9
+\fImaster_wins\fP\fB="\fP0\fB"\fP
+.in 12
+If set to 1 (on), only the qdiskd master will advertise its votes
+to CMAN.  In a network partition, only the qdisk master will provide
+votes to CMAN.  Consequently, that node will automatically "win" in
+a fence race.
+
+This option requires careful tuning of the CMAN timeout, the qdiskd
+timeout, and CMAN's quorum_dev_poll value.  As a rule of thumb,
+CMAN's quorum_dev_poll value should be equal to Totem's token timeout
+and qdiskd's timeout (interval*tko) should be less than half of
+Totem's token timeout.
+
+This option only takes effect if there are no heuristics
+configured.  Usage of this option in configurations with more than
+two cluster nodes is undefined and should not be done.
+
+.in 9
 \fIallow_kill\fP\fB="\fP1\fB"\fP
 .in 12
 If set to 0 (off), qdiskd will *not* instruct to kill nodes it thinks

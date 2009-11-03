@@ -1106,7 +1106,8 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 						"Halting qdisk operations\n");
 					return -1;
 				}
-				if (!errors)
+				if (!errors && 
+				    (!(ctx->qc_flags & RF_MASTER_WINS)))
 					cman_poll_quorum_device(ctx->qc_cman_admin, 1);
 			}
 		}
@@ -1557,6 +1558,15 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 			ctx->qc_scoremin = 0;
 	}
 
+	/* Get master-wins flag for when we transition -> offline */
+	/* default = off, so, 1 to turn on */
+	snprintf(query, sizeof(query), "/cluster/quorumd/@master_wins");
+	if (ccs_get(ccsfd, query, &val) == 0) {
+		if (atoi(val))
+			ctx->qc_flags |= RF_MASTER_WINS;
+		free(val);
+	}
+
 	/* Get cman_label */
 	snprintf(query, sizeof(query), "/cluster/quorumd/@cman_label");
 	if (ccs_get(ccsfd, query, &val) == 0) {
@@ -1625,6 +1635,13 @@ get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh)
 		goto out;
 
 	*cfh = configure_heuristics(ccsfd, h, maxh);
+
+	if (*cfh) {
+		if (ctx->qc_flags & RF_MASTER_WINS) {
+			logt_print(LOG_WARNING, "Master-wins mode disabled\n");
+			ctx->qc_flags &= ~RF_MASTER_WINS;
+		}
+	}
 
 	logt_print(LOG_DEBUG, "Quorum Daemon: %d heuristics, "
 		   "%d interval, %d tko, %d votes\n",
