@@ -66,6 +66,12 @@
 #define GROUP_LIBGROUP	2
 #define GROUP_LIBCPG	3
 
+/* cfgk_protocol */
+
+#define PROTO_TCP  0
+#define PROTO_SCTP 1
+#define PROTO_DETECT 2
+
 extern int daemon_debug_opt;
 extern int daemon_quit;
 extern int cluster_down;

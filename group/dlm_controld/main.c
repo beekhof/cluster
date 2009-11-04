@@ -1089,6 +1089,9 @@ static void print_usage(void)
 	printf("  -D		Enable debugging to stderr and don't fork\n");
 	printf("  -L		Enable debugging to log file\n");
 	printf("  -K		Enable kernel dlm debugging messages\n");
+	printf("  -r <num>	dlm kernel lowcomms protocol, 0 tcp, 1 sctp, 2 detect\n");
+	printf("                2 selects tcp if corosync rrp_mode is \"none\", otherwise sctp\n");
+	printf("                Default is 2\n");
 	printf("  -g <num>	groupd compatibility mode, 0 off, 1 on, 2 detect\n");
 	printf("		0: use libcpg, no backward compat, best performance\n");
 	printf("		1: use libgroup for compat with cluster2/rhel5\n");
@@ -1118,16 +1121,12 @@ static void print_usage(void)
 	printf("  -V		Print program version information, then exit\n");
 }
 
-#define OPTION_STRING "LDKg:f:q:d:p:Pl:o:t:c:a:hV"
+#define OPTION_STRING "LDKg:f:q:d:p:Pl:o:t:c:a:hVr:"
 
 static void read_arguments(int argc, char **argv)
 {
 	int cont = 1;
 	int optchar;
-
-	/* we don't allow these to be set on command line, should we? */
-	optk_timewarn = 0;
-	optk_timewarn = 0;
 
 	while (cont) {
 		optchar = getopt(argc, argv, OPTION_STRING);
@@ -1151,6 +1150,11 @@ static void read_arguments(int argc, char **argv)
 		case 'K':
 			optk_debug = 1;
 			cfgk_debug = 1;
+			break;
+
+		case 'r':
+			optk_protocol = 1;
+			cfgk_protocol = atoi(optarg);
 			break;
 
 		case 'f':
@@ -1359,7 +1363,7 @@ int optd_drop_resources_age;
 
 int cfgk_debug                  = -1;
 int cfgk_timewarn               = -1;
-int cfgk_protocol               = -1;
+int cfgk_protocol               = PROTO_DETECT;
 int cfgd_groupd_compat          = DEFAULT_GROUPD_COMPAT;
 int cfgd_debug_logfile		= DEFAULT_DEBUG_LOGFILE;
 int cfgd_enable_fencing         = DEFAULT_ENABLE_FENCING;
