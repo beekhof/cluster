@@ -563,18 +563,6 @@ stop_cman()
 	fi
 }
 
-unfence_self()
-{
-	# fence_node returns 0 on success, 1 on failure, 2 if unconfigured
-	# 0 and 2 are ok. Everything else should report error.
-	fence_node -U > /dev/null 2>&1
-	case $? in
-	0|2)
-		return 0
-	;;
-	esac
-}
-
 start_qdiskd()
 {
 	start_daemon qdiskd "-Q" || return 1
@@ -671,6 +659,18 @@ stop_cmannotifyd()
 	stop_daemon cmannotifyd
 }
 
+unfence_self()
+{
+	# fence_node returns 0 on success, 1 on failure, 2 if unconfigured
+	# 0 and 2 are ok. Everything else should report error.
+	fence_node -U > /dev/null 2>&1
+	case $? in
+	0|2)
+		return 0
+	;;
+	esac
+}
+
 join_fence_domain()
 {
 	if ! cman_tool status | grep Flags | grep 2node \
@@ -748,10 +748,6 @@ start()
 
 	[ "$breakpoint" = "join" ] && exit 0
 
-	runwrap unfence_self \
-		none \
-		"Unfencing self"
-
 	runwrap start_qdiskd \
 		qdiskd_enabled \
 		"Starting qdiskd"
@@ -787,6 +783,10 @@ start()
 		"Starting cmannotifyd"
 
 	[ "$breakpoint" = "daemons" ] && exit 0
+
+	runwrap unfence_self \
+		none \
+		"Unfencing self"
 
 	runwrap join_fence_domain \
 		fence_join_enabled \
