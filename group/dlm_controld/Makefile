@@ -47,7 +47,7 @@ PCMK_CFLAGS += `xml2-config --cflags`
 LDFLAGS += -L${dlmlibdir} -ldlm 
 LDFLAGS += -L${logtlibdir} -llogthread
 LDFLAGS += -L${openaislibdir} -lSaCkpt
-LDFLAGS += -L${corosynclibdir} -lcpg 
+LDFLAGS += -L${corosynclibdir} -lcpg -lconfdb
 LDFLAGS += -L../lib -lgroup
 LDFLAGS += -L${libdir}
 
