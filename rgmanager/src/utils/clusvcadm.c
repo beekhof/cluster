@@ -366,6 +366,11 @@ main(int argc, char **argv)
 			if (!svctarget)
 				return 1;
 		}
+		if (action == RG_MIGRATE && 
+		    memb_online(membership, svctarget) == 0) {
+			printf("'%s' is offline\n", nodename);
+			return 1;
+		}
 	} else {
 		svctarget = 0;
 		/*
