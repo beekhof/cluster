@@ -825,6 +825,11 @@ svc_migrate(const char *svcName, int target)
 		return RG_EINVAL;
 	}
 
+	if (m->cn_member == 0) {
+		free_member_list(membership);
+		return RG_ENODE;
+	}
+
 	count_resource_groups_local(m);
 	if (m->cn_svcexcl ||
 	    (m->cn_svccount && is_exclusive(svcName))) {
