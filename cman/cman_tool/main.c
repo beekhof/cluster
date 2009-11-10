@@ -57,9 +57,9 @@ static void print_usage(int subcmd)
 		printf("  -P               Don't set corosync to realtime priority\n");
 		printf("  -X               Use internal cman defaults for configuration\n");
 		printf("  -A               Don't load openais services\n");
-		printf("  -D <fail,warn,none> What to do about the config. Default (without -D) is to validate\n");
-		printf("                   the config. with -D no validation will be done. -Dwarn will print errors\n");
-		printf("                   but allow the operation to continue\n");
+		printf("  -D<fail|warn|none> What to do about the config. Default (without -D) is to\n");
+		printf("                   validate the config. with -D no validation will be done.\n");
+		printf("                   -Dwarn will print errors but allow the operation to continue.\n");
 		printf("\n");
 	}
 
@@ -119,8 +119,8 @@ static void print_usage(int subcmd)
 	if (!subcmd || subcmd == OP_VERSION) {
 		printf("version\n");
 		printf("  -r <config>      A new config version to set on all members\n");
-		printf("  -D <fail,warn,none> What to do about the config. Default (without -D) is to validate\n");
-		printf("                   the config. with -D no validation will be done. -Dwarn will print errors\n");
+		printf("  -D <fail,warn,none> What to do about the config. Default (without -D) is to\n");
+		printf("                   validate the config. with -D no validation will be done. -Dwarn will print errors\n");
 		printf("                   but allow the operation to continue\n");
 		printf("  -S               Don't run ccs_sync to distribute cluster.conf (if appropriate)\n");
 		printf("\n");
