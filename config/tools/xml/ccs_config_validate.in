@@ -63,7 +63,7 @@ check_opts() {
 		;;
 		-C)
 			shift
-			COROSYNC_DEFAULT_CONFIG_IFACE=$1:cmanpreconfig
+			export COROSYNC_DEFAULT_CONFIG_IFACE=$1:cmanpreconfig
 			loaderoverride=1
 			if [ -n "$runtimetest" ] || \
 			   [ -n "$filetest" ] || \
@@ -74,8 +74,8 @@ check_opts() {
 		;;
 		-l)
 			shift
-			COROSYNC_CLUSTER_CONFIG_FILE=$1
-			COROSYNC_DEFAULT_CONFIG_IFACE=xmlconfig:cmanpreconfig
+			export COROSYNC_CLUSTER_CONFIG_FILE=$1
+			export COROSYNC_DEFAULT_CONFIG_IFACE=xmlconfig:cmanpreconfig
 			filetest=1
 			if [ -n "$loaderoverride" ] || \
 			   [ -n "$runtimetest" ] || \
@@ -86,7 +86,7 @@ check_opts() {
 		;;
 		-f)
 			shift
-			COROSYNC_CLUSTER_CONFIG_FILE=$1
+			export COROSYNC_CLUSTER_CONFIG_FILE=$1
 			unset COROSYNC_DEFAULT_CONFIG_IFACE
 			noloadtest=1
 			if [ -n "$loaderoverride" ] || \
