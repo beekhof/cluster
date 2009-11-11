@@ -774,6 +774,8 @@ static void version(commandline_t *comline)
 		if (comline->verbose > 1)
 			printf("calling ccs_sync\n");
 		result = system("/usr/bin/ccs_sync");
+		if (result)
+			die("ccs_sync failed.\nIf you have distributed the config file yourself, try re-running with -S\n");
 	}
 	else {
 		if (comline->verbose)
