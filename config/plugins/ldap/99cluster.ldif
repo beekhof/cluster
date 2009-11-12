@@ -1,4 +1,4 @@
-# Auto-generated @ 2009-10-02 14:49:14
+# Auto-generated @ 2009-11-12 13:21:51
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.15 NAME 'rhcsAlias'
@@ -242,6 +242,18 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.122 NAME 'rhcsMax-error-cycles'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.243 NAME 'rhcsIo-timeout'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.244 NAME 'rhcsMaster-wins'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
@@ -1412,7 +1424,7 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.29 NAME 'rhcsQuorumd' SUP top STRUCTURAL
      MUST ( cn )
-     MAY ( rhcsMax-error-cycles $ rhcsAllow-kill $ rhcsParanoid $ rhcsStop-cman $ rhcsPriority $ rhcsReboot $ rhcsScheduler $ rhcsStatus-file $ rhcsLabel $ rhcsDevice $ rhcsMin-score $ rhcsVotes $ rhcsTko $ rhcsInterval )
+     MAY ( rhcsMaster-wins $ rhcsIo-timeout $ rhcsMax-error-cycles $ rhcsAllow-kill $ rhcsParanoid $ rhcsStop-cman $ rhcsPriority $ rhcsReboot $ rhcsScheduler $ rhcsStatus-file $ rhcsLabel $ rhcsDevice $ rhcsMin-score $ rhcsVotes $ rhcsTko $ rhcsInterval )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.30 NAME 'rhcsHeuristic' SUP top STRUCTURAL

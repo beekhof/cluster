@@ -1,4 +1,4 @@
-# Max attribute value: 242
+# Max attribute value: 244
 # Max object class value: 58
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -299,3 +299,5 @@ obj,rhcsDrbd,drbd,58
 attr,rhcsResource,resource,240
 attr,rhcsUpgrading,upgrading,241
 attr,rhcsDisallowed,disallowed,242
+attr,rhcsIo-timeout,io_timeout,243
+attr,rhcsMaster-wins,master_wins,244

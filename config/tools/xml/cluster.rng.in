@@ -307,6 +307,12 @@ To validate your cluster.conf against this schema, run:
    <optional>
     <attribute name="max_error_cycles" rha:description="" rha:sample=""/>
    </optional>
+   <optional>
+    <attribute name="io_timeout" rha:description="" rha:sample=""/>
+   </optional>
+   <optional>
+    <attribute name="master_wins" rha:description="" rha:sample=""/>
+   </optional>
    <zeroOrMore>
     <element name="heuristic" rha:description="">
      <attribute name="program" rha:description="The program used to
