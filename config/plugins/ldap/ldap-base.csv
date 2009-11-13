@@ -1,4 +1,4 @@
-# Max attribute value: 244
+# Max attribute value: 266
 # Max object class value: 58
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -301,3 +301,25 @@ attr,rhcsUpgrading,upgrading,241
 attr,rhcsDisallowed,disallowed,242
 attr,rhcsIo-timeout,io_timeout,243
 attr,rhcsMaster-wins,master_wins,244
+attr,rhcsVersion,version,245
+attr,rhcsHelp,help,246
+attr,rhcsSeparator,separator,247
+attr,rhcsHmc-version,hmc_version,248
+attr,rhcsCmd-prompt,cmd_prompt,249
+attr,rhcsInet4-only,inet4_only,250
+attr,rhcsInet6-only,inet6_only,251
+attr,rhcsIpport,ipport,252
+attr,rhcsSnmp-version,snmp_version,253
+attr,rhcsCommunity,community,254
+attr,rhcsSnmp-auth-prot,snmp_auth_prot,255
+attr,rhcsSnmp-sec-level,snmp_sec_level,256
+attr,rhcsSnmp-priv-prot,snmp_priv_prot,257
+attr,rhcsSnmp-priv-passwd,snmp_priv_passwd,258
+attr,rhcsSnmp-priv-passwd-script,snmp_priv_passwd_script,259
+attr,rhcsUdpport,udpport,260
+attr,rhcsCipher,cipher,261
+attr,rhcsMethod,method,262
+attr,rhcsDrac-version,drac_version,263
+attr,rhcsModule-name,module_name,264
+attr,rhcsIo-fencing,io_fencing,265
+attr,rhcsRibcl,ribcl,266
