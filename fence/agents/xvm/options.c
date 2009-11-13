@@ -357,12 +357,12 @@ static struct arg_info _arg_info[] = {
 
 	{ 'H', "-H <domain>", "domain",
 	  1, "string", NULL,
-	  "Xen host (domain name) to fence",
+	  "Virtual machine (domain name) to fence",
 	  assign_domain },
 
 	{ 'u', "-u", "use_uuid",
 	  0, "string", NULL,
-	  "Treat <domain> as UUID instead of domain name",
+	  "Treat 'domain' as UUID instead of domain name",
 	  assign_uuid_lookup },
 
 	{ 't', "-t <timeout>", "timeout",
