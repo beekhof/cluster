@@ -663,12 +663,14 @@ unfence_self()
 {
 	# fence_node returns 0 on success, 1 on failure, 2 if unconfigured
 	# 0 and 2 are ok. Everything else should report error.
-	fence_node -U > /dev/null 2>&1
+	fence_err=$(fence_node -U 2>&1)
 	case $? in
 	0|2)
 		return 0
 	;;
 	esac
+	errmsg="$fence_err"
+	return 1
 }
 
 join_fence_domain()
