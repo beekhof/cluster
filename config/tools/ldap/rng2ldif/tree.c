@@ -3,6 +3,8 @@
 #include <string.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <assert.h>
 
 #include "zalloc.h"
 #include "value-list.h"
@@ -141,6 +143,43 @@ find_obj(struct ldap_object_node *objs, const char *name)
 }
 
 
+static xmlNodePtr 
+find_ref(xmlNodePtr curr_node)
+{
+	xmlNodePtr n;
+	char *name;
+	char *tmp_name;
+
+	dbg_printf("Trying to parse ref tag\n");
+	name = (char *)xmlGetProp(curr_node, (xmlChar *)"name");
+
+	n = xmlDocGetRootElement(curr_node->doc);
+	n = n->xmlChildrenNode;
+	for (; n; n = n->next) {
+		if (n->type != XML_ELEMENT_NODE)
+			continue;
+		if (strcasecmp((char *)n->name, "define"))
+			continue;
+		
+		tmp_name = (char *)xmlGetProp(n, "name");
+		if (!tmp_name)
+			continue;
+		if (strcmp(tmp_name, name))
+			continue;
+
+		break;
+	}
+
+	if (!n) {
+		fprintf(stderr, "Error in RelaxNG schema!\n");
+		fprintf(stderr, "Unterminated reference: %s\n",
+			name);
+		exit(1);
+	}
+
+	return n->xmlChildrenNode;
+}
+
 
 static int
 find_optional_attributes(xmlNodePtr curr_node, int in_block,
@@ -162,6 +201,10 @@ find_optional_attributes(xmlNodePtr curr_node, int in_block,
 	for (node = curr_node; node; node = node->next) {
 		if (node->type != XML_ELEMENT_NODE)
 			continue;
+		if (!strcasecmp((char *)node->name, "ref")) {
+			find_optional_attributes(
+				find_ref(node), 1, curr_obj, attrs, ids);
+		}
 		if (!strcasecmp((char *)node->name, "choice")) {
 			find_optional_attributes(node->xmlChildrenNode, 1,
 						 curr_obj,
@@ -314,6 +357,33 @@ parse_element_tag(xmlNodePtr curr_node,
 	return obj;
 }
 
+
+#if 0
+static struct ldap_object_node *
+parse_ref_tag(xmlNodePtr curr_node,
+    	      struct ldap_object_node **objs,
+	      struct ldap_attr_node **attrs,
+	      struct idinfo *ids)
+{
+	xmlXPathObjectPtr xobj;
+	xmlXPathContextPtr xctx;
+	char query[1024];
+	char *n;
+	
+	dbg_printf("Trying to parse ref tag\n");
+	n = (char *)xmlGetProp(curr_node, (xmlChar *)"name");
+
+	snprintf(query, sizeof(query), "//define[@name=\"%s\"]", n);
+	xctx = xmlXPathNewContext(curr_node->doc);
+	assert(xctx);
+	xobj = xmlXPathEvalExpression((xmlChar *)query, xctx);
+
+	printf("%d nodes match %s\n", xobj->nodesetval->nodeNr, query);
+
+	assert(0);
+	return NULL;
+}
+#endif
 
 int
 find_objects(xmlNodePtr curr_node,
