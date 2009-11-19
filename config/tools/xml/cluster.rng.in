@@ -2126,16 +2126,24 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="exec" rha:description="Command to execute" />
         </optional>
@@ -2171,9 +2179,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2227,9 +2241,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2242,7 +2262,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
@@ -2278,8 +2300,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -2289,7 +2315,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="snmp_version" rha:description="Specifies SNMP version to use (1,2c,3)" />
         </optional>
@@ -2343,8 +2371,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -2354,7 +2386,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="snmp_version" rha:description="Specifies SNMP version to use (1,2c,3)" />
         </optional>
@@ -2408,8 +2442,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -2419,7 +2457,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="verbose" rha:description="Verbose mode" />
         </optional>
@@ -2443,9 +2483,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2458,7 +2504,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="cmd_prompt" rha:description="Force command prompt" />
         </optional>
@@ -2582,9 +2630,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2620,9 +2674,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2635,7 +2695,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="inet4_only" rha:description="Forces agent to use IPv4 addresses only" />
         </optional>
@@ -2668,8 +2730,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -2685,7 +2751,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="inet4_only" rha:description="Forces agent to use IPv4 addresses only" />
         </optional>
@@ -2718,9 +2786,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2771,9 +2845,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2818,9 +2898,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2830,7 +2916,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="switch" rha:description="Physical switch number on device" />
         </optional>
@@ -2866,9 +2954,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2907,8 +3001,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -2918,7 +3016,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="snmp_version" rha:description="Specifies SNMP version to use (1,2c,3)" />
         </optional>
@@ -2972,9 +3072,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="io_fencing" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="io_fencing" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -2984,7 +3090,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="cmd_prompt" rha:description="Force command prompt" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="ipport" rha:description="TCP port to use for connection with device" />
         </optional>
@@ -3011,8 +3119,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -3022,7 +3134,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="snmp_version" rha:description="Specifies SNMP version to use (1,2c,3)" />
         </optional>
@@ -3076,9 +3190,15 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
-        <attribute name="login" rha:description="Login Name" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
+        <optional>
+          <attribute name="login" rha:description="Login Name" />
+        </optional>
         <optional>
           <attribute name="passwd" rha:description="Login password or passphrase" />
         </optional>
@@ -3120,8 +3240,12 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
-        <attribute name="action" rha:description="Fencing Action" />
-        <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        <optional>
+          <attribute name="action" rha:description="Fencing Action" />
+        </optional>
+        <optional>
+          <attribute name="ipaddr" rha:description="IP Address or Hostname" />
+        </optional>
         <optional>
           <attribute name="login" rha:description="Login Name" />
         </optional>
@@ -3131,7 +3255,9 @@ To validate your cluster.conf against this schema, run:
         <optional>
           <attribute name="passwd_script" rha:description="Script to retrieve password" />
         </optional>
-        <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        <optional>
+          <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
+        </optional>
         <optional>
           <attribute name="snmp_version" rha:description="Specifies SNMP version to use (1,2c,3)" />
         </optional>
