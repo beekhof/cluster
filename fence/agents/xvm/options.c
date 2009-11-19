@@ -350,9 +350,14 @@ static struct arg_info _arg_info[] = {
 	  "Shared key file (default=" DEFAULT_KEY_FILE ")",
 	  assign_key },
 
-	{ 'o', "-o <operation>", "option",
+	{ '\xff', NULL, "option",
 	  0, "string", "reboot",
 	  "Fencing operation (null, off, [reboot])",
+	  assign_op },
+
+	{ 'o', "-o <action>", "action",
+	  0, "string", "reboot",
+	  "Fencing action (null, off, [reboot])",
 	  assign_op },
 
 	{ 'H', "-H <domain>", "domain",
