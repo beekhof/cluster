@@ -2157,6 +2157,7 @@ int setup_cpg_daemon(void)
 	sprintf(name.value, "fenced:daemon");
 	name.length = strlen(name.value) + 1;
 
+	log_debug("cpg_join %s ...", name.value);
  retry:
 	error = cpg_join(cpg_handle_daemon, &name);
 	if (error == CPG_ERR_TRY_AGAIN) {
