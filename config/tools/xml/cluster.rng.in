@@ -1250,13 +1250,13 @@ To validate your cluster.conf against this schema, run:
           <attribute name="key_file" rha:description="Shared key file (default=/etc/cluster/fence_xvm.key)" />
         </optional>
         <optional>
-          <attribute name="domain" rha:description="Xen host (domain name) to fence" />
+          <attribute name="domain" rha:description="Virtual machine (domain name) to fence" />
         </optional>
         <optional>
           <attribute name="use_uuid" rha:description="Treat 'domain' as UUID instead of domain name" />
         </optional>
         <optional>
-          <attribute name="option" rha:description="Fencing operation (null, off, [reboot])" />
+          <attribute name="action" rha:description="Fencing action (null, off, [reboot])" />
         </optional>
         <optional>
           <attribute name="timeout" rha:description="Fencing timeout (in seconds; default=30)" />
