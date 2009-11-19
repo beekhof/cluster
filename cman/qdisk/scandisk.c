@@ -624,7 +624,7 @@ static int sysfs_is_disk(char *path)
 static int scansysfs(struct devlisthead *devlisthead, const char *path, int level, int parent_holder)
 {
 	struct devnode *startnode;
-	int i, n, maj, min, has_holder = 0;
+	int i, n, maj, min, has_holder;
 	struct dirent **namelist;
 	struct stat sb;
 	char newpath[MAXPATHLEN];
@@ -642,6 +642,8 @@ static int scansysfs(struct devlisthead *devlisthead, const char *path, int leve
 				if (S_ISLNK(sb.st_mode))
 					continue;
 
+			has_holder = parent_holder;
+
 			if (sysfs_is_dev(newpath, &maj, &min) > 0) {
 				startnode =
 				    alloc_list_obj(devlisthead, maj,
@@ -655,12 +657,10 @@ static int scansysfs(struct devlisthead *devlisthead, const char *path, int leve
 
 				if (!parent_holder)
 					has_holder =
-					startnode->sysfsattrs.holders =
 					    sysfs_has_subdirs_entries(newpath,
 								      "holders");
-				else
-					has_holder =
-					startnode->sysfsattrs.holders = parent_holder;
+
+				startnode->sysfsattrs.holders = has_holder;
 
 				startnode->sysfsattrs.slaves =
 				    sysfs_has_subdirs_entries(newpath,
