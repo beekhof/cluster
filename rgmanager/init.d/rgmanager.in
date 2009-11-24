@@ -96,9 +96,17 @@ start)
 	fi
 	echo
 ;;
-restart|condrestart)
+restart)
 	$0 stop
 	$0 start
+;;
+condrestart|try-restart)
+	rtrn=0
+	if status $RGMGRD > /dev/null 2>&1; then
+		$0 stop
+		$0 start
+		rtrn=$?
+	fi
 ;;
 reload|force-reload)
 	# not required anymore
@@ -127,7 +135,7 @@ stop)
 ;;
 *)
 	echo "usage: $0 {start|restart|condrestart|reload|status|stop}"
-	rtrn=1
+	rtrn=2
 ;;
 esac
 
