@@ -861,35 +861,35 @@ stop()
 cmanstatus()
 {
 	if fence_xvmd_standalone; then
-		errmsg=$( status fence_xvmd 2>&1 ) || return 1
-		return 0
+		errmsg=$( status fence_xvmd 2>&1 )
+		return $?
 	fi
 
-	errmsg=$( status corosync 2>&1 ) || return 1
+	errmsg=$( status corosync 2>&1 ) || return $?
 
 	if ! cman_running; then
 		errmsg="cman is not running"
-		return 1
+		return 3
 	fi
 
 	if qdiskd_enabled; then
-		errmsg=$( status qdiskd 2>&1 ) || return 1
+		errmsg=$( status qdiskd 2>&1 ) || return $?
 	fi
 
 	if groupd_enabled; then
-		errmsg=$( status groupd 2>&1 ) || return 1
+		errmsg=$( status groupd 2>&1 ) || return $?
 	fi
 
-	errmsg=$( status fenced 2>&1 ) || return 1
-	errmsg=$( status dlm_controld 2>&1 ) || return 1
-	errmsg=$( status gfs_controld 2>&1 ) || return 1
+	errmsg=$( status fenced 2>&1 ) || return $?
+	errmsg=$( status dlm_controld 2>&1 ) || return $?
+	errmsg=$( status gfs_controld 2>&1 ) || return $?
 
 	if cmannotifyd_enabled; then
-		errmsg=$( status cmannotifyd 2>&1 ) || return 1
+		errmsg=$( status cmannotifyd 2>&1 ) || return $?
 	fi
 
 	if fence_xvmd_enabled; then
-		errmsg=$( status fence_xvmd 2>&1 ) || return 1
+		errmsg=$( status fence_xvmd 2>&1 ) || return $?
 	fi
 }
 
@@ -917,8 +917,17 @@ restart|reload|force-reload)
 	stop
 	start
 ;;
-status)
+condrestart|try-restart)
 	if cmanstatus; then
+		cmanremove=remove
+		stop
+		start
+	fi
+;;
+status)
+	cmanstatus
+	rtrn=$?
+	if [ "$rtrn" = 0 ]; then
 		if fence_xvmd_standalone; then
 			echo "fence_xvmd standalone is running."
 		else
@@ -926,12 +935,11 @@ status)
 		fi
 	else
 		echo "$errmsg"
-		rtrn=1
 	fi
 ;;
 *)
 	echo "Usage: $0 {start|stop|reload|restart|status}"
-	rtrn=1
+	rtrn=2
 ;;
 esac
 
