@@ -135,7 +135,7 @@ stop)
 	rm -f $LOCK_FILE
 ;;
 *)
-	echo "usage: $0 {start|restart|condrestart|reload|status|stop}"
+	echo "usage: $0 {start|stop|restart|condrestart|try-restart|reload|force-reload|status}"
 	rtrn=2
 ;;
 esac
