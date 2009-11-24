@@ -938,7 +938,7 @@ status)
 	fi
 ;;
 *)
-	echo "Usage: $0 {start|stop|reload|restart|status}"
+	echo "Usage: $0 {start|stop|restart|reload|force-reload|condrestart|try-restart|status}"
 	rtrn=2
 ;;
 esac
