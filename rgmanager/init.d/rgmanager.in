@@ -102,7 +102,6 @@ restart)
 	$0 start
 ;;
 condrestart|try-restart)
-	rtrn=0
 	if status $RGMGRD > /dev/null 2>&1; then
 		$0 stop
 		$0 start
