@@ -98,7 +98,7 @@ static void empty_super_block(struct gfs2_sbd *sdp)
 	}
 
 	if (bl)
-		gfs2_block_list_destroy(sdp, bl);
+		gfs2_bmap_destroy(sdp, bl);
 }
 
 
@@ -255,7 +255,7 @@ static int init_system_inodes(struct gfs2_sbd *sdp)
 		goto fail;
 	}
 
-	bl = gfs2_block_list_create(sdp, last_fs_block+1, &addl_mem_needed);
+	bl = gfs2_bmap_create(sdp, last_fs_block+1, &addl_mem_needed);
 	if (!bl) {
 		log_crit( _("This system doesn't have enough memory + swap space to fsck this file system.\n"));
 		log_crit( _("Additional memory needed is approximately: %lluMB\n"),
