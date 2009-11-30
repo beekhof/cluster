@@ -70,9 +70,7 @@ void gfs1_block_map(struct gfs2_inode *ip, uint64_t lblock, int *new,
 	unsigned int height;
 	unsigned int end_of_metadata;
 	unsigned int x;
-	enum update_flags f;
 
-	f = not_updated;
 	*new = 0;
 	*dblock = 0;
 	if (extlen)
@@ -104,7 +102,7 @@ void gfs1_block_map(struct gfs2_inode *ip, uint64_t lblock, int *new,
 
 	for (x = 0; x < end_of_metadata; x++) {
 		gfs1_lookup_block(ip, bh, x, mp, create, new, dblock);
-		brelse(bh, f);
+		brelse(bh);
 		if (!*dblock)
 			goto out;
 
@@ -116,10 +114,9 @@ void gfs1_block_map(struct gfs2_inode *ip, uint64_t lblock, int *new,
 			mh.mh_type = GFS2_METATYPE_IN;
 			mh.mh_format = GFS2_FORMAT_IN;
 			gfs2_meta_header_out(&mh, bh->b_data);
-			f = updated;
+			bmodified(bh);
 		} else {
 			bh = bread(&sdp->buf_list, *dblock);
-			f = not_updated;
 		}
 	}
 
@@ -150,7 +147,7 @@ void gfs1_block_map(struct gfs2_inode *ip, uint64_t lblock, int *new,
 		}
 	}
 
-	brelse(bh, f);
+	brelse(bh);
 
  out:
 	free(mp);
@@ -210,7 +207,7 @@ int gfs1_readi(struct gfs2_inode *ip, void *bufin,
 
 		if (bh) {
 			memcpy(buf+copied, bh->b_data + offset, amount);
-			brelse(bh, not_updated);
+			brelse(bh);
 		} else
 			memset(buf+copied, 0, amount);
 		copied += amount;

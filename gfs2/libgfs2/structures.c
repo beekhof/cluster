@@ -43,7 +43,8 @@ void build_sb(struct gfs2_sbd *sdp, const unsigned char *uuid)
 	for (x = 0; x < sdp->sb_addr; x++) {
 		bh = bget(&sdp->buf_list, x);
 		memset(bh->b_data, 0, sdp->bsize);
-		brelse(bh, updated);
+		bmodified(bh);
+		brelse(bh);
 	}
 
 	memset(&sb, 0, sizeof(struct gfs2_sb));
@@ -63,7 +64,8 @@ void build_sb(struct gfs2_sbd *sdp, const unsigned char *uuid)
 #endif
 	bh = bget(&sdp->buf_list, sdp->sb_addr);
 	gfs2_sb_out(&sb, bh->b_data);
-	brelse(bh, updated);
+	bmodified(bh);
+	brelse(bh);
 
 	if (sdp->debug) {
 		printf("\nSuper Block:\n");
@@ -95,7 +97,8 @@ int write_journal(struct gfs2_sbd *sdp, struct gfs2_inode *ip, unsigned int j,
 		struct gfs2_buffer_head *bh = get_file_buf(ip, x, TRUE);
 		if (!bh)
 			return -1;
-		brelse(bh, updated);
+		bmodified(bh);
+		brelse(bh);
 	}
 	for (x = 0; x < blocks; x++) {
 		struct gfs2_buffer_head *bh = get_file_buf(ip, x, FALSE);
@@ -108,7 +111,8 @@ int write_journal(struct gfs2_sbd *sdp, struct gfs2_inode *ip, unsigned int j,
 		hash = gfs2_disk_hash(bh->b_data, sizeof(struct gfs2_log_header));
 		((struct gfs2_log_header *)bh->b_data)->lh_hash = cpu_to_be32(hash);
 
-		brelse(bh, updated);
+		bmodified(bh);
+		brelse(bh);
 
 		if (++seq == blocks)
 			seq = 0;
@@ -140,7 +144,8 @@ int build_jindex(struct gfs2_sbd *sdp)
 			      sdp->jsize << 20 >> sdp->sd_sb.sb_bsize_shift);
 		if (ret)
 			return ret;
-		inode_put(ip, updated);
+		bmodified(ip->i_bh);
+		inode_put(ip);
 	}
 
 	if (sdp->debug) {
@@ -148,7 +153,8 @@ int build_jindex(struct gfs2_sbd *sdp)
 		gfs2_dinode_print(&jindex->i_di);
 	}
 
-	inode_put(jindex, updated);
+	bmodified(jindex->i_bh);
+	inode_put(jindex);
 	return 0;
 }
 
@@ -168,7 +174,8 @@ static int build_inum_range(struct gfs2_inode *per_node, unsigned int j)
 		gfs2_dinode_print(&ip->i_di);
 	}
 
-	inode_put(ip, updated);
+	bmodified(ip->i_bh);
+	inode_put(ip);
 	return 0;
 }
 
@@ -188,7 +195,8 @@ static void build_statfs_change(struct gfs2_inode *per_node, unsigned int j)
 		gfs2_dinode_print(&ip->i_di);
 	}
 
-	inode_put(ip, updated);
+	bmodified(ip->i_bh);
+	inode_put(ip);
 }
 
 static int build_quota_change(struct gfs2_inode *per_node, unsigned int j)
@@ -216,7 +224,8 @@ static int build_quota_change(struct gfs2_inode *per_node, unsigned int j)
 
 		gfs2_meta_header_out(&mh, bh->b_data);
 
-		brelse(bh, updated);
+		bmodified(bh);
+		brelse(bh);
 	}
 
 	if (sdp->debug) {
@@ -224,7 +233,8 @@ static int build_quota_change(struct gfs2_inode *per_node, unsigned int j)
 		gfs2_dinode_print(&ip->i_di);
 	}
 
-	inode_put(ip, updated);
+	bmodified(ip->i_bh);
+	inode_put(ip);
 	return 0;
 }
 
@@ -247,7 +257,8 @@ int build_per_node(struct gfs2_sbd *sdp)
 		gfs2_dinode_print(&per_node->i_di);
 	}
 
-	inode_put(per_node, updated);
+	bmodified(per_node->i_bh);
+	inode_put(per_node);
 	return 0;
 }
 
@@ -313,7 +324,8 @@ int build_rindex(struct gfs2_sbd *sdp)
 		gfs2_dinode_print(&ip->i_di);
 	}
 
-	inode_put(ip, updated);
+	bmodified(ip->i_bh);
+	inode_put(ip);
 	return 0;
 }
 
@@ -344,7 +356,8 @@ int build_quota(struct gfs2_sbd *sdp)
 		gfs2_quota_print(&qu);
 	}
 
-	inode_put(ip, updated);
+	bmodified(ip->i_bh);
+	inode_put(ip);
 	return 0;
 }
 
@@ -468,11 +481,11 @@ int gfs2_next_rg_meta(struct gfs2_sbd *sdp, struct rgrp_list *rgd,
 				  GFS2_BLKST_DINODE);
 		if(blk != BFITNOENT){
 			*block = blk + (bits->bi_start * GFS2_NBBY) + rgd->ri.ri_data0;
-			brelse(bh, not_updated);
+			brelse(bh);
 			break;
 		}
 		blk=0;
-		brelse(bh, not_updated);
+		brelse(bh);
 	}
 	if(i == length)
 		return -1;
@@ -495,12 +508,12 @@ int gfs2_next_rg_metatype(struct gfs2_sbd *sdp, struct rgrp_list *rgd,
 
 	do{
 		if (bh)
-			brelse(bh, not_updated);
+			brelse(bh);
 		if (gfs2_next_rg_meta(sdp, rgd, block, first))
 			return -1;
 		bh = bread(&sdp->buf_list, *block);
 		first = 0;
 	} while(gfs2_check_meta(bh, type));
-	brelse(bh, not_updated);
+	brelse(bh);
 	return 0;
 }
