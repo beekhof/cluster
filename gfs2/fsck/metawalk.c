@@ -14,6 +14,8 @@
 #include "metawalk.h"
 #include "hash.h"
 
+#define COMFORTABLE_BLKS 5242880 /* 20GB in 4K blocks */
+
 static struct gfs2_inode *get_system_inode(struct gfs2_sbd *sbp,
 					   uint64_t block)
 {
@@ -937,6 +939,7 @@ int check_metatree(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 	uint64_t block, *ptr;
 	uint32_t height = ip->i_di.di_height;
 	int  i, head_size;
+	uint64_t blks_checked = 0;
 	int error = 0;
 
 	if (!height)
@@ -960,6 +963,8 @@ int check_metatree(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 
 	/* check data blocks */
 	list = &metalist[height - 1];
+	if (ip->i_di.di_blocks > COMFORTABLE_BLKS)
+		last_reported_fblock = -10000000;
 
 	for (tmp = list->next; tmp != list; tmp = tmp->next) {
 		bh = osi_list_entry(tmp, struct gfs2_buffer_head, b_altlist);
@@ -988,7 +993,19 @@ int check_metatree(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 				stack;
 				return -1;
 			}
+			blks_checked++;
+			if (ip->i_di.di_blocks > COMFORTABLE_BLKS)
+				big_file_comfort(ip, blks_checked);
 		}
+	}
+
+	if (ip->i_di.di_blocks > COMFORTABLE_BLKS) {
+		log_notice( _("\rLarge file at %lld (0x%llx) - 100 percent "
+			      "complete.                                   "
+			      "\n"),
+			    (unsigned long long)ip->i_di.di_num.no_addr,
+			    (unsigned long long)ip->i_di.di_num.no_addr);
+		fflush(stdout);
 	}
 
 	/* free metalists */
