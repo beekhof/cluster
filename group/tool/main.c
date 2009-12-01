@@ -621,7 +621,6 @@ int main(int argc, char **argv)
 
 		switch (version) {
 		case -1:
-			printf("groupd not running\n");
 			break;
 		case -EAGAIN:
 			printf("groupd compatibility mode 2 (pending)\n");
