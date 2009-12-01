@@ -22,7 +22,7 @@
    "/cluster/clusternodes/clusternode[@name=\"%s\"]/@nodeid"
 
 void deconstruct_events(event_table_t **);
-void print_event(event_t *ev);
+void print_event(FILE *fp, event_t *ev);
 
 //#define DEBUG
 
@@ -433,37 +433,37 @@ construct_events(int ccsfd, event_table_t **events)
 
 
 void
-print_event(event_t *ev)
+print_event(FILE *fp, event_t *ev)
 {
-	printf("  Name: %s\n", ev->ev_name);
+	fprintf(fp, "  Name: %s\n", ev->ev_name);
 
 	switch(ev->ev_type) {
 	case EVENT_NODE:
-		printf("    Node %d State %d\n", ev->ev.node.ne_nodeid,
+		fprintf(fp, "    Node %d State %d\n", ev->ev.node.ne_nodeid,
 		       ev->ev.node.ne_state);
 		break;
 	case EVENT_RG:
-		printf("    RG %s State %s\n", ev->ev.group.rg_name,
+		fprintf(fp, "    RG %s State %s\n", ev->ev.group.rg_name,
 		       rg_state_str(ev->ev.group.rg_state));
 		break;
 	case EVENT_CONFIG:
-		printf("    Config change - unsupported\n");
+		fprintf(fp, "    Config change - unsupported\n");
 		break;
 	default:
-		printf("    (Any event)\n");
+		fprintf(fp, "    (Any event)\n");
 		break;
 	}
 	
 	if (ev->ev_script) {
-		printf("    Inline script.\n");
+		fprintf(fp, "    Inline script.\n");
 	} else {
-		printf("    File: %s\n", ev->ev_script_file);
+		fprintf(fp, "    File: %s\n", ev->ev_script_file);
 	}
 }
 
 
 void
-print_events(event_table_t *events)
+dump_events(FILE *fp, event_table_t *events)
 {
 	int x, y;
 	event_t *ev;
@@ -471,11 +471,18 @@ print_events(event_table_t *events)
 	for (x = 0; x <= events->max_prio; x++) {
 		if (!events->entries[x])
 			continue;
-		printf("Event Priority Level %d:\n", x);
+		fprintf(fp, "Event Priority Level %d:\n", x);
 		list_for(&(events->entries[x]), ev, y) {
-			print_event(ev);
+			print_event(fp, ev);
 		}
 	}
+}
+
+
+void
+print_events(event_table_t *events)
+{
+	dump_events(stdout, events);
 }
 
 

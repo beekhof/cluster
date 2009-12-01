@@ -612,6 +612,8 @@ void dump_threads(FILE *fp);
 void dump_config_version(FILE *fp);
 void dump_vf_states(FILE *fp);
 void dump_cluster_ctx(FILE *fp);
+void dump_resource_info(FILE *fp);
+
 
 static void
 dump_internal_state(const char *loc)
@@ -625,6 +627,7 @@ dump_internal_state(const char *loc)
 	dump_thread_states(fp);
 #endif
 	dump_cluster_ctx(fp);
+	dump_resource_info(fp);
  	fclose(fp);
 }
 

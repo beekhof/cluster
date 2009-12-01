@@ -544,64 +544,83 @@ destroy_resources(resource_t **list)
    @param res		Resource to print.
  */
 void
-print_resource(resource_t *res)
+print_resource(FILE *fp, resource_t *res)
 {
 	int x;
 
-	printf("Resource type: %s", res->r_rule->rr_type);
+	fprintf(fp, "Resource type: %s", res->r_rule->rr_type);
 	if (res->r_flags & RF_INLINE)
-		printf(" [INLINE]");
+		fprintf(fp, " [INLINE]");
 	if (res->r_flags & RF_NEEDSTART)
-		printf(" [NEEDSTART]");
+		fprintf(fp, " [NEEDSTART]");
 	if (res->r_flags & RF_NEEDSTOP)
-		printf(" [NEEDSTOP]");
+		fprintf(fp, " [NEEDSTOP]");
 	if (res->r_flags & RF_COMMON)
-		printf(" [COMMON]");
+		fprintf(fp, " [COMMON]");
 	if (res->r_flags & RF_RECONFIG)
-		printf(" [RECONFIG]");
-	printf("\n");
+		fprintf(fp, " [RECONFIG]");
+	fprintf(fp, "\n");
 
 	if (res->r_rule->rr_maxrefs)
-		printf("Instances: %d/%d\n", res->r_refs,
-		       res->r_rule->rr_maxrefs);
+		fprintf(fp, "Instances: %d/%d\n", res->r_refs,
+			res->r_rule->rr_maxrefs);
 	if (res->r_rule->rr_agent)
-		printf("Agent: %s\n", basename(res->r_rule->rr_agent));
+		fprintf(fp, "Agent: %s\n", basename(res->r_rule->rr_agent));
 	
-	printf("Attributes:\n");
+	fprintf(fp, "Attributes:\n");
 	if (!res->r_attrs) {
-		printf("  - None -\n\n");
+		fprintf(fp, "  - None -\n\n");
 		return;
 	}
 
 	for (x = 0; res->r_attrs[x].ra_name; x++) {
 
 		if (!(res->r_attrs[x].ra_flags & RA_INHERIT)) {
-			printf("  %s = %s", res->r_attrs[x].ra_name,
-			       res->r_attrs[x].ra_value);
+			fprintf(fp, "  %s = %s", res->r_attrs[x].ra_name,
+				res->r_attrs[x].ra_value);
 		} else {
-			printf("  %s", res->r_attrs[x].ra_name);
+			fprintf(fp, "  %s", res->r_attrs[x].ra_name);
 		}
 
 		if (!res->r_attrs[x].ra_flags) {
-			printf("\n");
+			fprintf(fp, "\n");
 			continue;
 		}
 
-		printf(" [");
+		fprintf(fp, " [");
 		if (res->r_attrs[x].ra_flags & RA_PRIMARY)
-			printf(" primary");
+			fprintf(fp, " primary");
 		if (res->r_attrs[x].ra_flags & RA_UNIQUE)
-			printf(" unique");
+			fprintf(fp, " unique");
 		if (res->r_attrs[x].ra_flags & RA_REQUIRED)
-			printf(" required");
+			fprintf(fp, " required");
 		if (res->r_attrs[x].ra_flags & RA_RECONFIG)
-			printf(" reconfig");
+			fprintf(fp, " reconfig");
 		if (res->r_attrs[x].ra_flags & RA_INHERIT)
-			printf(" inherit(\"%s\")", res->r_attrs[x].ra_value);
-		printf(" ]\n");
+			fprintf(fp, " inherit(\"%s\")", res->r_attrs[x].ra_value);
+		fprintf(fp, " ]\n");
 	}
 
-	printf("\n");
+	fprintf(fp, "\n");
+}
+
+
+void
+dump_resources(FILE *fp, resource_t **resources)
+{
+	resource_t *curr;
+	int x;
+
+	list_for(resources, curr, x) {
+		print_resource(fp, curr);
+	}
+}
+
+
+void
+print_resources(resource_t **resources)
+{
+	dump_resources(stdout, resources);
 }
 
 

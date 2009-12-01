@@ -93,6 +93,7 @@ typedef struct _event_table {
 int construct_events(int ccsfd, event_table_t **);
 void deconstruct_events(event_table_t **);
 void print_events(event_table_t *);
+void dump_events(FILE *fp, event_table_t *);
 
 /* Does the event match a configured event? */
 int event_match(event_t *pattern, event_t *actual);

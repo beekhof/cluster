@@ -860,48 +860,56 @@ destroy_resource_tree(resource_node_t **tree)
 
 
 static void
-_print_resource_tree(resource_node_t **tree, int level)
+_print_resource_tree(FILE *fp, resource_node_t **tree, int level)
 {
 	resource_node_t *node;
 	int x, y;
 
 	list_do(tree, node) {
 		for (x = 0; x < level; x++)
-			printf("  ");
+			fprintf(fp, "  ");
 
-		printf("%s", node->rn_resource->r_rule->rr_type);
+		fprintf(fp, "%s", node->rn_resource->r_rule->rr_type);
 		if (node->rn_flags) {
-			printf(" [ ");
+			fprintf(fp, " [ ");
+			if (node->rn_flags & RF_INLINE)
+				fprintf(fp, "INLINE ");
 			if (node->rn_flags & RF_NEEDSTOP)
-				printf("NEEDSTOP ");
+				fprintf(fp, "NEEDSTOP ");
 			if (node->rn_flags & RF_NEEDSTART)
-				printf("NEEDSTART ");
+				fprintf(fp, "NEEDSTART ");
 			if (node->rn_flags & RF_COMMON)
-				printf("COMMON ");
+				fprintf(fp, "COMMON ");
 			if (node->rn_flags & RF_INDEPENDENT)
-				printf("INDEPENDENT ");
+				fprintf(fp, "INDEPENDENT ");
+			if (node->rn_flags & RF_RECONFIG)
+				fprintf(fp, "RECONFIG ");
+			if (node->rn_flags & RF_INIT)
+				fprintf(fp, "INIT ");
+			if (node->rn_flags & RF_DESTROY)
+				fprintf(fp, "DESTROY ");
 			if (node->rn_flags & RF_ENFORCE_TIMEOUTS)
-				printf("ENFORCE-TIMEOUTS ");
-			printf("]");
+				fprintf(fp, "ENFORCE-TIMEOUTS ");
+			fprintf(fp, "]");
 		}
-		printf(" {\n");
+		fprintf(fp, " {\n");
 
 		for (x = 0; node->rn_resource->r_attrs &&
 		     node->rn_resource->r_attrs[x].ra_value; x++) {
 			for (y = 0; y < level+1; y++)
-				printf("  ");
-			printf("%s = \"%s\";\n",
-			       node->rn_resource->r_attrs[x].ra_name,
-			       attr_value(node,
-					  node->rn_resource->r_attrs[x].ra_name)
-			      );
+				fprintf(fp, "  ");
+			fprintf(fp, "%s = \"%s\";\n",
+				node->rn_resource->r_attrs[x].ra_name,
+ 				attr_value(node,
+					   node->rn_resource->r_attrs[x].ra_name)
+			       );
 		}
 
-		_print_resource_tree(&node->rn_child, level + 1);
+		_print_resource_tree(fp, &node->rn_child, level + 1);
 
 		for (x = 0; x < level; x++)
-			printf("  ");
-		printf("}\n");
+			fprintf(fp, "  ");
+		fprintf(fp, "}\n");
 	} while (!list_done(tree, node));
 }
 
@@ -909,7 +917,14 @@ _print_resource_tree(resource_node_t **tree, int level)
 void
 print_resource_tree(resource_node_t **tree)
 {
-	_print_resource_tree(tree, 0);
+	_print_resource_tree(stdout, tree, 0);
+}
+
+
+void
+dump_resource_tree(FILE *fp, resource_node_t **tree)
+{
+	_print_resource_tree(fp, tree, 0);
 }
 
 

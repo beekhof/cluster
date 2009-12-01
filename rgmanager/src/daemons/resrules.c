@@ -556,120 +556,139 @@ store_childtype(resource_child_t **childp, char *name, int start,
    @param rr		Resource rule to print.
  */
 void
-print_resource_rule(resource_rule_t *rr)
+print_resource_rule(FILE *fp, resource_rule_t *rr)
 {
 	int x;
 
-	printf("Resource Rules for \"%s\"\n", rr->rr_type);
+	fprintf(fp, "Resource Rules for \"%s\"\n", rr->rr_type);
 
 	if (rr->rr_version)
-		printf("OCF API Version: %s\n", rr->rr_version);
+		fprintf(fp, "OCF API Version: %s\n", rr->rr_version);
 
 	if (rr->rr_maxrefs)
-		printf("Max instances: %d\n", rr->rr_maxrefs);
+		fprintf(fp, "Max instances: %d\n", rr->rr_maxrefs);
 	if (rr->rr_agent)
-		printf("Agent: %s\n", basename(rr->rr_agent));
+		fprintf(fp, "Agent: %s\n", basename(rr->rr_agent));
 
-	printf("Flags: ");
+	fprintf(fp, "Flags: ");
 	if (rr->rr_flags) {
 		if (rr->rr_flags & RF_INIT)
-			printf("init_on_add ");
+			fprintf(fp, "init_on_add ");
 		if (rr->rr_flags & RF_DESTROY)
-			printf("destroy_on_delete ");
+			fprintf(fp, "destroy_on_delete ");
 	} else {
-		printf("(none)");
+		fprintf(fp, "(none)");
 	}
-	printf("\n");
+	fprintf(fp, "\n");
 	
-	printf("Attributes:\n");
+	fprintf(fp, "Attributes:\n");
 	if (!rr->rr_attrs) {
-		printf("  - None -\n");
+		fprintf(fp, "  - None -\n");
 		goto actions;
 	}
 
 	for (x = 0; rr->rr_attrs[x].ra_name; x++) {
-		printf("  %s", rr->rr_attrs[x].ra_name);
+		fprintf(fp, "  %s", rr->rr_attrs[x].ra_name);
 
 		if (!rr->rr_attrs[x].ra_flags && !rr->rr_attrs[x].ra_value) {
-			printf("\n");
+			fprintf(fp, "\n");
 			continue;
 		}
 
 		if (rr->rr_attrs[x].ra_flags) {
-			printf(" [");
+			fprintf(fp, " [");
 			if (rr->rr_attrs[x].ra_flags & RA_PRIMARY)
-				printf(" primary");
+				fprintf(fp, " primary");
 			if (rr->rr_attrs[x].ra_flags & RA_UNIQUE)
-				printf(" unique");
+				fprintf(fp, " unique");
 			if (rr->rr_attrs[x].ra_flags & RA_REQUIRED)
-				printf(" required");
+				fprintf(fp, " required");
 			if (rr->rr_attrs[x].ra_flags & RA_INHERIT)
-				printf(" inherit");
+				fprintf(fp, " inherit");
 			if (rr->rr_attrs[x].ra_flags & RA_RECONFIG)
-				printf(" reconfig");
-			printf(" ]");
+				fprintf(fp, " reconfig");
+			fprintf(fp, " ]");
 		}
 
 		if (rr->rr_attrs[x].ra_value)
-			printf(" default=\"%s\"\n", rr->rr_attrs[x].ra_value);
+			fprintf(fp, " default=\"%s\"\n", rr->rr_attrs[x].ra_value);
 		else
-			printf("\n");
+			fprintf(fp, "\n");
 	}
 
 actions:
-	printf("Actions:\n");
+	fprintf(fp, "Actions:\n");
 	if (!rr->rr_actions) {
-		printf("  - None -\n");
+		fprintf(fp, "  - None -\n");
 		goto children;
 	}
 
 	for (x = 0; rr->rr_actions[x].ra_name; x++) {
-		printf("  %s\n", rr->rr_actions[x].ra_name);
+		fprintf(fp, "  %s\n", rr->rr_actions[x].ra_name);
 		if (rr->rr_actions[x].ra_timeout)
-			printf("    Timeout (hint): %d seconds\n",
+			fprintf(fp, "    Timeout (hint): %d seconds\n",
 			       (int)rr->rr_actions[x].ra_timeout);
 		if (rr->rr_actions[x].ra_depth)
-			printf("    OCF Check Depth (status/monitor): "
+			fprintf(fp, "    OCF Check Depth (status/monitor): "
 			       "%d seconds\n",
 			       (int)rr->rr_actions[x].ra_depth);
 		if (rr->rr_actions[x].ra_interval)
-			printf("    Check Interval: %d seconds\n",
+			fprintf(fp, "    Check Interval: %d seconds\n",
 			       (int)rr->rr_actions[x].ra_interval);
 	}
 
 
 children:
-	printf("Explicitly defined child resource types:\n");
+	fprintf(fp, "Explicitly defined child resource types:\n");
 	if (!rr->rr_childtypes) {
-		printf("  - None -\n\n");
+		fprintf(fp, "  - None -\n\n");
 		return;
 	}
 	for (x = 0; rr->rr_childtypes[x].rc_name; x++) {
-		printf("  %s", rr->rr_childtypes[x].rc_name);
+		fprintf(fp, "  %s", rr->rr_childtypes[x].rc_name);
 		if (rr->rr_childtypes[x].rc_forbid) {
-			printf(" (forbidden)\n");
+			fprintf(fp, " (forbidden)\n");
 			continue;
 		}
 		if (rr->rr_childtypes[x].rc_startlevel ||
 		    rr->rr_childtypes[x].rc_stoplevel) {
-			printf(" [");
+			fprintf(fp, " [");
 
 			if (rr->rr_childtypes[x].rc_startlevel) {
-				printf(" startlevel = %d",
+				fprintf(fp, " startlevel = %d",
 				       rr->rr_childtypes[x].rc_startlevel);
 			}
 
 			if (rr->rr_childtypes[x].rc_stoplevel) {
-				printf(" stoplevel = %d",
+				fprintf(fp, " stoplevel = %d",
 				       rr->rr_childtypes[x].rc_stoplevel);
 			}
-			printf(" ] ");
+			fprintf(fp, " ] ");
 		}
 
-		printf("\n");
+		fprintf(fp, "\n");
 	}
 
-	printf("\n");
+	fprintf(fp, "\n");
+}
+
+
+void
+dump_resource_rules(FILE *fp, resource_rule_t **rules)
+{
+	resource_rule_t *curr;
+	int x;
+
+	list_for(rules, curr, x) {
+		print_resource_rule(fp, curr);
+	}
+}
+
+
+void
+print_resource_rules(resource_rule_t **rules)
+{
+	dump_resource_rules(stdout, rules);
 }
 
 

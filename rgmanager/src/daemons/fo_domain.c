@@ -227,7 +227,7 @@ deconstruct_domains(fod_t **domains)
 
 
 void
-print_domains(fod_t **domains)
+dump_domains(FILE *fp, fod_t **domains)
 {
 	fod_t *fod;
 	fod_node_t *fodn = NULL;
@@ -238,27 +238,44 @@ print_domains(fod_t **domains)
 	 */
 
 	list_do(domains, fod) {
-		printf("Failover domain: %s\n", fod->fd_name);
-		printf("Flags: ");
+		fprintf(fp, "Failover domain: %s\n", fod->fd_name);
+		fprintf(fp, "Flags: ");
 		if (!fod->fd_flags) {
-			printf("none\n");
+			fprintf(fp, "none\n");
 		} else {
 			if (fod->fd_flags & FOD_ORDERED)
-				printf("Ordered ");
+				fprintf(fp, "Ordered ");
 			if (fod->fd_flags & FOD_RESTRICTED)
-				printf("Restricted ");
+				fprintf(fp, "Restricted ");
 			if (fod->fd_flags & FOD_NOFAILBACK)
-				printf("No Failback");
-			printf("\n");
+				fprintf(fp, "No Failback");
+			fprintf(fp, "\n");
 		}
 
-  		list_do(&fod->fd_nodes, fodn) {
-			printf("  Node %s (id %d, priority %d)\n",
+		list_do(&fod->fd_nodes, fodn) {
+			fprintf(fp, "  Node %s (id %d, priority %d)\n",
 			       fodn->fdn_name, fodn->fdn_nodeid,
 			       fodn->fdn_prio);
- 		} while (!list_done(&fod->fd_nodes, fodn));
- 		
+		} while (!list_done(&fod->fd_nodes, fodn));
+
+		/*
+		node_domain_set(fod, &node_set, &node_set_len);
+		fprintf(fp, "  Failover Order = {");
+		for (x = 0; x < node_set_len; x++) {
+			fprintf(fp, " %d ", node_set[x]);
+		}
+		free(node_set);
+		fprintf(fp, "}\n");
+		*/
+		
 	} while (!list_done(domains, fod));
+}
+
+
+void
+print_domains(fod_t **domains)
+{
+	dump_domains(stdout, domains);
 }
 
 

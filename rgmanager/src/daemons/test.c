@@ -104,9 +104,8 @@ rules_func(int __attribute__((unused)) argc,
 	} while (!list_done(&rulelist, currule));
 	fprintf(stderr, "Loaded %d resource rules\n",
 		rules);
-	list_do(&rulelist, currule) {
-		print_resource_rule(currule);
-	} while (!list_done(&rulelist, currule));
+
+	print_resource_rules(&rulelist);
 
 	destroy_resource_rules(&rulelist);
 
@@ -156,9 +155,7 @@ test_func(int argc, char **argv)
 
 		if (reslist) {
 			printf("=== Resources List ===\n");
-			list_do(&reslist, curres) {
-				print_resource(curres);
-			} while (!list_done(&reslist, curres));
+			print_resources(&reslist);
 		}
 
 		if (tree) {

@@ -146,14 +146,16 @@ int resource_tree_delta(resource_node_t **, resource_node_t **);
    Load/kill resource rule sets
  */
 int load_resource_rules(const char *rpath, resource_rule_t **rules);
-void print_resource_rule(resource_rule_t *rr);
+void print_resource_rules(resource_rule_t **rules);
+void dump_resource_rules(FILE *fp, resource_rule_t **rules);
 void destroy_resource_rules(resource_rule_t **rules);
 
 /*
    Load/kill resource sets
  */
 int load_resources(int ccsfd, resource_t **reslist, resource_rule_t **rulelist);
-void print_resource(resource_t *res);
+void print_resources(resource_t **reslist);
+void dump_resources(FILE *fp, resource_t **reslist);
 void destroy_resources(resource_t **list);
 
 /*
@@ -162,9 +164,22 @@ void destroy_resources(resource_t **list);
 int build_resource_tree(int ccsfd, resource_node_t **tree,
 			resource_rule_t **rulelist, resource_t **reslist);
 void print_resource_tree(resource_node_t **tree);
+void dump_resource_tree(FILE *fp, resource_node_t **tree);
 void destroy_resource_tree(resource_node_t **tree);
 
 void *act_dup(resource_act_t *acts);
+/*
+   Construct/deconstruct failover domains
+ */
+int construct_domains(int ccsfd, fod_t **domains);
+void deconstruct_domains(fod_t **domains);
+void print_domains(fod_t **domains);
+void dump_domains(FILE *fp, fod_t **domains);
+int node_should_start(int nodeid, cluster_member_list_t *membership,
+		      char *rg_name, fod_t **domains);
+int node_domain_set(fod_t **domains, char *name, int **ret, int *retlen, int *flags);
+int node_domain_set_safe(char *domainname, int **ret, int *retlen, int *flags);
+
 
 /*
    Handy functions

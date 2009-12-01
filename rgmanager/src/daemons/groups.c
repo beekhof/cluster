@@ -1572,6 +1572,30 @@ dump_config_version(FILE *fp)
 }
 
 
+void
+dump_resource_info(FILE *fp)
+{
+	int x = central_events_enabled();
+
+	pthread_rwlock_rdlock(&resource_lock);
+	fprintf(fp, "=== Resource Agent Information ===\n");
+	dump_resource_rules(fp, &_rules);
+	fprintf(fp, "=== Defined Resources ===\n");
+	dump_resources(fp, &_resources);
+	fprintf(fp, "=== Failover Domains ===\n");
+	dump_domains(fp, &_domains);
+
+	if (x) {
+		fprintf(fp, "=== Events ===\n");
+		dump_events(fp, master_event_table);
+	}
+
+	fprintf(fp, "=== Resource Tree ===\n");
+	dump_resource_tree(fp, &_tree);
+	pthread_rwlock_unlock(&resource_lock);
+}
+
+
 /**
  Copy out the incarnations after doing CONDSTOPs
  */
