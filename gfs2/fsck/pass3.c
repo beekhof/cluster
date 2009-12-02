@@ -118,12 +118,10 @@ static struct dir_info *mark_and_return_parent(struct gfs2_sbd *sbp,
 
 				/* FIXME: add a dinode for this entry instead? */
 
-				errors_found++;
-				if(query(&opts, _("Remove directory entry for bad"
-						 " inode %"PRIu64" (0x%" PRIx64 ") in %"PRIu64
-						 " (0x%" PRIx64 ")? (y/n)"), di->dinode, di->dinode,
-						 di->treewalk_parent, di->treewalk_parent)) {
-					errors_corrected++;
+				if(query( _("Remove directory entry for bad"
+					    " inode %"PRIu64" (0x%" PRIx64 ") in %"PRIu64
+					    " (0x%" PRIx64 ")? (y/n)"), di->dinode, di->dinode,
+					  di->treewalk_parent, di->treewalk_parent)) {
 					error = remove_dentry_from_dir(sbp, di->treewalk_parent,
 												   di->dinode);
 					if(error < 0) {
@@ -221,10 +219,8 @@ int pass3(struct gfs2_sbd *sbp)
 				}
 				if(q.block_type == gfs2_bad_block) {
 					log_err( _("Found unlinked directory containing bad block\n"));
-					errors_found++;
-					if(query(&opts,
+					if(query(
 					   _("Clear unlinked directory with bad blocks? (y/n) "))) {
-						errors_corrected++;
 						gfs2_block_set(sbp, bl,
 							       di->dinode,
 							       gfs2_block_free);
@@ -253,9 +249,7 @@ int pass3(struct gfs2_sbd *sbp)
 				 * with eattrs */
 				if(!ip->i_di.di_size && !ip->i_di.di_eattr){
 					log_err( _("Unlinked directory has zero size.\n"));
-					errors_found++;
-					if(query(&opts, _("Remove zero-size unlinked directory? (y/n) "))) {
-						errors_corrected++;
+					if(query( _("Remove zero-size unlinked directory? (y/n) "))) {
 						gfs2_block_set(sbp, bl,
 							       di->dinode,
 							       gfs2_block_free);
@@ -265,9 +259,8 @@ int pass3(struct gfs2_sbd *sbp)
 						log_err( _("Zero-size unlinked directory remains\n"));
 					}
 				}
-				errors_found++;
-				if(query(&opts, _("Add unlinked directory to lost+found? (y/n) "))) {
-					errors_corrected++;
+				if(query( _("Add unlinked directory to "
+					    "lost+found? (y/n) "))) {
 					if(add_inode_to_lf(ip)) {
 						fsck_inode_put(ip);
 						stack;
