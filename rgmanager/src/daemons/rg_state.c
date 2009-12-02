@@ -903,6 +903,9 @@ svc_migrate(const char *svcName, int target)
 		return RG_EFAIL;
 	case OCF_RA_NOT_CONFIGURED:
 		return RG_EINVAL;
+	case 150: /* see vm.sh */
+		/* Migration failed; VM still running on source node */
+		return RG_ERELO;
 	case 0:
 		break;
 	}
@@ -1847,7 +1850,7 @@ exhausted:
 		       svcName);
 		if (svc_start(svcName, RG_START_RECOVER) == 0) {
 			*new_owner = me;
-			return RG_EFAIL;
+			return RG_ERELO;
 		}
 	}
 

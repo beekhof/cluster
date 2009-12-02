@@ -8,6 +8,7 @@ struct string_val {
 
 
 const struct string_val rg_error_strings[] = {
+	{ RG_ERELO,	"Failed; service running on original owner" },
 	{ RG_EDOMAIN,   "Service not runnable" },
 	{ RG_ESCRIPT,   "S/Lang Script Error" },
 	{ RG_EFENCE,    "Fencing operation pending; try again later" },

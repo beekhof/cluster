@@ -196,6 +196,8 @@ int rg_unlock(struct dlm_lksb *p);
 
 
 /* Return codes */
+#define RG_ERELO	-17		/* Relocation failure; service running
+					   on original node */
 #define RG_EEXCL	-16		/* Service not runnable due to
 					   inability to start exclusively */
 #define RG_EDOMAIN	-15		/* Service not runnable given the
