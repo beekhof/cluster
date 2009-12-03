@@ -101,16 +101,6 @@ fi
 #     indefinitely set the value to -1.
 [ -z "$FENCE_JOIN_TIMEOUT" ] && FENCE_JOIN_TIMEOUT=20
 
-# NET_RMEM_DEFAULT -- minimum value for rmem_default. If this is set
-# higher elsewhere it will not be reduced here.
-# These two values are only really needed for the DLM when using sctp
-# but do no harm.
-[ -z "$NET_RMEM_DEFAULT" ] && NET_RMEM_DEFAULT=4194304
-
-# NET_RMEM_MAX -- minimum value for rmem_max. If this is set
-# higher elsewhere it will not be reduced here.
-[ -z "$NET_RMEM_MAX" ] && NET_RMEM_MAX=4194304
-
 # FENCED_MEMBER_DELAY -- amount of time to delay fence_tool join to allow
 #     all nodes in cluster.conf to become cluster members.  In seconds.
 [ -z "$FENCED_MEMBER_DELAY" ] && FENCED_MEMBER_DELAY=45
@@ -492,28 +482,6 @@ stop_configfs()
 	fi
 }
 
-
-set_networking_params()
-{
-	rmemdefault=/proc/sys/net/core/rmem_default
-
-	[ ! -f $rmemdefault ] && return 0
-
-	if [ "$(cat $rmemdefault)" -lt $NET_RMEM_DEFAULT ]; then
-		echo $NET_RMEM_DEFAULT > $rmemdefault
-		[ "$(cat $rmemdefault)" != $NET_RMEM_DEFAULT ] && return 1
-	fi
-
-	rmemmax="/proc/sys/net/core/rmem_max"
-
-	if [ "$(cat $rmemmax)" -lt $NET_RMEM_MAX ]; then
-		echo $NET_RMEM_MAX > /proc/sys/net/core/rmem_max
-		[ "$(cat $rmemmax)" != $NET_RMEM_MAX ] && return 1
-	fi
-
-	return 0
-}
-
 start_cman()
 {
 	cman_running && return 0
@@ -737,10 +705,6 @@ start()
 	runwrap start_configfs \
 		none \
 		"Mounting configfs"
-
-	runwrap set_networking_params \
-		none \
-		"Setting network parameters"
 
 	[ "$breakpoint" = "setup" ] && exit 0
 
