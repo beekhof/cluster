@@ -2089,10 +2089,31 @@ To validate your cluster.conf against this schema, run:
        </group>
        <!-- scsi reservations -->
        <group>
-        <attribute name="nodename" rha:description="Name of the node to
+        <optional>
+         <attribute name="nodename" rha:description="Name of the node to
             be fenced. Refer to fence_scsi(8) for more
             information." rha:sample=""/>
-        <attribute name="self" rha:description="" rha:sample=""/>
+        </optional>
+        <optional>
+         <attribute name="key" rha:description="" rha:sample="33">
+          <data type="positiveInteger"/>
+         </attribute>
+        </optional>
+        <optional>
+         <attribute name="devices" rha:description="List of devices
+	    to fence (separated by commas)." rha:sample="/dev/sdb,/dev/sdc"/>
+        </optional>
+        <optional>
+         <attribute name="action" rha:description="Fencing action to
+	    take (off or on)." rha:sample="off"/>
+        </optional>
+        <optional>
+         <attribute name="logfile" rha:description="Location to output
+	    logs from fence_scsi." rha:sample="/var/log/fence_scsi.log"/>
+        </optional>
+        <optional>
+         <attribute name="aptpl" rha:description="" rha:sample=""/>
+        </optional>
        </group>
        <!-- GNBD -->
        <group>

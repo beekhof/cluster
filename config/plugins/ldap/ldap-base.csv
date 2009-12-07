@@ -1,4 +1,4 @@
-# Max attribute value: 266
+# Max attribute value: 269
 # Max object class value: 58
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -323,3 +323,6 @@ attr,rhcsDrac-version,drac_version,263
 attr,rhcsModule-name,module_name,264
 attr,rhcsIo-fencing,io_fencing,265
 attr,rhcsRibcl,ribcl,266
+attr,rhcsKey,key,267
+attr,rhcsDevices,devices,268
+attr,rhcsAptpl,aptpl,269
