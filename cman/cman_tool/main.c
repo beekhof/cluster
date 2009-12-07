@@ -550,7 +550,7 @@ static void show_nodes(commandline_t *comline)
 
 static int show_services(void)
 {
-	return system(SBINDIR "/group_tool ls");
+	return system("group_tool ls");
 }
 
 
