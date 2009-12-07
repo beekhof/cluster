@@ -705,9 +705,15 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 			objdb->object_key_create(object_handle, "join", strlen("join"),
 						 "60", strlen("60")+1);
 		}
+		/* consensus should be 2*token, see bz#544482*/
 		if (objdb_get_string(objdb, object_handle, "consensus", &value)) {
+		        unsigned int token;
+			char calc_consensus[32];
+
+			objdb_get_int(objdb, object_handle, "token", &token, DEFAULT_TOKEN_TIMEOUT);
+			sprintf(calc_consensus, "%d", token*2);
 			objdb->object_key_create(object_handle, "consensus", strlen("consensus"),
-						 "4800", strlen("4800")+1);
+						 calc_consensus, strlen(calc_consensus)+1);
 		}
 
 		/* Set RRP mode appropriately */
