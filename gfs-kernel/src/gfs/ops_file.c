@@ -808,6 +808,7 @@ do_do_write_buf(struct file *file, char *buf, size_t size, loff_t *offset,
 	int alloc_required, journaled;
 	ssize_t count;
 	int error;
+	unsigned int posix = sdp->sd_args.ar_posix_acls ? 4 : 0;
 
 	journaled = gfs_is_jdata(ip);
 
@@ -845,7 +846,7 @@ do_do_write_buf(struct file *file, char *buf, size_t size, loff_t *offset,
 
 		error = gfs_trans_begin(sdp,
 					1 + al->al_rgd->rd_ri.ri_length +
-					ind_blocks +
+					ind_blocks + posix +
 					((journaled) ? data_blocks : 0), 1);
 		if (error)
 			goto fail_ipres;
@@ -853,7 +854,7 @@ do_do_write_buf(struct file *file, char *buf, size_t size, loff_t *offset,
 		/* Trans may require:
 		   A modified dinode. */
 
-		error = gfs_trans_begin(sdp,
+		error = gfs_trans_begin(sdp, posix +
 					1 + ((journaled) ? data_blocks : 0), 0);
 		if (error)
 			goto fail_ipres;

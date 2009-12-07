@@ -1546,56 +1546,49 @@ gfs_ea_remove(struct gfs_inode *ip, struct gfs_ea_request *er)
  * Returns: errno
  */
 
-int
-gfs_ea_acl_init(struct gfs_inode *ip, struct gfs_ea_request *er)
+int gfs_ea_acl_init(struct gfs_inode *ip, struct gfs_ea_request *er)
 {
+	struct buffer_head *bh;
+	struct gfs_ea_header *ea;
+	unsigned int size;
+	struct buffer_head *dibh;
 	int error;
 
 	if (!ip->i_di.di_eattr)
 		return ea_init_i(ip, er, NULL);
 
-	{
-		struct buffer_head *bh;
-		struct gfs_ea_header *ea;
-		unsigned int size;
+	ea_calc_size(ip->i_sbd, er, &size);
 
-		ea_calc_size(ip->i_sbd, er, &size);
-
-		error = gfs_dread(ip->i_gl, ip->i_di.di_eattr,
+	error = gfs_dread(ip->i_gl, ip->i_di.di_eattr,
 				  DIO_START | DIO_WAIT, &bh);
-		if (error)
-			return error;
+	if (error)
+		return error;
 
-		if (gfs_metatype_check(ip->i_sbd, bh, GFS_METATYPE_EA)) {
-			brelse(bh);
-			return -EIO;
-		}
-
-		ea = GFS_EA_BH2FIRST(bh);
-		if (GFS_EA_REC_LEN(ea) - GFS_EA_SIZE(ea) >= size) {
-			ea = ea_split_ea(ea);
-			ea_write(ip, ea, er);
-			brelse(bh);
-			return 0;
-		}
-
+	if (gfs_metatype_check(ip->i_sbd, bh, GFS_METATYPE_EA)) {
 		brelse(bh);
+		return -EIO;
 	}
+
+	ea = GFS_EA_BH2FIRST(bh);
+	if (GFS_EA_REC_LEN(ea) - GFS_EA_SIZE(ea) >= size) {
+		ea = ea_split_ea(ea);
+		ea_write(ip, ea, er);
+		brelse(bh);
+		return 0;
+	}
+
+	brelse(bh);
 
 	error = ea_set_block(ip, er, NULL);
 	gfs_assert_withdraw(ip->i_sbd, error != -ENOSPC);
 	if (error)
 		return error;
 
-	{
-		struct buffer_head *dibh;
-		error = gfs_get_inode_buffer(ip, &dibh);
-		if (error)
-			return error;
-		gfs_dinode_out(&ip->i_di, dibh->b_data);
-		brelse(dibh);
-	}
-
+	error = gfs_get_inode_buffer(ip, &dibh);
+	if (error)
+		return error;
+	gfs_dinode_out(&ip->i_di, dibh->b_data);
+	brelse(dibh);
 	return error;
 }
 
@@ -1608,10 +1601,9 @@ gfs_ea_acl_init(struct gfs_inode *ip, struct gfs_ea_request *er)
  * Returns: errno
  */
 
-static int
-ea_acl_chmod_unstuffed(struct gfs_inode *ip,
-		       struct gfs_ea_header *ea,
-		       char *data)
+static int ea_acl_chmod_unstuffed(struct gfs_inode *ip,
+				  struct gfs_ea_header *ea, char *data,
+				  int *trans)
 {
 	struct gfs_sbd *sdp = ip->i_sbd;
 	struct buffer_head **bh;
@@ -1625,9 +1617,12 @@ ea_acl_chmod_unstuffed(struct gfs_inode *ip,
 	if (!bh)
 		return -ENOMEM;
 
-	error = gfs_trans_begin(sdp, 1 + nptrs, 0);
-	if (error)
-		goto out;
+	if (get_transaction == NULL) {
+		error = gfs_trans_begin(sdp, 1 + nptrs, 0);
+		if (error)
+			goto out;
+		*trans = 1;
+	}
 
 	for (x = 0; x < nptrs; x++) {
 		error = gfs_dread(ip->i_gl, gfs64_to_cpu(*dataptrs),
@@ -1667,15 +1662,14 @@ ea_acl_chmod_unstuffed(struct gfs_inode *ip,
 		brelse(bh[x]);
 	}
 
- out:
+out:
 	kfree(bh);
-
 	return error;
 
- fail:
+fail:
 	gfs_trans_end(sdp);
+	*trans = 0;
 	kfree(bh);
-
 	return error;
 }
 
@@ -1689,24 +1683,28 @@ ea_acl_chmod_unstuffed(struct gfs_inode *ip,
  * Returns: errno
  */
 
-int
-gfs_ea_acl_chmod(struct gfs_inode *ip, struct gfs_ea_location *el,
-		 struct iattr *attr, char *data)
+int gfs_ea_acl_chmod(struct gfs_inode *ip, struct gfs_ea_location *el,
+		     struct iattr *attr, char *data)
 {
+	struct gfs_sbd *sdp = ip->i_sbd;
 	struct buffer_head *dibh;
 	int error;
+	int trans = 0;
 
 	if (GFS_EA_IS_STUFFED(el->el_ea)) {
-		error = gfs_trans_begin(ip->i_sbd, 2, 0);
-		if (error)
-			return error;
+		if (get_transaction == NULL) {
+			error = gfs_trans_begin(ip->i_sbd, 2, 0);
+			if (error)
+				return error;
+			trans = 1;
+		}
 
 		gfs_trans_add_bh(ip->i_gl, el->el_bh);
-		memcpy(GFS_EA2DATA(el->el_ea),
-		       data,
+		memcpy(GFS_EA2DATA(el->el_ea), data,
 		       GFS_EA_DATA_LEN(el->el_ea));
-	} else
-		error = ea_acl_chmod_unstuffed(ip, el->el_ea, data);
+	} else {
+		error = ea_acl_chmod_unstuffed(ip, el->el_ea, data, &trans);
+	}
 
 	if (error)
 		return error;
@@ -1721,7 +1719,8 @@ gfs_ea_acl_chmod(struct gfs_inode *ip, struct gfs_ea_location *el,
 		brelse(dibh);
 	}
 
-	gfs_trans_end(ip->i_sbd);
+	if (trans)
+		gfs_trans_end(ip->i_sbd);
 
 	return error;
 }
