@@ -224,7 +224,7 @@ sub key_read ()
 {
     (my $self = (caller(0))[3]) =~ s/^main:://;
 
-    open (\*FILE, "</var/run/cluster/fence_scsi.key") or die "$!\n";
+    open (\*FILE, "</var/lib/cluster/fence_scsi.key") or die "$!\n";
 
     chomp (my $key = <FILE>);
 
@@ -237,7 +237,7 @@ sub key_write ($)
 {
     (my $self = (caller(0))[3]) =~ s/^main:://;
 
-    open (\*FILE, ">/var/run/cluster/fence_scsi.key") or die "$!\n";
+    open (\*FILE, ">/var/lib/cluster/fence_scsi.key") or die "$!\n";
 
     print FILE "$_[0]\n";
 
