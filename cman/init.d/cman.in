@@ -21,7 +21,16 @@ PATH="/bin:/usr/bin:/sbin:/usr/sbin:@SBINDIR@"
 
 local_chkconfig()
 {
-	ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
+	case "$1" in
+	--levels)
+		ls /etc/rc${2}.d/S*${3} > /dev/null 2>/dev/null
+		return $?
+	;;
+	*)
+		ls /etc/rc*.d/S*${1} > /dev/null 2>/dev/null
+		return $?
+	;;
+	esac
 }
 
 success()
@@ -175,7 +184,7 @@ ok() {
 }
 
 nok() {
-	echo "$errmsg"
+	echo -e "$errmsg"
 	failure
 	echo
 	exit 1
@@ -265,6 +274,16 @@ sshd_enabled()
 	;;
 	esac
 	return 1
+}
+
+network_manager_enabled()
+{
+	if status NetworkManager > /dev/null 2>&1 || \
+	   chkconfig NetworkManager; then
+		errmsg="\nNetwork Manager is either running or configured to run. Please disable it in the cluster."
+		return 1
+	fi
+	return 0
 }
 
 mtab_configfs()
@@ -684,6 +703,10 @@ start()
 
 	echo $echoarg "Starting cluster: "
 
+	runwrap network_manager_enabled \
+		none \
+		"Checking Network Manager"
+
 	runwrap start_fence_xvmd \
 		fence_xvmd_standalone \
 		"Starting virtual machine fencing host (standalone)"
@@ -898,7 +921,7 @@ status)
 			echo "cluster is running."
 		fi
 	else
-		echo "$errmsg"
+		echo -e "$errmsg"
 	fi
 ;;
 *)
