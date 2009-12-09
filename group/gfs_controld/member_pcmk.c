@@ -17,7 +17,7 @@
 #include <pacemaker/crm/common/stack.h>
 #include <pacemaker/crm/common/ipc.h>
 #include <pacemaker/crm/msg_xml.h>
-#include <pacemaker/crm/cib.h>
+#include <pacemaker/crm/ais.h>
 
 extern int ais_fd_async;
 
@@ -68,11 +68,29 @@ void update_cluster(void)
 
 int setup_cluster(void)
 {
-    /* To avoid creating an additional place for the dlm to be configured,
-     * only allow configuration from the command-line until CoroSync is stable
-     * enough to be used with Pacemaker
-     */
-    return 0;
+    ais_fd_async = -1;
+    crm_log_init("cluster-gfs", LOG_DEBUG, FALSE, TRUE, 0, NULL);
+    
+    if(init_ais_connection(NULL, NULL, NULL, NULL, &our_nodeid) == FALSE) {
+        log_error("Connection to our AIS plugin failed");
+        return -1;
+    }
+
+    if(crm_get_cluster_name(&clustername) == FALSE) {
+        log_error("No cluster name supplied");
+	return -1;
+
+    } else {
+        log_debug("Connected as node %u to cluster '%s'", our_nodeid, clustername);
+    }
+    
+    /* Sign up for membership updates */
+    send_ais_text(crm_class_notify, "true", TRUE, NULL, crm_msg_ais);
+    
+    /* Requesting the current list of known nodes */
+    send_ais_text(crm_class_members, __FUNCTION__, TRUE, NULL, crm_msg_ais);
+
+    return ais_fd_async;
 }
 
 void close_cluster(void)
@@ -83,6 +101,13 @@ void close_cluster(void)
 #include <../../fence/libfenced/libfenced.h>
 int fenced_node_info(int nodeid, struct fenced_node *node) 
 {
-  /* Not implemented */
-  return -1;
+    /* The caller, we_are_in_fence_domain(), wants to check
+     * if we're part of the fencing domain.
+     * Check the node is alive and synthesize the
+     * appropriate value for .member
+     */
+
+    crm_node_t *pnode = crm_get_peer(nodeid, NULL);
+    node->member = crm_is_member_active(pnode);
+    return 0;
 }
