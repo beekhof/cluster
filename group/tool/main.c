@@ -648,7 +648,6 @@ int main(int argc, char **argv)
 
 		switch (version) {
 		case -1:
-			printf("groupd not running\n");
 			version = GROUP_LIBCPG;
 			break;
 		case -EAGAIN:
