@@ -168,17 +168,6 @@ void dump_resource_tree(FILE *fp, resource_node_t **tree);
 void destroy_resource_tree(resource_node_t **tree);
 
 void *act_dup(resource_act_t *acts);
-/*
-   Construct/deconstruct failover domains
- */
-int construct_domains(int ccsfd, fod_t **domains);
-void deconstruct_domains(fod_t **domains);
-void print_domains(fod_t **domains);
-void dump_domains(FILE *fp, fod_t **domains);
-int node_should_start(int nodeid, cluster_member_list_t *membership,
-		      char *rg_name, fod_t **domains);
-int node_domain_set(fod_t **domains, char *name, int **ret, int *retlen, int *flags);
-int node_domain_set_safe(char *domainname, int **ret, int *retlen, int *flags);
 
 
 /*

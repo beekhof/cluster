@@ -39,6 +39,7 @@ typedef struct _fod {
 int construct_domains(int ccsfd, fod_t **domains);
 void deconstruct_domains(fod_t **domains);
 void print_domains(fod_t **domains);
+void dump_domains(FILE *fp, fod_t **domains);
 int node_should_start(int nodeid, cluster_member_list_t *membership,
 	      	      const char *rg_name, fod_t **domains);
 int node_domain_set(fod_t **domains, char *name, int **ret,
