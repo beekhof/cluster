@@ -777,15 +777,14 @@ static void version(commandline_t *comline)
 		if (result)
 			die("ccs_sync failed.\nIf you have distributed the config file yourself, try re-running with -S\n");
 	}
-	else {
-		if (comline->verbose)
-			printf("Telling cman the new version number\n");
 
-		ver.cv_config = comline->config_version;
+	if (comline->verbose)
+		printf("Telling cman the new version number\n");
 
-		if ((result = cman_set_version(h, &ver)))
-			die("can't set version: %s", cman_error(errno));
-	}
+	ver.cv_config = comline->config_version;
+
+	if ((result = cman_set_version(h, &ver)))
+		die("can't set version: %s", cman_error(errno));
  out:
 	cman_finish(h);
 }
