@@ -40,7 +40,7 @@ To validate your cluster.conf against this schema, run:
      than the current value." rha:sample="1" rha:default="1"/>
  <optional>
   <attribute name="alias" rha:description="Pretty name for cluster that
-      is not parsed by cluster tag software; only the Conga and
+      is not parsed by cluster software; only the Conga and
       system-config-cluster GUIs use this value."
       rha:sample="My Cluster"/>
  </optional>
@@ -396,49 +396,35 @@ To validate your cluster.conf against this schema, run:
       cluster. Furthermore, the dom0 cluster is required to have fencing
       if domU recovery is expected to be automatic.">
     <optional>
-      <attribute name="debug" rha:description="" rha:sample="">
+      <attribute name="debug" rha:description="" >
 	<data type="integer"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="port" rha:description="" rha:sample="">
+      <attribute name="port" rha:description="" >
 	<data type="integer"/>
       </attribute>
     </optional>
     <optional>
-      <attribute name="use_uuid" rha:description="" rha:sample="">
-	<data type="boolean"/>
-      </attribute>
+      <attribute name="use_uuid" rha:description="" />
     </optional>
     <optional>
-      <attribute name="multicast_address" rha:description="" rha:sample="">
-	<data type="string"/>
-      </attribute>
+      <attribute name="multicast_address" rha:description="" />
     </optional>
     <optional>
-      <attribute name="auth" rha:description="" rha:sample="">
-	<data type="string"/>
-      </attribute>
+      <attribute name="auth" rha:description="" />
     </optional>
     <optional>
-      <attribute name="hash" rha:description="" rha:sample="">
-	<data type="string"/>
-      </attribute>
+      <attribute name="hash" rha:description="" />
     </optional>
     <optional>
-      <attribute name="uri" rha:description="" rha:sample="">
-	<data type="string"/>
-      </attribute>
+      <attribute name="uri" rha:description="" />
     </optional>
     <optional>
-      <attribute name="key_file" rha:description="" rha:sample="">
-	<data type="string"/>
-      </attribute>
+      <attribute name="key_file" rha:description="" />
     </optional>
     <optional>
-      <attribute name="multicast_interface" rha:description="" rha:sample="">
-	<data type="string"/>
-      </attribute>
+      <attribute name="multicast_interface" rha:description="" />
     </optional>
   </element>
  </optional>
@@ -809,10 +795,7 @@ To validate your cluster.conf against this schema, run:
    <optional>
     <attribute name="log_facility" rha:description="The facility is one
        of the following keywords: auth, authpriv, cron, daemon, kern,
-       lpr, mail, news, syslog, user, uucp and local0 through local7"
-       rha:sample="local4">
-     <data type="string"/>
-    </attribute>
+       lpr, mail, news, syslog, user, uucp and local0 through local7"/>
    </optional>
    <interleave>
    <optional>
