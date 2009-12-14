@@ -518,6 +518,12 @@ start_cman()
 		sleep 0.2
 	done
 
+	# This is hopefully a temporary workaround to a couple of issues
+	# in corosync that would make the world hang foverever in some
+	# scenarios.
+	# Value of 15 is not random. Please do not lower it.
+	sleep 15
+
 	if ! cman_running; then
 		errmsg="$(cat $tmpfile)"
 		ret=1
