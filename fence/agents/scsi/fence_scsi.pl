@@ -118,11 +118,14 @@ sub do_register ($$$)
 	return;
     }
 
-    my $cmd = "sg_persist -n -o -G -K $host_key -S $node_key -d $dev";
+    log_debug ("$self (host_key=$host_key, node_key=$node_key, dev=$dev)");
 
+    my $cmd;
+    my $pid;
+
+    $cmd = "sg_persist -n -o -G -K $host_key -S $node_key -d $dev";
     $cmd .= " -Z" if (defined $opt_a);
-
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
+    $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
 
     waitpid ($pid, 0);
 
@@ -148,11 +151,14 @@ sub do_register_ignore ($$)
 	return;
     }
 
-    my $cmd = "sg_persist -n -o -I -S $node_key -d $dev";
+    log_debug ("$self (node_key=$node_key, dev=$dev)");
 
+    my $cmd;
+    my $pid;
+
+    $cmd = "sg_persist -n -o -I -S $node_key -d $dev";
     $cmd .= " -Z" if (defined $opt_a);
-
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
+    $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
 
     waitpid ($pid, 0);
 
@@ -169,6 +175,8 @@ sub do_reserve ($$)
 {
     my $self = (caller(0))[3];
     my ($host_key, $dev) = @_;
+
+    log_debug ("$self (host_key=$host_key, dev=$dev)");
 
     my $cmd = "sg_persist -n -o -R -T 5 -K $host_key -d $dev";
     my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
@@ -189,6 +197,8 @@ sub do_release ($$)
     my $self = (caller(0))[3];
     my ($host_key, $dev) = @_;
 
+    log_debug ("$self (host_key=$host_key, dev=$dev)");
+
     my $cmd = "sg_persist -n -o -L -T 5 -K $host_key -d $dev";
     my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
 
@@ -207,6 +217,8 @@ sub do_preempt ($$$)
 {
     my $self = (caller(0))[3];
     my ($host_key, $node_key, $dev) = @_;
+
+    log_debug ("$self (host_key=$host_key, node_key=$node_key, dev=$dev)");
 
     my $cmd = "sg_persist -n -o -P -T 5 -K $host_key -S $node_key -d $dev";
     my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
@@ -227,12 +239,14 @@ sub do_preempt_abort ($$$)
     my $self = (caller(0))[3];
     my ($host_key, $node_key, $dev) = @_;
 
+    log_debug ("$self (host_key=$host_key, node_key=$node_key, dev=$dev)");
+
     my $cmd = "sg_persist -n -o -A -T 5 -K $host_key -S $node_key -d $dev";
     my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
 
     waitpid ($pid, 0);
 
-    die "[error]: $self ($dev)\n" if ($?>>8);
+    die "[error]: $self\n" if ($?>>8);
 
     close (IN);
     close (OUT);
