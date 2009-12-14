@@ -61,6 +61,7 @@ extern int two_node;
        unsigned int shutdown_timeout=DEFAULT_SHUTDOWN_TIMEOUT;
        unsigned int ccsd_poll_interval=DEFAULT_CCSD_POLL;
        unsigned int enable_disallowed=DEFAULT_DISALLOWED;
+       unsigned int startup_config_timeout=DEFAULT_STARTUP_CONFIG_TIMEOUT;
 static int cluster_is_quorate;
        char cluster_name[MAX_CLUSTER_NAME_LEN+1];
 static char nodename[MAX_CLUSTER_MEMBER_NAME_LEN+1];
@@ -1216,6 +1217,25 @@ static void ccsd_timer_fn(void *arg)
 		recalculate_quorum(0, 0);
 		notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
 	}
+	else {
+	      time_t now;
+	      now = time(NULL);
+
+	      log_printf(LOG_DEBUG, "Checking for startup failure: local_first_trans=%d, time=%d\n",
+			 local_first_trans, (int)(now - join_time));
+	      /* 
+	       * If we haven't got the 'right' configuration at startup before (default) 30s
+	       * then quit so the node can boot 
+	       */
+
+	      if (local_first_trans && now > join_time+startup_config_timeout) {
+		  log_printf(LOG_ERR, "Failed to get an up-to-date config file, wanted %d, only got %d. Will exit\n",
+			     wanted_config_version, config_version);
+		  log_printf(LOG_ERR, "Check your configuration distribution method is working correctly\n");
+		  cman_finish();
+		  corosync_shutdown();
+	      }
+	}
 }
 
 
@@ -1837,6 +1857,9 @@ static void do_reconfigure_msg(void *data)
 	node = find_node_by_nodeid(msg->nodeid);
 	if (!node)
 		return;
+
+	/* We must be fully started by now */
+	local_first_trans = 0;
 
 	switch(msg->param)
 	{
