@@ -146,6 +146,7 @@ int resource_tree_delta(resource_node_t **, resource_node_t **);
    Load/kill resource rule sets
  */
 int load_resource_rules(const char *rpath, resource_rule_t **rules);
+void print_resource_rule(FILE *fp, resource_rule_t *rule);
 void print_resource_rules(resource_rule_t **rules);
 void dump_resource_rules(FILE *fp, resource_rule_t **rules);
 void destroy_resource_rules(resource_rule_t **rules);
@@ -154,6 +155,7 @@ void destroy_resource_rules(resource_rule_t **rules);
    Load/kill resource sets
  */
 int load_resources(int ccsfd, resource_t **reslist, resource_rule_t **rulelist);
+void print_resource(FILE *fp, resource_t *res);
 void print_resources(resource_t **reslist);
 void dump_resources(FILE *fp, resource_t **reslist);
 void destroy_resources(resource_t **list);
@@ -168,6 +170,7 @@ void dump_resource_tree(FILE *fp, resource_node_t **tree);
 void destroy_resource_tree(resource_node_t **tree);
 
 void *act_dup(resource_act_t *acts);
+void dump_resource_info(FILE *fp);
 
 
 /*

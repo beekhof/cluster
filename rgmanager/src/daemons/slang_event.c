@@ -585,7 +585,7 @@ sl_migrate_service(void)
 {
 	char *svcname = NULL;
 	int target_node = 0;
-	int nargs, t, newowner = 0, ret = -1;
+	int nargs, t, ret = -1;
 
 	nargs = SLang_Num_Function_Args;
 

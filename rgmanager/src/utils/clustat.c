@@ -788,7 +788,7 @@ xml_member_state(cman_node_t *node)
 
 
 static void
-print_member_header(nodesize)
+print_member_header(int nodesize)
 {
 	printf(" %-*.*s", nodesize, nodesize, "Member Name");
 	printf("%-4.4s %s\n", "ID", "Status");

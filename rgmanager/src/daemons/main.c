@@ -946,6 +946,8 @@ main(int argc, char **argv)
 	}
 
 	init_logging(NULL, foreground, (debug? LOG_DEBUG : SYSLOGLEVEL));
+
+	rv = -1;
 	if (cman_connect(&clu) != 0)
 		goto out;	/* Clean exit if sigint/sigterm here */
 
@@ -956,6 +958,7 @@ main(int argc, char **argv)
 
 	if (clu_lock_init(rgmanager_lsname) != 0) {
 		printf("Locks not working!\n");
+		cman_finish(clu);
 		return -1;
 	}
 
@@ -965,14 +968,16 @@ main(int argc, char **argv)
 	if (me.cn_nodeid == 0) {
 		printf("Unable to determine local node ID\n");
 		perror("cman_get_node");
-		return -1;
+		goto out_ls;
 	}
 	set_my_id(me.cn_nodeid);
 
 	logt_print(LOG_INFO, "I am node #%d\n", my_id());
 
-	if (wait_for_fencing() != 0)
-		goto out;
+	if (wait_for_fencing() != 0) {
+		rv = 0;
+		goto out_ls;
+	}
 
 	/*
 	   We know we're quorate.  At this point, we need to
@@ -983,24 +988,26 @@ main(int argc, char **argv)
 
 	if (init_resource_groups(0, do_init) != 0) {
 		logt_print(LOG_CRIT, "#8: Couldn't initialize services\n");
-		return -1;
+		goto out_ls;
 	}
 
-	if (shutdown_pending)
-		goto out;
+	if (shutdown_pending) {
+		rv = 0;
+		goto out_ls;
+	}
 
 	if (msg_listen(MSG_SOCKET, RGMGR_SOCK, me.cn_nodeid, &local_ctx) < 0) {
 		logt_print(LOG_CRIT,
 		       "#10: Couldn't set up cluster message system: %s\n",
 		       strerror(errno));
-		return -1;
+		goto out_ls;
 	}
 
 	if (msg_listen(MSG_CLUSTER, &port, me.cn_nodeid, &cluster_ctx) < 0) {
 		logt_print(LOG_CRIT,
 		       "#10b: Couldn't set up cluster message system: %s\n",
 		       strerror(errno));
-		return -1;
+		goto out_ls;
 	}
 
 	rg_set_quorate();
@@ -1016,14 +1023,14 @@ main(int argc, char **argv)
 #ifdef OPENAIS
 	if (ds_init() < 0) {
 		logt_print(LOG_CRIT, "#11b: Couldn't initialize SAI AIS CKPT\n");
-		return -1;
+		goto out_ls;
 	}
 
 	ds_key_init("rg_lockdown", 32, 10);
 #else
 	if (vf_init(me.cn_nodeid, port, NULL, NULL) != 0) {
 		logt_print(LOG_CRIT, "#11: Couldn't set up VF listen socket\n");
-		return -1;
+		goto out_ls;
 	}
 
 	vf_key_init("rg_lockdown", 10, NULL, lock_commit_cb);
@@ -1048,6 +1055,8 @@ main(int argc, char **argv)
 
 	if (rg_initialized())
 		cleanup(cluster_ctx);
+	rv = 0;
+out_ls:
 	clu_lock_finished(rgmanager_lsname);
 
 out:
@@ -1058,5 +1067,5 @@ out:
 	/*malloc_stats();*/
 
 	daemon_cleanup();
-	exit(0);
+	exit(rv);
 }

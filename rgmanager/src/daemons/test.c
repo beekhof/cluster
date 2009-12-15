@@ -304,13 +304,10 @@ tree_delta_test(int argc, char **argv)
 	resource_delta(&reslist, &reslist2);
 
 	printf("=== Old Resource List ===\n");
-	list_do(&reslist, curres) {
-		print_resource(curres);
-	} while (!list_done(&reslist, curres));
+	print_resources(&reslist);
+
 	printf("=== New Resource List ===\n");
-	list_do(&reslist2, curres) {
-		print_resource(curres);
-	} while (!list_done(&reslist2, curres));
+	print_resources(&reslist2);
 
 	resource_tree_delta(&tree, &tree2);
 	printf("=== Old Resource Tree ===\n");
