@@ -569,6 +569,77 @@ sub print_version ()
     exit (0);
 }
 
+sub print_metadata ()
+{
+    print "<?xml version=\"1.0\" ?>\n";
+    print "<resource-agent name=\"fence_scsi\"" .
+          " shortdesc=\"fence agent for SCSI-3 persistent reservations\">\n";
+    print "<longdesc>fence_scsi</longdesc>\n";
+
+    print "<parameters>\n";
+
+    print "\t<parameter name=\"aptpl\" unique=\"1\" required=\"0\">\n";
+    print "\t\t<getopt mixed=\"-a\"/>\n";
+    print "\t\t<content type=\"boolean\"/>\n";
+    print "\t\t<shortdesc lang=\"en\">" .
+          "Use APTPL flag for registrations" .
+          "</shortdesc>\n";
+    print "\t</parameter>\n";
+
+    print "\t<parameter name=\"devices\" unique=\"1\" required=\"0\">\n";
+    print "\t\t<getopt mixed=\"-d\"/>\n";
+    print "\t\t<content type=\"string\"/>\n";
+    print "\t\t<shortdesc lang=\"en\">" .
+          "List of devices to be used for fencing action" .
+          "</shortdesc>\n";
+    print "\t</parameter>\n";
+
+    print "\t<parameter name=\"logfile\" unique=\"1\" required=\"0\">\n";
+    print "\t\t<getopt mixed=\"-f\"/>\n";
+    print "\t\t<content type=\"string\"/>\n";
+    print "\t\t<shortdesc lang=\"en\">" .
+          "File to write error/debug messages" .
+          "</shortdesc>\n";
+    print "\t</parameter>\n";
+
+    print "\t<parameter name=\"key\" unique=\"1\" required=\"0\">\n";
+    print "\t\t<getopt mixed=\"-k\"/>\n";
+    print "\t\t<content type=\"string\"/>\n";
+    print "\t\t<shortdesc lang=\"en\">" .
+          "Key value to be used for fencing action" .
+          "</shortdesc>\n";
+    print "\t</parameter>\n";
+
+    print "\t<parameter name=\"action\" unique=\"1\" required=\"0\">\n";
+    print "\t\t<getopt mixed=\"-o\"/>\n";
+    print "\t\t<content type=\"string\" default=\"off\"/>\n";
+    print "\t\t<shortdesc lang=\"en\">" .
+          "Fencing action" .
+          "</shortdesc>\n";
+    print "\t</parameter>\n";
+
+    print "\t<parameter name=\"nodename\" unique=\"1\" required=\"0\">\n";
+    print "\t\t<getopt mixed=\"-n\"/>\n";
+    print "\t\t<content type=\"string\"/>\n";
+    print "\t\t<shortdesc lang=\"en\">" .
+          "Name of node" .
+          "</shortdesc>\n";
+    print "\t</parameter>\n";
+
+    print "</parameters>\n";
+
+    print "<actions>\n";
+    print "\t<action name=\"on\"/>\n";
+    print "\t<action name=\"off\"/>\n";
+    print "\t<action name=\"status\"/>\n";
+    print "\t<action name=\"metadata\"/>\n";
+    print "</actions>\n";
+
+    print "</resource-agent>\n";
+
+    exit (0);
+}
+
 ################################################################################
 
 if (@ARGV > 0) {
@@ -576,6 +647,12 @@ if (@ARGV > 0) {
 
     print_usage if (defined $opt_h);
     print_version if (defined $opt_V);
+
+    ## handle the metadata action here to avoid other parameter checks
+    ##
+    if ($opt_o =~ /^metadata$/i) {
+	print_metadata;
+    }
 }
 else {
     get_options_stdin ();
