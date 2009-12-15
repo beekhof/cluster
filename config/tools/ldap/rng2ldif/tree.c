@@ -161,7 +161,7 @@ find_ref(xmlNodePtr curr_node)
 		if (strcasecmp((char *)n->name, "define"))
 			continue;
 		
-		tmp_name = (char *)xmlGetProp(n, "name");
+		tmp_name = (char *)xmlGetProp(n, (xmlChar *)"name");
 		if (!tmp_name)
 			continue;
 		if (strcmp(tmp_name, name))
