@@ -885,7 +885,7 @@ vf_server(void *arg)
  */
 int
 vf_init(int my_node_id, uint16_t my_port, vf_vote_cb_t vcb,
-	vf_commit_cb_t ccb, int cluster_timeout)
+	vf_commit_cb_t ccb, int _cluster_timeout)
 {
 	struct vf_args *args;
 	msgctx_t *ctx;
@@ -912,8 +912,8 @@ vf_init(int my_node_id, uint16_t my_port, vf_vote_cb_t vcb,
 	pthread_mutex_lock(&vf_mutex);
 	_port = my_port;
 	_node_id = my_node_id;
-	if (cluster_timeout)
-		_vf_timeout = cluster_timeout;
+	if (_cluster_timeout)
+		_vf_timeout = _cluster_timeout;
 	default_vote_cb = vcb;
 	default_commit_cb = ccb;
 	pthread_mutex_unlock(&vf_mutex);

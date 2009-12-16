@@ -948,7 +948,6 @@ main(int argc, char **argv)
 	msgctx_t *local_ctx;
 	pthread_t th;
 	cman_handle_t clu = NULL;
-	int cluster_timeout = 10;
 
 	while ((rv = getopt(argc, argv, "wfdN")) != EOF) {
 		switch (rv) {
