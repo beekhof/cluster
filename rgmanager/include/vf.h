@@ -152,7 +152,7 @@ typedef struct _key_node {
 /* 
  * VF Stuff.  VF only talks to peers.
  */
-int vf_init(int, uint16_t, vf_vote_cb_t, vf_commit_cb_t);
+int vf_init(int, uint16_t, vf_vote_cb_t, vf_commit_cb_t, int);
 int vf_invalidate(void);
 int vf_shutdown(void);
 

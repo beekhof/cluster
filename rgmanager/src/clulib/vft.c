@@ -27,6 +27,7 @@
 static key_node_t *key_list = NULL;	/** List of key nodes. */
 static int _node_id = (int)-1;/** Our node ID, set with vf_init. */
 static uint16_t _port = 0;		/** Our daemon ID, set with vf_init. */
+static int _vf_timeout = 10;
 
 /*
  * TODO: We could make it thread safe, but this might be unnecessary work
@@ -884,7 +885,7 @@ vf_server(void *arg)
  */
 int
 vf_init(int my_node_id, uint16_t my_port, vf_vote_cb_t vcb,
-	vf_commit_cb_t ccb)
+	vf_commit_cb_t ccb, int cluster_timeout)
 {
 	struct vf_args *args;
 	msgctx_t *ctx;
@@ -911,6 +912,8 @@ vf_init(int my_node_id, uint16_t my_port, vf_vote_cb_t vcb,
 	pthread_mutex_lock(&vf_mutex);
 	_port = my_port;
 	_node_id = my_node_id;
+	if (cluster_timeout)
+		_vf_timeout = cluster_timeout;
 	default_vote_cb = vcb;
 	default_commit_cb = ccb;
 	pthread_mutex_unlock(&vf_mutex);
@@ -1223,7 +1226,7 @@ vf_write(cluster_member_list_t *membership, uint32_t flags,
 	 * See if we have a consensus =)
 	 */
 	if ((rv = (vf_unanimous(&everyone, trans, remain,
-				5))) == VFR_OK) {
+				_vf_timeout))) == VFR_OK) {
 		vf_send_commit(&everyone, trans);
 #ifdef DEBUG
 		printf("VF: Consensus reached!\n");

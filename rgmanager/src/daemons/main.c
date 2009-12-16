@@ -27,7 +27,7 @@
 #ifdef WRAP_THREADS
 void dump_thread_states(FILE *);
 #endif
-static int configure_rgmanager(int ccsfd, int debug);
+static int configure_rgmanager(int ccsfd, int debug, int *cluster_timeout);
 void set_transition_throttling(int);
 
 void flag_shutdown(int sig);
@@ -742,7 +742,7 @@ event_loop(msgctx_t *localctx, msgctx_t *clusterctx)
 
 	if (need_reconfigure) {
 		need_reconfigure = 0;
-		configure_rgmanager(-1, 0);
+		configure_rgmanager(-1, 0, NULL);
 		config_event_q();
 		return 0;
 	}
@@ -788,11 +788,12 @@ statedump(int __attribute__ ((unused)) sig)
  * Configure logging based on data in cluster.conf
  */
 static int
-configure_rgmanager(int ccsfd, int dbg)
+configure_rgmanager(int ccsfd, int dbg, int *token_secs)
 {
 	char *v;
 	char internal = 0;
 	int status_child_max = 0;
+	int tmp;
 
 	if (ccsfd < 0) {
 		internal = 1;
@@ -802,6 +803,16 @@ configure_rgmanager(int ccsfd, int dbg)
 	}
 
 	setup_logging(ccsfd);
+
+	if (token_secs && ccs_get(ccsfd, "/cluster/totem/@token", &v) == 0) {
+		tmp = atoi(v);
+		if (tmp >= 1000) {
+			*token_secs = tmp / 1000;
+			if (tmp % 1000)
+				++(*token_secs);
+		}
+		free(v);
+	}
 
 	if (ccs_get(ccsfd, "/cluster/rm/@transition_throttling", &v) == 0) {
 		set_transition_throttling(atoi(v));
@@ -937,6 +948,7 @@ main(int argc, char **argv)
 	msgctx_t *local_ctx;
 	pthread_t th;
 	cman_handle_t clu = NULL;
+	int cluster_timeout = 10;
 
 	while ((rv = getopt(argc, argv, "wfdN")) != EOF) {
 		switch (rv) {
@@ -1018,7 +1030,7 @@ main(int argc, char **argv)
 	   We know we're quorate.  At this point, we need to
 	   read the resource group trees from ccsd.
 	 */
-	configure_rgmanager(-1, debug);
+	configure_rgmanager(-1, debug, &cluster_timeout);
 	logt_print(LOG_NOTICE, "Resource Group Manager Starting\n");
 
 	if (init_resource_groups(0, do_init) != 0) {
@@ -1063,7 +1075,7 @@ main(int argc, char **argv)
 
 	ds_key_init("rg_lockdown", 32, 10);
 #else
-	if (vf_init(me.cn_nodeid, port, NULL, NULL) != 0) {
+	if (vf_init(me.cn_nodeid, port, NULL, NULL, cluster_timeout) != 0) {
 		logt_print(LOG_CRIT, "#11: Couldn't set up VF listen socket\n");
 		goto out_ls;
 	}
