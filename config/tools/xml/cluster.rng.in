@@ -340,45 +340,37 @@ To validate your cluster.conf against this schema, run:
 
 <!-- fence_daemon block -->
  <optional>
-  <element name="fence_daemon"  rha:description="This element and its
-      attributes define cluster-wide parameters for basic fence timing
-      properties used when a node joins a cluster or is fenced from
-      the cluster.">
+  <element name="fence_daemon" rha:description="Configuration for fenced
+	daemon. fenced(8)">
    <optional>
-    <attribute name="post_join_delay"  rha:description="The number of
-        seconds the fence daemon (fenced) waits before fencing a node
-        after the node joins the fence domain. A typical setting for
-        post_join_delay is between 20 and 30 seconds, but can vary
-        according to cluster and network performance requirements."
-        rha:default="3" rha:sample="20"/>
+    <attribute name="post_join_delay" rha:description="Number of seconds
+	the daemon will wait before fencing any victims after a node joins
+	the fence domain. fenced(8)"/>
    </optional>
    <optional>
-    <attribute name="post_fail_delay" rha:description="The the number of
-        seconds the fence daemon (fenced) waits before fencing
-        a node (a member of the fence domain) after the node has
-        failed." rha:default="0" rha:sample="2"/>
+    <attribute name="post_fail_delay" rha:description="Number of seconds
+	the daemon will wait before fencing any victims after a node
+	fails. fenced(8)"/>
    </optional>
    <optional>
-    <attribute name="override_path" rha:description="The location of a
-       FIFO used for communication between fenced and fence_ack_manual"
-       rha:default="/var/run/cluster/fenced_override"
-       rha:sample="/opt/cluster/fenced_override"/>
+    <attribute name="override_path" rha:description="Location of a FIFO
+	used for communication between fenced and fence_ack_manual.
+	fenced(8)"/>
    </optional>
    <optional>
-    <attribute name="override_time" rha:description="The location of a
-       FIFO used for communication between fenced and fence_ack_manual"
-       rha:default="/var/run/cluster/fenced_override"
-       rha:sample="/opt/cluster/fenced_override"/>
+    <attribute name="override_time" rha:description="Number of seconds to
+	wait for a manual override after a failed fencing attempt before
+	the next attempt. fenced(8)"/>
    </optional>
    <optional>
-    <attribute name="clean_start" rha:description="Clean-start is used
-       to prevent any startup fencing the daemon might do." rha:default="0"
-       rha:sample="1"/>
+    <attribute name="clean_start" rha:description="Set to 1 to disable
+	startup fencing. fenced(8)"/>
    </optional>
+
    <optional>
-    <attribute name="skip_undefined" rha:description="Do not do startup
-       fencing of nodes with no fence methods defined." rha:default="0"
-       rha:sample="1"/>
+    <attribute name="skip_undefined" rha:description="Set to 1 to disable
+	startup fencing of nodes with no fence methods defined.
+	fenced(8)"/>
    </optional>
   </element>
  </optional>
