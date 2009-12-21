@@ -413,7 +413,12 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	msg_send(&ctx, &msg, sizeof(msg));
+	if (msg_send(&ctx, &msg, sizeof(msg)) < sizeof(msg)) {
+		perror("msg_send");
+		fprintf(stderr,
+			"Error sending message to resource group manager.\n");
+		return 1;
+	}
 
 	/* Reusing opt here */
 	if ((opt = msg_receive(&ctx, &msg, sizeof(msg), 0)) < sizeof(*h)) {
