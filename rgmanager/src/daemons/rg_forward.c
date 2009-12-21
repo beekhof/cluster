@@ -85,7 +85,7 @@ forwarding_thread(void *arg)
 	build_message(&msg, req->rr_request, req->rr_group, req->rr_target,
 		      req->rr_arg0, req->rr_arg1);
 
-	if (msg_open(MSG_CLUSTER, rgs.rs_owner, RG_PORT, ctx, 10) < 0) {
+	if (msg_open(MSG_CLUSTER, rgs.rs_owner, RG_PORT, ctx, 2 * cluster_timeout) < 0) {
 		logt_print(LOG_DEBUG, "FW: Failed to open channel to %d CTX: %p\n",
 		       rgs.rs_owner, ctx);
 		goto out_fail;
@@ -184,7 +184,7 @@ forwarding_thread_v2(void *arg)
 		       strerror(errno));
 		goto out_fail;
 	}
-	if (msg_open(MSG_CLUSTER, target, RG_PORT, ctx, 10) < 0) {
+	if (msg_open(MSG_CLUSTER, target, RG_PORT, ctx, 2 * cluster_timeout) < 0) {
 		logt_print(LOG_DEBUG, "FW: Failed to open channel to %d CTX: %p\n",
 		       target, ctx);
 		goto out_fail;

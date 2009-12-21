@@ -180,6 +180,8 @@ int get_rg_state_local(const char *servicename, rg_state_t *svcblk);
 uint32_t best_target_node(cluster_member_list_t *allowed, uint32_t owner,
 			  const char *rg_name, int lock);
 
+extern int cluster_timeout;
+
 #ifdef DEBUG
 int _rg_lock(const char *name, struct dlm_lksb *p);
 int _rg_lock_dbg(const char *, struct dlm_lksb *, const char *, int);

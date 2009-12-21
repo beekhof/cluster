@@ -142,7 +142,7 @@ service_op_stop(char *svcName, int do_disable, int event_type)
 		}
 	}
 
-	if (msg_open(MSG_CLUSTER, msgtarget, RG_PORT, &ctx, 2)< 0) {
+	if (msg_open(MSG_CLUSTER, msgtarget, RG_PORT, &ctx, 2 * cluster_timeout)< 0) {
 		logt_print(LOG_ERR,
 		       "#58: Failed opening connection to member #%d\n",
 		       my_id());

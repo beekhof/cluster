@@ -969,7 +969,7 @@ get_new_owner(const char *svcName)
 			continue;
 
 		if (msg_open(MSG_CLUSTER, membership->cml_members[x].cn_nodeid,
-			     RG_PORT, &ctx, 10) < 0) {
+			     RG_PORT, &ctx, 2 * cluster_timeout) < 0) {
 			/* failed to open: better to claim false successful
 			   status rather than claim a failure and possibly
 			   end up with a service on >1 node */
@@ -1254,7 +1254,10 @@ _svc_stop(const char *svcName, int req, int recover, uint32_t newstate)
 			rg_unlock(&lockp);
 			return RG_EFAIL;
 		}
-		/* FALLTHROUGH */
+		rg_unlock(&lockp);
+		broadcast_event(svcName, RG_STATE_STOPPED,
+				-1, svcStatus.rs_last_owner);
+		return RG_ESUCCESS;
 	case 2:
 		rg_unlock(&lockp);
 		return RG_ESUCCESS;
@@ -1553,7 +1556,7 @@ svc_start_remote(const char *svcName, int request, uint32_t target)
 	msg_relo.sm_data.d_svcOwner = target;
 	/* Open a connection to the other node */
 
-	if (msg_open(MSG_CLUSTER, target, RG_PORT, &ctx, 2)< 0) {
+	if (msg_open(MSG_CLUSTER, target, RG_PORT, &ctx, 2 * cluster_timeout)< 0) {
 		logt_print(LOG_ERR,
 		       "#58: Failed opening connection to member #%d\n",
 		       target);

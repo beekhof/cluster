@@ -34,6 +34,7 @@ void flag_shutdown(int sig);
 int watchdog_init(void);
 
 
+int cluster_timeout = 10;
 int shutdown_pending = 0, running = 1, need_reconfigure = 0;
 char debug = 0; /* XXX* */
 static int signalled = 0;
