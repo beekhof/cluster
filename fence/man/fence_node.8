@@ -1,34 +1,127 @@
-.TH fence_node 8
+.TH FENCE_NODE 8 2009-12-21 cluster cluster
 
 .SH NAME
-fence_node - A program which performs I/O fencing on a single node.
+fence_node \- a utility to run fence agents
 
 .SH SYNOPSIS
-.B
-fence_node
-[\fIOPTION\fR]...
+.B fence_node
+[OPTIONS]
+.I nodename
 
 .SH DESCRIPTION
-\fBfence_node\fP is a program that reads the fencing settings from
-cluster.conf (through libccs/ccsd) for the given node and then runs the
-configured fencing agent against the node.
+This utility runs a fence agent against
+.IR nodename .
+The agent and args are taken from the running cluster configuration based on
+.BR cluster.conf (5).
+
+.P
+.B fence_node
+is a wrapper around the libfence functions: fence_node() and unfence_node().
+These libfence functions use libccs to read the node fencing configuration,
+which means that corosync (with cman and ccs) must be running to use
+.BR fence_node (8).
+
+.P
+The
+.BR fenced (8)
+daemon is the main user of libfence:fence_node(), and the
+configuration details for that function are given in the
+.BR fenced (8)
+man page.
+
+.SS Fencing vs. Unfencing
+
+The main use for unfencing is with storage/SAN (non-power) agents.
+
+.P
+When using power-based fencing agents, the fencing action itself is
+supposed to turn a node back on after first turning the power off (this happens
+automatically with a "reboot" action, and needs to be configured
+explicitly as "off" + "on" otherwise.)
+
+.P
+When using storage-based fencing agents, the fencing action is not allowed
+to re-enable a node after disabling it.  Re-enabling a fenced node is only
+safe once the node has been rebooted.  A natural way to re-enable a fenced
+node's access to storage, is for that node to re-enable the access itself
+during its startup process.  The cman init script calls fence_node -U
+(nodename defaults to local nodename when unfencing).  Unfencing a node
+without an <unfence> configuration (see below) is a no-op.
+
+.P
+The basic differences between fencing and unfencing:
+.P
+.BR Fencing
+.IP 1. 3
+libfence: fence_node(), command line: fence_node nodename
+.IP 2. 3
+Turns off or disables a node.
+.IP 3. 3
+Agents run with the default action of "off", "disable" or "reboot".
+.IP 4. 3
+Performed by a cluster node against another node that fails (by the fenced daemon).
+.P
+.BR Unfencing
+.IP 1. 3
+libfence: unfence_node(), command line: fence_node -U nodename
+.IP 2. 3
+Turns on or enables a node.
+.IP 3. 3
+Agents run with the explicit action of "on" or "enable".
+.IP 4. 3
+Performed by a cluster node "against" itself during startup (by the cman init script).
 
 .SH OPTIONS
 .TP
-\fB-h\fP
-Help.  Print out the usage syntax.
+.B \-U
+Unfence the node, default local node name.
 .TP
-\fB-O\fP
-Force a connection to CCS.  This overrides the usual
-requirement that the cluster be quorate to get information from ccs.
+.B \-v
+Show fence agent results, \-vv to also show agent args.
 .TP
-\fB-V\fP
-Print version information.
+.B \-h
+Print a help message describing available options, then exit.
+.TP
+.B \-V
+Print program version information, then exit.
 
-.SH EXAMPLES
-.TP
-To fence a node called ``bellerophon'':
-prompt> fence_node bellerophon
+.SH FILES
+
+The Unfencing/unfence_node() configuration is very similar to the
+Fencing/fence_node() configuration shown in
+.BR fenced (8).
+Unfencing is only performed for a node with an <unfence> section:
+
+.nf
+  <clusternode name="node1" nodeid="1">
+          <fence>
+          </fence>
+          <unfence>
+          </unfence>
+  </clusternode>
+.fi
+
+The <unfence> section does not contain <method> sections like the <fence>
+section does.  It contains <device> references directly, which mirror the
+corresponding device sections for <fence>, with the notable addition of
+the explicit action of "on" or "enable".  The same <fencedevice> is
+referenced by both fence and unfence <device> lines, and the same per-node
+args should be repeated.
+
+.nf
+  <clusternode name="node1" nodeid="1">
+          <fence>
+          <method name="1">
+          <device name="myswitch" foo="x"/>
+          </method>
+          </fence>
+
+          <unfence>
+          <device name="myswitch" foo="x" action="on"/>
+          </unfence>
+  </clusternode>
+.fi
 
 .SH SEE ALSO
-fence(8), ccs(7)
+.BR fenced (8)
+

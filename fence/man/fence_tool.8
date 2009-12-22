@@ -1,42 +1,60 @@
-.TH fence_tool 8
+.TH FENCE_TOOL 8 2009-12-21 cluster cluster
 
 .SH NAME
-fence_tool - A program to join and leave the fence domain
+fence_tool \- a utility for the fenced daemon
 
 .SH SYNOPSIS
-.B
-fence_tool
-<\fBjoin | leave | ls | dump\fP> 
-[\fIOPTION\fR]...
+.B fence_tool
+[COMMAND] [OPTIONS]
 
 .SH DESCRIPTION
-\fBfence_tool\fP is a program used to join or leave the default fence
-domain.  It communicates with the fenced daemon.  Before telling fenced
-to join the domain, fence_tool waits for the cluster to have quorum,
-making it easier to cancel the command if the cluster is inquorate.
-
-The dump option will read fenced's ring buffer of debug messages and print
-it to stdout.
+This utility controls and queries the
+.BR fenced (8)
+daemon with the following commands:
+.TP
+.B join
+join the fence domain.
+.TP
+.B leave
+leave the fence domain.
+.TP
+.B dump
+print the fenced internal debug buffer ont stdout.
+.TP
+.B ls
+display internal fenced state.
+.P
+The leave command will not be sent to fenced if fence_tool detects that
+any instances of gfs or dlm are in use.
 
 .SH OPTIONS
 .TP
-\fB-m\fP <n>
-Delay join up to n seconds for all nodes in cluster.conf to be cluster members.
+.B \-n
+Show all node information in ls.
 .TP
-\fB-w\fP
-Wait until the join or leave is completed.
+.BI \-t " seconds"
+Retry cman connection for this many seconds.
+0 none, -1 indefinite. Default 0.
 .TP
-\fB-h\fP
-Help.  Print out the usage syntax.
+.BI \-q " seconds"
+Delay join up to this many seconds for the cluster to have quorum.
+0 none, -1 indefinite. Default 0.
 .TP
-\fB-V\fP
-Print version information.
+.BI \-m " seconds"
+Delay join up to this many seconds for all nodes in cluster.conf to be
+cluster members.
+0 none, -1 indefinite. Default 0.
 .TP
-\fB-t\fP <n>
-Maximum time in seconds to wait for quorum or -w (default: 300 seconds)
+.BI \-w " seconds"
+Wait up to this many seconds for the result of join or leave.
+0 none, -1 indefinite. Default 0.
 .TP
-\fB-Q\fP
-Fail command immediately if the cluster is not quorate, don't wait.
+.B \-h
+Print a help message describing available options, then exit.
+.TP
+.B \-V
+Print program version information, then exit.
 
 .SH SEE ALSO
-fenced(8), fence(8), fence_node(8)
+.BR fenced (8)
+
