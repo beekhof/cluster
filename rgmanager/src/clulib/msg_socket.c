@@ -311,9 +311,10 @@ sock_msg_close(msgctx_t *ctx)
 static int
 sock_msg_accept(msgctx_t *listenctx, msgctx_t *acceptctx)
 {
-	errno = EINVAL;
 	struct ucred cred;
 	socklen_t credlen = sizeof(cred);
+
+	errno = EINVAL;
 
 	if (!listenctx || !acceptctx)
 		return -1;
