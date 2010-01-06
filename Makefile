@@ -7,18 +7,23 @@ REALSUBDIRS = gfs-kernel/src/gfs \
 
 SUBDIRS = $(filter-out \
 	  $(if ${without_common},common) \
-	  $(if ${without_gfs-kernel/src/gfs},gfs-kernel/src/gfs) \
 	  $(if ${without_config},config) \
 	  $(if ${without_cman},cman) \
 	  $(if ${without_dlm},dlm) \
 	  $(if ${without_fence},fence/libfenced) \
 	  $(if ${without_group},group) \
 	  $(if ${without_fence},fence) \
-	  $(if ${without_gfs},gfs) \
 	  $(if ${without_gfs2},gfs2) \
 	  $(if ${without_rgmanager},rgmanager) \
 	  $(if ${without_bindings},bindings) \
 	  , $(REALSUBDIRS))
+
+ifdef enable_gfs
+SUBDIRS += gfs
+endif
+ifdef enable_gfs-kernel/src/gfs
+SUBDIRS += gfs-kernel/src/gfs
+endif
 
 all: ${SUBDIRS}
 

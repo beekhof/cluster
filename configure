@@ -98,7 +98,7 @@ my %options = (
 	without_group => \$without_group,
 	without_fence => \$without_fence,
 	without_fence_agents => \$without_fence_agents,
-	without_gfs => \$without_gfs,
+	enable_gfs => \$enable_gfs,
 	without_gfs2 => \$without_gfs2,
 	without_rgmanager => \$without_rgmanager,
 	without_resource_agents => \$without_resource_agents,
@@ -186,7 +186,7 @@ my $err = &GetOptions (\%options,
 		    'without_group',
 		    'without_fence',
 		    'without_fence_agents',
-		    'without_gfs',
+		    'enable_gfs',
 		    'without_gfs2',
 		    'without_rgmanager',
 		    'without_resource_agents',
@@ -281,7 +281,7 @@ if ($help || !$err) {
   print "--without_group\tDisable group building  (Default: enabled)\n";
   print "--without_fence\tDisable fence building  (Default: enabled)\n";
   print "--without_fence_agents\tDisable fence_agents building  (Default: enabled)\n";
-  print "--without_gfs\tDisable gfs building  (Default: enabled)\n";
+  print "--enable_gfs\tEnable gfs building  (Default: disabled)\n";
   print "--without_gfs2\tDisable gfs2 building  (Default: enabled)\n";
   print "--without_rgmanager\tDisable rgmanager building  (Default: enabled)\n";
   print "--without_resource_agents\tDisable resource agents building  (Default: enabled)\n";
@@ -643,8 +643,8 @@ if (!$without_fence_agents) {
 } else {
   $fence_agents="none";
 }
-if (!$without_gfs) {
-  $without_gfs="";
+if (!$enable_gfs) {
+  $enable_gfs="";
 }
 if (!$without_gfs2) {
   $without_gfs2="";
@@ -659,9 +659,9 @@ if (!$without_bindings) {
   $without_bindings="";
 }
 if (!$without_kernel_modules) {
-  $without_gfskernel=$without_gfs;
+  $enable_gfskernel=$enable_gfs;
 } else {
-  $without_gfskernel=1;
+  $enable_gfskernel="";
 }
 if (!$disable_kernel_check) {
   $disable_kernel_check=0;
@@ -781,8 +781,8 @@ while (<IFILE>) {
   $_ =~ s/\@DISABLE_DLM\@/$without_dlm/;
   $_ =~ s/\@DISABLE_GROUP\@/$without_group/;
   $_ =~ s/\@DISABLE_FENCE\@/$without_fence/;
-  $_ =~ s/\@DISABLE_GFS\@/$without_gfs/;
-  $_ =~ s/\@DISABLE_GFSKERNEL\@/$without_gfskernel/;
+  $_ =~ s/\@ENABLE_GFS\@/$enable_gfs/;
+  $_ =~ s/\@ENABLE_GFSKERNEL\@/$enable_gfskernel/;
   $_ =~ s/\@DISABLE_GFS2\@/$without_gfs2/;
   $_ =~ s/\@DISABLE_RGMANAGER\@/$without_rgmanager/;
   $_ =~ s/\@DISABLE_RESOURCE_AGENTS\@/$without_resource_agents/;
