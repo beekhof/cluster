@@ -118,40 +118,48 @@ static int scan_inode_list(struct fsck_sb *sbp, osi_list_t *list) {
 				stack;
 				return -1;
 			}
-			/* We don't want to clear zero-size files with
-			 * eattrs - there might be relevent info in
-			 * them. */
-			if(!ip->i_di.di_size && !ip->i_di.di_eattr){
-				log_err("Unlinked inode has zero size\n");
-				errors_found++;
-				if(query(sbp, "Clear zero-size unlinked inode? (y/n) ")) {
-					errors_corrected++;
-					block_set(sbp->bl, ii->inode, block_free);
-					free_inode(&ip);
-					log_err("Unlinked inode with zero size cleared\n");
-					continue;
-				} else
-					log_err("Unlinked inode with zero size"
-						" not cleared\n");
-
-			}
-			errors_found++;
-			if(query(sbp, "Add unlinked inode to l+f? (y/n)")) {
-				if(add_inode_to_lf(ip)) {
-					stack;
-					free_inode(&ip);
-					log_err("Unable to unlinked inode to "
-						"l+f\n");
-					return -1;
-				} else {
-					fix_inode_count(sbp, ii, ip);
-					lf_addition = 1;
-					errors_corrected++;
-					log_err("Unlinked inode added to "
-						"l+f\n");
+			if(!sbp->opts->no) {
+				/* We don't want to clear zero-size files with
+				 * eattrs - there might be relevent info in
+				 * them. */
+				if(!ip->i_di.di_size && !ip->i_di.di_eattr){
+					log_err("Unlinked inode has zero "
+						"size\n");
+					errors_found++;
+					if(query(sbp, "Clear zero-size "
+						 "unlinked inode? (y/n) ")) {
+						errors_corrected++;
+						block_set(sbp->bl, ii->inode,
+							  block_free);
+						free_inode(&ip);
+						log_err("Unlinked inode with "
+							"zero size cleared\n");
+						continue;
+					} else
+						log_err("Unlinked inode with "
+							"zero size not "
+							"cleared\n");
 				}
-			} else
-				log_err("Unlinked inode left unlinked\n");
+				errors_found++;
+				if(query(sbp, "Add unlinked inode to l+f? "
+					 "(y/n)")) {
+					if(add_inode_to_lf(ip)) {
+						stack;
+						free_inode(&ip);
+						log_err("Unable to unlinked "
+							"inode to l+f\n");
+						return -1;
+					} else {
+						fix_inode_count(sbp, ii, ip);
+						lf_addition = 1;
+						errors_corrected++;
+						log_err("Unlinked inode added "
+							"to l+f\n");
+					}
+				} else
+					log_err("Unlinked inode left "
+						"unlinked\n");
+			}
 			free_inode(&ip);
 		}
 		else if(ii->link_count != ii->counted_links) {
