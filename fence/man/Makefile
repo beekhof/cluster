@@ -1,6 +1,6 @@
 include ../../make/defines.mk
 
-MANTARGET = fence.8 fenced.8 fence_node.8 fence_tool.8
+MANTARGET = fenced.8 fence_node.8 fence_tool.8
 
 ifdef fence_agents
 MANTARGET += \

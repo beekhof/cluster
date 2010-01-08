@@ -92,7 +92,7 @@ fence-agents-tarball: master-tarball
 		rm -rf bindings cman common config contrib dlm gfs* group \
 			rgmanager fence/fenced fence/fence_node \
 			fence/fence_tool fence/include fence/libfence \
-			fence/libfenced fence/man/fence.8 fence/man/fenced.8 \
+			fence/libfenced fence/man/fenced.8 \
 			fence/man/fence_node.8 fence/man/fence_tool.8 && \
 		sed -i -e 's/fence.8//g' -e 's/fenced.8//g' \
 			-e 's/fence_node.8//g' -e 's/fence_tool.8//g' \
