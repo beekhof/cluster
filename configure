@@ -618,7 +618,7 @@ if (!$enable_legacy_code) {
   $cflags="${cflags} -DLEGACY_CODE";
 }
 if (!$enable_pacemaker) {
-  $enable_pacemaker=""
+  $enable_pacemaker="";
 }
 if (!$without_common) {
   $without_common="";
