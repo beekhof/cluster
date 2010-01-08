@@ -16,19 +16,14 @@ SUBDIRS = $(filter-out \
 	  $(if ${without_gfs2},gfs2) \
 	  $(if ${without_rgmanager},rgmanager) \
 	  $(if ${without_bindings},bindings) \
+	  $(if ${enable_gfs},,gfs) \
+	  $(if ${enable_gfs-kernel/src/gfs},,gfs-kernel/src/gfs) \
 	  , $(REALSUBDIRS))
-
-ifdef enable_gfs
-SUBDIRS += gfs
-endif
-ifdef enable_gfs-kernel/src/gfs
-SUBDIRS += gfs-kernel/src/gfs
-endif
 
 all: ${SUBDIRS}
 
 ${SUBDIRS}:
-	[ -n "${without_$@}" ] || ${MAKE} -C $@ all
+	${MAKE} -C $@ all
 
 # Kernel
 
