@@ -202,10 +202,11 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 				  rg_status, block_status, q.block_type);
 			if((rg_status == GFS_BLKST_FREEMETA) &&
 			   (block_status == GFS_BLKST_FREE)) {
-				errors_found++;
-				log_info("Converting free metadata block at %"
-					 PRIu64" to a free data block\n", block);
 				if(!sbp->opts->no) {
+					errors_found++;
+					log_info("Converting free metadata "
+						 "block at %" PRIu64 " to a "
+						 "free data block\n", block);
 					if(fs_set_bitmap(sbp, block, block_status)) {
 						log_warn("Failed to convert free metadata block to free data block at %PRIu64.\n", block);
 					}
@@ -214,6 +215,9 @@ static int check_block_status(struct fsck_sb *sbp, char *buffer, unsigned int bu
 						errors_corrected++;
 					}
 				}
+				/* If we have free_meta blocks but -n was
+				   specified, we can't convert them.  But it's
+				   also not technically an error. */
 			}
 			else {
 				const char *blockstatus[] = {"Free", "Data",
