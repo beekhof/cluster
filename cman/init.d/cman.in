@@ -342,7 +342,7 @@ cman_checkconfig()
 
 xend_bridged_net_enabled() {
 	# Not a xen kernel
-	test -d /proc/xen || return 1
+	[ -d /proc/xen ] || return 1
 
 	# uanble to determine current runlevel
 	current_runlevel=$( runlevel 2>/dev/null | \
