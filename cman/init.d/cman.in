@@ -19,8 +19,6 @@
 # set secure PATH
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:@SBINDIR@"
 
-[ -x @SBINDIR@/cman_tool ] || exit 0
-
 local_chkconfig()
 {
 	case "$1" in
@@ -222,12 +220,29 @@ runwrap()
 	fi
 }
 
+check_exec()
+{
+	exec=$1
+
+	realexec="$(type -p $exec)"
+	if [ -z "$realexec" ]; then
+		errmsg="Unable to find $exec in PATH"
+		return 1
+	fi
+	if [ ! -x "$realexec" ]; then
+		errmsg="$realexec not executable"
+		return 1
+	fi
+	return 0
+}
+
 start_daemon()
 {
 	daemon=$1
 	shift
 	args="$@"
 
+	check_exec $daemon || return $?
 	status $daemon > /dev/null 2>&1 && return 0
 	errmsg=$( $daemon $args 2>&1 )
 }
@@ -505,6 +520,7 @@ stop_configfs()
 
 start_cman()
 {
+	check_exec cman_tool || return $?
 	cman_running && return 0
 	cman_checkconfig || return 1
 
