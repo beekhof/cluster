@@ -19,6 +19,8 @@
 # set secure PATH
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:@SBINDIR@"
 
+[ -x @SBINDIR@/cman_tool ] || exit 0
+
 local_chkconfig()
 {
 	case "$1" in
