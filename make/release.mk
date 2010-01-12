@@ -47,11 +47,6 @@ RGMPROJECT=rgmanager
 RGMPV=$(RGMPROJECT)-$(VERSION)
 RGMTGZ=$(TEST)$(RGMPV).tar.gz
 
-# gfs-utils
-GFSPROJECT=gfs-utils
-GFSPV=$(GFSPROJECT)-$(VERSION)
-GFSTGZ=$(TEST)$(GFSPV).tar.gz
-
 all: tag tarballs
 
 ifdef RELEASE
@@ -67,7 +62,6 @@ tarballs: master-tarball
 tarballs: fence-agents-tarball
 tarballs: resource-agents-tarball
 tarballs: rgmanager-tarball
-tarballs: gfs-tarball
 
 master-tarball:
 	git archive \
@@ -128,23 +122,11 @@ rgmanager-tarball: master-tarball
 		> ../$(RGMTGZ)
 	rm -rf $(RGMPV)
 
-gfs-tarball: master-tarball
-	tar zxpf ../$(MASTERTGZ)
-	mv $(MASTERPROJECT)-$(VERSION) $(GFSPV)
-	cd $(GFSPV) && \
-		rm -rf bindings cman common config contrib dlm fence group \
-			rgmanager gfs2
-	tar cp $(GFSPV) | \
-		gzip -9 \
-		> ../$(GFSTGZ)
-	rm -rf $(GFSPV)
-
 publish:
 	git push --tags origin
 	scp ../$(MASTERTGZ) \
 	    ../$(FENCETGZ) \
 	    ../$(RASTGZ) \
-	    ../$(GFSTGZ) \
 	    ../$(RGMTGZ) \
 		fedorahosted.org:$(MASTERPROJECT)
 	git log $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) | \
