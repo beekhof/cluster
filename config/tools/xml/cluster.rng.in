@@ -29,21 +29,12 @@ To validate your cluster.conf against this schema, run:
 -->
 
 <start>
-<element name="cluster" rha:description="The cluster element is the
-    top-level element and contains attributes that define the cluster
-    name and the configuration version number.">
- <attribute name="name" rha:description="Specifies a unique cluster name;
-      it can be up to 16 characters long." rha:sample="my_cluster"/>
- <attribute name="config_version" rha:description="Identifies the
-     revision level of the cluster.conf file. To propagate a revised
-     configuration file, this value must be advanced to a value higher
-     than the current value." rha:sample="1" rha:default="1"/>
- <optional>
-  <attribute name="alias" rha:description="Pretty name for cluster that
-      is not parsed by cluster software; only the Conga and
-      system-config-cluster GUIs use this value."
-      rha:sample="My Cluster"/>
- </optional>
+<element name="cluster" rha:description="Defines cluster properties, and
+    contains all other configuration. cluster.conf(5).">
+ <attribute name="name" rha:description="Name of the cluster.
+     cluster.conf(5)"/>
+ <attribute name="config_version" rha:description="Revision level
+     of cluster.conf file. cluster.conf(5)"/>
  <interleave>
 
 <!-- cman block -->
@@ -588,120 +579,145 @@ To validate your cluster.conf against this schema, run:
 
 <!-- logging block -->
  <optional>
-  <element name="logging" rha:description="Global logging config applies
-    to all daemons.">
+  <element name="logging" rha:description="Defines global logging
+      configuration, and contains daemon-specific configuration.
+      cluster.conf(5)">
+
    <optional>
-    <attribute name="to_syslog" rha:description="enable/disable messages to
-      syslog" rha:default="yes"/>
+    <attribute name="to_syslog" rha:description="Set to yes/no to
+        enable/disable messages to syslog. cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <attribute name="to_logfile" rha:description="enable/disable messages to
-      log file" rha:default="yes"/>
+    <attribute name="to_logfile" rha:description="Set to yes/no to
+        enable/disable messages to log file. cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <attribute name="syslog_facility" rha:description="facility used for
-      syslog messages" rha:default="daemon"/>
+    <attribute name="syslog_facility" rha:description="The facility
+        used for syslog messages. cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <attribute name="syslog_priority" rha:description="messages at this level
-      and up will be sent to syslog" rha:default="info"/>
+    <attribute name="syslog_priority" rha:description="Messages at this
+        level and higher are sent to syslog. cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <attribute name="logfile_priority" rha:description="messages at this level
-      and up will be written to log file" rha:default="info"/>
+    <attribute name="logfile_priority" rha:description="Messages at this
+        level and higher are written to log file. cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <attribute name="logfile" rha:description="the log file name"
-      rha:default="/var/log/cluster/daemon_name.log"/>
+    <attribute name="logfile" rha:description="The log file path name.
+        cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <attribute name="debug" rha:description="turn on debugging, a shortcut for
-      setting logfile_priority to debug" rha:sample="on"/>
+    <attribute name="debug" rha:description="Set to on to enable debugging
+        messages in log file. cluster.conf(5)"/>
    </optional>
+
    <optional>
-    <element name="logging_daemon" rha:description="Per-daemon logging
-      config overrides global settings for named daemon.">
-     <attribute name="name" rha:description="daemon name" rha:sample="fenced"/>
+    <element name="logging_daemon" rha:description="Defines
+        daemon-specific logging configuration. cluster.conf(5)">
+
+     <attribute name="name" rha:description="The daemon name.
+         cluster.conf(5)"/>
+
      <optional>
-      <attribute name="subsys" rha:description="corosync subsystem name"
-        rha:sample="CMAN"/>
+      <attribute name="subsys" rha:description="A corosync subsystem name.
+          cluster.conf(5)"/>
+     </optional>
+
+     <optional>
+      <attribute name="to_syslog" rha:description="Same as global."/>
      </optional>
      <optional>
-      <attribute name="to_syslog" rha:description="same as global"/>
+      <attribute name="to_logfile" rha:description="Same as global."/>
      </optional>
      <optional>
-      <attribute name="to_logfile" rha:description="same as global"/>
+      <attribute name="syslog_facility" rha:description="Same as global."/>
      </optional>
      <optional>
-      <attribute name="syslog_facility" rha:description="same as global"/>
+      <attribute name="syslog_priority" rha:description="Same as global."/>
      </optional>
      <optional>
-      <attribute name="syslog_priority" rha:description="same as global"/>
+      <attribute name="logfile_priority" rha:description="Same as global."/>
      </optional>
      <optional>
-      <attribute name="logfile_priority" rha:description="same as global"/>
+      <attribute name="logfile" rha:description="Same as global."/>
      </optional>
      <optional>
-      <attribute name="logfile" rha:description="same as global"/>
+      <attribute name="debug" rha:description="Same as global."/>
      </optional>
-     <optional>
-      <attribute name="debug" rha:description="same as global"/>
-     </optional>
+
     </element>
    </optional>
+
   </element>
  </optional>
 <!-- end logging block -->
 
-<!-- clusternode block -->
- <element name="clusternodes" rha:description="This element defines the
-     cluster nodes configuration; it contains one clusternode element
-     per node.">
-   <zeroOrMore>
-     <element name="clusternode" rha:description="This element and its
-         attributes define a cluster node, specifying node name, node ID,
-         number of quorum votes, and fencing method for that node. There
-         is one clusernode element per node in a cluster.">
-      <attribute name="name" rha:description="The hostname or the IP
-          address of the node." rha:sample="node-01">
-	 <data type="ID"/>
-       </attribute>
-       <attribute name="nodeid" rha:description="Each node requires
-              a unique integer value as its node ID." rha:sample="1">
-          <data type="positiveInteger"/>
-       </attribute>
-       <optional>
-	 <attribute name="votes" rha:description="The number of votes a
-            node can cast" rha:sample="2" rha:default="1">
-	   <data type="positiveInteger"/>
-	 </attribute>
-       </optional>
-       <optional>
-	 <attribute name="weight" rha:description="" rha:sample=""/>
-       </optional>
-       <optional>
-         <element name="altname" rha:description="">
-           <optional>
-             <attribute name="name" rha:description="" rha:sample=""/>
-           </optional>
-           <optional>
-             <attribute name="port" rha:description="" rha:sample=""/>
-           </optional>
-           <optional>
-             <attribute name="mcast" rha:description="" rha:sample=""/>
-           </optional>
-         </element>
-       </optional>
-       <interleave>
-	 <optional>
-	   <ref name="FENCE"/>
-	 </optional>
-	 <optional>
-	   <ref name="UNFENCE"/>
-	 </optional>
-       </interleave>
-     </element>
-   </zeroOrMore>
+<!-- clusternodes block -->
+ <element name="clusternodes" rha:description="Contains all cluster
+     node definitions. cluster.conf(5)">
+
+  <zeroOrMore>
+   <element name="clusternode" rha:description="Defines cluster node
+       properties, and contains other node specific configuration.
+       cluster.conf(5)">
+
+   <attribute name="name" rha:description="The hostname or IP address
+       of the node. cluster.conf(5)"/>
+
+   <attribute name="nodeid" rha:description="A unique integer to use
+       as a node identifier. cluster.conf(5)">
+    <data type="positiveInteger"/>
+   </attribute>
+
+   <optional>
+    <attribute name="votes" rha:description="The number of votes the
+        node contributes to quorum. cman(5)">
+     <data type="positiveInteger"/>
+    </attribute>
+   </optional>
+
+   <optional>
+    <attribute name="weight" rha:description="The dlm locking weight.
+        dlm_controld(8)"/>
+   </optional>
+
+   <optional>
+    <element name="altname" rha:description="Defines a second network
+        interface to use for corosync redundant ring mode. cman(5)">
+
+     <attribute name="name" rha:description="A second hostname or IP
+        address of the node. cman(5)"/>
+
+     <optional>
+      <attribute name="port" rha:description="The network port to use
+          on the second interface. cman(5)"/>
+     </optional>
+
+     <optional>
+      <attribute name="mcast" rha:description="The multicast address
+          to use on the second interface. cman(5)"/>
+     </optional>
+    </element>
+   </optional>
+
+   <interleave>
+    <optional>
+     <ref name="FENCE"/>
+    </optional>
+    <optional>
+     <ref name="UNFENCE"/>
+    </optional>
+   </interleave>
+
+   </element>
+  </zeroOrMore>
  </element>
 <!-- end clusternode block -->
 
