@@ -666,15 +666,13 @@ To validate your cluster.conf against this schema, run:
           address of the node." rha:sample="node-01">
 	 <data type="ID"/>
        </attribute>
+       <attribute name="nodeid" rha:description="Each node requires
+              a unique integer value as its node ID." rha:sample="1">
+          <data type="positiveInteger"/>
+       </attribute>
        <optional>
 	 <attribute name="votes" rha:description="The number of votes a
             node can cast" rha:sample="2" rha:default="1">
-	   <data type="positiveInteger"/>
-	 </attribute>
-       </optional>
-       <optional>
-	 <attribute name="nodeid" rha:description="Each node requires
-             a unique integer value as its node ID." rha:sample="1">
 	   <data type="positiveInteger"/>
 	 </attribute>
        </optional>
