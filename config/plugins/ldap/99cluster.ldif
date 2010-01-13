@@ -1,4 +1,4 @@
-# Auto-generated @ 2009-12-07 14:40:21
+# Auto-generated @ 2010-01-13 09:34:51
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.15 NAME 'rhcsAlias'
@@ -314,8 +314,8 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.70 NAME 'rhcsUse-uuid'
-  EQUALITY booleanMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
   )
 attributeTypes: (
@@ -1605,8 +1605,8 @@ objectClasses: (
 #   )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.10 NAME 'rhcsClusternode' SUP top STRUCTURAL
-     MUST ( name )
-     MAY ( rhcsWeight $ rhcsNodeid $ rhcsVotes )
+     MUST ( rhcsNodeid $ name )
+     MAY ( rhcsWeight $ rhcsVotes )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.11 NAME 'rhcsAltname' SUP top STRUCTURAL
