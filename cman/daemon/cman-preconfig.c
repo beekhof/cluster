@@ -256,27 +256,27 @@ static int add_ifaddr(struct objdb_iface_ver0 *objdb, char *mcast, char *ifaddr,
 		void *addrptr;
 
 		sprintf(tmp, "%d", num_interfaces);
-		objdb->object_key_create(interface_object_handle, "ringnumber", strlen("ringnumber"),
-					 tmp, strlen(tmp)+1);
+		objdb->object_key_create_typed(interface_object_handle, "ringnumber",
+					       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 		if (if_addr.ss_family == AF_INET)
 			addrptr = &in->sin_addr;
 		else
 			addrptr = &in6->sin6_addr;
 		inet_ntop(if_addr.ss_family, addrptr, tmp, sizeof(tmp));
-		objdb->object_key_create(interface_object_handle, "bindnetaddr", strlen("bindnetaddr"),
-					 tmp, strlen(tmp)+1);
+		objdb->object_key_create_typed(interface_object_handle, "bindnetaddr",
+					       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 		if (broadcast)
-			objdb->object_key_create(interface_object_handle, "broadcast", strlen("broadcast"),
-						 "yes", strlen("yes")+1);
+			objdb->object_key_create_typed(interface_object_handle, "broadcast",
+						       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
 		else
-			objdb->object_key_create(interface_object_handle, "mcastaddr", strlen("mcastaddr"),
-						 mcast, strlen(mcast)+1);
+		        objdb->object_key_create_typed(interface_object_handle, "mcastaddr",
+						       mcast, strlen(mcast)+1, OBJDB_VALUETYPE_STRING);
 
 		sprintf(tmp, "%d", port);
-		objdb->object_key_create(interface_object_handle, "mcastport", strlen("mcastport"),
-					 tmp, strlen(tmp)+1);
+		objdb->object_key_create_typed(interface_object_handle, "mcastport",
+					       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 		num_interfaces++;
 	}
@@ -601,8 +601,8 @@ static int get_nodename(struct objdb_iface_ver0 *objdb)
 		/* See if the user wants our default set of openais services (default=yes) */
 		objdb_get_int(objdb, object_handle, "disable_openais", &disable_openais, 0);
 
-		objdb->object_key_create(object_handle, "nodename", strlen("nodename"),
-					    nodename, strlen(nodename)+1);
+		objdb->object_key_create_typed(object_handle, "nodename",
+					       nodename, strlen(nodename)+1, OBJDB_VALUETYPE_STRING);
 	}
 	objdb->object_find_destroy(find_handle);
 
@@ -677,33 +677,32 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	{
 		char *value;
 
-		objdb->object_key_create(object_handle, "version", strlen("version"),
-					 "2", 2);
+		objdb->object_key_create_typed(object_handle, "version",
+					       "2", 2, OBJDB_VALUETYPE_STRING);
 
 		sprintf(tmp, "%d", nodeid);
-		objdb->object_key_create(object_handle, "nodeid", strlen("nodeid"),
-					 tmp, strlen(tmp)+1);
+		objdb->object_key_create_typed(object_handle, "nodeid",
+					       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
-		objdb->object_key_create(object_handle, "vsftype", strlen("vsftype"),
-					 "none", strlen("none")+1);
+		objdb->object_key_create_typed(object_handle, "vsftype",
+					       "none", strlen("none")+1, OBJDB_VALUETYPE_STRING);
 
 		/* Set the token timeout is 10 seconds, but don't overrride anything that
 		   might be in cluster.conf */
 		if (objdb_get_string(objdb, object_handle, "token", &value)) {
 			snprintf(tmp, sizeof(tmp), "%d", DEFAULT_TOKEN_TIMEOUT);
-			objdb->object_key_create(object_handle, "token", strlen("token"),
-						 tmp, strlen(tmp)+1);
+			objdb->object_key_create_typed(object_handle, "token",
+						       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 		}
 		if (objdb_get_string(objdb, object_handle, "token_retransmits_before_loss_const", &value)) {
-			objdb->object_key_create(object_handle, "token_retransmits_before_loss_const",
-						 strlen("token_retransmits_before_loss_const"),
-						 "20", strlen("20")+1);
+			objdb->object_key_create_typed(object_handle, "token_retransmits_before_loss_const",
+						       "20", strlen("20")+1, OBJDB_VALUETYPE_STRING);
 		}
 
 		/* Extend consensus & join timeouts per bz#214290 */
 		if (objdb_get_string(objdb, object_handle, "join", &value)) {
-			objdb->object_key_create(object_handle, "join", strlen("join"),
-						 "60", strlen("60")+1);
+			objdb->object_key_create_typed(object_handle, "join",
+						       "60", strlen("60")+1, OBJDB_VALUETYPE_STRING);
 		}
 		/* consensus should be 2*token, see bz#544482*/
 		if (objdb_get_string(objdb, object_handle, "consensus", &value)) {
@@ -712,26 +711,26 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 
 			objdb_get_int(objdb, object_handle, "token", &token, DEFAULT_TOKEN_TIMEOUT);
 			sprintf(calc_consensus, "%d", token*2);
-			objdb->object_key_create(object_handle, "consensus", strlen("consensus"),
-						 calc_consensus, strlen(calc_consensus)+1);
+			objdb->object_key_create_typed(object_handle, "consensus",
+						       calc_consensus, strlen(calc_consensus)+1, OBJDB_VALUETYPE_STRING);
 		}
 
 		/* Set RRP mode appropriately */
 		if (objdb_get_string(objdb, object_handle, "rrp_mode", &value)) {
 			if (num_interfaces > 1) {
-				objdb->object_key_create(object_handle, "rrp_mode", strlen("rrp_mode"),
-							 "active", strlen("active")+1);
+				objdb->object_key_create_typed(object_handle, "rrp_mode",
+							       "active", strlen("active")+1, OBJDB_VALUETYPE_STRING);
 			}
 			else {
-				objdb->object_key_create(object_handle, "rrp_mode", strlen("rrp_mode"),
-							 "none", strlen("none")+1);
+				objdb->object_key_create_typed(object_handle, "rrp_mode",
+							       "none", strlen("none")+1, OBJDB_VALUETYPE_STRING);
 			}
 		}
 
 		if (objdb_get_string(objdb, object_handle, "secauth", &value)) {
 			sprintf(tmp, "%d", 1);
-			objdb->object_key_create(object_handle, "secauth", strlen("secauth"),
-						 tmp, strlen(tmp)+1);
+			objdb->object_key_create_typed(object_handle, "secauth",
+						       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 		}
 
 		/* optional security key filename */
@@ -739,8 +738,8 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 			objdb_get_string(objdb, object_handle, "keyfile", &key_filename);
 		}
 		else {
-			objdb->object_key_create(object_handle, "keyfile", strlen("keyfile"),
-						 key_filename, strlen(key_filename)+1);
+			objdb->object_key_create_typed(object_handle, "keyfile",
+						       key_filename, strlen(key_filename)+1, OBJDB_VALUETYPE_STRING);
 		}
 		if (!key_filename) {
 			/* Use the cluster name as key,
@@ -756,8 +755,8 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 
 			/* Key length must be a multiple of 4 */
 			keylen = (strlen(cluster_name)+4) & 0xFC;
-			objdb->object_key_create(object_handle, "key", strlen("key"),
-						 tmp, keylen);
+			objdb->object_key_create_typed(object_handle, "key",
+						       tmp, keylen, OBJDB_VALUETYPE_STRING);
 		}
 	}
 	objdb->object_find_destroy(find_handle);
@@ -776,40 +775,40 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 
 	/* enable timestamps on logging */
 	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
-		objdb->object_key_create(object_handle, "timestamp", strlen("timestamp"),
-					    "on", strlen("on")+1);
+		objdb->object_key_create_typed(object_handle, "timestamp",
+					       "on", strlen("on")+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* configure logfile */
 	if (objdb_get_string(objdb, object_handle, "to_logfile", &logstr)) {
-		objdb->object_key_create(object_handle, "to_logfile", strlen("to_logfile"),
-					    "yes", strlen("yes")+1);
+		objdb->object_key_create_typed(object_handle, "to_logfile",
+					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	if (objdb_get_string(objdb, object_handle, "logfile", &logstr)) {
-		objdb->object_key_create(object_handle, "logfile", strlen("logfile"),
-					    LOGDIR "/corosync.log", strlen(LOGDIR "/corosync.log")+1);
+		objdb->object_key_create_typed(object_handle, "logfile",
+					       LOGDIR "/corosync.log", strlen(LOGDIR "/corosync.log")+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	if (objdb_get_string(objdb, object_handle, "logfile_priority", &logstr)) {
-		objdb->object_key_create(object_handle, "logfile_priority", strlen("logfile_priority"),
-					    loglevel, strlen(loglevel)+1);
+		objdb->object_key_create_typed(object_handle, "logfile_priority",
+					       loglevel, strlen(loglevel)+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* syslog */
 	if (objdb_get_string(objdb, object_handle, "to_syslog", &logstr)) {
-		objdb->object_key_create(object_handle, "to_syslog", strlen("to_syslog"),
-					    "yes", strlen("yes")+1);
+		objdb->object_key_create_typed(object_handle, "to_syslog",
+					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	if (objdb_get_string(objdb, object_handle, "syslog_facility", &logstr)) {
-		objdb->object_key_create(object_handle, "syslog_facility", strlen("syslog_facility"),
-					    logfacility, strlen(logfacility)+1);
+		objdb->object_key_create_typed(object_handle, "syslog_facility",
+					 logfacility, strlen(logfacility)+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	if (objdb_get_string(objdb, object_handle, "syslog_priority", &logstr)) {
-		objdb->object_key_create(object_handle, "syslog_priority", strlen("syslog_priority"),
-					    loglevel, strlen(loglevel)+1);
+		objdb->object_key_create_typed(object_handle, "syslog_priority",
+					       loglevel, strlen(loglevel)+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	if (!debug) {
@@ -835,8 +834,8 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	}
 
 	if (debug) {
-		objdb->object_key_create(object_handle, "to_stderr", strlen("to_stderr"),
-					    "yes", strlen("yes")+1);
+		objdb->object_key_create_typed(object_handle, "to_stderr",
+					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* Make sure we allow connections from user/group "ais" */
@@ -846,10 +845,10 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 					"aisexec", strlen("aisexec"));
 	}
 	objdb->object_find_destroy(find_handle);
-	objdb->object_key_create(object_handle, "user", strlen("user"),
-				    "ais", strlen("ais") + 1);
-	objdb->object_key_create(object_handle, "group", strlen("group"),
-				    "ais", strlen("ais") + 1);
+	objdb->object_key_create_typed(object_handle, "user",
+				 "ais", strlen("ais") + 1, OBJDB_VALUETYPE_STRING);
+	objdb->object_key_create_typed(object_handle, "group",
+				 "ais", strlen("ais") + 1, OBJDB_VALUETYPE_STRING);
 
 	objdb->object_find_create(cluster_parent_handle, "cman", strlen("cman"), &find_handle);
 	if (objdb->object_find_next(find_handle, &object_handle) == 0)
@@ -858,13 +857,13 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 
 		sprintf(str, "%d", cluster_id);
 
-		objdb->object_key_create(object_handle, "cluster_id", strlen("cluster_id"),
-					 str, strlen(str) + 1);
+		objdb->object_key_create_typed(object_handle, "cluster_id",
+					       str, strlen(str) + 1, OBJDB_VALUETYPE_STRING);
 
 		if (two_node) {
 			sprintf(str, "%d", 1);
-			objdb->object_key_create(object_handle, "two_node", strlen("two_node"),
-						 str, strlen(str) + 1);
+			objdb->object_key_create_typed(object_handle, "two_node",
+						       str, strlen(str) + 1, OBJDB_VALUETYPE_STRING);
 		}
 	}
 	objdb->object_find_destroy(find_handle);
@@ -872,18 +871,18 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	/* Load the quorum service */
 	objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
 			     "service", strlen("service"));
-	objdb->object_key_create(object_handle, "name", strlen("name"),
-				 "corosync_quorum", strlen("corosync_quorum") + 1);
-	objdb->object_key_create(object_handle, "ver", strlen("ver"),
-				 "0", 2);
+	objdb->object_key_create_typed(object_handle, "name",
+				       "corosync_quorum", strlen("corosync_quorum") + 1, OBJDB_VALUETYPE_STRING);
+	objdb->object_key_create_typed(object_handle, "ver",
+				       "0", 2, OBJDB_VALUETYPE_STRING);
 
 	/* Make sure we load our alter-ego - the main cman module */
 	objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
 			     "service", strlen("service"));
-	objdb->object_key_create(object_handle, "name", strlen("name"),
-				 "corosync_cman", strlen("corosync_cman") + 1);
-	objdb->object_key_create(object_handle, "ver", strlen("ver"),
-				 "0", 2);
+	objdb->object_key_create_typed(object_handle, "name",
+				       "corosync_cman", strlen("corosync_cman") + 1, OBJDB_VALUETYPE_STRING);
+	objdb->object_key_create_typed(object_handle, "ver",
+				       "0", 2, OBJDB_VALUETYPE_STRING);
 
 	/* Define cman as the quorum provider for corosync */
 	objdb->object_find_create(OBJECT_PARENT_HANDLE, "quorum", strlen("quorum"), &find_handle);
@@ -893,8 +892,8 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	}
 	objdb->object_find_destroy(find_handle);
 
-	objdb->object_key_create(object_handle, "provider", strlen("provider"),
-				 "quorum_cman", strlen("quorum_cman") + 1);
+	objdb->object_key_create_typed(object_handle, "provider",
+				       "quorum_cman", strlen("quorum_cman") + 1, OBJDB_VALUETYPE_STRING);
 }
 
 /* If ccs is not available then use some defaults */
@@ -983,20 +982,20 @@ static int set_noccs_defaults(struct objdb_iface_ver0 *objdb)
 			     "clusternodes", strlen("clusternodes"));
 	objdb->object_create(object_handle, &object_handle,
 			     "clusternode", strlen("clusternode"));
-	objdb->object_key_create(object_handle, "name", strlen("name"),
-				 nodename, strlen(nodename)+1);
+	objdb->object_key_create_typed(object_handle, "name",
+				       nodename, strlen(nodename)+1, OBJDB_VALUETYPE_STRING);
 
 	sprintf(tmp, "%d", votes);
-	objdb->object_key_create(object_handle, "votes", strlen("votes"),
-				 tmp, strlen(tmp)+1);
+	objdb->object_key_create_typed(object_handle, "votes",
+				       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 	sprintf(tmp, "%d", nodeid);
-	objdb->object_key_create(object_handle, "nodeid", strlen("nodeid"),
-				 tmp, strlen(tmp)+1);
+	objdb->object_key_create_typed(object_handle, "nodeid",
+				       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 	/* Write the default cluster name & ID in here too */
-	objdb->object_key_create(cluster_parent_handle, "name", strlen("name"),
-				 cluster_name, strlen(cluster_name)+1);
+	objdb->object_key_create_typed(cluster_parent_handle, "name",
+				       cluster_name, strlen(cluster_name)+1, OBJDB_VALUETYPE_STRING);
 
 
 	objdb->object_find_create(cluster_parent_handle, "cman", strlen("cman"), &find_handle);
@@ -1006,12 +1005,12 @@ static int set_noccs_defaults(struct objdb_iface_ver0 *objdb)
                                             "cman", strlen("cman"));
         }
 	sprintf(tmp, "%d", cluster_id);
-	objdb->object_key_create(object_handle, "cluster_id", strlen("cluster_id"),
-				    tmp, strlen(tmp)+1);
+	objdb->object_key_create_typed(object_handle, "cluster_id",
+				       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 	sprintf(tmp, "%d", expected_votes);
-	objdb->object_key_create(object_handle, "expected_votes", strlen("expected_votes"),
-				    tmp, strlen(tmp)+1);
+	objdb->object_key_create_typed(object_handle, "expected_votes",
+				       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 
 	objdb->object_find_destroy(find_handle);
 	return 0;
@@ -1045,8 +1044,8 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, hdb_handle_t source_
 	while (!objdb->object_key_iter(source_object, &key_name, &key_name_len,
 				       &key_value, &key_value_len)) {
 
-		objdb->object_key_create(new_object, key_name, key_name_len,
-					 key_value, key_value_len);
+		objdb->object_key_create_typed(new_object, key_name,
+					       key_value, key_value_len, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* Create sub-objects */
@@ -1211,8 +1210,8 @@ static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluste
 	if (objdb->object_key_get(groupd_handle, groupd_compat, strlen(groupd_compat),
 				  (void *)&value, NULL) ||
 	    !value) {
-		objdb->object_key_create(groupd_handle, groupd_compat, strlen(groupd_compat),
-					 "1", 2);
+		objdb->object_key_create_typed(groupd_handle, groupd_compat,
+					       "1", 2, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* Make clvmd use cman */
@@ -1220,8 +1219,8 @@ static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluste
 	if (objdb->object_key_get(clvmd_handle, clvmd_interface, strlen(clvmd_interface),
 				  (void *)&value, NULL) ||
 	    !value) {
-		objdb->object_key_create(clvmd_handle, clvmd_interface, strlen(clvmd_interface),
-					 "cman", 5);
+		objdb->object_key_create_typed(clvmd_handle, clvmd_interface,
+					       "cman", 5, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* Make cman use disallowed mode */
@@ -1229,8 +1228,8 @@ static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluste
 	if (objdb->object_key_get(cman_handle, cman_disallowed, strlen(cman_disallowed),
 				  (void *)&value, NULL) ||
 	    !value) {
-		objdb->object_key_create(cman_handle, cman_disallowed, strlen(cman_disallowed),
-					 "1", 2);
+		objdb->object_key_create_typed(cman_handle, cman_disallowed,
+					       "1", 2, OBJDB_VALUETYPE_STRING);
 	}
 
 	/* Make totem use the old communications method */
@@ -1238,8 +1237,8 @@ static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluste
 	if (objdb->object_key_get(totem_handle, totem_crypto, strlen(totem_crypto),
 				  (void *)&value, NULL) ||
 	    !value) {
-		objdb->object_key_create(totem_handle, totem_crypto, strlen(totem_crypto),
-					 "old", 4);
+		objdb->object_key_create_typed(totem_handle, totem_crypto,
+					       "old", 4, OBJDB_VALUETYPE_STRING);
 	}
 }
 
@@ -1295,8 +1294,8 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
 		objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
 					"libccs", strlen("libccs"));
 
-		objdb->object_key_create(object_handle, "next_handle", strlen("next_handle"),
-					 &next_handle, sizeof(int));
+		objdb->object_key_create_typed(object_handle, "next_handle",
+					       &next_handle, sizeof(uint32_t), OBJDB_VALUETYPE_UINT32);
 	}
 	objdb->object_find_destroy(find_handle);
 

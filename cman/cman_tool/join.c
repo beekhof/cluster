@@ -348,21 +348,28 @@ int join(commandline_t *comline, char *main_envp[])
 		int envnum = 0;
 		const char *envvar = main_envp[envnum];
 		const char *equal;
+		char envname[PATH_MAX];
+
 
 		while (envvar) {
 			if (strncmp("COROSYNC_", envvar, 9) == 0) {
 				equal = strchr(envvar, '=');
 				if (equal) {
-					res = confdb_key_create(confdb_handle, object_handle, envvar, equal-envvar,
-								equal+1, strlen(equal+1));
+				        strncpy(envname, envvar, PATH_MAX);
+					if (equal-envvar < PATH_MAX) {
+					    envname[equal-envvar] = '\0';
+					
+					    res = confdb_key_create_typed(confdb_handle, object_handle, envname,
+									  equal+1, strlen(equal+1),CONFDB_VALUETYPE_STRING);
+					}
 				}
 			}
 			envvar = main_envp[++envnum];
 		}
 	}
-	res = confdb_key_create(confdb_handle, object_handle,
-				"COROSYNC_DEFAULT_CONFIG_IFACE", strlen("COROSYNC_DEFAULT_CONFIG_IFACE"),
-				config_modules, strlen(config_modules));
+	res = confdb_key_create_typed(confdb_handle, object_handle,
+				      "COROSYNC_DEFAULT_CONFIG_IFACE",
+				      config_modules, strlen(config_modules), CONFDB_VALUETYPE_STRING);
 	confdb_finalize (confdb_handle);
 
 join_exit:

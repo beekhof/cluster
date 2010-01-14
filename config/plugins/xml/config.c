@@ -56,13 +56,13 @@ static void addkeys(xmlAttrPtr tmpattr, struct objdb_iface_ver0 *objdb,
 {
 	for (tmpattr = tmpattr; tmpattr; tmpattr = tmpattr->next) {
 		if (tmpattr->type == XML_ATTRIBUTE_NODE)
-			objdb->object_key_create(object_handle,
+			objdb->object_key_create_typed(object_handle,
 						 (char *)tmpattr->name,
-						 strlen((char *)tmpattr->name),
 						 (char *)tmpattr->children->
 						 content,
 						 strlen((char *)tmpattr->
-							children->content) + 1);
+							children->content) + 1,
+						 OBJDB_VALUETYPE_STRING);
 	}
 }
 

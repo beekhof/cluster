@@ -241,9 +241,9 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 
 	memset(buf, 0, sizeof(buf));
 	snprintf(buf, sizeof(buf), "%d", ccs_handle);
-	if (confdb_key_create
-	    (handle, connection_handle, "ccs_handle", strlen("ccs_handle"), buf,
-	     strlen(buf) + 1) != CS_OK) {
+	if (confdb_key_create_typed
+	    (handle, connection_handle, "ccs_handle", buf,
+	     strlen(buf) + 1, CONFDB_VALUETYPE_STRING) != CS_OK) {
 		destroy_ccs_handle(handle, connection_handle);
 		errno = ENOMEM;
 		return -1;
@@ -251,9 +251,9 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 
 	memset(buf, 0, sizeof(buf));
 	snprintf(buf, sizeof(buf), "%d", config_version);
-	if (confdb_key_create
+	if (confdb_key_create_typed
 	    (handle, connection_handle, "config_version",
-	     strlen("config_version"), buf, strlen(buf) + 1) != CS_OK) {
+	     buf, strlen(buf) + 1, CONFDB_VALUETYPE_STRING) != CS_OK) {
 		destroy_ccs_handle(handle, connection_handle);
 		errno = ENOMEM;
 		return -1;
@@ -261,9 +261,9 @@ static hdb_handle_t create_ccs_handle(confdb_handle_t handle, int ccs_handle,
 
 	memset(buf, 0, sizeof(buf));
 	snprintf(buf, sizeof(buf), "%d", xpath);
-	if (confdb_key_create
-	    (handle, connection_handle, "fullxpath", strlen("fullxpath"), buf,
-	     strlen(buf) + 1) != CS_OK) {
+	if (confdb_key_create_typed
+	    (handle, connection_handle, "fullxpath", buf,
+	     strlen(buf) + 1, CONFDB_VALUETYPE_STRING) != CS_OK) {
 		destroy_ccs_handle(handle, connection_handle);
 		errno = ENOMEM;
 		return -1;
@@ -342,10 +342,10 @@ int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 			}
 		}
 	} else {
-		if (confdb_key_create
+		if (confdb_key_create_typed
 		    (handle, connection_handle, "previous_query",
-		     strlen("previous_query"), previous_query,
-		     strlen(previous_query) + 1) != CS_OK) {
+		     previous_query,
+		     strlen(previous_query) + 1, CONFDB_VALUETYPE_STRING) != CS_OK) {
 			errno = ENOMEM;
 			return -1;
 		}
@@ -365,10 +365,10 @@ int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 			}
 		}
 	} else {
-		if (confdb_key_create
+		if (confdb_key_create_typed
 		    (handle, connection_handle, "query_handle",
-		     strlen("query_handle"), &query_handle,
-		     sizeof(hdb_handle_t)) != CS_OK) {
+		     &query_handle,
+		     sizeof(hdb_handle_t), CONFDB_VALUETYPE_UINT64) != CS_OK) {
 			errno = ENOMEM;
 			return -1;
 		}
@@ -378,10 +378,9 @@ int set_previous_query(confdb_handle_t handle, hdb_handle_t connection_handle,
 	    (handle, connection_handle, "iterator_tracker",
 	     strlen("iterator_tracker"), &temptracker, &templen) != CS_OK) {
 		temptracker = 1;
-		if (confdb_key_create
+		if (confdb_key_create_typed
 		    (handle, connection_handle, "iterator_tracker",
-		     strlen("iterator_tracker"), &temptracker,
-		     sizeof(unsigned int)) != CS_OK) {
+		     &temptracker, sizeof(unsigned int), CONFDB_VALUETYPE_UINT32) != CS_OK) {
 			errno = ENOMEM;
 			return -1;
 		}

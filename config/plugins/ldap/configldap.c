@@ -237,9 +237,10 @@ static int read_config_for(LDAP *ld, struct objdb_iface_ver0 *objdb, hdb_handle_
 					 */
 					if (strcmp("objectClass", attr) &&
 					    strcmp("cn", attr)) {
-						objdb->object_key_create(object_handle, attr, strlen(attr),
+					  objdb->object_key_create_typed(object_handle, attr,
 									 val_ber[i]->bv_val,
-									 val_ber[i]->bv_len+1);
+									 val_ber[i]->bv_len+1,
+									 OBJDB_VALUETYPE_STRING);
 					}
 					i++;
 				}
