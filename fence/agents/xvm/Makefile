@@ -1,6 +1,8 @@
 TARGET1= fence_xvmd
 TARGET2= testprog
 
+MANTARGET=$(TARGET1).8
+
 SBINDIRT=$(TARGET1)
 
 all: ${TARGET1}

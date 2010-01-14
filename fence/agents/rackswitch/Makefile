@@ -1,5 +1,7 @@
 TARGET= fence_rackswitch
 
+MANTARGET = fence_rackswitch.8
+
 SBINDIRT=$(TARGET)
 
 all: ${TARGET}

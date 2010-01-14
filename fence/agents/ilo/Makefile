@@ -2,6 +2,6 @@ include ../../../make/defines.mk
 
 TARGET= fence_ilo
 
-MANTARGET= $(TARGET).8
+MAKEMAN = 1
 
 include $(OBJDIR)/make/fencebuild.mk

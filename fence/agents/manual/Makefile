@@ -1,5 +1,7 @@
 TARGET= fence_ack_manual
 
+MANTARGET=$(TARGET).8
+
 SBINDIRT=$(TARGET)
 
 all: ${TARGET}

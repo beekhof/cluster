@@ -2,6 +2,9 @@ ifndef FENCEAGENTSLIB
 	ifndef SBINDIRT
 		SBINDIRT=$(TARGET)
 	endif
+	ifndef MANTARGET
+		MANTARGET=$(TARGET).8
+	endif
 endif
 
 all: $(TARGET) $(MANTARGET)
@@ -22,6 +25,7 @@ $(TARGET):
 		-e 's#@SBINDIR@#${sbindir}#g' \
 	> $@
 
+ifdef MAKEMAN
 $(MANTARGET): $(MANTARGET:.8=) ${SRCDIR}/fence/agents/lib/fence2man.xsl
 	set -e && \
 	PYTHONPATH=${OBJDIR}/fence/agents/lib \
@@ -30,3 +34,6 @@ $(MANTARGET): $(MANTARGET:.8=) ${SRCDIR}/fence/agents/lib/fence2man.xsl
 
 clean: generalclean
 	rm -f $(MANTARGET) .$(MANTARGET).tmp
+else
+clean: generalclean 
+endif
