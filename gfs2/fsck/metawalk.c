@@ -71,7 +71,7 @@ struct gfs2_inode *fsck_inode_get(struct gfs2_sbd *sdp,
 		fprintf(stderr, _("Out of memory in %s\n"), __FUNCTION__);
 		exit(-1);
 	}
-	gfs2_dinode_in(&ip->i_di, bh->b_data);
+	gfs2_dinode_in(&ip->i_di, bh);
 	ip->i_bh = bh;
 	ip->i_sbd = sdp;
 
@@ -92,7 +92,7 @@ void fsck_inode_put(struct gfs2_inode *ip)
 	sysip = get_system_inode(ip->i_sbd, ip->i_di.di_num.no_addr);
 	if (sysip) {
 		if (ip->i_bh->b_changed)
-			gfs2_dinode_out(&ip->i_di, ip->i_bh->b_data);
+			gfs2_dinode_out(&ip->i_di, ip->i_bh);
 		brelse(ip->i_bh);
 	} else {
 		inode_put(ip);
@@ -420,10 +420,9 @@ static int check_leaf_blks(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 					factor++;
 					divisor /= 2;
 				}
-				gfs2_leaf_in(&oldleaf, lbh->b_data);
+				gfs2_leaf_in(&oldleaf, lbh);
 				oldleaf.lf_depth = ip->i_di.di_depth - factor;
-				gfs2_leaf_out(&oldleaf, lbh->b_data);
-				bmodified(lbh);
+				gfs2_leaf_out(&oldleaf, lbh);
 				brelse(lbh);
 			}
 			else
@@ -464,7 +463,7 @@ static int check_leaf_blks(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 				brelse(lbh);
 				break;
 			}
-			gfs2_leaf_in(&leaf, lbh->b_data);
+			gfs2_leaf_in(&leaf, lbh);
 			if(pass->check_leaf) {
 				error = pass->check_leaf(ip, leaf_no, lbh,
 							 pass->private);
@@ -480,9 +479,8 @@ static int check_leaf_blks(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 			if (leaf.lf_dirent_format == (GFS2_FORMAT_DE << 16)) {
 				log_debug( _("incorrect lf_dirent_format at leaf #%" PRIu64 "\n"), leaf_no);
 				leaf.lf_dirent_format = GFS2_FORMAT_DE;
-				gfs2_leaf_out(&leaf, lbh->b_data);
+				gfs2_leaf_out(&leaf, lbh);
 				log_debug( _("Fixing lf_dirent_format.\n"));
-				bmodified(lbh);
 			}
 
 			/* Make sure it's really a leaf. */
@@ -521,7 +519,7 @@ static int check_leaf_blks(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 
 				if(count != leaf.lf_entries) {
 					lbh = bread(&sbp->buf_list, leaf_no);
-					gfs2_leaf_in(&leaf, lbh->b_data);
+					gfs2_leaf_in(&leaf, lbh);
 
 					log_err( _("Leaf %llu (0x%llx) entry "
 						"count in directory %llu"
@@ -537,9 +535,8 @@ static int check_leaf_blks(struct gfs2_inode *ip, struct metawalk_fxns *pass)
 						leaf.lf_entries, count);
 					if(query( _("Update leaf entry count? (y/n) "))) {
 						leaf.lf_entries = count;
-						gfs2_leaf_out(&leaf, lbh->b_data);
+						gfs2_leaf_out(&leaf, lbh);
 						log_warn( _("Leaf entry count updated\n"));
-						bmodified(lbh);
 					} else
 						log_err( _("Leaf entry count left in inconsistant state\n"));
 					brelse(lbh);

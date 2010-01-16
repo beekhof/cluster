@@ -37,7 +37,7 @@ struct gfs2_inode *inode_get(struct gfs2_sbd *sdp, struct gfs2_buffer_head *bh)
 		fprintf(stderr, "Out of memory in %s\n", __FUNCTION__);
 		exit(-1);
 	}
-	gfs2_dinode_in(&ip->i_di, bh->b_data);
+	gfs2_dinode_in(&ip->i_di, bh);
 	ip->i_bh = bh;
 	ip->i_sbd = sdp;
 	return ip;
@@ -46,7 +46,7 @@ struct gfs2_inode *inode_get(struct gfs2_sbd *sdp, struct gfs2_buffer_head *bh)
 void inode_put(struct gfs2_inode *ip)
 {
 	if (ip->i_bh->b_changed)
-		gfs2_dinode_out(&ip->i_di, ip->i_bh->b_data);
+		gfs2_dinode_out(&ip->i_di, ip->i_bh);
 	brelse(ip->i_bh);
 	free(ip);
 }
@@ -115,7 +115,7 @@ found:
 	rg->rg_free--;
 
 	bmodified(bh);
-	gfs2_rgrp_out(rg, rl->bh[0]->b_data);
+	gfs2_rgrp_out(rg, rl->bh[0]);
 
 	sdp->blks_alloced++;
 	return ri->ri_data0 + bn;
@@ -178,14 +178,13 @@ void unstuff_dinode(struct gfs2_inode *ip)
 				mh.mh_magic = GFS2_MAGIC;
 				mh.mh_type = GFS2_METATYPE_JD;
 				mh.mh_format = GFS2_FORMAT_JD;
-				gfs2_meta_header_out(&mh, bh->b_data);
+				gfs2_meta_header_out(&mh, bh);
 			}
 
 			buffer_copy_tail(sdp, bh,
 					 sizeof(struct gfs2_meta_header),
 					 ip->i_bh, sizeof(struct gfs2_dinode));
 
-			bmodified(bh);
 			brelse(bh);
 		} else {
 			block = data_alloc(ip);
@@ -193,8 +192,6 @@ void unstuff_dinode(struct gfs2_inode *ip)
 
 			buffer_copy_tail(sdp, bh, 0,
 					 ip->i_bh, sizeof(struct gfs2_dinode));
-
-			bmodified(bh);
 			brelse(bh);
 		}
 	}
@@ -203,6 +200,7 @@ void unstuff_dinode(struct gfs2_inode *ip)
 
 	if (ip->i_di.di_size) {
 		*(uint64_t *)(ip->i_bh->b_data + sizeof(struct gfs2_dinode)) = cpu_to_be64(block);
+		/* no need: bmodified(ip->i_bh); buffer_clear_tail does it */
 		ip->i_di.di_blocks++;
 	}
 
@@ -258,13 +256,11 @@ void build_height(struct gfs2_inode *ip, int height)
 				mh.mh_magic = GFS2_MAGIC;
 				mh.mh_type = GFS2_METATYPE_IN;
 				mh.mh_format = GFS2_FORMAT_IN;
-				gfs2_meta_header_out(&mh, bh->b_data);
+				gfs2_meta_header_out(&mh, bh);
 			}
 			buffer_copy_tail(sdp, bh,
 					 sizeof(struct gfs2_meta_header),
 					 ip->i_bh, sizeof(struct gfs2_dinode));
-
-			bmodified(bh);
 			brelse(bh);
 		}
 
@@ -272,6 +268,7 @@ void build_height(struct gfs2_inode *ip, int height)
 
 		if (new_block) {
 			*(uint64_t *)(ip->i_bh->b_data + sizeof(struct gfs2_dinode)) = cpu_to_be64(block);
+			/* no need: bmodified(ip->i_bh);*/
 			ip->i_di.di_blocks++;
 		}
 
@@ -381,8 +378,7 @@ void block_map(struct gfs2_inode *ip, uint64_t lblock, int *new,
 			mh.mh_magic = GFS2_MAGIC;
 			mh.mh_type = GFS2_METATYPE_IN;
 			mh.mh_format = GFS2_FORMAT_IN;
-			bmodified(bh);
-			gfs2_meta_header_out(&mh, bh->b_data);
+			gfs2_meta_header_out(&mh, bh);
 		} else
 			bh = bread(&sdp->buf_list, *dblock);
 	}
@@ -559,7 +555,7 @@ int gfs2_writei(struct gfs2_inode *ip, void *buf,
 				mh.mh_magic = GFS2_MAGIC;
 				mh.mh_type = GFS2_METATYPE_JD;
 				mh.mh_format = GFS2_FORMAT_JD;
-				gfs2_meta_header_out(&mh, bh->b_data);
+				gfs2_meta_header_out(&mh, bh);
 			}
 		} else
 			bh = bread(&sdp->buf_list, dblock);
@@ -769,7 +765,7 @@ static void dir_split_leaf(struct gfs2_inode *dip, uint32_t lindex, uint64_t lea
 		mh.mh_magic = GFS2_MAGIC;
 		mh.mh_type = GFS2_METATYPE_LF;
 		mh.mh_format = GFS2_FORMAT_LF;
-		gfs2_meta_header_out(&mh, nbh->b_data);
+		gfs2_meta_header_out(&mh, nbh);
 	}
 
 	nleaf = (struct gfs2_leaf *)nbh->b_data;
@@ -853,7 +849,6 @@ static void dir_split_leaf(struct gfs2_inode *dip, uint32_t lindex, uint64_t lea
 	dip->i_di.di_blocks++;
 
 	brelse(obh);
-	bmodified(nbh);
 	brelse(nbh);
 }
 
@@ -1012,7 +1007,7 @@ static void dir_e_add(struct gfs2_inode *dip, const char *filename, int len,
 					mh.mh_magic = GFS2_MAGIC;
 					mh.mh_type = GFS2_METATYPE_LF;
 					mh.mh_format = GFS2_FORMAT_LF;
-					gfs2_meta_header_out(&mh, nbh->b_data);
+					gfs2_meta_header_out(&mh, nbh);
 				}
 
 				leaf->lf_next = cpu_to_be64(bn);
@@ -1064,7 +1059,7 @@ static void dir_make_exhash(struct gfs2_inode *dip)
 		mh.mh_magic = GFS2_MAGIC;
 		mh.mh_type = GFS2_METATYPE_LF;
 		mh.mh_format = GFS2_FORMAT_LF;
-		gfs2_meta_header_out(&mh, bh->b_data);
+		gfs2_meta_header_out(&mh, bh);
 	}
 
 	leaf = (struct gfs2_leaf *)bh->b_data;
@@ -1195,7 +1190,7 @@ struct gfs2_buffer_head *init_dinode(struct gfs2_sbd *sdp,
 		di.di_entries = 2;
 	}
 
-	gfs2_dinode_out(&di, bh->b_data);
+	gfs2_dinode_out(&di, bh);
 
 	return bh;
 }
@@ -1600,7 +1595,7 @@ void gfs2_free_block(struct gfs2_sbd *sdp, uint64_t block)
 	if (rgd) {
 		gfs2_set_bitmap(sdp, block, GFS2_BLKST_FREE);
 		rgd->rg.rg_free++; /* adjust the free count */
-		gfs2_rgrp_out(&rgd->rg, rgd->bh[0]->b_data); /* back to the buffer */
+		gfs2_rgrp_out(&rgd->rg, rgd->bh[0]); /* back to the buffer */
 	}
 }
 
@@ -1661,6 +1656,6 @@ int gfs2_freedi(struct gfs2_sbd *sdp, uint64_t diblock)
 	rgd = gfs2_blk2rgrpd(sdp, diblock);
 	rgd->rg.rg_free++;
 	rgd->rg.rg_dinodes--; /* one less inode in use */
-	gfs2_rgrp_out(&rgd->rg, rgd->bh[0]->b_data);
+	gfs2_rgrp_out(&rgd->rg, rgd->bh[0]);
 	return 0;
 }
