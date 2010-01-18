@@ -93,12 +93,12 @@ Fencing/fence_node() configuration shown in
 Unfencing is only performed for a node with an <unfence> section:
 
 .nf
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          </fence>
-          <unfence>
-          </unfence>
-  </clusternode>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        </fence>
+        <unfence>
+        </unfence>
+</clusternode>
 .fi
 
 The <unfence> section does not contain <method> sections like the <fence>
@@ -109,17 +109,17 @@ referenced by both fence and unfence <device> lines, and the same per-node
 args should be repeated.
 
 .nf
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          <method name="1">
-          <device name="myswitch" foo="x"/>
-          </method>
-          </fence>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        <method name="1">
+        <device name="myswitch" foo="x"/>
+        </method>
+        </fence>
 
-          <unfence>
-          <device name="myswitch" foo="x" action="on"/>
-          </unfence>
-  </clusternode>
+        <unfence>
+        <device name="myswitch" foo="x" action="on"/>
+        </unfence>
+</clusternode>
 .fi
 
 .SH SEE ALSO

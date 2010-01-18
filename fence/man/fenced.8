@@ -119,7 +119,7 @@ Enable debugging to stderr and don't fork.
 Enable debugging to log file.
 .TP
 .BI \-g " num"
-groupd compatibility mode, 0 off, 1 on.  Default 0.
+groupd compatibility mode, 0 off, 1 on. Default 0.
 .TP
 .BI \-r " path"
 Register a directory that needs to be empty for the daemon to start.  Use
@@ -133,14 +133,14 @@ All nodes are in a clean state to start. Do no startup fencing.
 Skip startup fencing of nodes with no defined fence methods.
 .TP
 .BI \-j " secs"
-Post-join fencing delay.
+Post-join fencing delay. Default 6.
 .TP
 .BI \-f " secs"
-Post-fail fencing delay.
+Post-fail fencing delay. Default 0.
 .TP
-.BI \-R " path"
+.BI \-R " secs"
 Number of seconds to wait for a manual override after a failed fencing
-attempt before the next attempt.
+attempt before the next attempt. Default 3.
 .TP
 .BI \-O " path"
 Location of a FIFO used for communication between fenced and fence_ack_manual.
@@ -157,36 +157,44 @@ is usually located at /etc/cluster/cluster.conf.  It is not read directly.
 Other cluster components load the contents into memory, and the values are
 accessed through the libccs library.
 
-Fencing daemon behavior can be controlled by setting options in the
-cluster.conf file under the section <fence_daemon />.  See above for
-complete descriptions of these values.  The delay values are in seconds;
--1 secs means an unlimited delay.  The values shown are the defaults.
+Configuration options for fenced are added to the <fence_daemon /> section
+of cluster.conf, within the top level <cluster> section.
 
-Post-join delay is the number of seconds the daemon will wait before
-fencing any victims after a node joins the domain.
+.TP
+.B post_join_delay
+is the number of seconds the daemon will wait before fencing any victims
+after a node joins the domain.  Default 6.
 
-  <fence_daemon post_join_delay="6"/>
+<fence_daemon post_join_delay="6"/>
 
-Post-fail delay is the number of seconds the daemon will wait before
-fencing any victims after a domain member fails.
+.TP
+.B post_fail_delay
+is the number of seconds the daemon will wait before fencing any victims
+after a domain member fails.  Default 0.
 
-  <fence_daemon post_fail_delay="0"/>
+<fence_daemon post_fail_delay="0"/>
 
-Clean-start is used to prevent any startup fencing the daemon might do.
+.TP
+.B clean_start
+is used to prevent any startup fencing the daemon might do.
 It indicates that the daemon should assume all nodes are in a clean state
-to start.
+to start. Default 0.
 
-  <fence_daemon clean_start="0"/>
+<fence_daemon clean_start="0"/>
 
-Override-path is the location of a FIFO used for communication between
-fenced and fence_ack_manual.
+.TP
+.B override_path
+is the location of a FIFO used for communication between fenced and
+fence_ack_manual. Default shown.
 
-  <fence_daemon override_path="/var/run/cluster/fenced_override"/>
+<fence_daemon override_path="/var/run/cluster/fenced_override"/>
 
-Override-time is the amount of time to wait for administrator intervention
-between fencing attempts following fence agent failures.
+.TP
+.B override_time
+is the number of seconds to wait for administrator intervention
+between fencing attempts following fence agent failures. Default 3.
 
-  <fence_daemon override_time="3"/>
+<fence_daemon override_time="3"/>
 
 .SS Per-node fencing settings
 
@@ -194,19 +202,19 @@ The per-node fencing configuration is partly dependant on the specific
 agent/hardware being used.  The general framework begins like this:
 
 .nf
-  <clusternodes>
+<clusternodes>
 
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          </fence>
-  </clusternode>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        </fence>
+</clusternode>
 
-  <clusternode name="node2" nodeid="2">
-          <fence>
-          </fence>
-  </clusternode>
+<clusternode name="node2" nodeid="2">
+        <fence>
+        </fence>
+</clusternode>
 
-  </clusternodes>
+</clusternodes>
 .fi
 
 The simple fragment above is a valid configuration: there is no way to
@@ -221,25 +229,25 @@ listed in the separate <fencedevices> section, and then lists any
 node-specific parameters related to using the device.
 
 .nf
-  <clusternodes>
+<clusternodes>
 
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          <method name="1">
-          <device name="myswitch" foo="x"/>
-          </method>
-          </fence>
-  </clusternode>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        <method name="1">
+        <device name="myswitch" foo="x"/>
+        </method>
+        </fence>
+</clusternode>
 
-  <clusternode name="node2" nodeid="2">
-          <fence>
-          <method name="1">
-          <device name="myswitch" foo="y"/>
-          </method>
-          </fence>
-  </clusternode>
+<clusternode name="node2" nodeid="2">
+        <fence>
+        <method name="1">
+        <device name="myswitch" foo="y"/>
+        </method>
+        </fence>
+</clusternode>
 
-  </clusternodes>
+</clusternodes>
 .fi
 
 .SS Fence device settings
@@ -249,9 +257,9 @@ may be one or more devices listed.  The per-node fencing sections above
 reference one of these fence devices by name.
 
 .nf
-  <fencedevices>
-          <fencedevice name="myswitch" agent="..." something="..."/>
-  </fencedevices>
+<fencedevices>
+        <fencedevice name="myswitch" agent="..." something="..."/>
+</fencedevices>
 .fi
 
 .SS Multiple methods for a node
@@ -261,21 +269,21 @@ for a node.  If fencing fails using the first method, fenced will try the
 next method, and continue to cycle through methods until one succeeds.
 
 .nf
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          <method name="1">
-          <device name="myswitch" foo="x"/>
-          </method>
-          <method name="2">
-          <device name="another" bar="123"/>
-          </method>
-          </fence>
-  </clusternode>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        <method name="1">
+        <device name="myswitch" foo="x"/>
+        </method>
+        <method name="2">
+        <device name="another" bar="123"/>
+        </method>
+        </fence>
+</clusternode>
 
-  <fencedevices>
-          <fencedevice name="myswitch" agent="..." something="..."/>
-          <fencedevice name="another" agent="..."/>
-  </fencedevices>
+<fencedevices>
+        <fencedevice name="myswitch" agent="..." something="..."/>
+        <fencedevice name="another" agent="..."/>
+</fencedevices>
 .fi
 
 .SS Dual path, redundant power
@@ -286,14 +294,14 @@ fenced will run the agent for the device twice, once for each device line,
 and both must succeed for fencing to be considered successful.
 
 .nf
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          <method name="1">
-          <device name="sanswitch1" port="11"/>
-          <device name="sanswitch2" port="11"/>
-          </method>
-          </fence>
-  </clusternode>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        <method name="1">
+        <device name="sanswitch1" port="11"/>
+        <device name="sanswitch2" port="11"/>
+        </method>
+        </fence>
+</clusternode>
 .fi
 
 When using power switches to fence nodes with dual power supplies, the
@@ -302,16 +310,16 @@ either port.  The default off-on behavior of the agent could result in the
 power never being fully disabled to the node.
 
 .nf
-  <clusternode name="node1" nodeid="1">
-          <fence>
-          <method name="1">
-          <device name="nps1" port="11" action="off"/>
-          <device name="nps2" port="11" action="off"/>
-          <device name="nps1" port="11" action="on"/>
-          <device name="nps2" port="11" action="on"/>
-          </method>
-          </fence>
-  </clusternode>
+<clusternode name="node1" nodeid="1">
+        <fence>
+        <method name="1">
+        <device name="nps1" port="11" action="off"/>
+        <device name="nps2" port="11" action="off"/>
+        <device name="nps1" port="11" action="on"/>
+        <device name="nps2" port="11" action="on"/>
+        </method>
+        </fence>
+</clusternode>
 .fi
 
 .SS Hardware-specific settings
