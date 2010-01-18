@@ -40,6 +40,9 @@ as from stdin. Fenced sends parameters through stdin when it execs the
 agent. <xsl:value-of select="@name" /> can be run by itself with command
 line options.  This is useful for testing and for turning outlets on or off
 from scripts.
+<xsl:if test="vendor-url">
+Vendor URL: <xsl:value-of select="vendor-url" />
+</xsl:if>
 .SH PARAMETERS
 <xsl:apply-templates select="parameters"><xsl:with-param name="show">getopt</xsl:with-param></xsl:apply-templates>
 .SH ACTIONS
