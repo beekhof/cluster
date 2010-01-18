@@ -30,7 +30,7 @@ To validate your cluster.conf against this schema, run:
 
 <start>
 <element name="cluster" rha:description="Defines cluster properties, and
-    contains all other configuration. cluster.conf(5).">
+    contains all other configuration. cluster.conf(5)">
  <attribute name="name" rha:description="Name of the cluster.
      cluster.conf(5)"/>
  <attribute name="config_version" rha:description="Revision level
@@ -415,96 +415,103 @@ To validate your cluster.conf against this schema, run:
 
 <!-- dlm block -->
  <optional>
- <element name="dlm" rha:description="">
+ <element name="dlm" rha:description="Configuration for dlm and
+       dlm_controld daemon. dlm_controld(8)">
+
   <optional>
-    <attribute name="log_debug" rha:description="Enable dlm
-      kernel debug messages." rha:default="0" rha:sample="1"/>
+    <attribute name="log_debug" rha:description="Set to 1 to enable
+        dlm kernel debugging messages. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="timewarn" rha:description="The number of centiseconds
-     a lock is blocked before a warning is sent to userland, for lockspaces
-     created with TIMEWARN flag." rha:default="500" rha:sample="100"/>
+   <attribute name="timewarn" rha:description="Number of centiseconds
+       a lock is blocked before notifying dlm_controld deadlock code.
+       dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="protocol" rha:description="The network protocol
-     used by the dlm." rha:default="tcp" rha:sample="sctp"/>
+   <attribute name="protocol" rha:description="The dlm lowcomms protocol.
+       dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="enable_fencing" rha:description="Enable fencing recovery
-     dependency." rha:default="1" rha:sample="0"/>
+   <attribute name="enable_fencing" rha:description="Fencing recovery
+       dependency. dlm_controld(8)" />
   </optional>
+
   <optional>
-   <attribute name="enable_quorum" rha:description="Enable quorum recovery
-     dependency." rha:default="1" rha:sample="0"/>
+   <attribute name="enable_quorum" rha:description="Quorum recovery
+       dependency. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="enable_deadlk" rha:description="Enable deadlock detection
-     code." rha:default="0" rha:sample="1"/>
+   <attribute name="enable_deadlk" rha:description="Deadlock detection
+       capability. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="enable_plock" rha:description="Enable posix lock code for
-     cluster fs." rha:default="1" rha:sample="0"/>
+   <attribute name="enable_plock" rha:description="Cluster fs posix
+       lock capability. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="plock_debug" rha:description="Enable posix lock debugging."
-     rha:default="0" rha:sample="1"/>
+   <attribute name="plock_debug" rha:description="Set to 1 to enable
+       posix lock debugging. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="plock_rate_limit" rha:description="The maximum
-     number of plock operations that will be sent every second.  This is
-     used to prevent potentially excessive network load.  For best
-     performance it is recommended to disable this rate limiting by
-     setting the value to 0." rha:sample="10000" rha:default="100"/>
+   <attribute name="plock_rate_limit" rha:description="Limit the rate of
+       plock operations. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="plock_ownership" rha:description="Enabling this
-     option by setting to 1 optimizes plock performance for repeated
-     locking of the same locks by processes on a single node.
-     All dlm_controld daemons in the cluster must be stopped before
-     changing this value." rha:sample="0" rha:default="1"/>
+   <attribute name="plock_ownership" rha:description="Set to 1/0 to
+       enable/disable plock ownership. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="drop_resources_time" rha:description="For tuning the
-     plock_ownership resource caching.  This is the frequence of
-     attempts in milliseconds to drop unused resources from the
-     cache." rha:sample="5000" rha:default="10000"/>
+   <attribute name="drop_resources_time" rha:description="Plock ownership
+       drop resources time. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="drop_resources_count" rha:description="For tuning
-     the plock_ownership resource caching.  This is the maximum number
-     of resources to drop from the cache each time." rha:sample="100"
-     rha:default="10"/>
+   <attribute name="drop_resources_count" rha:description="Plock ownership
+       drop resources count. dlm_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="drop_resources_age" rha:description="For tuning the
-     plock_ownership resource caching.  This is the time in milliseconds
-     that a cached resource should be unused before consideration for
-     dropping." rha:sample="5000" rha:default="10000"/>
+   <attribute name="drop_resources_age" rha:description="Plock ownership
+       drop resources age. dlm_controld(8)"/>
   </optional>
+
   <optional>
    <zeroOrMore>
     <element name="lockspace" rha:description="Individual lockspace
-      configuration.">
-     <attribute name="name" rha:description="The name of the lockspace."
-        rha:sample="foo"/>
+      configuration. dlm_controld(8)">
+     <attribute name="name" rha:description="Name of the lockspace.
+         dlm_controld(8)"/>
+
      <optional>
-      <attribute name="nodir" rha:description="The lockspace will not use a
-        resource directory when this is set to 1." rha:default="0"
-        rha:sample="1"/>
+      <attribute name="nodir" rha:description="Set to 1 to disable the
+          internal resource directory. dlm_controld(8)"/>
      </optional>
+
      <optional>
       <zeroOrMore>
-       <element name="master" rha:description="Define a particular node to be
-         responsible for a certain amount of lock mastering.">
-        <attribute name="name" rha:description="The name of the node that
-          should be mastering resources/locks.  This needs to match one of
-          the nodes defined in clusternodes." rha:sample="node01"/>
+       <element name="master" rha:description="Defines a master node.
+           dlm_controld(8)">
+
+        <attribute name="name" rha:description="The name of a node that
+            should be master resources/locks. dlm_controld(8)"/>
+
+        <optional>
         <attribute name="weight" rha:description="The proportion of
-          resources/locks this node should master." rha:default="1"
-          rha:sample="2"/>
+            resources this node should master. dlm_controld(8)"/>
+        </optional>
        </element>
       </zeroOrMore>
      </optional>
+
     </element>
    </zeroOrMore>
   </optional>
