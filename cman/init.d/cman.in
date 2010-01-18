@@ -683,18 +683,18 @@ join_fence_domain()
 	if ! cman_tool status | grep Flags | grep 2node \
 		> /dev/null 2>&1; then
 		errmsg=$( fence_tool join -w $FENCE_JOIN_TIMEOUT \
-			> /dev/null 2>&1 ) || return 1
+			2>&1 ) || return 1
 	else
 		errmsg=$( fence_tool join -w $FENCE_JOIN_TIMEOUT \
 			-m $FENCED_MEMBER_DELAY join \
-			> /dev/null 2>&1 ) || return 1
+			2>&1 ) || return 1
 	fi
 }
 
 leave_fence_domain()
 {
 	if status fenced > /dev/null 2>&1; then
-		fence_tool leave -w 10 > /dev/null 2>&1
+		errmsg=$( fence_tool leave -w 10 2>&1 )
 		return $?
 	fi
 }
