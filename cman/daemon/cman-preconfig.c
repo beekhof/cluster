@@ -694,10 +694,6 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 			objdb->object_key_create_typed(object_handle, "token",
 						       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 		}
-		if (objdb_get_string(objdb, object_handle, "token_retransmits_before_loss_const", &value)) {
-			objdb->object_key_create_typed(object_handle, "token_retransmits_before_loss_const",
-						       "20", strlen("20")+1, OBJDB_VALUETYPE_STRING);
-		}
 
 		/* Extend consensus & join timeouts per bz#214290 */
 		if (objdb_get_string(objdb, object_handle, "join", &value)) {
