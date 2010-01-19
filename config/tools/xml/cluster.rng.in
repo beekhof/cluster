@@ -726,27 +726,20 @@ To validate your cluster.conf against this schema, run:
 
 <!-- fencedevices block -->
  <optional>
- <element name="fencedevices" rha:description="This element and its
-     attributes define the fence devices in the cluster. Parameters
-     vary according to the type of fence device. For example, for a
-     power controller used as a fence device, the cluster configuration
-     defines the name of the power controller, its IP address, login,
-     and password.">
+ <element name="fencedevices" rha:description="Contains all fence
+     device definitions. fenced(8)">
   <zeroOrMore>
-   <element name="fencedevice" rha:description="The fencedevice element
-       and its attributes define each fence device in a
-       cluster. Parameters for each fence device vary according to the
-       type of fence device.">
-     <attribute name="name" rha:description="This is a reference
-         name that you assign to a fence device. It is specific to a
-         cluster configuration file. It is required
-         when configuring a fence method for a node (refer
-         to the method and device elements in the clusternode
-         element)." rha:sample="apc_123">
+   <element name="fencedevice" rha:description="Defines fence device
+       properties. fenced(8)">
+
+     <attribute name="name" rha:description="A name that is used to
+         reference this fence device from clusternode fence section.
+         fenced(8)">
       <data type="ID"/>
      </attribute>
-     <attribute name="agent" rha:description="Specifies a fence agent to
-         be used." rha:sample="fence_apc"/>
+
+     <attribute name="agent" rha:description="The fence agent to be
+         used. fenced(8)"/>
 
      <ref name="FENCEDEVICEOPTIONS"/>
 
@@ -1973,28 +1966,30 @@ To validate your cluster.conf against this schema, run:
 <!-- begin node fence definitions -->
 
  <define name="FENCE">
-  <element name="fence" rha:description="The fence element specifies how
-      a node is fenced. Its elements and attributes identify fence device
-      (or devices) to use and the parameters specific to each fence device
-      (for example, IP address and port number in an APC fence device)">
+  <element name="fence" rha:description="Contains methods for fencing
+      the node in different ways. fenced(8)">
+
    <zeroOrMore>
-    <element name="method" rha:description="Typically, there is a single
-        method used to fence each node (the name  given to the method is
-        not significant). A method refers to a specific device listed in
-        the fencedevices section (a separate section from the clusternode
-        section), and then lists any node-specific parameters related
-        to using the device.">
-     <attribute name="name" rha:description="" rha:sample="apc123"/>
+
+    <element name="method" rha:description="Contains one or more devices
+        for fencing the node a single way. fenced(8)">
+
+     <attribute name="name" rha:description="A name used to distinguish
+         multiple methods from each other. fenced(8)"/>
+
      <zeroOrMore>
        <ref name="DEVICE"/>
      </zeroOrMore>
+
     </element>
+
    </zeroOrMore>
   </element>
  </define>
 
  <define name="UNFENCE">
-  <element name="unfence" rha:description="">
+  <element name="unfence" rha:description="Contains devices for unfencing
+      the node. fence_node(8)">
    <zeroOrMore>
     <ref name="DEVICE"/>
    </zeroOrMore>
@@ -2002,8 +1997,11 @@ To validate your cluster.conf against this schema, run:
  </define>
 
  <define name="DEVICE">
-  <element name="device" rha:description="">
-   <attribute name="name" rha:description="" rha:sample="">
+  <element name="device" rha:description="Defines the properties of a
+      device used for fencing or unfencing a node. fenced(8)">
+
+   <attribute name="name" rha:description="The name of a fencedevice
+       defined in the fencedevices section. fenced(8)">
     <data type="IDREF"/>
    </attribute>
 
