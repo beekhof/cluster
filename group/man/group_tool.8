@@ -1,90 +1,80 @@
-.TH group_tool 8
+.TH GROUP_TOOL 8 2009-01-19 cluster cluster
 
 .SH NAME
-group_tool - display/dump information about fence, dlm and gfs groups
+group_tool \- run common fence_tool, dlm_tool, gfs_control commands
 
 .SH SYNOPSIS
-.B
-group_tool
-[\fISUBCOMMAND\fR] [\fIOPTION\fR]...
+.B group_tool
+[COMMAND] [OPTIONS]
 
 .SH DESCRIPTION
+This utility is deprecated and the new replacements are shown.  See
+.BR fence_tool (8),
+.BR dlm_tool (8),
+.BR gfs_control (8)
+man pages for more information about the new commands.
 
-The group_tool program displays information about fence, dlm and gfs groups.
+.TP
+.B ls
+runs
+.BR "fence_tool ls " ;
+.BR "dlm_tool ls " ;
+.B gfs_control ls
+.TP
+.B dump fence
+equivalent to new
+.B fence_tool dump
+.TP
+.B dump dlm
+equivalent to new
+.B dlm_tool dump
+.TP
+.B dump gfs
+equivalent to new
+.B gfs_control dump
+.TP
+.BI "dump plocks" " name"
+equivalent to new
+.BI "dlm_tool plocks" " name"
 
-.SH SUBCOMMANDS
+.SS Cluster Uprading
 
-\fBgroup_tool ls\fP [-n]
+When performing a rolling upgrade from cluster2 to cluster3, the
+.BR groupd (8)
+daemon will be running and group_tool can be used with groupd like it was in
+cluster2.
 
-  Queries individual daemons, and displays full daemon and group state.
-  It is a shortcut for:
-
-  fence_tool ls [-n]
-.br
-  dlm_tool ls [-n]
-.br
-  gfs_control ls [-n]
-
-\fBgroup_tool compat\fP
-
-  Queries groupd about compatibility mode currently running:
-
-  groupd not running
-.br
-  groupd compatibility mode 0
-.br
-  groupd compatibility mode 1
-.br
-  groupd compatibility mode 2 (pending)
-.br
-
-\fBgroup_tool dump\fP [gfs|dlm|fence|plocks] [name]
-
-  Dumps debug info from daemons:
-
-  group_tool dump gfs: dump gfs_controld debug log
-.br
-	(same as gfs_control dump)
-.br
-  group_tool dump dlm: dump dlm_controld debug log
-.br
-	(same as dlm_tool dump)
-.br
-  group_tool dump fence: dump fenced debug log
-.br
-	(same as fence_tool dump)
-.br
-  group_tool dump plocks <x>: dump plock state
-.br
-	(same as dlm_tool plocks <x>)
-.br
-  group_tool dump: dump groupd debug log
-.br
-
+.TP
+.B ls \-g1
+queries and displays the internal groupd state.
+.TP
+.B dump
+queries and dumps the groupd debug buffer.
+.TP
+.B compat
+queries and displays the internal groupd compatibility mode.
 
 .SH OPTIONS
 .TP
-\fB-g <num>\fP
-Select daemons to query with ls
-.br
-0: query fenced, dlm_controld, gfs_controld (default)
-.br
-1: query groupd (for old compat mode)
-.br
-2: query groupd (1) when in compat mode, otherwise daemons (0)
+.BI \-g " num"
+Force old groupd queries with 1.
+.TP 
+.B \-n
+Show all node information in ls.
+.TP 
+.B \-v
+Show verbose information from groupd with ls \-g1.
 .TP
-\fB-n\fP
-Show all node information (with ls -g0)
+.B \-h
+Print a help message describing available options, then exit.
 .TP
-\fB-v\fP
-Show extra event information (with ls -g1)
-.TP
-\fB-V\fP
-Print the version information and exit.
-.TP
-\fB-h\fP 
-Print out a help message describing available options, then exit.
+.B \-V
+Print program version information, then exit.
 
 .SH SEE ALSO
-groupd(8), fence_tool(8), dlm_tool(8), gfs_control(8)
+.BR cman (5),
+.BR groupd (8),
+.BR fence_tool (8),
+.BR dlm_tool (8),
+.BR gfs_control(8)
 
