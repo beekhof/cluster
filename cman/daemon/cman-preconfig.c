@@ -1185,6 +1185,7 @@ static const char *groupd_compat="groupd_compat";
 static const char *clvmd_interface="interface";
 static const char *cman_disallowed="disallowed";
 static const char *totem_crypto="crypto_accept";
+static const char *plock_ownership="plock_ownership";
 
 /*
  * Flags to set:
@@ -1199,6 +1200,7 @@ static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluste
 	hdb_handle_t clvmd_handle;
 	hdb_handle_t cman_handle;
 	hdb_handle_t totem_handle;
+	hdb_handle_t gfs_handle;
 	char *value;
 
 	/* Set groupd to backwards compatibility mode */
@@ -1235,6 +1237,15 @@ static void setup_old_compat(struct objdb_iface_ver0 *objdb, hdb_handle_t cluste
 	    !value) {
 		objdb->object_key_create_typed(totem_handle, totem_crypto,
 					       "old", 4, OBJDB_VALUETYPE_STRING);
+	}
+
+	/* Disable plock ownership */
+	gfs_handle = find_or_create_object(objdb, "gfs_controld", OBJECT_PARENT_HANDLE);
+	if (objdb->object_key_get(gfs_handle, plock_ownership, strlen(plock_ownership),
+				  (void *)&value, NULL) ||
+	    !value) {
+		objdb->object_key_create_typed(gfs_handle, plock_ownership,
+					       "0", 2, OBJDB_VALUETYPE_STRING);
 	}
 }
 
