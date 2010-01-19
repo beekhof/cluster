@@ -521,54 +521,49 @@ To validate your cluster.conf against this schema, run:
 
 <!-- gfs_controld block -->
  <optional>
- <element name="gfs_controld" rha:description="This element and its
-   attributes configure the gfs_controld daemon.">
+ <element name="gfs_controld" rha:description="Configuration for
+       gfs_controld daemon. gfs_controld(8)">
+
   <optional>
-   <attribute name="enable_withdraw" rha:description="Enable the code that
-     handles gfs withdraw." rha:default="1" rha:sample="0"/>
+   <attribute name="enable_withdraw" rha:description="Set to 1/0 to
+       enable/disable a response to a withdraw. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="enable_plock" rha:description="Enable posix lock code for
-     cluster fs.  gfs_controld only handles plocks when daemons run in compat
-     mode, otherwise dlm_controld processes plocks." rha:default="1"
-     rha:sample="0"/>
+   <attribute name="enable_plock" rha:description="Cluster fs posix
+       lock capability. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="plock_debug" rha:description="Enable posix lock
-     debugging." rha:default="0" rha:sample="1"/>
+   <attribute name="plock_debug" rha:description="Set to 1 to enable
+       posix lock debugging. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="plock_rate_limit" rha:description="The maximum
-     number of plock operations that will be sent every second.  This is
-     used to prevent potentially excessive network load.  For best
-     performance it is recommended to disable this rate limiting by
-     setting the value to 0." rha:sample="10000" rha:default="100"/>
+   <attribute name="plock_rate_limit" rha:description="Limit the rate of
+       plock operations. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="plock_ownership" rha:description="Enabling this
-     option by setting to 1 optimizes plock performance for repeated
-     locking of the same locks by processes on a single node.
-     All gfs_controld daemons in the cluster must be stopped before
-     changing this value." rha:sample="1" rha:default="0"/>
+   <attribute name="plock_ownership" rha:description="Set to 1/0 to
+       enable/disable plock ownership. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="drop_resources_time" rha:description="For tuning the
-     plock_ownership resource caching.  This is the frequence of
-     attempts in milliseconds to drop unused resources from the
-     cache." rha:sample="5000" rha:default="10000"/>
+   <attribute name="drop_resources_time" rha:description="Plock ownership
+       drop resources time. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="drop_resources_count" rha:description="For tuning
-     the plock_ownership resource caching.  This is the maximum number
-     of resources to drop from the cache each time." rha:sample="100"
-     rha:default="10"/>
+   <attribute name="drop_resources_count" rha:description="Plock ownership
+       drop resources count. gfs_controld(8)"/>
   </optional>
+
   <optional>
-   <attribute name="drop_resources_age" rha:description="For tuning the
-     plock_ownership resource caching.  This is the time in milliseconds
-     that a cached resource should be unused before consideration for
-     dropping." rha:sample="5000" rha:default="10000"/>
+   <attribute name="drop_resources_age" rha:description="Plock ownership
+       drop resources age. gfs_controld(8)"/>
   </optional>
+
  </element>
  </optional>
 <!-- end gfs_controld block -->
