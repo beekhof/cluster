@@ -575,10 +575,11 @@ To validate your cluster.conf against this schema, run:
 
 <!-- group block -->
  <optional>
- <element name="group" rha:description="">
+ <element name="group" rha:description="Defines groupd configuration.
+     groupd(8)">
   <optional>
    <attribute name="groupd_compat" rha:description="Enable compatibility with
-     cluster2 (RHEL5) nodes" rha:default="0" rha:sample="1"/>
+     cluster2 nodes. groupd(8)"/>
   </optional>
  </element>
  </optional>
