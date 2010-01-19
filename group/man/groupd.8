@@ -1,89 +1,64 @@
-.TH groupd 8
+.TH GROUPD 8 2009-01-19 cluster cluster
 
 .SH NAME
-groupd - the group manager for fenced, dlm_controld and gfs_controld
+groupd \- compatibility daemon for fenced, dlm_controld and gfs_controld
 
 .SH SYNOPSIS
-.B
-groupd
-[\fIOPTION\fR]...
+.B groupd
+[OPTIONS]
 
 .SH DESCRIPTION
 
-The group daemon, groupd, provides a compatibility layer between the corosync
-closed process group (CPG) service and the fenced, dlm_controld and
-gfs_controld daemons.  New versions of fenced/dlm_controld/gfs_controld no
-longer require this compat layer, and can run without groupd.  They use libcpg
-directly, making them much more robust.  This makes them incompatible with old
-(cluster2) versions.  Explicitly enable the new incompatible mode with:
+The groupd daemon and libgroup library are used by the fenced,
+dlm_controld and gfs_controld daemons when they are operating in
+cluster2-compatible mode to perform a rolling cluster upgrade from
+cluster2 to cluster3.
 
-	<group groupd_compat="0"/>
+See
+.BR cman (5)
+for more information on the
+.B upgrading
+configuration option needed to perform a rolling upgrade.
 
-This is the default if no groupd_compat setting exists.  If compatibility with
-old (cluster2) nodes is necessary (mixing cluster2 and cluster3 nodes should
-be avoided), the daemons can be run in the old mode, using groupd as before.
-Enable this mode with:
+When the upgrading option is enabled, cman adds the following to the
+online configuration:
 
 	<group groupd_compat="1"/>
 
-To perform a rolling upgrade from cluster2 to cluster3, add the
-groupd_compat="1" setting to cluster.conf before upgrading any existing nodes
-or adding any new cluster3 nodes.  The next time the entire cluster is shut
-down, after all nodes are upgraded, groupd_compat can be changed to 0 (or
-removed entirely).  \fBWarning:\fP groupd_compat must not be changed from 1 to
-0 in a running cluster (or from 0 to 1).  cluster2 nodes are equivalent to
-groupd_compat="1", so it is fine to add groupd_compat="1" to a running
-cluster2 cluster as described above to perform a rolling upgrade.
+This setting causes the cman init script to start the groupd daemon,
+and causes the groupd, fenced, dlm_controld and gfs_controld daemons to
+operate in the old cluster2 mode so they will be compatible with cluster2
+nodes in the cluster that have not yet been upgraded.
 
-A third option, groupd_compat="2", enables a special phase during startup
-where the daemons attempt to discover cluster2 nodes or cluster3 nodes running
-in mode 1.  If any are found, they run in mode 1, otherwise mode 0.  This mode
-will delay startup and makes cluster operation less predictable.
-
-The cman init script will not start the groupd daemon unless it is needed,
-i.e. groupd_compat=1 (or 2).
-
-.B Logging
-
-By default, log messages at INFO level and above are sent to both
-\fBsyslog\fP(3) and /var/log/cluster/groupd.log.  For complete logging
-configuration options see \fBcluster.conf\fP(5).
+The upgrading setting, including the groupd_compat setting,
+.B cannot be changed in a running cluster.
+The entire cluster must be taken offline to change these because the new
+cluster3 default modes are not compatible with the old cluster2 modes.
+The upgrading/compat settings cause the new cluster3 daemons to run the
+old cluster2 code and protocols.
 
 .SH OPTIONS
-.TP
-\fB-D\fP
-Enable debugging to stderr and don't fork
-.TP
-\fB-L\fP
-Enable debugging to log file (see above)
-.TP
-\fB-g <num>\fP
-group compatibility mode, 0 off, 1 on, 2 detect
-.br
-0: use libcpg, no backward compat, best performance
-.br
-1: use libgroup for compat with cluster2/rhel5
-.br
-2: detect old, or mode 1, nodes that require compat
-.TP
-\fB-w <secs>\fP
-seconds to wait for a node's version message before
-assuming an old version requiring compat mode
-.TP
-\fB-d <secs>\fP
-seconds to delay the mode selection to give time
-for an old version to join and force compat mode
-.TP
-\fB-V\fP
-Print the version information and exit.
-.TP
-\fB-h\fP 
-Print out a help message describing available options, then exit.
+Command line options override a corresponding setting in cluster.conf.
 
-.SH DEBUGGING
-The groupd daemon keeps a circular buffer of debug messages that can be
-dumped with the 'group_tool dump' command.
+.TP
+.B \-D
+Enable debugging to stderr and don't fork.
+.TP
+.B \-L
+Enable debugging to log file.
+.TP
+.BI \-g " num"
+groupd compatibility mode, 0 off, 1 on. Default 0.
+.TP
+.B \-h
+Print a help message describing available options, then exit.
+.TP
+.B \-V
+Print program version information, then exit.
 
 .SH SEE ALSO
-group_tool(8)
+.BR cman (5),
+.BR fenced (8),
+.BR dlm_controld (8),
+.BR gfs_controld (8)
 
