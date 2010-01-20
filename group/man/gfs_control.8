@@ -1,0 +1,44 @@
+.TH GFS_CONTROL 8 2009-01-20 cluster cluster
+
+.SH NAME
+gfs_control \- a utility for the gfs_controld daemon
+
+.SH SYNOPSIS
+.B gfs_control
+[COMMAND] [OPTIONS]
+[
+.I name
+]
+
+.SH DESCRIPTION
+.TP
+.B ls
+Display internal gfs_controld state about mount groups.
+
+.TP
+.B dump
+Dump gfs_controld debug buffer.
+
+.TP
+.BI plocks " name"
+Dump posix locks from gfs_controld for the mount group.
+(For compat mode, otherwise see
+.BR dlm_tool (8).)
+
+.SH OPTIONS
+.TP
+.B \-n
+Show all node information in ls.
+
+.TP
+.B \-h
+Print a help message describing available options, then exit.
+
+.TP
+.B \-V
+Print program version information, then exit.
+
+.SH SEE ALSO
+.BR gfs_controld (8),
+.BR dlm_tool (8)
+
