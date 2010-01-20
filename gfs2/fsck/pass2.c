@@ -101,9 +101,9 @@ static const char *de_type_string(uint8_t de_type)
 	return de_types[3]; /* invalid */
 }
 
-static int check_file_type(uint8_t de_type, uint8_t block_type)
+static int check_file_type(uint8_t de_type, uint8_t blk_type)
 {
-	switch(block_type) {
+	switch(blk_type) {
 	case gfs2_inode_dir:
 		if(de_type != DT_DIR)
 			return 1;
@@ -156,7 +156,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 		 uint16_t *count, void *priv)
 {
 	struct gfs2_sbd *sbp = ip->i_sbd;
-	struct gfs2_block_query q = {0};
+	uint8_t q;
 	char tmp_name[MAX_FILENAME];
 	uint64_t entryblock;
 	struct dir_status *ds = (struct dir_status *) priv;
@@ -234,12 +234,9 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 			return 0;
 		}
 	}
-	if(gfs2_block_check(sbp, bl, de->de_inum.no_addr, &q)) {
-		stack;
-		return -1;
-	}
+	q = block_type(de->de_inum.no_addr);
 	/* Get the status of the directory inode */
-	if(q.block_type == gfs2_bad_block) {
+	if(q == gfs2_bad_block) {
 		/* This entry's inode has bad blocks in it */
 
 		/* Handle bad blocks */
@@ -266,10 +263,10 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 		}
 
 	}
-	if(q.block_type != gfs2_inode_dir && q.block_type != gfs2_inode_file &&
-	   q.block_type != gfs2_inode_lnk && q.block_type != gfs2_inode_blk &&
-	   q.block_type != gfs2_inode_chr && q.block_type != gfs2_inode_fifo &&
-	   q.block_type != gfs2_inode_sock) {
+	if(q != gfs2_inode_dir && q != gfs2_inode_file &&
+	   q != gfs2_inode_lnk && q != gfs2_inode_blk &&
+	   q != gfs2_inode_chr && q != gfs2_inode_fifo &&
+	   q != gfs2_inode_sock) {
 		log_err( _("Directory entry '%s' at block %llu (0x%llx"
 			   ") in dir inode %llu (0x%llx"
 			   ") block type %d: %s.\n"), tmp_name,
@@ -277,7 +274,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 			 (unsigned long long)de->de_inum.no_addr,
 			 (unsigned long long)ip->i_di.di_num.no_addr,
 			 (unsigned long long)ip->i_di.di_num.no_addr,
-			 q.block_type, q.block_type == gfs2_meta_inval ?
+			 q, q == gfs2_meta_inval ?
 			 _("previously marked invalid") :
 			 _("is not an inode"));
 
@@ -291,7 +288,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 			/* If it was previously marked invalid (i.e. known
 			   to be bad, not just a free block, etc.) then
 			   delete any metadata it holds.  If not, return. */
-			if (q.block_type != gfs2_meta_inval)
+			if (q != gfs2_meta_inval)
 				return 1;
 
 			/* Now try to clear the dinode, if it is an dinode */
@@ -319,7 +316,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 		}
 	}
 
-	error = check_file_type(de->de_type, q.block_type);
+	error = check_file_type(de->de_type, q);
 	if(error < 0) {
 		stack;
 		return -1;
@@ -330,7 +327,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 			 de_type_string(de->de_type), tmp_name,
 			 (unsigned long long)de->de_inum.no_addr,
 			 (unsigned long long)de->de_inum.no_addr,
-			 block_type_string(&q));
+			 block_type_string(q));
 		if(query( _("Clear stale directory entry? (y/n) "))) {
 			entry_ip = fsck_load_inode(sbp, de->de_inum.no_addr);
 			check_inode_eattr(entry_ip, &clear_eattrs);
@@ -446,7 +443,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 			}
 		}
 
-		if(q.block_type != gfs2_inode_dir) {
+		if(q != gfs2_inode_dir) {
 			log_err( _("Found '..' entry in directory %llu (0x%llx) "
 				"pointing to something that's not a directory"),
 				(unsigned long long)ip->i_di.di_num.no_addr,
@@ -487,7 +484,7 @@ static int check_dentry(struct gfs2_inode *ip, struct gfs2_dirent *dent,
 
 	/* After this point we're only concerned with
 	 * directories */
-	if(q.block_type != gfs2_inode_dir) {
+	if(q != gfs2_inode_dir) {
 		log_debug( _("Found non-dir inode dentry\n"));
 		increment_link(sbp, de->de_inum.no_addr);
 		(*count)++;
@@ -553,12 +550,10 @@ static int check_system_dir(struct gfs2_inode *sysinode, const char *dirname,
 
 	if (sysinode) {
 		iblock = sysinode->i_di.di_num.no_addr;
-		if(gfs2_block_check(sysinode->i_sbd, bl, iblock, &ds.q)) {
-			iblock = sysinode->i_di.di_num.no_addr;
-		}
+		ds.q = block_type(iblock);
 	}
 	pass2_fxns.private = (void *) &ds;
-	if(ds.q.block_type == gfs2_bad_block) {
+	if(ds.q == gfs2_bad_block) {
 		/* First check that the directory's metatree is valid */
 		if(check_metatree(sysinode, &pass2_fxns)) {
 			stack;
@@ -656,7 +651,7 @@ static inline int is_system_dir(struct gfs2_sbd *sbp, uint64_t block)
 int pass2(struct gfs2_sbd *sbp)
 {
 	uint64_t i;
-	struct gfs2_block_query q;
+	uint8_t q;
 	struct dir_status ds = {0};
 	struct gfs2_inode *ip;
 	char *filename;
@@ -693,13 +688,9 @@ int pass2(struct gfs2_sbd *sbp)
 		if (is_system_dir(sbp, i))
 			continue;
 
-		if(gfs2_block_check(sbp, bl, i, &q)) {
-			log_err( _("Can't get block %"PRIu64 " (0x%" PRIx64
-					") from block list\n"), i, i);
-			return FSCK_ERROR;
-		}
+		q = block_type(i);
 
-		if(q.block_type != gfs2_inode_dir)
+		if(q != gfs2_inode_dir)
 			continue;
 
 		log_debug( _("Checking directory inode at block %"PRIu64" (0x%"
@@ -707,7 +698,7 @@ int pass2(struct gfs2_sbd *sbp)
 
 		memset(&ds, 0, sizeof(ds));
 		pass2_fxns.private = (void *) &ds;
-		if(ds.q.block_type == gfs2_bad_block) {
+		if(ds.q == gfs2_bad_block) {
 			/* First check that the directory's metatree
 			 * is valid */
 			ip = fsck_load_inode(sbp, i);
