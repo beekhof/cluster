@@ -1,4 +1,3 @@
-/** License: GPLv2 */
 #ifndef _VALUE_LIST_H
 #define _VALUE_LIST_H
 
