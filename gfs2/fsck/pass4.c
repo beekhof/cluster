@@ -76,7 +76,7 @@ static int scan_inode_list(struct gfs2_sbd *sbp, osi_list_t *list) {
 					check_metatree(ip, &pass4_fxns_delete);
 					bmodified(ip->i_bh);
 					fsck_inode_put(&ip);
-					gfs2_block_set(sbp, bl, ii->inode,
+					gfs2_blockmap_set(sbp, bl, ii->inode,
 						       gfs2_block_free);
 					continue;
 				} else
@@ -98,7 +98,7 @@ static int scan_inode_list(struct gfs2_sbd *sbp, osi_list_t *list) {
 							  &pass4_fxns_delete);
 					check_metatree(ip, &pass4_fxns_delete);
 					bmodified(ip->i_bh);
-					gfs2_block_set(sbp, bl, ii->inode,
+					gfs2_blockmap_set(sbp, bl, ii->inode,
 						       gfs2_block_free);
 					log_err( _("The inode was deleted\n"));
 				} else {
@@ -116,7 +116,7 @@ static int scan_inode_list(struct gfs2_sbd *sbp, osi_list_t *list) {
 			if(!ip->i_di.di_size && !ip->i_di.di_eattr){
 				log_err( _("Unlinked inode has zero size\n"));
 				if(query( _("Clear zero-size unlinked inode? (y/n) "))) {
-					gfs2_block_set(sbp, bl, ii->inode,
+					gfs2_blockmap_set(sbp, bl, ii->inode,
 						       gfs2_block_free);
 					fsck_inode_put(&ip);
 					continue;
