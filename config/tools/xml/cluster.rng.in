@@ -119,10 +119,8 @@ To validate your cluster.conf against this schema, run:
      <attribute name="nodename" rha:description="Local node name; this is set internally by cman-preconfig and should never be set by a user."/>
     </optional>
     <optional>
-     <attribute name="broadcast">
-      <data type="nonNegativeInteger"/>
-     </attribute>
-    </optional>
+     <attribute name="broadcast" rha:description="enable cman broadcast" rha:default="no"/>
+   </optional>
     <optional>
      <attribute name="keyfile" rha:description=""/>
     </optional>
