@@ -15,7 +15,7 @@ static int clear_blk_nodup(struct gfs2_sbd *sbp, uint64_t block)
 		return 1;
 	}
 
-	gfs2_blockmap_set(sbp, bl, block, gfs2_block_free);
+	gfs2_blockmap_set(bl, block, gfs2_block_free);
 
 	return 0;
 
