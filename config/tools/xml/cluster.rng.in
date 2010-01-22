@@ -17,6 +17,7 @@ cluster
 - clusternodes
 - fencedevices
 - rm
+- clvmd
 
 Element defnitions:
 - Resource
@@ -901,7 +902,23 @@ To validate your cluster.conf against this schema, run:
   </element>
  </optional>
 
+<!-- clvmd block -->
+ <optional>
+   <element name="clvmd" rha:description="The clvmd element contains
+       attributes that define parameters for the cluster LVM daemon.">
+    <optional>
+     <attribute name="interface" rha:description="The interface attribute
+         tells clvmd which cluster interface it should use for internode
+         communications and locking. Valid values for this depend on
+         how the daemon is configured at compile-time, but are typically
+         cman, corosync or openais." rha:sample="cman"/>
+    </optional>
+   </element>
+ </optional>
+
  </interleave>
+
+
 </element> <!-- cluster end -->
 </start>
 
