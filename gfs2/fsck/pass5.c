@@ -15,6 +15,7 @@ static int convert_mark(uint8_t q, uint32_t *count)
 	switch(q) {
 
 	case gfs2_meta_inval:
+	case gfs2_inode_invalid:
 		/* Convert invalid metadata to free blocks */
 	case gfs2_block_free:
 		count[0]++;
@@ -36,7 +37,6 @@ static int convert_mark(uint8_t q, uint32_t *count)
 
 	case gfs2_indir_blk:
 	case gfs2_leaf_blk:
-	case gfs2_journal_blk:
 	case gfs2_meta_other:
 	case gfs2_meta_eattr:
 		count[2]++;
