@@ -437,7 +437,7 @@ static int init_journal(struct gfs_sbd *sdp, int undo)
 	else {
 		/*  Discover this node's journal number (lock module tells us
 		    which one to use), and lock it */
-		error = -EINVAL;
+		error = -EUSERS;
 		if (sdp->sd_lockstruct.ls_jid >= sdp->sd_journals) {
 			printk("GFS: fsid=%s: can't mount journal #%u\n",
 			       sdp->sd_fsname, sdp->sd_lockstruct.ls_jid);
