@@ -2144,6 +2144,86 @@ To validate your cluster.conf against this schema, run:
        <group>
         <attribute name="rpowerpath" rha:description="" rha:sample=""/>
        </group>
+       <!-- fence_xvm ( provided by fence-virt package ) -->
+       <group>
+        <optional>
+          <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
+        </optional>
+        <optional>
+          <attribute name="debug" rha:description="Specify (stdin) or increment (command line) debug level" />
+        </optional>
+        <optional>
+          <attribute name="ip_family" rha:description="IP Family ([auto], ipv4, ipv6)" />
+        </optional>
+        <optional>
+          <attribute name="multicast_address" rha:description="Multicast address (default=225.0.0.12 / ff05::3:1)" />
+        </optional>
+        <optional>
+          <attribute name="ipport" rha:description="Multicast or VMChannel IP port (default=1229)" />
+        </optional>
+        <optional>
+          <attribute name="retrans" rha:description="Multicast retransmit time (in 1/10sec; default=20)" />
+        </optional>
+        <optional>
+          <attribute name="auth" rha:description="Authentication (none, sha1, [sha256], sha512)" />
+        </optional>
+        <optional>
+          <attribute name="hash" rha:description="Packet hash strength (none, sha1, [sha256], sha512)" />
+        </optional>
+        <optional>
+          <attribute name="key_file" rha:description="Shared key file (default=/etc/cluster/fence_xvm.key)" />
+        </optional>
+        <optional>
+          <attribute name="port" rha:description="Virtual Machine (domain name) to fence" />
+        </optional>
+        <optional>
+          <attribute name="domain" rha:description="Virtual Machine (domain name) to fence (deprecated)" />
+        </optional>
+        <optional>
+          <attribute name="use_uuid" rha:description="Treat [domain] as UUID instead of domain name. This is provided for compatibility with older fence_xvmd installations." />
+        </optional>
+        <optional>
+          <attribute name="action" rha:description="Fencing action (null, off, on, [reboot], status, list, monitor, metadata)" />
+        </optional>
+        <optional>
+          <attribute name="timeout" rha:description="Fencing timeout (in seconds; default=30)" />
+        </optional>
+       </group>
+
+       <!-- fence_virt -->
+       <group>
+        <optional>
+          <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
+        </optional>
+        <optional>
+          <attribute name="debug" rha:description="Specify (stdin) or increment (command line) debug level" />
+        </optional>
+        <optional>
+          <attribute name="serial_device" rha:description="Serial device (default=/dev/ttyS1)" />
+        </optional>
+        <optional>
+          <attribute name="serial_params" rha:description="Serial Parameters (default=115200,8N1)" />
+        </optional>
+        <optional>
+          <attribute name="channel_address" rha:description="VM Channel IP address (default=10.0.2.179)" />
+        </optional>
+        <optional>
+          <attribute name="ipport" rha:description="Multicast or VMChannel IP port (default=1229)" />
+        </optional>
+        <optional>
+          <attribute name="port" rha:description="Virtual Machine (domain name) to fence" />
+        </optional>
+        <optional>
+          <attribute name="domain" rha:description="Virtual Machine (domain name) to fence (deprecated)" />
+        </optional>
+        <optional>
+          <attribute name="action" rha:description="Fencing action (null, off, on, [reboot], status, list, monitor, metadata)" />
+        </optional>
+        <optional>
+          <attribute name="timeout" rha:description="Fencing timeout (in seconds; default=30)" />
+        </optional>
+       </group>
+
        <!-- end non-generated device definitions -->
 
        <!-- begin auto-generated device definitions -->
@@ -2559,53 +2639,6 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="separator" rha:description="Separator for CSV created by operation list" />
-        </optional>
-      </group>
-
-
-      <!-- fence_xvm -->
-      <group>
-        <optional>
-          <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
-        </optional>
-        <optional>
-          <attribute name="debug" rha:description="Specify (CCS) / increment (command line) debug level" />
-        </optional>
-        <optional>
-          <attribute name="ip_family" rha:description="IP Family ([auto], ipv4, ipv6)" />
-        </optional>
-        <optional>
-          <attribute name="multicast_address" rha:description="Multicast address (default=225.0.0.12 / ff02::3:1)" />
-        </optional>
-        <optional>
-          <attribute name="port" rha:description="IP port (default=1229)" />
-        </optional>
-        <optional>
-          <attribute name="multicast_ttl" rha:description="Multicast time-to-live (in hops; default=2)" />
-        </optional>
-        <optional>
-          <attribute name="retrans" rha:description="Multicast retransmit time (in 1/10sec; default=20)" />
-        </optional>
-        <optional>
-          <attribute name="auth" rha:description="Authentication (none, sha1, [sha256], sha512)" />
-        </optional>
-        <optional>
-          <attribute name="hash" rha:description="Packet hash strength (none, sha1, [sha256], sha512)" />
-        </optional>
-        <optional>
-          <attribute name="key_file" rha:description="Shared key file (default=/etc/cluster/fence_xvm.key)" />
-        </optional>
-        <optional>
-          <attribute name="domain" rha:description="Virtual machine (domain name) to fence" />
-        </optional>
-        <optional>
-          <attribute name="use_uuid" rha:description="Treat 'domain' as UUID instead of domain name" />
-        </optional>
-        <optional>
-          <attribute name="action" rha:description="Fencing action (null, off, [reboot])" />
-        </optional>
-        <optional>
-          <attribute name="timeout" rha:description="Fencing timeout (in seconds; default=30)" />
         </optional>
       </group>
 
