@@ -1669,18 +1669,17 @@ handle_relocate_req(char *svcName, int orig_request, int preferred_target,
 		/* TODO: simplify this and don't keep alloc/freeing 
 		   member lists */
 		allowed_nodes = member_list();
-		/* Avoid even bothering the other node if we can */
-		m = memb_id_to_p(allowed_nodes, preferred_target);
-		if (!m) {
-			free_member_list(allowed_nodes);
-			return RG_EINVAL;
-		}
 
-		count_resource_groups_local(m);
-		if (m->cn_svcexcl ||
-	    	    (m->cn_svccount && is_exclusive(svcName))) {
-			free_member_list(allowed_nodes);
-			return RG_EDEPEND;
+		m = memb_id_to_p(allowed_nodes, preferred_target);
+		if (m && m->cn_member) {
+			count_resource_groups_local(m);
+			if (m->cn_svcexcl ||
+			    (m->cn_svccount && is_exclusive(svcName))) {
+				free_member_list(allowed_nodes);
+				return RG_EDEPEND;
+			}
+		} else {
+			target = preferred_target = -1;
 		}
 		free_member_list(allowed_nodes);
 	}
