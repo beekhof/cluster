@@ -1,5 +1,5 @@
-# Max attribute value: 269
-# Max object class value: 58
+# Max attribute value: 273
+# Max object class value: 59
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
 obj,rhcsTotem,totem,4
@@ -326,3 +326,8 @@ attr,rhcsRibcl,ribcl,266
 attr,rhcsKey,key,267
 attr,rhcsDevices,devices,268
 attr,rhcsAptpl,aptpl,269
+attr,rhcsSerial-device,serial_device,270
+attr,rhcsSerial-params,serial_params,271
+attr,rhcsChannel-address,channel_address,272
+obj,rhcsClvmd,clvmd,59
+attr,rhcsInterface,interface,273
