@@ -474,6 +474,8 @@ struct gfs_holder {
                                       *   (demote/greedy) holders */
 #define GLF_GREEDY              (7)  /* This lock is ignoring callbacks
                                       *   (requests from other nodes) for now */
+#define GLF_DEMOTE              (8)  /* This is used to check for unflock completion
+				      * different from HIF_DEMOTE */
 
 struct gfs_glock {
 	struct list_head gl_list;    /* Link to hb_list in one of superblock's

@@ -21,6 +21,7 @@
 #define GL_SYNC           (0x00000800) /* Sync to disk when no more holders */
 #define GL_NOCANCEL       (0x00001000) /* Don't ever cancel this request */
 #define GL_NOCANCEL_OTHER (0x00004000) /* Don't cancel other locks for this */
+#define GL_FLOCK          (0x00008000) /* This is an flock */
 
 #define GLR_TRYFAILED     (13)
 #define GLR_CANCELED      (14)
@@ -96,6 +97,7 @@ int gfs_glock_nq(struct gfs_holder *gh);
 int gfs_glock_poll(struct gfs_holder *gh);
 int gfs_glock_wait(struct gfs_holder *gh);
 void gfs_glock_dq(struct gfs_holder *gh);
+void gfs_glock_dq_wait(struct gfs_holder *gh);
 
 void gfs_glock_prefetch(struct gfs_glock *gl, unsigned int state, int flags);
 void gfs_glock_force_drop(struct gfs_glock *gl);

@@ -1732,7 +1732,8 @@ do_flock(struct file *file, int cmd, struct file_lock *fl)
 	int error = 0;
 
 	state = (fl->fl_type == F_WRLCK) ? LM_ST_EXCLUSIVE : LM_ST_SHARED;
-	flags = ((IS_SETLKW(cmd)) ? 0 : LM_FLAG_TRY) | GL_EXACT | GL_NOCACHE;
+	flags = ((IS_SETLKW(cmd)) ? 0 : LM_FLAG_TRY) | GL_EXACT | GL_NOCACHE
+		| GL_FLOCK;
 
 	down(&fp->f_fl_lock);
 
@@ -1740,21 +1741,19 @@ do_flock(struct file *file, int cmd, struct file_lock *fl)
 	if (gl) {
 		if (fl_gh->gh_state == state)
 			goto out;
-		gfs_glock_hold(gl);
 		flock_lock_file_wait(file,
-				     &(struct file_lock){.fl_type = F_UNLCK});		
-		gfs_glock_dq_uninit(fl_gh);
+				     &(struct file_lock){.fl_type = F_UNLCK});
+		gfs_glock_dq_wait(fl_gh);
+		gfs_holder_reinit(state, flags, fl_gh);
 	} else {
 		error = gfs_glock_get(ip->i_sbd,
 				      ip->i_num.no_formal_ino, &gfs_flock_glops,
 				      CREATE, &gl);
 		if (error)
 			goto out;
+		gfs_holder_init(gl, state, flags, fl_gh);
+		gfs_glock_put(gl);
 	}
-
-	gfs_holder_init(gl, state, flags, fl_gh);
-	gfs_glock_put(gl);
-
 	error = gfs_glock_nq(fl_gh);
 	if (error) {
 		gfs_holder_uninit(fl_gh);

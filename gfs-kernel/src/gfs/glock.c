@@ -986,6 +986,33 @@ state_change(struct gfs_glock *gl, unsigned int new_state)
 	gl->gl_state = new_state;
 }
 
+static int gfs_glock_demote_wait(void *word)
+{
+	schedule();
+	return 0;
+}
+
+static void gfs_wait_on_demote(struct gfs_glock *gl)
+{
+	might_sleep();
+	wait_on_bit(&gl->gl_flags, GLF_DEMOTE, gfs_glock_demote_wait, TASK_UNINTERRUPTIBLE);
+}
+
+static void gfs_demote_wake(struct gfs_glock *gl)
+{
+	clear_bit(GLF_DEMOTE, &gl->gl_flags);
+	smp_mb__after_clear_bit();
+	wake_up_bit(&gl->gl_flags, GLF_DEMOTE);
+}
+
+void gfs_glock_dq_wait(struct gfs_holder *gh)
+{
+	struct gfs_glock *gl = gh->gh_gl;
+	set_bit(GLF_DEMOTE, &gl->gl_flags);
+	gfs_glock_dq(gh);
+	gfs_wait_on_demote(gl);
+}
+
 /**
  * xmote_bh - Called after the lock module is done acquiring a lock
  * @gl: The glock in question
@@ -1091,6 +1118,8 @@ xmote_bh(struct gfs_glock *gl, unsigned int ret)
 		gl->gl_req_bh = NULL;
 		clear_bit(GLF_LOCK, &gl->gl_flags);
 		run_queue(gl);
+		if (test_bit(GLF_DEMOTE, &gl->gl_flags))
+			gfs_demote_wake(gl);
 		spin_unlock(&gl->gl_spin);
 	}
 
@@ -1200,8 +1229,9 @@ drop_bh(struct gfs_glock *gl, unsigned int ret)
 	gl->gl_req_bh = NULL;
 	clear_bit(GLF_LOCK, &gl->gl_flags);
 	run_queue(gl);
-	spin_unlock(&gl->gl_spin);
-
+	if (test_bit(GLF_DEMOTE, &gl->gl_flags))
+		gfs_demote_wake(gl);
+	spin_unlock(&gl->gl_spin);	
 	glock_put(gl);
 
 	if (gh) {
@@ -1312,6 +1342,11 @@ glock_wait_internal(struct gfs_holder *gh)
 		if (gl->gl_req_gh != gh &&
 		    !test_bit(HIF_HOLDER, &gh->gh_iflags) &&
 		    !list_empty(&gh->gh_list)) {
+			if (gh->gh_flags & GL_FLOCK &&
+			    list_empty(&gl->gl_holders)) {
+				spin_unlock(&gl->gl_spin);
+				goto skip_try_flag;
+			}
 			list_del_init(&gh->gh_list);
 			gh->gh_error = GLR_TRYFAILED;
 			if (test_bit(HIF_RECURSE, &gh->gh_iflags))
@@ -1323,6 +1358,7 @@ glock_wait_internal(struct gfs_holder *gh)
 		spin_unlock(&gl->gl_spin);
 	}
 
+skip_try_flag:
 	if ((gh->gh_flags & LM_FLAG_PRIORITY) &&
 	    !(gh->gh_flags & GL_NOCANCEL_OTHER))
 		do_cancels(gh);
@@ -1402,13 +1438,14 @@ add_to_queue(struct gfs_holder *gh)
 			if (tmp_gh->gh_owner == gh->gh_owner) {
 				/* Make sure pre-existing holder is compatible
 				   with this new one. */
-				if (gfs_assert_warn(sdp, (gh->gh_flags & LM_FLAG_ANY) ||
-						    !(tmp_gh->gh_flags & LM_FLAG_ANY)) ||
-				    gfs_assert_warn(sdp, (tmp_gh->gh_flags & GL_LOCAL_EXCL) ||
-						    !(gh->gh_flags & GL_LOCAL_EXCL)) ||
-				    gfs_assert_warn(sdp, relaxed_state_ok(gl->gl_state,
-									  gh->gh_state,
-									  gh->gh_flags)))
+				if (!(gh->gh_flags & GL_FLOCK) && 
+				    (gfs_assert_warn(sdp, (gh->gh_flags & LM_FLAG_ANY) ||
+						     !(tmp_gh->gh_flags & LM_FLAG_ANY)) ||
+				     gfs_assert_warn(sdp, (tmp_gh->gh_flags & GL_LOCAL_EXCL) ||
+						     !(gh->gh_flags & GL_LOCAL_EXCL)) ||
+				     gfs_assert_warn(sdp, relaxed_state_ok(gl->gl_state,
+									   gh->gh_state,
+									   gh->gh_flags))))
 					goto fail;
 
 				/* We're good!  Grant the hold. */
@@ -1430,15 +1467,16 @@ add_to_queue(struct gfs_holder *gh)
 			tmp_gh = list_entry(tmp, struct gfs_holder, gh_list);
 			if (tmp_gh->gh_owner == gh->gh_owner) {
 				/* Yes, make sure it is compatible with new */
-				if (gfs_assert_warn(sdp, test_bit(HIF_PROMOTE,
-								  &tmp_gh->gh_iflags)) ||
-				    gfs_assert_warn(sdp, (gh->gh_flags & LM_FLAG_ANY) ||
-						    !(tmp_gh->gh_flags & LM_FLAG_ANY)) ||
-				    gfs_assert_warn(sdp, (tmp_gh->gh_flags & GL_LOCAL_EXCL) ||
-						    !(gh->gh_flags & GL_LOCAL_EXCL)) ||
-				    gfs_assert_warn(sdp, relaxed_state_ok(tmp_gh->gh_state,
-									  gh->gh_state,
-									  gh->gh_flags)))
+				if (!(gh->gh_flags & GL_FLOCK) &&
+				    (gfs_assert_warn(sdp, test_bit(HIF_PROMOTE,
+								   &tmp_gh->gh_iflags)) ||
+				     gfs_assert_warn(sdp, (gh->gh_flags & LM_FLAG_ANY) ||
+						     !(tmp_gh->gh_flags & LM_FLAG_ANY)) ||
+				     gfs_assert_warn(sdp, (tmp_gh->gh_flags & GL_LOCAL_EXCL) ||
+						     !(gh->gh_flags & GL_LOCAL_EXCL)) ||
+				     gfs_assert_warn(sdp, relaxed_state_ok(tmp_gh->gh_state,
+									   gh->gh_state,
+									   gh->gh_flags))))
 					goto fail;
 
 				/* OK, make sure they're marked, so
