@@ -19,7 +19,7 @@ main(int argc, char **argv)
 {
 	char device[128];
 	char *newdev = NULL, *newlabel = NULL;
-	int rv, verbose_level = 1;
+	int rv, flg = 0, verbose_level = 1;
 
 	printf(PROGRAM_NAME " v" RELEASE_VERSION "\n\n");
 
@@ -49,10 +49,12 @@ main(int argc, char **argv)
 			break;
 		case 'L':
 			/* List */
-			return find_partitions(NULL, NULL, 0, verbose_level);
+			flg = rv;
+ 			break;
 		case 'f':
-			return find_partitions( optarg, device,
-					       sizeof(device), verbose_level);
+			flg = rv;
+			newlabel = optarg;
+			break;
 		case 'c':
 			newdev = optarg;
 			break;
@@ -66,6 +68,14 @@ main(int argc, char **argv)
 		default:
 			break;
 		}
+	}
+
+	/* list */
+	if (flg == 'L') {
+		return find_partitions(NULL, NULL, 0, verbose_level);
+	} else if (flg == 'f') {
+		return find_partitions( newlabel, device,
+				       sizeof(device), verbose_level);
 	}
 
 	if (!newdev && !newlabel) {
