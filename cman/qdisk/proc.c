@@ -36,13 +36,13 @@ check_device(char *device, char *label, quorum_header_t *qh,
 
 	ret = qdisk_validate(device);
 	if (ret < 0) {
-		logt_print(LOG_DEBUG, "qdisk_verify");
+		logt_print(LOG_DEBUG, "qdisk_validate: %s\n", strerror(errno));
 		return -1;
 	}
 
 	ret = qdisk_open(device, &disk);
 	if (ret < 0) {
-		logt_print(LOG_ERR, "qdisk_open");
+		logt_print(LOG_ERR, "qdisk_open: %s\n", strerror(errno));
 		return -1;
 	}
 
