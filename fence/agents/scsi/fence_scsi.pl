@@ -609,6 +609,12 @@ if ($key == 0) {
     log_error ("key cannot be zero");
 }
 
+## remove any leading zeros from key
+##
+if ($key =~ /^0/) {
+    $key =~ s/^0+//;
+}
+
 ## get devices
 ##
 if (defined $opt_d) {
