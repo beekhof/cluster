@@ -15,7 +15,7 @@ OBJS=	$(TARGET).o
 CFLAGS += -I${nsprincdir} -I${nssincdir}
 CFLAGS += -I${incdir}
 
-LDFLAGS += -L${nsslibdir} -lnss3 -lssl3
+LDFLAGS += -L${nsslibdir} -lnss3 -lssl3 -lnspr4
 LDFLAGS += -L${libdir}
 
 ${TARGET}: ${OBJS}
