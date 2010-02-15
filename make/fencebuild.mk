@@ -35,5 +35,9 @@ $(MANTARGET): $(MANTARGET:.8=) ${SRCDIR}/fence/agents/lib/fence2man.xsl
 clean: generalclean
 	rm -f $(MANTARGET) .$(MANTARGET).tmp
 else
-clean: generalclean 
+$(MANTARGET): $(S)/$(MANTARGET)
+	cp $< $@
+
+clean: generalclean
+	if [ "$(OBJDIR)" != "$(SRCDIR)" ]; then rm -f $(MANTARGET); fi
 endif
