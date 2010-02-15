@@ -44,6 +44,7 @@ PCMK_CFLAGS += -I${incdir}/heartbeat -I${incdir}/pacemaker
 PCMK_CFLAGS += `pkg-config glib-2.0 --cflags`
 PCMK_CFLAGS += `xml2-config --cflags`
 
+LDFLAGS += -lpthread
 LDFLAGS += -L${dlmlibdir} -ldlm 
 LDFLAGS += -L${logtlibdir} -llogthread
 LDFLAGS += -L${openaislibdir} -lSaCkpt
