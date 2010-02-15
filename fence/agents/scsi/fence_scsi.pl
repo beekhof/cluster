@@ -2,7 +2,6 @@
 
 use File::Basename;
 use Getopt::Std;
-use IPC::Open3;
 use POSIX;
 
 #BEGIN_VERSION_GENERATION
@@ -47,6 +46,7 @@ sub do_action_on ($@)
 	log_error ("device $dev is not a block device") if (! -b $dev);
 
 	do_register_ignore ($node_key, $dev);
+
 	if (!get_reservation_key ($dev)) {
 	    do_reserve ($node_key, $dev);
 	}
@@ -71,6 +71,7 @@ sub do_action_off ($@)
 	log_error ("device $dev is not a block device") if (! -b $dev);
 
 	my @keys = grep { /$node_key/ } get_registration_keys ($dev);
+
 	if (scalar (@keys) != 0) {
 	    do_preempt_abort ($host_key, $node_key, $dev);
 	}
@@ -92,6 +93,7 @@ sub do_action_status ($@)
 	log_error ("device $dev is not a block device") if (! -b $dev);
 
 	my @keys = grep { /$node_key/ } get_registration_keys ($dev);
+
 	if (scalar (@keys) != 0) {
 	    $dev_count++;
 	}
@@ -121,19 +123,13 @@ sub do_register ($$$)
     log_debug ("$self (host_key=$host_key, node_key=$node_key, dev=$dev)");
 
     my $cmd;
-    my $pid;
+    my $out;
 
     $cmd = "sg_persist -n -o -G -K $host_key -S $node_key -d $dev";
     $cmd .= " -Z" if (defined $opt_a);
-    $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return;
 }
@@ -154,19 +150,13 @@ sub do_register_ignore ($$)
     log_debug ("$self (node_key=$node_key, dev=$dev)");
 
     my $cmd;
-    my $pid;
+    my $out;
 
     $cmd = "sg_persist -n -o -I -S $node_key -d $dev";
     $cmd .= " -Z" if (defined $opt_a);
-    $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return;
 }
@@ -179,15 +169,9 @@ sub do_reserve ($$)
     log_debug ("$self (host_key=$host_key, dev=$dev)");
 
     my $cmd = "sg_persist -n -o -R -T 5 -K $host_key -d $dev";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return;
 }
@@ -200,15 +184,9 @@ sub do_release ($$)
     log_debug ("$self (host_key=$host_key, dev=$dev)");
 
     my $cmd = "sg_persist -n -o -L -T 5 -K $host_key -d $dev";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return;
 }
@@ -221,15 +199,9 @@ sub do_preempt ($$$)
     log_debug ("$self (host_key=$host_key, node_key=$node_key, dev=$dev)");
 
     my $cmd = "sg_persist -n -o -P -T 5 -K $host_key -S $node_key -d $dev";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return;
 }
@@ -242,15 +214,9 @@ sub do_preempt_abort ($$$)
     log_debug ("$self (host_key=$host_key, node_key=$node_key, dev=$dev)");
 
     my $cmd = "sg_persist -n -o -A -T 5 -K $host_key -S $node_key -d $dev";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return;
 }
@@ -281,6 +247,7 @@ sub key_write ($)
 sub get_key ($)
 {
     my $self = (caller(0))[3];
+
     my $key = sprintf ("%.4x%.4x", get_cluster_id (), get_node_id ($_[0]));
 
     return ($key);
@@ -292,17 +259,13 @@ sub get_node_id ($)
     my $node_id;
 
     my $cmd = "cman_tool nodes -n $_[0] -F id";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my $out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
 
-    chomp ($node_id = <OUT>);
+    chomp ($out);
 
-    close (IN);
-    close (OUT);
-    close (ERR);
+    $node_id = $out;
 
     return ($node_id);
 }
@@ -313,25 +276,17 @@ sub get_cluster_id ()
     my $cluster_id;
 
     my $cmd = "cman_tool status";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my @out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
 
-    while (<OUT>) {
+    foreach (@out) {
 	chomp;
-
 	my ($param, $value) = split (/\s*:\s*/, $_);
-
 	if ($param =~ /^cluster\s+id/i) {
 	    $cluster_id = $value;
 	}
     }
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return ($cluster_id);
 }
@@ -342,31 +297,23 @@ sub get_devices_clvm ()
     my @devices;
 
     my $cmd = "vgs --noheadings " .
-              "    --separator : " .
-              "    --sort pv_uuid " .
-              "    --options vg_attr,pv_name " .
-              "    --config 'global { locking_type = 0 } " .
-              "              devices { preferred_names = [ \"^/dev/dm\" ] }'";
+	"    --separator : " .
+	"    --sort pv_uuid " .
+	"    --options vg_attr,pv_name " .
+	"    --config 'global { locking_type = 0 } " .
+	"              devices { preferred_names = [ \"^/dev/dm\" ] }'";
 
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my @out = qx { $cmd 2> /dev/null };
 
     die "[error]: $self\n" if ($?>>8);
 
-    while (<OUT>) {
+    foreach (@out) {
 	chomp;
-
 	my ($vg_attr, $pv_name) = split (/:/, $_);
-
 	if ($vg_attr =~ /c$/) {
 	    push (@devices, $pv_name);
 	}
     }
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return (@devices);
 }
@@ -430,7 +377,6 @@ sub get_mpath_slaves ($)
     opendir (\*DIR, "/sys/block/$dev/slaves/") or die "$!\n";
 
     @slaves = grep { !/^\./ } readdir (DIR);
-
     if ($slaves[0] =~ /^dm/) {
 	@slaves = get_mpath_slaves ($slaves[0]);
     } else {
@@ -449,23 +395,16 @@ sub get_registration_keys ($)
     my @keys;
 
     my $cmd = "sg_persist -n -i -k -d $dev";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my @out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
 
-    while (<OUT>) {
+    foreach (@out) {
 	chomp;
-
 	if ($_ =~ s/^\s+0x//i) {
 	    push (@keys, $_);
 	}
     }
-
-    close (IN);
-    close (OUT);
-    close (ERR);
 
     return (@keys);
 }
@@ -477,26 +416,19 @@ sub get_reservation_key ($)
     my $key;
 
     my $cmd = "sg_persist -n -i -r -d $dev";
-    my $pid = open3 (\*IN, \*OUT, \*ERR, $cmd) or die "$!\n";
-
-    waitpid ($pid, 0);
+    my @out = qx { $cmd };
 
     die "[error]: $self\n" if ($?>>8);
 
-    while (<OUT>) {
+    foreach (@out) {
 	chomp;
-
 	if ($_ =~ s/^\s+key=0x//i) {
 	    $key = $_;
 	    last;
 	}
     }
 
-    close (IN);
-    close (OUT);
-    close (ERR);
-
-    return ($key);
+    return ($key)
 }
 
 sub get_options_stdin ()
@@ -505,7 +437,6 @@ sub get_options_stdin ()
 
     while (<STDIN>) {
 	chomp;
-
 	s/^\s*//;
 	s/\s*$//;
 
@@ -575,9 +506,7 @@ sub print_metadata ()
     print "<resource-agent name=\"fence_scsi\"" .
           " shortdesc=\"fence agent for SCSI-3 persistent reservations\">\n";
     print "<longdesc>fence_scsi</longdesc>\n";
-
     print "<parameters>\n";
-
     print "\t<parameter name=\"aptpl\" unique=\"1\" required=\"0\">\n";
     print "\t\t<getopt mixed=\"-a\"/>\n";
     print "\t\t<content type=\"boolean\"/>\n";
@@ -585,7 +514,6 @@ sub print_metadata ()
           "Use APTPL flag for registrations" .
           "</shortdesc>\n";
     print "\t</parameter>\n";
-
     print "\t<parameter name=\"devices\" unique=\"1\" required=\"0\">\n";
     print "\t\t<getopt mixed=\"-d\"/>\n";
     print "\t\t<content type=\"string\"/>\n";
@@ -593,7 +521,6 @@ sub print_metadata ()
           "List of devices to be used for fencing action" .
           "</shortdesc>\n";
     print "\t</parameter>\n";
-
     print "\t<parameter name=\"logfile\" unique=\"1\" required=\"0\">\n";
     print "\t\t<getopt mixed=\"-f\"/>\n";
     print "\t\t<content type=\"string\"/>\n";
@@ -601,7 +528,6 @@ sub print_metadata ()
           "File to write error/debug messages" .
           "</shortdesc>\n";
     print "\t</parameter>\n";
-
     print "\t<parameter name=\"key\" unique=\"1\" required=\"0\">\n";
     print "\t\t<getopt mixed=\"-k\"/>\n";
     print "\t\t<content type=\"string\"/>\n";
@@ -609,7 +535,6 @@ sub print_metadata ()
           "Key value to be used for fencing action" .
           "</shortdesc>\n";
     print "\t</parameter>\n";
-
     print "\t<parameter name=\"action\" unique=\"1\" required=\"0\">\n";
     print "\t\t<getopt mixed=\"-o\"/>\n";
     print "\t\t<content type=\"string\" default=\"off\"/>\n";
@@ -617,7 +542,6 @@ sub print_metadata ()
           "Fencing action" .
           "</shortdesc>\n";
     print "\t</parameter>\n";
-
     print "\t<parameter name=\"nodename\" unique=\"1\" required=\"0\">\n";
     print "\t\t<getopt mixed=\"-n\"/>\n";
     print "\t\t<content type=\"string\"/>\n";
@@ -625,16 +549,13 @@ sub print_metadata ()
           "Name of node" .
           "</shortdesc>\n";
     print "\t</parameter>\n";
-
     print "</parameters>\n";
-
     print "<actions>\n";
     print "\t<action name=\"on\"/>\n";
     print "\t<action name=\"off\"/>\n";
     print "\t<action name=\"status\"/>\n";
     print "\t<action name=\"metadata\"/>\n";
     print "</actions>\n";
-
     print "</resource-agent>\n";
 
     exit (0);
@@ -722,7 +643,7 @@ elsif ($opt_o =~ /^status/i) {
 }
 else {
     log_error ("unknown action '$opt_o'");
-exit (1);
+    exit (1);
 }
 
 ## close the logfile
