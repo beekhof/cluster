@@ -1,135 +1,202 @@
-# NOTE: this make file snippet is only used by the release manager
+# NOTE: this make file snippet is only used by the release managers
 # to build official release tarballs, handle tagging and publish.
+#
+# this script is NOT "make -j" safe
 #
 # do _NOT_ use for anything else!!!!!!!!!
 
-## do sanity checks
+# setup tons of vars
 
-ifndef VERSION
+# signing key
+gpgsignkey=0x6CE95CA7
 
-all:
-	@echo WARNING: VERSION= is not defined!
-	@exit 1
+# project layout
+project=cluster
+projectver=$(project)-$(version)
+projecttar=$(projectver).tar
+projectgz=$(projecttar).gz
+projectbz=$(projecttar).bz2
 
-else ifndef OLDVER
+fenceproject=fence-agents
+fenceprojectver=$(fenceproject)-$(version)
+fenceprojecttar=$(fenceprojectver).tar
+fenceprojectgz=$(fenceprojecttar).gz
+fenceprojectbz=$(fenceprojecttar).bz2
 
-all:
-	@echo WARNING: OLDVER= is not defined!
-	@exit 1
+rasproject=resource-agents
+rasprojectver=$(rasproject)-$(version)
+rasprojecttar=$(rasprojectver).tar
+rasprojectgz=$(rasprojecttar).gz
+rasprojectbz=$(rasprojecttar).bz2
 
+rgmproject=rgmanager
+rgmprojectver=$(rgmproject)-$(version)
+rgmprojecttar=$(rgmprojectver).tar
+rgmprojectgz=$(rgmprojecttar).gz
+rgmprojectbz=$(rgmprojecttar).bz2
+
+# temp dirs
+
+ifdef release
+reldir=release
+gitver=$(projectver)
+forceclean=clean
 else
-
-## setup stuff
-
-MASTERPROJECT=cluster
-
-ifdef RELEASE
-MASTERPV=$(MASTERPROJECT)-$(VERSION)
-TEST=""
-else
-MASTERPV=HEAD
-TEST="test"
-endif
-MASTERTGZ=$(TEST)$(MASTERPROJECT)-$(VERSION).tar.gz
-
-# fence-agents
-FENCEPROJECT=fence-agents
-FENCEPV=$(FENCEPROJECT)-$(VERSION)
-FENCETGZ=$(TEST)$(FENCEPV).tar.gz
-
-# resource-agents
-RASPROJECT=resource-agents
-RASPV=$(RASPROJECT)-$(VERSION)
-RASTGZ=$(TEST)$(RASPV).tar.gz
-
-# rgmanager
-RGMPROJECT=rgmanager
-RGMPV=$(RGMPROJECT)-$(VERSION)
-RGMTGZ=$(TEST)$(RGMPV).tar.gz
-
-all: tag tarballs
-
-ifdef RELEASE
-tag:
-	git tag -a -m "$(MASTERPV) release" $(MASTERPV) HEAD
-
-else
-tag:
-
+reldir=release-candidate
+gitver=HEAD
+forceclean=
 endif
 
-tarballs: master-tarball
-tarballs: fence-agents-tarball
-tarballs: resource-agents-tarball
-tarballs: rgmanager-tarball
+releasearea=$(shell pwd)/../$(projectver)-$(reldir)
 
-master-tarball:
+all: $(forceclean) checks setup tag tarballs changelog sha256 sign
+
+checks:
+ifeq (,$(version))
+	@echo ERROR: need to define version=
+	@exit 1
+endif
+ifeq (,$(oldversion))
+	@echo ERROR: need to define oldversion=
+	@exit 1
+endif
+	@if [ ! -d .git ]; then \
+		echo This script needs to be executed from top level cluster git tree; \
+		exit 1; \
+	fi
+
+setup: checks $(releasearea)
+
+$(releasearea):
+	mkdir $@
+
+tag: setup $(releasearea)/tag-$(version)
+
+$(releasearea)/tag-$(version):
+ifeq (,$(release))
+	@echo Building test release $(version), no tagging
+else
+	git tag -a -m "$(projectver) release" $(projectver) HEAD
+endif
+	@touch $@
+
+tarballs: tag
+tarballs: $(releasearea)/$(projecttar)
+tarballs: $(releasearea)/$(projectgz)
+tarballs: $(releasearea)/$(projectbz)
+tarballs: $(releasearea)/$(fenceprojecttar)
+tarballs: $(releasearea)/$(fenceprojectgz)
+tarballs: $(releasearea)/$(fenceprojectbz)
+tarballs: $(releasearea)/$(rasprojecttar)
+tarballs: $(releasearea)/$(rasprojectgz)
+tarballs: $(releasearea)/$(rasprojectbz)
+tarballs: $(releasearea)/$(rgmprojecttar)
+tarballs: $(releasearea)/$(rgmprojectgz)
+tarballs: $(releasearea)/$(rgmprojectbz)
+
+$(releasearea)/$(projecttar):
+	@echo Creating $(project) tarball
+	rm -rf $(releasearea)/$(projectver)
 	git archive \
 		--format=tar \
-		--prefix=$(MASTERPROJECT)-$(VERSION)/ \
-		$(MASTERPV) | \
-		tar xp
+		--prefix=$(projectver)/ \
+		$(gitver) | \
+		(cd $(releasearea)/ && tar xf -)
+	cd $(releasearea) && \
 	sed -i -e \
-		's#<CVS>#$(VERSION)#g' \
-		$(MASTERPROJECT)-$(VERSION)/gfs-kernel/src/gfs/gfs.h
-	echo "VERSION \"$(VERSION)\"" \
-		>> $(MASTERPROJECT)-$(VERSION)/make/official_release_version
-	tar cp $(MASTERPROJECT)-$(VERSION) | \
-		gzip -9 \
-		> ../$(MASTERTGZ)
-	rm -rf $(MASTERPROJECT)-$(VERSION)
+		's#<CVS>#$(version)#g' \
+		$(projectver)/gfs-kernel/src/gfs/gfs.h && \
+	echo "VERSION \"$(version)\"" \
+		>> $(projectver)/make/official_release_version && \
+	tar cpf $(projecttar) $(projectver) && \
+	rm -rf $(projectver)
 
-fence-agents-tarball: master-tarball
-	tar zxpf ../$(MASTERTGZ)
-	mv $(MASTERPROJECT)-$(VERSION) $(FENCEPV)
-	cd $(FENCEPV) && \
-		rm -rf bindings cman common config contrib dlm gfs* group \
-			rgmanager fence/fenced fence/fence_node \
-			fence/fence_tool fence/include fence/libfence \
-			fence/libfenced fence/man
-	tar cp $(FENCEPV) | \
-		gzip -9 \
-		> ../$(FENCETGZ)
-	rm -rf $(FENCEPV)
+$(releasearea)/$(fenceprojecttar): $(releasearea)/$(projecttar)
+	@echo Creating $(fenceproject) tarball
+	cd $(releasearea) && \
+	rm -rf $(projectver) $(fenceprojectver) && \
+	tar xpf $(projecttar) && \
+	mv $(projectver) $(fenceprojectver) && \
+	cd $(fenceprojectver) && \
+	rm -rf bindings cman common config contrib dlm gfs* group \
+		rgmanager fence/fenced fence/fence_node \
+		fence/fence_tool fence/include fence/libfence \
+		fence/libfenced fence/man && \
+	cd .. && \
+	tar cpf $(fenceprojecttar) $(fenceprojectver) && \
+	rm -rf $(fenceprojectver)
 
-resource-agents-tarball: master-tarball
-	tar zxpf ../$(MASTERTGZ)
-	mv $(MASTERPROJECT)-$(VERSION) $(RASPV)
-	cd $(RASPV) && \
-		rm -rf bindings cman common config contrib dlm fence gfs* \
-			group rgmanager/ChangeLog rgmanager/errors.txt \
-			rgmanager/event-script.txt rgmanager/examples \
-			rgmanager/include rgmanager/init.d rgmanager/man \
-			rgmanager/README rgmanager/src/clulib \
-			rgmanager/src/daemons rgmanager/src/utils
-	tar cp $(RASPV) | \
-		gzip -9 \
-		> ../$(RASTGZ)
-	rm -rf $(RASPV)
+$(releasearea)/$(rasprojecttar): $(releasearea)/$(projecttar)
+	@echo Creating $(rasproject) tarball
+	cd $(releasearea) && \
+	rm -rf $(projectver) $(rasprojectver) && \
+	tar xpf $(projecttar) && \
+	mv $(projectver) $(rasprojectver) && \
+	cd $(rasprojectver) && \
+	rm -rf bindings cman common config contrib dlm fence gfs* \
+		group rgmanager/ChangeLog rgmanager/errors.txt \
+		rgmanager/event-script.txt rgmanager/examples \
+		rgmanager/include rgmanager/init.d rgmanager/man \
+		rgmanager/README rgmanager/src/clulib \
+		rgmanager/src/daemons rgmanager/src/utils && \
+	cd .. && \
+	tar cpf $(rasprojecttar) $(rasprojectver) && \
+	rm -rf $(rasprojectver)
 
-rgmanager-tarball: master-tarball
-	tar zxpf ../$(MASTERTGZ)
-	mv $(MASTERPROJECT)-$(VERSION) $(RGMPV)
-	cd $(RGMPV) && \
-		rm -rf bindings cman common config contrib dlm fence gfs* group \
-			rgmanager/src/resources
-	tar cp $(RGMPV) | \
-		gzip -9 \
-		> ../$(RGMTGZ)
-	rm -rf $(RGMPV)
+$(releasearea)/$(rgmprojecttar): $(releasearea)/$(projecttar)
+	@echo Creating $(rgmproject) tarball
+	cd $(releasearea) && \
+	rm -rf $(projectver) $(rgmprojectver) && \
+	tar xpf $(projecttar) && \
+	mv $(projectver) $(rgmprojectver) && \
+	cd $(rgmprojectver) && \
+	rm -rf bindings cman common config contrib dlm fence gfs* group \
+		rgmanager/src/resources && \
+	cd .. && \
+	tar cpf $(rgmprojecttar) $(rgmprojectver) && \
+	rm -rf $(rgmprojectver)
 
-publish:
-	git push --tags origin
-	scp ../$(MASTERTGZ) \
-	    ../$(FENCETGZ) \
-	    ../$(RASTGZ) \
-	    ../$(RGMTGZ) \
-		fedorahosted.org:$(MASTERPROJECT)
-	git log $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) | \
-		git shortlog > ../$(MASTERPV).emaildata
-	git diff --stat $(MASTERPROJECT)-$(OLDVER)..$(MASTERPV) \
-		>> ../$(MASTERPV).emaildata
+$(releasearea)/%.gz: $(releasearea)/%
+	@echo Creating $@
+	cat $< | gzip -9 > $@
+
+$(releasearea)/%.bz2: $(releasearea)/%
+	@echo Creating $@
+	cat $< | bzip2 -c > $@
+
+changelog: checks setup $(releasearea)/Changelog-$(version)
+
+$(releasearea)/Changelog-$(version): $(releasearea)/$(projecttar)
+	git log $(project)-$(oldversion)..$(gitver) | \
+	git shortlog > $@
+	git diff --stat $(project)-$(oldversion)..$(gitver) >> $@
+
+sha256: changelog tarballs $(releasearea)/$(projectver).sha256
+
+$(releasearea)/$(projectver).sha256: $(releasearea)/Changelog-$(version)
+	cd $(releasearea) && \
+	sha256sum Changelog-$(version) *.gz *.bz2 | sort -k2 > $@
+
+sign: sha256 $(releasearea)/$(projectver).sha256.asc
+
+$(releasearea)/$(projectver).sha256.asc: $(releasearea)/$(projectver).sha256
+	cd $(releasearea) && \
+	gpg --default-key $(gpgsignkey) \
+		--detach-sign \
+		--armor \
+		$<
+
+publish: sign
+ifeq (,$(release))
+	@echo Nothing to publish
+else
+	@echo git push --tags origin
+	cd $(releasearea) && \
+	scp *.gz *.bz2 Changelog-* *sha256* \
+		fedorahosted.org:$(project)
 	@echo Hey you!.. yeah you looking somewhere else!
 	@echo remember to update the wiki and send the email to cluster-devel and linux-cluster
-
 endif
+
+clean: checks
+	rm -rf $(releasearea)
