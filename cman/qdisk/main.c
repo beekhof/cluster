@@ -24,6 +24,7 @@
 #include <ccs.h>
 #include <liblogthread.h>
 #include "score.h"
+#include "../daemon/cman.h"
 #include <sys/syslog.h>
 
 #define LOG_DAEMON_NAME  "qdiskd"
@@ -1472,6 +1473,7 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 {
 	char *val = NULL;
 	char query[256];
+	int qdisk_fo;
 
 	if (ccsfd < 0)
 		return -1;
@@ -1486,14 +1488,36 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 		if (ctx->qc_interval < 1)
 			ctx->qc_interval = 1;
 	}
+
+	snprintf(query, sizeof(query), "/cluster/totem/@token");
+	if (ccs_get(ccsfd, query, &val) == 0) {
+		ctx->qc_token_timeout = atoi(val);
+		free(val);
+		if (ctx->qc_token_timeout < 10000) {
+			logt_print(LOG_DEBUG, "Token timeout %d is too fast "
+				   "to use with qdiskd!\n",
+				   ctx->qc_token_timeout);
+		} 
+	} else {
+		ctx->qc_token_timeout = DEFAULT_TOKEN_TIMEOUT;
+	}
 		
 	/* Get tko */
 	snprintf(query, sizeof(query), "/cluster/quorumd/@tko");
 	if (ccs_get(ccsfd, query, &val) == 0) {
 		ctx->qc_tko = atoi(val);
 		free(val);
-		if (ctx->qc_tko < 3)
-			ctx->qc_tko = 3;
+	} else {
+		ctx->qc_tko = ((ctx->qc_token_timeout / 1000) -
+			       ctx->qc_interval) / 2;
+		logt_print(LOG_DEBUG, "Auto-configured TKO as %d based on "
+			   "token=%d interval=%d\n", ctx->qc_tko,
+			   ctx->qc_token_timeout, ctx->qc_interval);
+	}
+
+	if (ctx->qc_tko < 4) {
+		logt_print(LOG_ERR, "Quorum disk TKO (%d) is too low!\n",
+			   ctx->qc_tko);
 	}
 
 	/* Get up-tko (transition off->online) */
@@ -1527,7 +1551,22 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 	}
 	if (ctx->qc_master_wait <= ctx->qc_tko_up)
 		ctx->qc_master_wait = ctx->qc_tko_up + 1;
-		
+
+	qdisk_fo = ctx->qc_interval * (ctx->qc_master_wait +
+				ctx->qc_upgrade_wait +
+				ctx->qc_tko) * 1000;
+	if (qdisk_fo >= ctx->qc_token_timeout) {
+		logt_print(LOG_WARNING, "Quorum disk timings are too slow for "
+			   "configured token timeout\n");
+		logt_print(LOG_WARNING, " * Totem Token timeout: %dms\n",
+			   ctx->qc_token_timeout);
+		logt_print(LOG_WARNING, " * Min. Master recovery time: %dms\n",
+			   qdisk_fo);
+		logt_print(LOG_WARNING,
+			   "Please set token timeout to at least %dms\n",
+			   qdisk_fo + (ctx->qc_interval * 1000));
+	}
+
 	/* Get votes */
 	snprintf(query, sizeof(query), "/cluster/quorumd/@votes");
 	if (ccs_get(ccsfd, query, &val) == 0) {

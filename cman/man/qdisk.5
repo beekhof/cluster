@@ -80,7 +80,8 @@ capacity.  If CMAN is not running, qdisk will wait for it.
 
 * CMAN's eviction timeout should be at least 2x the quorum daemon's
 to give the quorum daemon adequate time to converge on a master during a
-failure + load spike situation.
+failure + load spike situation.  See section 3.3.1 for specific
+details.
 
 * For 'all-but-one' failure operation, the total number of votes assigned
 to the quorum device should be equal to or greater than the total number
@@ -211,6 +212,7 @@ This is the frequency of read/write cycles, in seconds.
 \fItko\fP\fB="\fP10\fB"\fP
 .in 12
 This is the number of cycles a node must miss in order to be declared dead.
+The default for this number is dependent on the configured token timeout.
 
 .in 9
 \fItko_up\fP\fB="\fPX\fB"\fP
@@ -289,7 +291,7 @@ This option requires careful tuning of the CMAN timeout, the qdiskd
 timeout, and CMAN's quorum_dev_poll value.  As a rule of thumb,
 CMAN's quorum_dev_poll value should be equal to Totem's token timeout
 and qdiskd's timeout (interval*tko) should be less than half of
-Totem's token timeout.
+Totem's token timeout.  See section 3.3.1 for more information.
 
 This option only takes effect if there are no heuristics
 configured.  Usage of this option in configurations with more than
@@ -372,7 +374,7 @@ label.  This is useful in configurations where the block device name
 differs on a per-node basis.
 
 .in 9
-\fIcman_label\fP\fB="\fPmylabel\fB"/>\fP
+\fIcman_label\fP\fB="\fPmylabel\fB"\fP
 .in 12
 This overrides the label advertised to CMAN if present.  If specified,
 the quorum daemon will register with this name instead of the actual
@@ -390,6 +392,28 @@ qdiskd is running.  This option is ignored if io_timeout is set to 1.
 .in 8
 \fB/>\fP
 .in 0
+
+.SH "3.3.1.  Quorum Disk Timings"
+Qdiskd should not be used in environments requiring failure detection
+times of less than approximately 10 seconds.
+
+Qdiskd will attempt to automatically configure timings based on the
+totem timeout and the TKO.  If configuring manually, Totem's token
+timeout \fBmust\fP be set to a value at least 1 interval greater than
+the the following function:
+
+  interval * (tko + master_wait + upgrade_wait)
+
+So, if you have an interval of 2, a tko of 7, master_wait of 2 and
+upgrade_wait of 2, the token timeout should be at least 24 seconds
+(24000 msec).
+
+It is recommended to have at least 3 intervals to reduce the risk of 
+quorum loss during heavy I/O load.  As a rule of thumb, using a totem
+timeout more than 2x of qdiskd's timeout will result in good behavior.
+
+An improper timing configuration will cause CMAN to give up on qdiskd,
+causing a temporary loss of quorum during master transition.
 
 .SH "3.2.  The <heuristic> tag"
 This tag is a child of the <quorumd> tag.  Heuristics may not be changed
