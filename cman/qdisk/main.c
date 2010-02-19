@@ -1469,6 +1469,40 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 
 
 static int
+auto_qdisk_votes(int desc)
+{
+	int x, ret = 0;
+	char buf[128];
+	char *name;
+
+	if (desc < 0) {
+		return 1;
+	}
+
+	while (++x) {
+		snprintf(buf, sizeof(buf)-1,
+			"/cluster/clusternodes/clusternode[%d]/@name", x);
+
+		name = NULL;
+		if (ccs_get(desc, buf, &name) != 0)
+			break;
+
+		free(name);
+		ret = x;
+	}
+
+	--ret;
+	if (ret <= 0) {
+		ret = 1;
+	}
+
+	logt_print(LOG_DEBUG, "Setting votes to %d\n", ret);
+
+	return (ret);
+}
+
+
+static int
 get_static_config_data(qd_ctx *ctx, int ccsfd) 
 {
 	char *val = NULL;
@@ -1574,6 +1608,8 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 		free(val);
 		if (ctx->qc_votes < 0)
 			ctx->qc_votes = 0;
+	} else {
+		ctx->qc_votes = auto_qdisk_votes(ccsfd);
 	}
 
 	/* Get device */

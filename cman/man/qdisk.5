@@ -73,7 +73,7 @@ the amount of synchronous I/O contention on the shared quorum disk.
 * Cluster node IDs must be statically configured in cluster.conf and
 must be numbered from 1..16 (there can be gaps, of course).
 
-* Cluster node votes should be more or less equal.
+* Cluster node votes should all be 1.
 
 * CMAN must be running before the qdisk program can operate in full
 capacity.  If CMAN is not running, qdisk will wait for it.
@@ -239,7 +239,8 @@ exceed \fBtko\fP.
 \fIvotes\fP\fB="\fP3\fB"\fP
 .in 12
 This is the number of votes the quorum daemon advertises to CMAN when it
-has a high enough score.
+has a high enough score.  The default is the number of nodes in the cluster
+minus 1.  For example, in a 4 node cluster, the default is 3.
 
 .in 9
 \fIlog_level\fP\fB="\fP4\fB"\fP
