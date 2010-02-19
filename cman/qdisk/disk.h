@@ -246,7 +246,7 @@ typedef struct {
 	int qc_max_error_cycles;
 	int qc_master;		/* Master?! */
 	int qc_config;
-	int qc_token_timeout;
+	int qc_pad;
 	disk_node_state_t qc_disk_status;
 	disk_node_state_t qc_status;
 	run_flag_t qc_flags;
