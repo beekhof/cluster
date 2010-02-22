@@ -1574,6 +1574,7 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 			logt_print(LOG_DEBUG, "Token timeout %d is too fast "
 				   "to use with qdiskd!\n",
 				   ctx->qc_token_timeout);
+			return -1;
 		} 
 	} else {
 		ctx->qc_token_timeout = DEFAULT_TOKEN_TIMEOUT;
@@ -1593,7 +1594,7 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 	}
 
 	if (ctx->qc_tko < 4) {
-		logt_print(LOG_ERR, "Quorum disk TKO (%d) is too low!\n",
+		logt_print(LOG_WARNING, "Quorum disk TKO (%d) is too low!\n",
 			   ctx->qc_tko);
 	}
 
@@ -1629,19 +1630,26 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 	if (ctx->qc_master_wait <= ctx->qc_tko_up)
 		ctx->qc_master_wait = ctx->qc_tko_up + 1;
 
+	logt_print(LOG_DEBUG, "Timings: %d tko, %d interval\n",
+		   ctx->qc_tko, ctx->qc_interval);
+	logt_print(LOG_DEBUG, "Timings: %d tko_up, %d master_wait, "
+		   "%d upgrade_wait\n",
+		   ctx->qc_tko_up, ctx->qc_master_wait, ctx->qc_upgrade_wait);
+
 	qdisk_fo = ctx->qc_interval * (ctx->qc_master_wait +
 				ctx->qc_upgrade_wait +
 				ctx->qc_tko) * 1000;
 	if (qdisk_fo >= ctx->qc_token_timeout) {
-		logt_print(LOG_WARNING, "Quorum disk timings are too slow for "
+		logt_print(LOG_ERR, "Quorum disk timings are too slow for "
 			   "configured token timeout\n");
-		logt_print(LOG_WARNING, " * Totem Token timeout: %dms\n",
+		logt_print(LOG_ERR, " * Totem Token timeout: %dms\n",
 			   ctx->qc_token_timeout);
-		logt_print(LOG_WARNING, " * Min. Master recovery time: %dms\n",
+		logt_print(LOG_ERR, " * Min. Master recovery time: %dms\n",
 			   qdisk_fo);
-		logt_print(LOG_WARNING,
+		logt_print(LOG_ERR,
 			   "Please set token timeout to at least %dms\n",
 			   qdisk_fo + (ctx->qc_interval * 1000));
+		return -1;
 	}
 
 	/* Get device */
@@ -1708,7 +1716,7 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 static int
 get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh)
 {
-	int ccsfd = -1;
+	int ccsfd = -1, ret = -1;
 
 	ccsfd = ccs_connect();
 	if (ccsfd < 0) {
@@ -1732,14 +1740,20 @@ get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh)
 		ctx->qc_max_error_cycles = 0;
 	}
 	
-	if (ctx->qc_config ||
-	    get_dynamic_config_data(ctx, ccsfd) < 0)
+	if (get_dynamic_config_data(ctx, ccsfd) < 0) {
 		goto out;
+	}
+
+	if (ctx->qc_config) {
+		ret = 0;
+		goto out;
+	}
 
 	ctx->qc_config = 1;
 
-	if (get_static_config_data(ctx, ccsfd) < 0)
+	if (get_static_config_data(ctx, ccsfd) < 0) {
 		goto out;
+	}
 
 	*cfh = configure_heuristics(ccsfd, h, maxh);
 
@@ -1750,18 +1764,16 @@ get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh)
 		}
 	}
 
+	ret = 0;
+
 	logt_print(LOG_DEBUG, "Quorum Daemon: %d heuristics, "
 		   "%d interval, %d tko, %d votes\n",
 		   *cfh, ctx->qc_interval, ctx->qc_tko, ctx->qc_votes);
-	logt_print(LOG_DEBUG, "%d tko_up, %d master_wait, "
-		   "%d upgrade_wait\n",
-		   ctx->qc_tko_up, ctx->qc_master_wait, ctx->qc_upgrade_wait);
-out:
 	logt_print(LOG_DEBUG, "Run Flags: %08x\n", ctx->qc_flags);
-
+out:
 	ccs_disconnect(ccsfd);
 
-	return 0;
+	return ret;
 }
 
 
