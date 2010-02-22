@@ -1339,10 +1339,45 @@ get_log_config_data(int ccsfd)
 
 
 static int
+auto_qdisk_votes(int desc)
+{
+	int x = 0, ret = 0;
+	char buf[128];
+	char *name;
+
+	if (desc < 0) {
+		return 1;
+	}
+
+	while (++x) {
+		snprintf(buf, sizeof(buf)-1,
+			"/cluster/clusternodes/clusternode[%d]/@name", x);
+
+		name = NULL;
+		if (ccs_get(desc, buf, &name) != 0)
+			break;
+
+		free(name);
+		ret = x;
+	}
+
+	--ret;
+	if (ret <= 0) {
+		ret = 1;
+	}
+
+	logt_print(LOG_DEBUG, "Setting votes to %d\n", ret);
+
+	return (ret);
+}
+
+
+static int
 get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 {
 	char *val = NULL;
 	char query[256];
+	int old_votes = 0;
 
 	if (ccsfd < 0)
 		return -1;
@@ -1464,41 +1499,49 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 		free(val);
 	}
 
+	/* Get votes */
+	if (ctx->qc_config) {
+		old_votes = ctx->qc_votes;
+	}
+
+	snprintf(query, sizeof(query), "/cluster/quorumd/@votes");
+	if (ccs_get(ccsfd, query, &val) == 0) {
+		ctx->qc_votes = atoi(val);
+		free(val);
+		if (ctx->qc_votes < 0)
+			ctx->qc_votes = 0;
+	} else {
+		ctx->qc_votes = auto_qdisk_votes(ccsfd);
+		if (ctx->qc_votes < 0) {
+			if (ctx->qc_config) {
+				logt_print(LOG_WARNING, "Unable to determine "
+					   "new vote value; retaining old "
+					   "value of %d\n", old_votes);
+				ctx->qc_votes = old_votes;
+			}
+		}
+	}
+
+	if (ctx->qc_config && old_votes != ctx->qc_votes) {
+		logt_print(LOG_DEBUG, "Changing vote count from %d to %d\n",
+			   old_votes, ctx->qc_votes);
+
+		/*
+		 * This is done in main() normally.  Here, we are
+		 * reconfiguring _only_ the votes at this point.  The 
+		 * label / cman runflags do not change during reconfiguration
+		 *
+		 * This only works after we have already gotten static
+		 * configuration data during initial startup.
+		 */
+		cman_register_quorum_device(ctx->qc_cman_admin,
+					    (ctx->qc_flags&RF_CMAN_LABEL)? 
+					    ctx->qc_cman_label:
+					    ctx->qc_device,
+					    ctx->qc_votes);
+	}
+
 	return 0;
-}
-
-
-static int
-auto_qdisk_votes(int desc)
-{
-	int x = 0, ret = 0;
-	char buf[128];
-	char *name;
-
-	if (desc < 0) {
-		return 1;
-	}
-
-	while (++x) {
-		snprintf(buf, sizeof(buf)-1,
-			"/cluster/clusternodes/clusternode[%d]/@name", x);
-
-		name = NULL;
-		if (ccs_get(desc, buf, &name) != 0)
-			break;
-
-		free(name);
-		ret = x;
-	}
-
-	--ret;
-	if (ret <= 0) {
-		ret = 1;
-	}
-
-	logt_print(LOG_DEBUG, "Setting votes to %d\n", ret);
-
-	return (ret);
 }
 
 
@@ -1599,17 +1642,6 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 		logt_print(LOG_WARNING,
 			   "Please set token timeout to at least %dms\n",
 			   qdisk_fo + (ctx->qc_interval * 1000));
-	}
-
-	/* Get votes */
-	snprintf(query, sizeof(query), "/cluster/quorumd/@votes");
-	if (ccs_get(ccsfd, query, &val) == 0) {
-		ctx->qc_votes = atoi(val);
-		free(val);
-		if (ctx->qc_votes < 0)
-			ctx->qc_votes = 0;
-	} else {
-		ctx->qc_votes = auto_qdisk_votes(ccsfd);
 	}
 
 	/* Get device */

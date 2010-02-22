@@ -240,7 +240,9 @@ exceed \fBtko\fP.
 .in 12
 This is the number of votes the quorum daemon advertises to CMAN when it
 has a high enough score.  The default is the number of nodes in the cluster
-minus 1.  For example, in a 4 node cluster, the default is 3.
+minus 1.  For example, in a 4 node cluster, the default is 3.  This value
+may change during normal operation, for example when adding or removing
+a node from the cluster.
 
 .in 9
 \fIlog_level\fP\fB="\fP4\fB"\fP
