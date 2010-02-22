@@ -1471,7 +1471,7 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 static int
 auto_qdisk_votes(int desc)
 {
-	int x, ret = 0;
+	int x = 0, ret = 0;
 	char buf[128];
 	char *name;
 
