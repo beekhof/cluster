@@ -190,7 +190,7 @@ publish: sign
 ifeq (,$(release))
 	@echo Nothing to publish
 else
-	@echo git push --tags origin
+	git push --tags origin
 	cd $(releasearea) && \
 	scp *.gz *.bz2 Changelog-* *sha256* \
 		fedorahosted.org:$(project)
