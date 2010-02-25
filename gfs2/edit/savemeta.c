@@ -133,7 +133,7 @@ static void warm_fuzzy_stuff(uint64_t wfsblock, int force, int save)
 		if (last_fs_block) {
 			printf("\r");
 			if (save) {
-				percent = (block * 100) / last_fs_block;
+				percent = (wfsblock * 100) / last_fs_block;
 				printf("%" PRIu64 " metadata blocks (%"
 				       PRIu64 "%%) processed, ", wfsblock,
 				       percent);
@@ -299,6 +299,7 @@ static void save_indirect_blocks(int out_fd, osi_list_t *cur_list,
 		if (height != hgt) { /* If not at max height */
 			nbh = bread(&sbd, indir_block);
 			osi_list_add_prev(&nbh->b_altlist, cur_list);
+			brelse(nbh);
 		}
 	} /* for all data on the indirect block */
 }
