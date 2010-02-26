@@ -1338,37 +1338,61 @@ get_log_config_data(int ccsfd)
 }
 
 
+/*
+ * return number of nodes - 1 on success
+ *        -1 on generic error
+ *        -2 if one of the node votes is != 1
+ */
 static int
 auto_qdisk_votes(int desc)
 {
-	int x = 0, ret = 0;
-	char buf[128];
+	int ret = 1;
+	char buf[PATH_MAX];
 	char *name;
 
-	if (desc < 0) {
-		return 1;
-	}
+	while (1) {
+		int votes=0;
 
-	while (++x) {
 		snprintf(buf, sizeof(buf)-1,
-			"/cluster/clusternodes/clusternode[%d]/@name", x);
+			"/cluster/clusternodes/clusternode[%d]/@votes", ret);
 
 		name = NULL;
 		if (ccs_get(desc, buf, &name) != 0)
 			break;
 
+		votes=atoi(name);
+		if (votes != 1) {
+			free(name);
+
+			snprintf(buf, sizeof(buf)-1,
+			    "/cluster/clusternodes/clusternode[%d]/@name",
+			    ret);
+
+			if (ccs_get(desc, buf, &name) == 0) {
+				logt_print(LOG_ERR, "%s's vote count is %d\n",
+					   name, votes);
+				free(name);
+			}
+
+			logt_print(LOG_ERR, "Set all node vote counts to 1 "
+				   "or specify qdiskd's votes\n");
+			return -2;
+		}
+
 		free(name);
-		ret = x;
-	}
-
-	--ret;
-	if (ret <= 0) {
-		ret = 1;
-	}
-
-	logt_print(LOG_DEBUG, "Setting votes to %d\n", ret);
-
-	return (ret);
+		ret++;
+ 	}
+ 
+	// adjust count (one from init and one from the node count)
+	ret = ret - 2;
+ 
+	if (ret <= 0)
+		logt_print(LOG_ERR, "Unable to determine qdiskd votes "
+			   "automatically\n");
+	else
+		logt_print(LOG_DEBUG, "Setting votes to %d\n", ret);
+ 
+ 	return (ret);
 }
 
 
@@ -1518,6 +1542,9 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 					   "new vote value; retaining old "
 					   "value of %d\n", old_votes);
 				ctx->qc_votes = old_votes;
+			} else {
+				/* During startup, this is fatal */
+				return -1;
 			}
 		}
 	}
