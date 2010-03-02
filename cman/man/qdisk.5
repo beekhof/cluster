@@ -73,7 +73,7 @@ the amount of synchronous I/O contention on the shared quorum disk.
 * Cluster node IDs must be statically configured in cluster.conf and
 must be numbered from 1..16 (there can be gaps, of course).
 
-* Cluster node votes should all be 1.
+* Cluster node votes must all be 1.
 
 * CMAN must be running before the qdisk program can operate in full
 capacity.  If CMAN is not running, qdisk will wait for it.
@@ -91,7 +91,7 @@ been explored.
 
 * For 'tiebreaker' operation in a two-node cluster, unset CMAN's two_node
 flag (or set it to 0), set CMAN's expected votes to '3', set each node's
-vote to '1', and set qdisk's vote count to '1' as well.  This will allow
+vote to '1', and leave qdisk's vote count unset.  This will allow
 the cluster to operate if either both nodes are online, or a single node &
 the heuristics.
 
@@ -299,6 +299,12 @@ Totem's token timeout.  See section 3.3.1 for more information.
 This option only takes effect if there are no heuristics
 configured.  Usage of this option in configurations with more than
 two cluster nodes is undefined and should not be done.
+
+In a two-node cluster with no heuristics and no defined vote
+count (see above), this mode is turned by default.  If enabled in
+this way at startup and a node is later added to the cluster 
+configuration or the vote count is set to a value other than 1, this
+mode will be disabled.
 
 .in 9
 \fIallow_kill\fP\fB="\fP1\fB"\fP

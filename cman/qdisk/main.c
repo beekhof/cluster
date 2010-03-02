@@ -1526,6 +1526,7 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 	/* Get votes */
 	if (ctx->qc_config) {
 		old_votes = ctx->qc_votes;
+		ctx->qc_flags &= ~RF_AUTO_VOTES;
 	}
 
 	snprintf(query, sizeof(query), "/cluster/quorumd/@votes");
@@ -1546,12 +1547,20 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 				/* During startup, this is fatal */
 				return -1;
 			}
+		} else {
+			ctx->qc_flags |= RF_AUTO_VOTES;
 		}
 	}
 
 	if (ctx->qc_config && old_votes != ctx->qc_votes) {
 		logt_print(LOG_DEBUG, "Changing vote count from %d to %d\n",
 			   old_votes, ctx->qc_votes);
+
+		if (ctx->qc_flags & RF_AUTO_MASTER_WINS) {
+			logt_print(LOG_DEBUG, "Vote count changed! "
+				   "Disabling master-wins\n");
+			ctx->qc_flags &= ~(RF_MASTER_WINS|RF_AUTO_MASTER_WINS);
+		}
 
 		/*
 		 * This is done in main() normally.  Here, we are
@@ -1788,6 +1797,19 @@ get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh)
 		if (ctx->qc_flags & RF_MASTER_WINS) {
 			logt_print(LOG_WARNING, "Master-wins mode disabled\n");
 			ctx->qc_flags &= ~RF_MASTER_WINS;
+		}
+	} else {
+		if (ctx->qc_flags & RF_AUTO_VOTES &&
+		    !(ctx->qc_flags & RF_MASTER_WINS) &&
+		    ctx->qc_votes == 1) { 
+			/* Two node cluster, no heuristics, 1 vote for
+			 * quorum disk daemon.  Safe to enable master-wins.
+			 * In fact, qdiskd without master-wins in this config
+			 * is a waste of resources.
+			 */
+			ctx->qc_flags |= RF_MASTER_WINS | RF_AUTO_MASTER_WINS;
+			logt_print(LOG_INFO, "Enabling master-wins mode for "
+				   "simple two-node cluster\n");
 		}
 	}
 
