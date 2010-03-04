@@ -264,6 +264,7 @@ read_quota_file(struct gfs2_sbd *sdp, commandline_t *comline,
 				}
 				gfs2_quota_in(&q, buf);
 				id = (offset / sizeof(struct gfs2_quota)) >> 1;
+				/* We want value in 512 byte blocks (1 << 9 = 512) */
 				q.qu_value <<= sdp->sd_sb.sb_bsize_shift - 9;
 
 				if (q.qu_value) {
@@ -274,7 +275,7 @@ read_quota_file(struct gfs2_sbd *sdp, commandline_t *comline,
 				}
 
 				offset += sizeof(struct gfs2_quota);
-			} while ((offset + sizeof(struct gfs2_quota)) < 
+			} while ((offset + sizeof(struct gfs2_quota)) <= 
 				 end);
 		}
 	}
