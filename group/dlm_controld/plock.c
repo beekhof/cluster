@@ -1452,7 +1452,7 @@ void process_plocks(int ci)
 	struct dlm_plock_info info;
 	struct timeval now;
 	uint64_t usec;
-	int rv;
+	int create, rv;
 
 	if (limit_plocks()) {
 		poll_ignore_plock = 1;
@@ -1507,7 +1507,9 @@ void process_plocks(int ci)
 		plock_rate_delays = 0;
 	}
 
-	rv = find_resource(ls, info.number, 1, &r);
+	create = (info.optype == DLM_PLOCK_OP_UNLOCK) ? 0 : 1;
+
+	rv = find_resource(ls, info.number, create, &r);
 	if (rv)
 		goto fail;
 
