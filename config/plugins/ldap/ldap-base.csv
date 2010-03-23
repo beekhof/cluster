@@ -1,4 +1,4 @@
-# Max attribute value: 273
+# Max attribute value: 274
 # Max object class value: 59
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -331,3 +331,4 @@ attr,rhcsSerial-params,serial_params,271
 attr,rhcsChannel-address,channel_address,272
 obj,rhcsClvmd,clvmd,59
 attr,rhcsInterface,interface,273
+attr,rhcsHash-cluster-id,hash_cluster_id,274

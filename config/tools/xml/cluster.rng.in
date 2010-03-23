@@ -117,6 +117,9 @@ To validate your cluster.conf against this schema, run:
      </attribute>
     </optional>
     <optional>
+     <attribute name="hash_cluster_id" rha:description="Enable stronger hashing of cluster ID to avoid collisions." />
+    </optional>
+    <optional>
      <attribute name="nodename" rha:description="Local node name; this is set internally by cman-preconfig and should never be set by a user."/>
     </optional>
     <optional>
