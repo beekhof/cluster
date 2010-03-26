@@ -2,6 +2,8 @@ TARGET= libdlmcontrol
 
 OBJS=	main.o
 
+SOMINOR=1
+
 include ../../make/defines.mk
 include $(OBJDIR)/make/libs.mk
 include $(OBJDIR)/make/cobj.mk
