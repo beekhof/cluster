@@ -27,6 +27,12 @@ cman/qdisk/scandisk.{c,h}:
  Original design by: Joel Becker <Joel.Becker at oracle.com> and
  Fabio M. Di Nitto <fdinitto at redhat.com>
 
+cman/daemon/fnvhash.c
+ This code is in the public domain.
+ Phong Vo (http://www.research.att.com/info/kpv/)
+ Glenn Fowler (http://www.research.att.com/~gsf/)
+ Landon Curt Noll (http://www.isthe.com/chongo/)
+
 dlm/doc/example.c:
  Author: Daniel Phillips <phillips at redhat.com>
 
