@@ -717,7 +717,7 @@ rt_enqueue_request(const char *resgroupname, int request,
 		/* EWOULDBLOCK */
 		pthread_mutex_unlock(resgroup->rt_queue_mutex);
 		pthread_mutex_unlock(&reslist_mutex);
-		return -1;
+		return 0;
 	}
 
 	ret = rq_queue_request(resgroup->rt_queue, resgroup->rt_name,
