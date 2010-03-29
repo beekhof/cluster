@@ -23,19 +23,6 @@ Print the version information.
 
 sub\-commands have their own options, see below for more detail
 .SH "COMMANDS"
-.TP 
-\fBupdate\fP \fI<xml file>\fP
-This command is used to update the config file that ccsd is working with
-while the cman cluster is operational (i.e. online).  Run this on a single
-machine to update cluster.conf on all current cluster members.  This also
-notifies cman of the new config version.
-
-.TP 
-\fBupgrade\fP \fI<location>\fP
-This command is used to upgrade an old CCS format archive to the new
-xml format.  \fI<location>\fP is the location of the old archive,
-which can be either a block device archive or a file archive.  The
-converted configuration will be printed to stdout.
 
 .TP 
 \fBaddnode\fP [options] \fI<node> [<fenceoption=value>]...\fP
@@ -182,4 +169,4 @@ have them.
 
 
 .SH "SEE ALSO"
-ccs(7), ccsd(8), cluster.conf(5)
+cluster.conf(5)
