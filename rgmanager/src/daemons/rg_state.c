@@ -1745,6 +1745,7 @@ handle_relocate_req(char *svcName, int orig_request, int preferred_target,
 			 */
 			if (svc_start(svcName, RG_START) == 0) {
 				*new_owner = me;
+				free_member_list(backup);
 				return 0;
 			}
 		} else if (target == preferred_target) {
@@ -1757,6 +1758,7 @@ handle_relocate_req(char *svcName, int orig_request, int preferred_target,
 				/*
 				 * Great! We're done...
 				 */
+				free_member_list(backup);
 				return 0;
 			}
 

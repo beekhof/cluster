@@ -701,6 +701,7 @@ rt_enqueue_request(const char *resgroupname, int request,
 	}
 
 	if (resgroup->rt_request == RG_RELOCATE) {
+		ret = -1;
 		switch(request) {
 		case RG_RELOCATE:
 		case RG_START_REMOTE:
@@ -711,13 +712,14 @@ rt_enqueue_request(const char *resgroupname, int request,
 				 request, 0);
 			msg_close(response_ctx);
 			msg_free_ctx(response_ctx);
+			ret = 0;
 			break;
 		}
 		fprintf(stderr, "Failed to queue request: Would block\n");
 		/* EWOULDBLOCK */
 		pthread_mutex_unlock(resgroup->rt_queue_mutex);
 		pthread_mutex_unlock(&reslist_mutex);
-		return 0;
+		return ret;
 	}
 
 	ret = rq_queue_request(resgroup->rt_queue, resgroup->rt_name,
