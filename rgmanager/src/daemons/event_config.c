@@ -154,6 +154,8 @@ deconstruct_event(event_t *ev)
 {
 	if (ev->ev_script)
 		free(ev->ev_script);
+	if (ev->ev_script_file)
+		free(ev->ev_script_file);
 	if (ev->ev_name)
 		free(ev->ev_name);
 	free(ev);
