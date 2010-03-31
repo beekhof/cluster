@@ -1034,6 +1034,8 @@ static void _receive_own(struct mountgroup *mg, char *buf, int len, int from)
 	int should_not_happen = 0;
 	int rv;
 
+	mg->last_plock_time = time(NULL);
+
 	memcpy(&info, buf + sizeof(struct gdlm_header), sizeof(info));
 	info_bswap_in(&info);
 
@@ -1200,6 +1202,8 @@ static void _receive_sync(struct mountgroup *mg, char *buf, int len, int from)
 	struct resource *r;
 	int rv;
 
+	mg->last_plock_time = time(NULL);
+
 	memcpy(&info, buf + sizeof(struct gdlm_header), sizeof(info));
 	info_bswap_in(&info);
 
@@ -1244,6 +1248,8 @@ static void _receive_drop(struct mountgroup *mg, char *buf, int len, int from)
 	struct dlm_plock_info info;
 	struct resource *r;
 	int rv;
+
+	mg->last_plock_time = time(NULL);
 
 	memcpy(&info, buf + sizeof(struct gdlm_header), sizeof(info));
 	info_bswap_in(&info);
