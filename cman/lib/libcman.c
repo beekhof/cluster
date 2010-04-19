@@ -319,6 +319,7 @@ static cman_handle_t open_socket(const char *name, int namelen, void *privdata)
 		h = NULL;
 		errno = saved_errno;
 	}
+	fcntl(h->zero_fd, F_SETFD, 1); /* Set close-on-exec */
 
 	return (cman_handle_t)h;
 }
