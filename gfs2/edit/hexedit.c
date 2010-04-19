@@ -1743,6 +1743,8 @@ static void read_superblock(int fd)
 		sbd.fssize = sbd.device.length;
 		gfs1_rindex_read(&sbd, 0, &count);
 	} else {
+		int sane;
+
 		sbd.sd_inptrs = (sbd.bsize - sizeof(struct gfs2_meta_header)) /
 			sizeof(uint64_t);
 		sbd.sd_diptrs = (sbd.bsize - sizeof(struct gfs2_dinode)) /
@@ -1751,7 +1753,7 @@ static void read_superblock(int fd)
 					    sbd.sd_sb.sb_master_dir.no_addr);
 		gfs2_lookupi(sbd.master_dir, "rindex", 6, &sbd.md.riinode);
 		sbd.fssize = sbd.device.length;
-		rindex_read(&sbd, 0, &count);
+		rindex_read(&sbd, 0, &count, &sane);
 	}
 
 }
