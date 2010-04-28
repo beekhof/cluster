@@ -27,7 +27,7 @@ GENERAL_TARGETS=ocf-shellfuncs svclib_nfslock lvm_by_lv.sh lvm_by_vg.sh
 UTIL_TARGETS= \
 	utils/ra-skelet.sh utils/messages.sh \
 	utils/httpd-parse-config.pl utils/tomcat-parse-config.pl \
-	utils/member_util.sh
+	utils/member_util.sh utils/fs-lib.sh
 
 $(TARGET1):
 	mkdir -p utils
