@@ -702,8 +702,8 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 						       "60", strlen("60")+1, OBJDB_VALUETYPE_STRING);
 		}
 		/* Extend fail_to_recv_const, see bz#587078 */
-		if (objdb_get_string(objdb, object_handle, "fail_to_recv_const", &value)) {
-			objdb->object_key_create_typed(object_handle, "fail_to_recv_const",
+		if (objdb_get_string(objdb, object_handle, "fail_recv_const", &value)) {
+			objdb->object_key_create_typed(object_handle, "fail_recv_const",
 						       "2500", strlen("2500")+1, OBJDB_VALUETYPE_STRING);
 		}
 		/* consensus should be 2*token, see bz#544482*/
