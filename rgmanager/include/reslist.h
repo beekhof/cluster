@@ -42,6 +42,7 @@
 #define RESOURCE_ROOTDIR	SHAREDIR
 #define RESOURCE_TREE_ROOT	"/cluster/rm"
 #define RESOURCE_BASE		RESOURCE_TREE_ROOT "/resources"
+#define RESOURCE_DEFAULTS	RESOURCE_TREE_ROOT "/resource-defaults"
 #define RESOURCE_ROOT_FMT 	RESOURCE_TREE_ROOT "/%s[%d]"
 
 #define RESOURCE_MAX_LEVELS	100
@@ -146,6 +147,7 @@ int resource_tree_delta(resource_node_t **, resource_node_t **);
    Load/kill resource rule sets
  */
 int load_resource_rules(const char *rpath, resource_rule_t **rules);
+int load_resource_defaults(int ccsfd, resource_rule_t **rules);
 void print_resource_rule(FILE *fp, resource_rule_t *rule);
 void print_resource_rules(resource_rule_t **rules);
 void dump_resource_rules(FILE *fp, resource_rule_t **rules);

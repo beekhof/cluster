@@ -1686,6 +1686,8 @@ init_resource_groups(int reconfigure, int do_init)
 		return -1;
 	}
 
+	load_resource_defaults(fd, &rulelist);
+
 	if (build_resource_tree(fd, &tree, &rulelist, &reslist) != 0) {
 		logt_print(LOG_CRIT, "#7: Error building resource tree\n");
 		destroy_resource_tree(&tree);

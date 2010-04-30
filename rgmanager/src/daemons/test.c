@@ -133,6 +133,7 @@ test_func(int argc, char **argv)
 	}
 
 	load_resource_rules(agentpath, &rulelist);
+	load_resource_defaults(ccsfd, &rulelist);
 	construct_domains(ccsfd, &domains);
 	construct_events(ccsfd, &events);
 	load_resources(ccsfd, &reslist, &rulelist);
@@ -283,6 +284,7 @@ tree_delta_test(int argc, char **argv)
 	}
 
 	load_resource_rules(agentpath, &rulelist);
+	load_resource_defaults(ccsfd, &rulelist);
 	load_resources(ccsfd, &reslist, &rulelist);
 	build_resource_tree(ccsfd, &tree, &rulelist, &reslist);
 	ccs_unlock(ccsfd);
@@ -297,6 +299,7 @@ tree_delta_test(int argc, char **argv)
 	}
 
 	load_resource_rules(agentpath, &rulelist2);
+	load_resource_defaults(ccsfd, &rulelist);
 	load_resources(ccsfd, &reslist2, &rulelist2);
 	build_resource_tree(ccsfd, &tree2, &rulelist2, &reslist2);
 	ccs_unlock(ccsfd);

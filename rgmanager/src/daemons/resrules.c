@@ -467,7 +467,15 @@ store_attribute(resource_attr_t **attrsp, char *name, char *value, int flags)
 		return 0;
 	}
 
-	for (x = 0; attrs[x].ra_name; x++);
+	for (x = 0; attrs[x].ra_name; x++) {
+		if (strcmp(attrs[x].ra_name, name) == 0) {
+			free(name);
+			free(attrs[x].ra_value);
+			attrs[x].ra_value = value;
+			attrs[x].ra_flags = flags;
+			return 0;
+		}
+	}
 
 	attrs = realloc(attrs, sizeof(resource_attr_t) * (x+2));
 	if (!attrs)
