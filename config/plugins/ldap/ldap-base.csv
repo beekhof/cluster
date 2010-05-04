@@ -1,4 +1,4 @@
-# Max attribute value: 274
+# Max attribute value: 277
 # Max object class value: 59
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -332,3 +332,6 @@ attr,rhcsChannel-address,channel_address,272
 obj,rhcsClvmd,clvmd,59
 attr,rhcsInterface,interface,273
 attr,rhcsHash-cluster-id,hash_cluster_id,274
+attr,rhcs--max-failures,__max_failures,275
+attr,rhcs--failure-expire-time,__failure_expire_time,276
+attr,rhcsStatus-program,status_program,277

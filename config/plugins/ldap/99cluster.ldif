@@ -1,4 +1,4 @@
-# Auto-generated @ 2010-03-23 16:45:04
+# Auto-generated @ 2010-05-04 17:47:37
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.1 NAME 'rhcsConfig-version'
@@ -1027,6 +1027,18 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.275 NAME 'rhcs--max-failures'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.276 NAME 'rhcs--failure-expire-time'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.138 NAME 'rhcsAddress'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
@@ -1280,6 +1292,12 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.185 NAME 'rhcsSnapshot'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.277 NAME 'rhcsStatus-program'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
@@ -1685,95 +1703,95 @@ objectClasses: (
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.31 NAME 'rhcsService' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPriority $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsRecovery $ rhcsNfs-client-cache $ rhcsNfslock $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPriority $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsRecovery $ rhcsNfs-client-cache $ rhcsNfslock $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.32 NAME 'rhcsIp' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsSleeptime $ rhcsNfslock $ rhcsMonitor-link $ rhcsFamily $ rhcsAddress $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsSleeptime $ rhcsNfslock $ rhcsMonitor-link $ rhcsFamily $ rhcsAddress $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.33 NAME 'rhcsNfsclient' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsUse-cache $ rhcsService-name $ rhcsAllow-recover $ rhcsOptions $ rhcsFsid $ rhcsSvcname $ rhcsPath $ rhcsTarget $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsUse-cache $ rhcsService-name $ rhcsAllow-recover $ rhcsOptions $ rhcsFsid $ rhcsSvcname $ rhcsPath $ rhcsTarget $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.34 NAME 'rhcsNfsexport' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsFsid $ rhcsPath $ rhcsDevice $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsFsid $ rhcsPath $ rhcsDevice $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.35 NAME 'rhcsScript' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsFile $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsFile $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.36 NAME 'rhcsNetfs' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsOptions $ rhcsForce-unmount $ rhcsNo-unmount $ rhcsFstype $ rhcsExport $ rhcsHost $ rhcsMountpoint $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsOptions $ rhcsForce-unmount $ rhcsNo-unmount $ rhcsFstype $ rhcsExport $ rhcsHost $ rhcsMountpoint $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.37 NAME 'rhcsClusterfs' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsNfslock $ rhcsFsid $ rhcsSelf-fence $ rhcsOptions $ rhcsForce-unmount $ rhcsFstype $ rhcsDevice $ rhcsMountpoint $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsNfslock $ rhcsFsid $ rhcsSelf-fence $ rhcsOptions $ rhcsForce-unmount $ rhcsFstype $ rhcsDevice $ rhcsMountpoint $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.38 NAME 'rhcsSmb' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsWorkgroup $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsWorkgroup $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.39 NAME 'rhcsApache' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsHttpd-options $ rhcsConfig-file $ rhcsServer-root $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsHttpd-options $ rhcsConfig-file $ rhcsServer-root $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.40 NAME 'rhcsOpenldap' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsSlapd-options $ rhcsUrl-list $ rhcsConfig-file $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsSlapd-options $ rhcsUrl-list $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.41 NAME 'rhcsSamba' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsNmbd-options $ rhcsSmbd-options $ rhcsConfig-file $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsNmbd-options $ rhcsSmbd-options $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.42 NAME 'rhcsMysql' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsStartup-wait $ rhcsMysqld-options $ rhcsListen-address $ rhcsConfig-file $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsStartup-wait $ rhcsMysqld-options $ rhcsListen-address $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.43 NAME 'rhcsPostgres-8' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsPostmaster-options $ rhcsPostmaster-user $ rhcsConfig-file $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsPostmaster-options $ rhcsPostmaster-user $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.44 NAME 'rhcsTomcat-5' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsCatalina-base $ rhcsCatalina-options $ rhcsTomcat-user $ rhcsConfig-file $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsCatalina-base $ rhcsCatalina-options $ rhcsTomcat-user $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.45 NAME 'rhcsLvm' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsNfslock $ rhcsSelf-fence $ rhcsLv-name $ rhcsVg-name $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsNfslock $ rhcsSelf-fence $ rhcsLv-name $ rhcsVg-name $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.46 NAME 'rhcsVm' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsMigration-uri $ rhcsHypervisor-uri $ rhcsHypervisor $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsSnapshot $ rhcsPath $ rhcsMigrate $ rhcsXmlfile $ rhcsUse-virsh $ rhcsMigration-mapping $ rhcsRecovery $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsMigration-uri $ rhcsHypervisor-uri $ rhcsHypervisor $ rhcsStatus-program $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsSnapshot $ rhcsPath $ rhcsMigrate $ rhcsXmlfile $ rhcsUse-virsh $ rhcsMigration-mapping $ rhcsRecovery $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.47 NAME 'rhcsSAPInstance' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPOST-STOP-USEREXIT $ rhcsPRE-STOP-USEREXIT $ rhcsPOST-START-USEREXIT $ rhcsPRE-START-USEREXIT $ rhcsAUTOMATIC-RECOVER $ rhcsSTART-WAITTIME $ rhcsSTART-PROFILE $ rhcsDIR-PROFILE $ rhcsDIR-EXECUTABLE $ rhcsInstanceName $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPOST-STOP-USEREXIT $ rhcsPRE-STOP-USEREXIT $ rhcsPOST-START-USEREXIT $ rhcsPRE-START-USEREXIT $ rhcsAUTOMATIC-RECOVER $ rhcsSTART-WAITTIME $ rhcsSTART-PROFILE $ rhcsDIR-PROFILE $ rhcsDIR-EXECUTABLE $ rhcsInstanceName $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.48 NAME 'rhcsSAPDatabase' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPOST-STOP-USEREXIT $ rhcsPRE-STOP-USEREXIT $ rhcsPOST-START-USEREXIT $ rhcsPRE-START-USEREXIT $ rhcsDB-JARS $ rhcsDIR-SECSTORE $ rhcsDIR-BOOTSTRAP $ rhcsAUTOMATIC-RECOVER $ rhcsSTRICT-MONITORING $ rhcsJAVA-HOME $ rhcsDBJ2EE-ONLY $ rhcsNETSERVICENAME $ rhcsDBTYPE $ rhcsDIR-EXECUTABLE $ rhcsSID $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPOST-STOP-USEREXIT $ rhcsPRE-STOP-USEREXIT $ rhcsPOST-START-USEREXIT $ rhcsPRE-START-USEREXIT $ rhcsDB-JARS $ rhcsDIR-SECSTORE $ rhcsDIR-BOOTSTRAP $ rhcsAUTOMATIC-RECOVER $ rhcsSTRICT-MONITORING $ rhcsJAVA-HOME $ rhcsDBJ2EE-ONLY $ rhcsNETSERVICENAME $ rhcsDBTYPE $ rhcsDIR-EXECUTABLE $ rhcsSID $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.49 NAME 'rhcsNamed' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsNamed-options $ rhcsNamed-working-dir $ rhcsNamed-sdb $ rhcsConfig-file $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsNamed-options $ rhcsNamed-working-dir $ rhcsNamed-sdb $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.50 NAME 'rhcsASEHAagent' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsDeep-probe-timeout $ rhcsStart-timeout $ rhcsShutdown-timeout $ rhcsSybase-user $ rhcsInterfaces-file $ rhcsLogin-file $ rhcsServer-name $ rhcsSybase-ocs $ rhcsSybase-ase $ rhcsSybase-home $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsDeep-probe-timeout $ rhcsStart-timeout $ rhcsShutdown-timeout $ rhcsSybase-user $ rhcsInterfaces-file $ rhcsLogin-file $ rhcsServer-name $ rhcsSybase-ocs $ rhcsSybase-ase $ rhcsSybase-home $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.58 NAME 'rhcsDrbd' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsResource $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsResource $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.51 NAME 'rhcsFs' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsOptions $ rhcsForce-fsck $ rhcsFsid $ rhcsNfslock $ rhcsSelf-fence $ rhcsQuick-status $ rhcsForce-unmount $ rhcsFstype $ rhcsDevice $ rhcsMountpoint $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsOptions $ rhcsForce-fsck $ rhcsFsid $ rhcsNfslock $ rhcsSelf-fence $ rhcsQuick-status $ rhcsForce-unmount $ rhcsFstype $ rhcsDevice $ rhcsMountpoint $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.52 NAME 'rhcsOracledb' SUP top STRUCTURAL
-     MAY ( rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsVhost $ rhcsType $ rhcsHome $ rhcsUser $ rhcsListener-name $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsVhost $ rhcsType $ rhcsHome $ rhcsUser $ rhcsListener-name $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.53 NAME 'rhcsAction' SUP top STRUCTURAL

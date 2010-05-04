@@ -984,6 +984,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1019,6 +1025,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1068,6 +1080,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1102,6 +1120,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1129,6 +1153,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1169,6 +1199,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1216,6 +1252,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1245,6 +1287,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1287,6 +1335,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1327,6 +1381,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1365,6 +1425,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1410,6 +1476,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1448,6 +1520,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1493,6 +1571,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1526,6 +1610,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1590,6 +1680,9 @@ To validate your cluster.conf against this schema, run:
           <attribute name="restart_expire_time"/>
         </optional>
         <optional>
+          <attribute name="status_program"/>
+        </optional>
+        <optional>
           <attribute name="hypervisor"/>
         </optional>
         <optional>
@@ -1605,6 +1698,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1657,6 +1756,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1724,6 +1829,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1767,6 +1878,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1802,6 +1919,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1826,6 +1949,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1879,6 +2008,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1913,6 +2048,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
