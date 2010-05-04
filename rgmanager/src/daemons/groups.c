@@ -1890,6 +1890,22 @@ check_restart(const char *rg_name)
 	return ret;
 }
 
+int
+clear_restart(const char *rg_name)
+{
+	resource_node_t *node;
+	int ret = 0;
+
+	pthread_rwlock_rdlock(&resource_lock);
+	node = node_by_ref(&_tree, rg_name);
+	if (node) {
+		ret = restart_clear(node->rn_restart_counter);
+	}
+	pthread_rwlock_unlock(&resource_lock);
+
+	return ret;
+}
+
 
 void
 kill_resource_groups(void)

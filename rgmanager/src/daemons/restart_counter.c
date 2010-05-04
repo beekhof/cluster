@@ -90,6 +90,11 @@ restart_threshold_exceeded(restart_counter_t arg)
 	restart_info_t *restarts = (restart_info_t *)arg;
 	time_t now;
 
+	if (!arg)
+		/* No max restarts / threshold = always
+		   ok to restart! */
+		return 0;
+
 	VALIDATE(arg, -1);
 	now = time(NULL);
 	restart_timer_purge(arg, now);

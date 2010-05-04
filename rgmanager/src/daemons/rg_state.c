@@ -749,7 +749,6 @@ svc_start(const char *svcName, int req)
 	svcStatus.rs_transition = (uint64_t)time(NULL);
 
 	if (svcStatus.rs_state == RG_STATE_RECOVER) {
-		add_restart(svcName);
 		svcStatus.rs_restarts++;
 	} else {
 		svcStatus.rs_restarts = 0;
@@ -2084,19 +2083,24 @@ handle_recover_req(char *svcName, int *new_owner)
 	get_recovery_policy(svcName, policy, sizeof(policy));
 
 	if (!strcasecmp(policy, "disable")) {
+		clear_restart(svcName);
 		return svc_disable(svcName);
 	} else if (!strcasecmp(policy, "relocate")) {
+		clear_restart(svcName);
 		return handle_relocate_req(svcName, RG_START_RECOVER, -1,
 					   new_owner);
 	}
 
 	/* Check restart counter/timer for this resource */
 	if (check_restart(svcName) > 0) {
+		clear_restart(svcName);
 		logt_print(LOG_NOTICE, "Restart threshold for %s exceeded; "
 		       "attempting to relocate\n", svcName);
 		return handle_relocate_req(svcName, RG_START_RECOVER, -1,
 					   new_owner);
 	}
+
+	add_restart(svcName);
 
 	return handle_start_req(svcName, RG_START_RECOVER, new_owner);
 }

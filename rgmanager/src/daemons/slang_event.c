@@ -1162,22 +1162,38 @@ static int
 S_service_event(const char *file, const char *script, char *name,
 	        int state, int owner, int last_owner)
 {
+	char policy[20];
 	int ret;
 
 	_service_name = name;
 	_service_state = (char *)rg_state_str(state);
 	_service_owner = owner;
 	_service_last_owner = last_owner;
-	_service_restarts_exceeded = check_restart(name);
+	_service_restarts_exceeded = 0;
 
 	switch(state) {
 	case RG_STATE_DISABLED:
 	case RG_STATE_STOPPED:
 	case RG_STATE_FAILED:
-	case RG_STATE_RECOVER:
 	case RG_STATE_ERROR:
 		/* There is no owner for these states.  Ever.  */
 		_service_owner = -1;
+		break;
+	case RG_STATE_RECOVER:
+		get_recovery_policy(name, policy, sizeof(policy));
+		if (!strcasecmp(policy, "restart")) {
+			_service_restarts_exceeded = check_restart(name);
+			add_restart(name);
+		} else if (!strcasecmp(policy, "relocate")) {
+			/* Restart threshold is always exceeded 
+			 * with 'relocate' recovery policy */
+			_service_restarts_exceeded = 1;
+		}
+		_service_owner = -1;
+	}
+
+	if (_service_restarts_exceeded) {
+		clear_restart(name);
 	}
 
 	ret = do_slang_run(file, script);
