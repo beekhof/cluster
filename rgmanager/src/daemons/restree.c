@@ -1210,9 +1210,8 @@ clear_checks(resource_node_t *node)
 {
 	time_t now;
 	int x = 0;
-	resource_t *res = node->rn_resource;
 
-	now = get_time("start", 0, node);
+	now = get_time((char *)"start", 0, node);
 
 	for (; node->rn_actions[x].ra_name; x++) {
 

@@ -20,6 +20,7 @@ int get_service_property(const char *rg_name, const char *prop,
 
 int add_restart(const char *rg_name);
 int check_restart(const char *rg_name);
+int clear_restart(const char *rg_name);
 void kill_resource_groups(void);
 
 /* do this op on all resource groups.  The handler for the request 
