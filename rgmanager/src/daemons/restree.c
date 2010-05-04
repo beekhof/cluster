@@ -510,6 +510,8 @@ do_load_resource(int ccsfd, char *base,
 	char *ref;
 	resource_node_t *node;
 	resource_t *curres;
+	time_t failure_expire = 0;
+	int max_failures = 0;
 
 	snprintf(tok, sizeof(tok), "%s/@ref", base);
 
@@ -602,6 +604,36 @@ do_load_resource(int ccsfd, char *base,
 		if (atoi(ref) > 0 || strcasecmp(ref, "yes") == 0)
 			node->rn_flags |= RF_ENFORCE_TIMEOUTS;
 		free(ref);
+	}
+
+	/* per-resource-node failures / expire times */
+	snprintf(tok, sizeof(tok), "%s/@__max_failures", base);
+#ifndef NO_CCS
+	if (ccs_get(ccsfd, tok, &ref) == 0) {
+#else
+	if (conf_get(tok, &ref) == 0) {
+#endif
+		max_failures = atoi(ref);
+		if (max_failures < 0)
+			max_failures = 0;
+		free(ref);
+	}
+
+	snprintf(tok, sizeof(tok), "%s/@__failure_expire_time", base);
+#ifndef NO_CCS
+	if (ccs_get(ccsfd, tok, &ref) == 0) {
+#else
+	if (conf_get(tok, &ref) == 0) {
+#endif
+		failure_expire = (time_t)expand_time(ref);
+		if ((int64_t)failure_expire < 0)
+			failure_expire = 0;
+		free(ref);
+	}
+
+	if (max_failures && failure_expire) {
+		node->rn_failure_counter = restart_init(failure_expire,
+							max_failures);
 	}
 
 	curres->r_refs++;
@@ -849,6 +881,10 @@ destroy_resource_tree(resource_node_t **tree)
 
 		if (node->rn_restart_counter) {
 			restart_cleanup(node->rn_restart_counter);
+		}
+
+		if (node->rn_failure_counter) {
+			restart_cleanup(node->rn_failure_counter);
 		}
 
 		if(node->rn_actions){
@@ -1149,6 +1185,15 @@ do_status(resource_node_t *node)
 	 * completed. */
 	node->rn_actions[idx].ra_last = time(NULL);
 
+	/* If we have not exceeded our failure count threshold, then fudge
+	 * the status check this round */
+	if (x && node->rn_failure_counter) {
+		if (!restart_threshold_exceeded(node->rn_failure_counter)) {
+			x = 0;
+			restart_add(node->rn_failure_counter);
+		}
+	}
+
 	node->rn_last_status = x;
 	node->rn_last_depth = node->rn_actions[idx].ra_depth;
 	node->rn_checked = 1;
@@ -1221,6 +1266,8 @@ clear_checks(resource_node_t *node)
 
 		node->rn_actions[x].ra_last = now;
 	}
+
+	restart_clear(node->rn_failure_counter);
 
 	node->rn_checked = 0;
 	node->rn_last_status = 0;
