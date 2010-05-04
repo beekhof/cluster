@@ -97,7 +97,6 @@ typedef struct _resource {
 	char *	r_name;
 	resource_attr_t *	r_attrs;
 	resource_act_t *	r_actions;
-	time_t	r_started;	/** Time this resource was last started */
 	int	r_flags;
 	int	r_refs;
 	int	r_incarnations;	/** Number of instances running locally */
