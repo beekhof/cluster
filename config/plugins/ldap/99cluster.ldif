@@ -1,4 +1,4 @@
-# Auto-generated @ 2010-05-04 17:47:37
+# Auto-generated @ 2010-05-04 17:59:59
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.1 NAME 'rhcsConfig-version'
@@ -116,6 +116,12 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.8 NAME 'rhcsToken'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.278 NAME 'rhcsFail-recv-const'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
@@ -1576,7 +1582,7 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.4 NAME 'rhcsTotem' SUP top STRUCTURAL
      MUST ( cn )
-     MAY ( rhcsKeyfile $ rhcsSecauth $ rhcsRrp-mode $ rhcsToken-retransmits-before-loss-const $ rhcsToken $ rhcsJoin $ rhcsConsensus )
+     MAY ( rhcsKeyfile $ rhcsSecauth $ rhcsRrp-mode $ rhcsToken-retransmits-before-loss-const $ rhcsFail-recv-const $ rhcsToken $ rhcsJoin $ rhcsConsensus )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.56 NAME 'rhcsInterface' SUP top STRUCTURAL

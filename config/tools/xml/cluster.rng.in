@@ -176,6 +176,9 @@ To validate your cluster.conf against this schema, run:
         timeout." rha:default="5000" rha:sample="5300"/>
    </optional>
    <optional>
+    <attribute name="fail_recv_const" />
+   </optional>
+   <optional>
     <attribute name="token_retransmits_before_loss_const"
       rha:description="This value identifies how many token retransmits
       should be attempted before forming a new configuration. If
