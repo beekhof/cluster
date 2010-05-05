@@ -17,6 +17,8 @@
 #include <cman-private.h>
 #include <logging.h>
 
+static void process_cman_event(cman_handle_t handle, void *private,
+			       int reason, int arg);
 /* Ripped from ccsd's setup_local_socket */
 
 int cluster_msg_close(msgctx_t *ctx);
@@ -189,7 +191,10 @@ poll_cluster_messages(int timeout)
 			return -1;
 		}
 
-		cman_dispatch(ch, 0);
+		if (cman_dispatch(ch, 0) < 0) {
+			process_cman_event(ch, NULL,
+					   CMAN_REASON_TRY_SHUTDOWN, 0);
+		}
 		ret = 0;
 	}
 	cman_unlock(ch);
