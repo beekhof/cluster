@@ -677,6 +677,30 @@ check_votes(qd_ctx *ctx, node_info_t *ni, int max, disk_msg_t *msg)
 	return 0;
 }
 
+
+static int
+register_device(qd_ctx *ctx)
+{
+	return cman_register_quorum_device(
+			ctx->qc_cman_admin,
+			(ctx->qc_flags&RF_CMAN_LABEL) ?
+				ctx->qc_cman_label : ctx->qc_device,
+			(!(ctx->qc_flags & RF_MASTER_WINS) ||
+			 ctx->qc_status == S_MASTER) ?
+				ctx->qc_votes : 0);
+}
+
+
+static int 
+adjust_votes(qd_ctx *ctx)
+{
+	if (!(ctx->qc_flags & RF_MASTER_WINS))
+		return 0;
+
+	return register_device(ctx);
+}
+
+
 static void
 print_node_info(FILE *fp, node_info_t *ni)
 {
@@ -968,6 +992,7 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 				       "downgrading\n",
 				       score, score_max, score_req);
 				ctx->qc_status = S_NONE;
+				adjust_votes(ctx);
 				msg.m_msg = M_NONE;
 				++msg.m_seq;
 				bid_pending = 0;
@@ -1006,6 +1031,7 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 
 			/* Handle just like a recent upgrade */
 			ctx->qc_status = S_RUN;
+			adjust_votes(ctx);
 			upgrade = ctx->qc_upgrade_wait;
 			bid_pending = 0;
 			msg.m_msg = M_NONE;
@@ -1055,6 +1081,7 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 				logt_print(LOG_INFO,
 				       "Assuming master role\n");
 				ctx->qc_status = S_MASTER;
+				adjust_votes(ctx);
 			case 2:
 				msg.m_msg = M_NONE;
 			case 1:
@@ -1107,9 +1134,11 @@ quorum_loop(qd_ctx *ctx, node_info_t *ni, int max)
 						"Halting qdisk operations\n");
 					return -1;
 				}
-				if (!errors && 
-				    (!(ctx->qc_flags & RF_MASTER_WINS)))
-					cman_poll_quorum_device(ctx->qc_cman_admin, 1);
+				if (!errors) {
+				    	cman_poll_quorum_device(
+						ctx->qc_cman_admin,
+						1);
+				}
 			}
 		}
 		
@@ -1563,18 +1592,13 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 		}
 
 		/*
-		 * This is done in main() normally.  Here, we are
-		 * reconfiguring _only_ the votes at this point.  The 
+		 * Here, we are reconfiguring _only_ the votes.  The 
 		 * label / cman runflags do not change during reconfiguration
 		 *
 		 * This only works after we have already gotten static
 		 * configuration data during initial startup.
 		 */
-		cman_register_quorum_device(ctx->qc_cman_admin,
-					    (ctx->qc_flags&RF_CMAN_LABEL)? 
-					    ctx->qc_cman_label:
-					    ctx->qc_device,
-					    ctx->qc_votes);
+		register_device(ctx);
 	}
 
 	return 0;
@@ -2018,23 +2042,8 @@ main(int argc, char **argv)
 	if (!_running)
 		goto out;
 	
-	cman_register_quorum_device(ctx.qc_cman_admin,
-				    (ctx.qc_flags&RF_CMAN_LABEL)? 
-				        ctx.qc_cman_label:
-                                        ctx.qc_device,
-				    ctx.qc_votes);
-	/*
-		XXX this always returns -1 / EBUSY even when it works?!!!
-		
-	if ((rv = cman_register_quorum_device(ctx.qc_cman_admin, ctx.qc_device,
-					      ctx.qc_votes)) < 0) {
-		logt_print(LOG_CRIT,
-				 "Could not register %s with CMAN; "
-				 "return = %d; error = %s\n",
-				 ctx.qc_device, rv, strerror(errno));
-		goto out;
-	}
-	*/
+	/* This registers the quorum device */
+	register_device(&ctx);
 
 	io_nanny_start(ctx.qc_tko * ctx.qc_interval);
 
