@@ -888,6 +888,7 @@ void process_connection(int ci)
 	struct gfsc_mount_args empty;
 	struct gfsc_mount_args *ma;
 	char *extra = NULL;
+	char *fsname;
 	int rv, extra_len;
 
 	rv = do_read(client[ci].fd, &h, sizeof(h));
@@ -943,10 +944,16 @@ void process_connection(int ci)
 		break;
 
 	case GFSC_CMD_FS_LEAVE:
+		fsname = strstr(ma->table, ":") + 1;
+		if (!fsname) {
+			log_error("process_connection no fsname in table");
+			goto out;
+		}
+
 		if (group_mode == GROUP_LIBGROUP)
-			do_leave_old(ma->table, h.data);
+			do_leave_old(fsname, h.data);
 		else
-			do_leave(ma->table, h.data);
+			do_leave(fsname, h.data);
 		break;
 
 	case GFSC_CMD_FS_MOUNT_DONE:
