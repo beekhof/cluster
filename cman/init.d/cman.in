@@ -565,7 +565,14 @@ stop_cman()
 	if cman_running; then
 		errmsg=$( cman_tool $cman_leave_opts -t $CMAN_SHUTDOWN_TIMEOUT \
 			-w leave $cmanremove 2>&1 ) || return 1
+		ok
+		echo -n "   Waiting for corosync to shutdown:"
+		while status corosync > /dev/null 2>&1; do
+			sleep 1
+			echo -n "."
+		done
 	fi
+	return 0
 }
 
 start_qdiskd()
