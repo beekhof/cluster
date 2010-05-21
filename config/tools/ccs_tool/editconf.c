@@ -1031,7 +1031,7 @@ void create_skeleton(int argc, char **argv)
 	}
 
 	fprintf(outfile, "  <clusternodes>\n");
-	for (i=1; i< numnodes; i++) {
+	for (i=1; i <= numnodes; i++) {
 		fprintf(outfile, "    <clusternode name=\"NEEDNAME-%02d\" votes=\"1\" nodeid=\"%d\">\n", i, i);
 		fprintf(outfile, "      <fence>\n");
 		fprintf(outfile, "        <method name=\"single\">\n");
