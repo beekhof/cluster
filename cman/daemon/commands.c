@@ -971,7 +971,7 @@ static int do_cmd_leave_cluster(char *cmdbuf, int *retlen)
 	memcpy(&leave_flags, cmdbuf, sizeof(int));
 
 	/* Ignore the use count if FORCE is set */
-	if (!(leave_flags & CLUSTER_LEAVEFLAG_FORCE)) {
+	if (!(leave_flags == CLUSTER_LEAVEFLAG_FORCE)) {
 		if (use_count)
 			return -ENOTCONN;
 	}
@@ -1007,7 +1007,7 @@ static void check_shutdown_status(void)
 		    shutdown_flags & SHUTDOWN_ANYWAY) {
 			quit_threads = 1;
 			if (shutdown_flags & SHUTDOWN_REMOVE)
-				leaveflags |= CLUSTER_LEAVEFLAG_REMOVED;
+				leaveflags = CLUSTER_LEAVEFLAG_REMOVED;
 			send_leave(leaveflags);
 			reply = 0;
 		}
@@ -2266,7 +2266,7 @@ void del_ais_node(int nodeid)
 		cluster_members--;
 
 		log_printf(LOGSYS_LEVEL_DEBUG, "memb: del_ais_node %s, leave_reason=%x\n", node->name, node->leave_reason);
-		if ((node->leave_reason & 0xF) == CLUSTER_LEAVEFLAG_REMOVED)
+		if (node->leave_reason == CLUSTER_LEAVEFLAG_REMOVED)
 			recalculate_quorum(1, 1);
 		else
 			recalculate_quorum(0, 0);
