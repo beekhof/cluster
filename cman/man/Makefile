@@ -4,7 +4,8 @@ MANTARGET= \
 	cman_tool.8 \
 	qdiskd.8 \
 	mkqdisk.8 \
-	cmannotifyd.8
+	cmannotifyd.8 \
+	cman_notify.8
 
 include ../../make/defines.mk
 include $(OBJDIR)/make/install.mk

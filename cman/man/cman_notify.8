@@ -1,0 +1,17 @@
+.TH "cman_notify" "8" "November 2008" "" "CMAN Notification Daemon"
+.SH "NAME"
+cman_notify \- CMAN Notification Daemon run-part alike script
+.SH "SYNOPSIS"
+\fBcman_notify
+.SH "DESCRIPTION"
+.PP 
+The \fBcmannotifyd\fP daemon talks to CMAN and provides a mechanism to notify
+external entities about cluster changes.
+\fBcman_notify\fP script is in charge to execute all notification scripts
+in a run-part alike way.
+.SH "NOTES"
+\fBcman_notify\fP should never be called standalone except for debugging
+purposes.
+
+.SH "SEE ALSO"
+cmannotifyd(8)
