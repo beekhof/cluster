@@ -113,9 +113,7 @@ int is_pathname_mounted(struct gfs2_sbd *sdp, int *ro_mount)
 	}
 	if (stat(sdp->path_name, &st_buf) == 0) {
 		if (S_ISBLK(st_buf.st_mode)) {
-#ifndef __GNU__ /* The GNU hurd is broken with respect to stat devices */
 			file_rdev = st_buf.st_rdev;
-#endif  /* __GNU__ */
 		} else {
 			file_dev = st_buf.st_dev;
 			file_ino = st_buf.st_ino;
@@ -131,16 +129,21 @@ int is_pathname_mounted(struct gfs2_sbd *sdp, int *ro_mount)
 			strcpy(sdp->device_name, mnt->mnt_fsname); /* fix it */
 			break;
 		}
-		if (stat(mnt->mnt_fsname, &st_buf) == 0) {
-			if (S_ISBLK(st_buf.st_mode)) {
-#ifndef __GNU__
-				if (file_rdev && (file_rdev == st_buf.st_rdev))
-					break;
-#endif  /* __GNU__ */
-			} else {
-				if (file_dev && ((file_dev == st_buf.st_dev) &&
-						 (file_ino == st_buf.st_ino)))
-					break;
+		if (stat(mnt->mnt_fsname, &st_buf) != 0)
+			continue;
+
+		if (S_ISBLK(st_buf.st_mode)) {
+			if (file_rdev && (file_rdev == st_buf.st_rdev)) {
+				strcpy(sdp->device_name, mnt->mnt_fsname);
+				strcpy(sdp->path_name, mnt->mnt_dir);
+				break;
+			}
+		} else {
+			if (file_dev && ((file_dev == st_buf.st_dev) &&
+					 (file_ino == st_buf.st_ino))) {
+				strcpy(sdp->device_name, mnt->mnt_fsname);
+				strcpy(sdp->path_name, mnt->mnt_dir);
+				break;
 			}
 		}
 	}
