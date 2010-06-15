@@ -892,7 +892,7 @@ To validate your cluster.conf against this schema, run:
     </element>
    </optional>  <!-- End of events block -->
    <optional>
-    <element name="resources" rha:description="Defines global resources.">
+    <element name="resources" rha:description="Defines global resources which may be referenced in services.  You may redefine actions for resources here, but child resource definitions are ignored in this section.">
      <zeroOrMore>
       <ref name="CHILDREN"/>
      </zeroOrMore>
@@ -1968,8 +1968,7 @@ To validate your cluster.conf against this schema, run:
     </element>
   </define>
 
-  <define name="CHILD">
-  <!-- for recursion to work properly, CHILD may be referenced at CHILDREN only -->
+  <define name="CHILDREN">
     <zeroOrMore>
      <choice>
 
@@ -1997,14 +1996,6 @@ To validate your cluster.conf against this schema, run:
       <ref name="RESOURCEACTION"/>
      </choice>
     </zeroOrMore>
-  </define>
-
-  <define name="CHILDREN">
-   <zeroOrMore>
-    <choice>
-     <ref name="CHILD"/>
-    </choice>
-   </zeroOrMore>
   </define>
 
   <define name="RESOURCEACTION">
