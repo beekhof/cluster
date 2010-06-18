@@ -217,21 +217,21 @@ To validate your cluster.conf against this schema, run:
    </optional>
    <!-- multicast address -->
    <zeroOrMore>
-    <element name="interface" rha:description="" rha:sample="">
+    <element name="interface" rha:description="Defines Totem interface options.  corosync.conf(5)" rha:sample="">
      <optional>
-      <attribute name="ringnumber" rha:description="" rha:sample=""/>
+      <attribute name="ringnumber" rha:description="Sets the ring interface for the interface for RRP mode.  corosync.conf(5)" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="bindnetaddr" rha:description="" rha:sample=""/>
+      <attribute name="bindnetaddr" rha:description="Specifies the address to which the corosync executive should bind.  corosync.conf(5)" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="mcastaddr" rha:description="" rha:sample=""/>
+      <attribute name="mcastaddr" rha:description="Defines the multicast address used by corosync for this interface.  corosync.conf(5)" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="mcastport" rha:description="" rha:sample=""/>
+      <attribute name="mcastport" rha:description="Specifies the UDP port number when using multicast.  corosync.conf(5)" rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="broadcast" rha:description="" rha:sample=""/>
+      <attribute name="broadcast" rha:description="If set to yes, use broadcast instead of multicast for communication.  corosync.conf(5)" rha:sample=""/>
      </optional>
     </element>
    </zeroOrMore>
