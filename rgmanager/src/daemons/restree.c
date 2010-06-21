@@ -95,7 +95,7 @@ kill_env(char **env)
    @see			build_env
  */
 static void
-add_ocf_stuff(resource_t *res, char **env, int depth, int refcnt)
+add_ocf_stuff(resource_t *res, char **env, int depth, int refcnt, int timeout)
 {
 	char ver[10];
 	char *minor, *val;
@@ -190,6 +190,17 @@ add_ocf_stuff(resource_t *res, char **env, int depth, int refcnt)
 		return;
 	snprintf(val, n, "%s=%s", OCF_REFCNT_STR, ver);
 	*env = val; env++;
+
+	/*
+	   Store the resource action timeout
+	 */
+	snprintf(ver, sizeof(ver), "%d", timeout);
+	n = strlen(OCF_TIMEOUT_STR) + strlen(ver) + 2;
+	val = malloc(n);
+	if (!val)
+		return;
+	snprintf(val, n, "%s=%s", OCF_TIMEOUT_STR, ver);
+	*env = val; env++;
 }
 
 
@@ -203,7 +214,7 @@ add_ocf_stuff(resource_t *res, char **env, int depth, int refcnt)
    @see			kill_env res_exec add_ocf_stuff
  */
 static char **
-build_env(resource_node_t *node, int depth, int refcnt)
+build_env(resource_node_t *node, int depth, int refcnt, int timeout)
 {
 	resource_t *res = node->rn_resource;
 	char **env;
@@ -211,7 +222,7 @@ build_env(resource_node_t *node, int depth, int refcnt)
 	int x, attrs, n;
 
 	for (attrs = 0; res->r_attrs && res->r_attrs[attrs].ra_name; attrs++);
-	attrs += 8; /*
+	attrs += 9; /*
 		   Leave space for:
 		   OCF_RA_VERSION_MAJOR
 		   OCF_RA_VERSION_MINOR
@@ -220,6 +231,7 @@ build_env(resource_node_t *node, int depth, int refcnt)
 		   OCF_RESOURCE_TYPE
 		   OCF_CHECK_LEVEL
 		   OCF_RESKEY_RGMANAGER_meta_refcnt
+		   OCF_RESKEY_RGMANAGER_meta_timeout
 		   (null terminator)
 		 */
 
@@ -259,7 +271,7 @@ build_env(resource_node_t *node, int depth, int refcnt)
 		++attrs;
 	}
 
-	add_ocf_stuff(res, &env[attrs], depth, refcnt);
+	add_ocf_stuff(res, &env[attrs], depth, refcnt, timeout);
 
 	return env;
 }
@@ -318,7 +330,7 @@ res_exec(resource_node_t *node, int op, const char *arg, int depth)
 	int childpid, pid;
 	int ret = 0;
 	int act_index;
-	time_t sleeptime = 0;
+	time_t sleeptime = 0, timeout = 0;
 	char **env = NULL;
 	resource_t *res = node->rn_resource;
 	const char *op_str = agent_op_str(op);
@@ -338,8 +350,11 @@ res_exec(resource_node_t *node, int op, const char *arg, int depth)
 	if (act_index < 0)
 		return 0;
 
+	if (!(node->rn_flags & RF_ENFORCE_TIMEOUTS))
+		timeout = node->rn_actions[act_index].ra_timeout;
+
 #ifdef DEBUG
-	env = build_env(node, depth, node->rn_resource->r_incarnations);
+	env = build_env(node, depth, node->rn_resource->r_incarnations, (int)timeout);
 	if (!env)
 		return -errno;
 #endif
@@ -365,7 +380,7 @@ res_exec(resource_node_t *node, int op, const char *arg, int depth)
 #endif
 
 #ifndef DEBUG
-		env = build_env(node, depth, node->rn_resource->r_incarnations);
+		env = build_env(node, depth, node->rn_resource->r_incarnations, (int)timeout);
 #endif
 
 		if (!env)
