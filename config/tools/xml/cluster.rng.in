@@ -243,19 +243,19 @@ To validate your cluster.conf against this schema, run:
  <optional>
   <element name="quorumd" rha:description="This element and its
       attributes define parameters for the quorum disk daemon,
-      quorumd. qdisk(5).">
+      quorumd.">
    <optional>
     <attribute name="interval" rha:description="The frequency of
-        read/write cycles, in seconds. qdisk(5)." rha:sample=""/>
+        read/write cycles, in seconds." rha:sample=""/>
    </optional>
    <optional>
     <attribute name="tko" rha:description="The number of cycles a node
-        must miss to be declared dead. qdisk(5)." rha:sample=""/>
+        must miss to be declared dead." rha:sample=""/>
    </optional>
    <optional>
     <attribute name="votes" rha:description="The number of votes the
         quorum daemon advertises to CMAN when it has a high enough
-        score. qdisk(5)." rha:sample=""/>
+        score." rha:sample=""/>
    </optional>
    <optional>
     <attribute name="min_score" rha:description="The minimum score for a
@@ -263,12 +263,12 @@ To validate your cluster.conf against this schema, run:
         function, floor((n+1)/2), is used, where n is the sum of the
         heuristics scores. The Minimum Score value must never exceed the
         sum of the heuristic scores; otherwise, the quorum disk cannot
-        be available. qdisk(5)." rha:sample=""/>
+        be available." rha:sample=""/>
    </optional>
    <optional>
     <attribute name="device" rha:description="The storage device the
         quorum daemon uses. The device must be the same on all
-        nodes. qdisk(5)." rha:sample=""/>
+        nodes." rha:sample=""/>
    </optional>
    <optional>
     <attribute name="label" rha:description="Specifies the quorum disk
@@ -277,40 +277,40 @@ To validate your cluster.conf against this schema, run:
         used, the quorum daemon reads /proc/partitions and checks for
         qdisk signatures on every block device found, comparing the
         label against the specified label. This is useful in configurations
-        where the quorum device name differs among nodes. qdisk(5)." rha:sample=""/>
+        where the quorum device name differs among nodes." rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="status_file" rha:description="Debugging file. qdisk(5)." rha:sample=""/>
+    <attribute name="status_file" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="scheduler" rha:description="Scheduler. qdisk(5)." rha:sample=""/>
+    <attribute name="scheduler" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="reboot" rha:description="Reboot if our score drops too low.  qdisk(5)." rha:sample=""/>
+    <attribute name="reboot" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="priority" rha:description="Scheduler priority. qdisk(5)." rha:sample=""/>
+    <attribute name="priority" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="stop_cman" rha:description="Stop cman if the quorum disk cannot be found during startup. qdisk(5)." rha:sample=""/>
+    <attribute name="stop_cman" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="paranoid" rha:description="Reboot if we are running too slowly.  qdisk(5)." rha:sample=""/>
+    <attribute name="paranoid" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="allow_kill" rha:description="Instruct cman to evict nodes which are not updating the quorum disk. qdisk(5)." rha:sample=""/>
+    <attribute name="allow_kill" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="max_error_cycles" rha:description="Die after this many cycles which receive I/O errors.  qdisk(5)." rha:sample=""/>
+    <attribute name="max_error_cycles" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="io_timeout" rha:description="Die if we cannot get a write out to disk after interval*tko.  qdisk(5)." rha:sample=""/>
+    <attribute name="io_timeout" rha:description="" rha:sample=""/>
    </optional>
    <optional>
-    <attribute name="master_wins" rha:description="Enable master-wins mode (two node clusters).  qdisk(5)." rha:sample=""/>
+    <attribute name="master_wins" rha:description="" rha:sample=""/>
    </optional>
    <zeroOrMore>
-    <element name="heuristic" rha:description="Defines a heuristic. qdisk(5).">
+    <element name="heuristic" rha:description="">
      <attribute name="program" rha:description="The program used to
          determine if this heuristic is alive. This can be anything that
          can be executed by /bin/sh -c. A return value of 0 indicates
@@ -322,11 +322,11 @@ To validate your cluster.conf against this schema, run:
      </optional>
      <optional>
       <attribute name="interval" rha:description="The frequency (in
-          seconds) at which the heuristic is polled.  qdisk(5)." rha:default="2"
+          seconds) at which the heuristic is polled." rha:default="2"
           rha:sample=""/>
      </optional>
      <optional>
-      <attribute name="tko" rha:description="The number of consecutive failures before a heuristic is discounted.  qdisk(5)." rha:sample=""/>
+      <attribute name="tko" rha:description="" rha:sample=""/>
      </optional>
     </element>
    </zeroOrMore>
@@ -777,24 +777,24 @@ To validate your cluster.conf against this schema, run:
     </attribute>
    </optional>
    <optional>
-    <attribute name="status_child_max" rha:description="Maximum number of status child threads." rha:sample="">
+    <attribute name="status_child_max" rha:description="" rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="status_poll_interval" rha:description="Scan the resource tree every X seconds for resources which need to be checked."
+    <attribute name="status_poll_interval" rha:description=""
       rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="transition_throttling" rha:description="During transitions, keep the event processor alive for this many seconds."
+    <attribute name="transition_throttling" rha:description=""
       rha:sample="">
      <data type="integer"/>
     </attribute>
    </optional>
    <optional>
-    <attribute name="central_processing" rha:description="Enable central processing mode (requires cluster-wide shut down and restart of rgmanager.)."
+    <attribute name="central_processing" rha:description=""
       rha:sample="">
      <data type="integer"/>
     </attribute>
@@ -806,7 +806,7 @@ To validate your cluster.conf against this schema, run:
    </optional>
    <interleave>
    <optional>
-    <element name="failoverdomains" rha:description="Failover domain definitions.">
+    <element name="failoverdomains" rha:description="">
      <zeroOrMore>
       <element name="failoverdomain" rha:description="Specifies
         properties of a specific failover domain">
@@ -823,7 +823,7 @@ To validate your cluster.conf against this schema, run:
           unrestricted." rha:default="0" rha:sample="1"/>
        </optional>
        <optional>
-        <attribute name="nofailback" rha:description="Do not move service to a more preferred node if it is currently running." rha:sample=""/>
+        <attribute name="nofailback" rha:description="" rha:sample=""/>
        </optional>
        <zeroOrMore>
         <element name="failoverdomainnode" rha:description="A node in
@@ -843,47 +843,47 @@ To validate your cluster.conf against this schema, run:
     </element>
    </optional>  <!-- End of failoverdomains block -->
    <optional>
-    <element name="events" rha:description="Event definitions (central_processing only).">
+    <element name="events" rha:description="">
      <zeroOrMore>
-      <element name="event" rha:description="Defines an event.">
-       <attribute name="name" rha:description="Symbolic name for an event." rha:sample=""/>
+      <element name="event" rha:description="">
+       <attribute name="name" rha:description="" rha:sample=""/>
        <optional>
         <text/>
        </optional>
        <optional>
-        <attribute name="file" rha:description="Path to S/Lang script to execute." rha:sample=""/>
+        <attribute name="file" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="priority" rha:description="Order (1..99) of event." rha:sample=""/>
+        <attribute name="priority" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="class" rha:description="Event class (service, node)." rha:sample=""/>
+        <attribute name="class" rha:description="" rha:sample=""/>
        </optional>
        <!-- Service event class attributes -->
        <optional>
-        <attribute name="service" rha:description="(Service) The service name (service:foo) must match the specified value in order for the event script to be run." rha:sample=""/>
+        <attribute name="service" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="service_state" rha:description="(Service) The service's state must match the specified value in order for the script to be run (started, stopped, disabled, failed)." rha:sample=""/>
+        <attribute name="service_state" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="service_owner" rha:description="(Service) The service owner must match the specified value in order for the event script to be run." rha:sample=""/>
+        <attribute name="service_owner" rha:description="" rha:sample=""/>
        </optional>
        <!-- Node event -->
        <optional>
-        <attribute name="node" rha:description="(Node) The node name must match the specified value in order for the script to be run." rha:sample=""/>
+        <attribute name="node" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_id" rha:description="(Node) The node ID must match the specified value in order for the script to be run." rha:sample=""/>
+        <attribute name="node_id" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_state" rha:description="(Node) The node state must match the specified value (0 or 1) in order for the script to be run." rha:sample=""/>
+        <attribute name="node_state" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_clean" rha:description="(Node) The node must have been fenced in order for the script to be run." rha:sample=""/>
+        <attribute name="node_clean" rha:description="" rha:sample=""/>
        </optional>
        <optional>
-        <attribute name="node_local" rha:description="(Node) This script may only run on the current central processing node." rha:sample=""/>
+        <attribute name="node_local" rha:description="" rha:sample=""/>
        </optional>
        <!-- Config event attributes -->
        <!-- NOT USED -->
@@ -892,7 +892,7 @@ To validate your cluster.conf against this schema, run:
     </element>
    </optional>  <!-- End of events block -->
    <optional>
-    <element name="resources" rha:description="Defines global resources.">
+    <element name="resources" rha:description="">
      <zeroOrMore>
       <ref name="CHILDREN"/>
      </zeroOrMore>
@@ -933,60 +933,64 @@ To validate your cluster.conf against this schema, run:
 <!-- Autogenerated.  Paste in to cluster.ng in the 'resources' section -->
 
   <define name="SERVICE">
-    <element name="service" rha:description="Defines a service (resource group).">
+    <element name="service">
+      <!-- Defines a services. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing service resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name."/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="domain" rha:description="Failover domain."/>
+          <attribute name="domain"/>
         </optional>
         <optional>
-          <attribute name="autostart" rha:description="Automatic start after quorum formation"/>
+          <attribute name="autostart"/>
         </optional>
         <optional>
-          <attribute name="exclusive" rha:description="Exclusive service."/>
+          <attribute name="hardrecovery"/>
         </optional>
         <optional>
-          <attribute name="nfslock" rha:description="Enable NFS lock workarounds."/>
+          <attribute name="exclusive"/>
         </optional>
         <optional>
-          <attribute name="nfs_client_cache" rha:description="Enable exportfs list caching (performance)."/>
+          <attribute name="nfslock"/>
         </optional>
         <optional>
-          <attribute name="recovery" rha:description="Failure recovery policy (restart, relocate, or disable)."/>
+          <attribute name="nfs_client_cache"/>
         </optional>
         <optional>
-          <attribute name="depend" rha:description="Top-level service this depends on, in service:name format."/>
+          <attribute name="recovery"/>
         </optional>
         <optional>
-          <attribute name="depend_mode" rha:description="Service dependency mode (soft or hard)."/>
+          <attribute name="depend"/>
         </optional>
         <optional>
-          <attribute name="max_restarts" rha:description="Maximum restarts for this service."/>
+          <attribute name="depend_mode"/>
         </optional>
         <optional>
-          <attribute name="restart_expire_time" rha:description="Restart expiration time; amount of time before a restart is forgotten."/>
+          <attribute name="max_restarts"/>
         </optional>
         <optional>
-          <attribute name="priority" rha:description="Service priority."/>
+          <attribute name="restart_expire_time"/>
+        </optional>
+        <optional>
+          <attribute name="priority"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -996,39 +1000,40 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="IP">
-    <element name="ip" rha:description="This is an IP address.">
+    <element name="ip">
+      <!-- This is an IP address. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing ip resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="address" rha:description="IP Address"/>
+        <attribute name="address"/>
         <optional>
-          <attribute name="family" rha:description="Family"/>
+          <attribute name="family"/>
         </optional>
         <optional>
-          <attribute name="monitor_link" rha:description="Monitor NIC Link"/>
+          <attribute name="monitor_link"/>
         </optional>
         <optional>
-          <attribute name="nfslock" rha:description="Enable NFS lock workarounds"/>
+          <attribute name="nfslock"/>
         </optional>
         <optional>
-          <attribute name="sleeptime" rha:description="Amount of time (seconds) to sleep."/>
+          <attribute name="sleeptime"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1038,49 +1043,50 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="NFSCLIENT">
-    <element name="nfsclient" rha:description="Defines an NFS client.">
+    <element name="nfsclient">
+      <!-- Defines an NFS client. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing nfsclient resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Client Name"/>
-        <attribute name="target" rha:description="Target Hostname, Wildcard, or Netgroup"/>
+        <attribute name="name"/>
+        <attribute name="target"/>
         <optional>
-          <attribute name="path" rha:description="Path to Export"/>
+          <attribute name="path"/>
         </optional>
         <optional>
-          <attribute name="svcname" rha:description=""/>
+          <attribute name="svcname"/>
         </optional>
         <optional>
-          <attribute name="fsid" rha:description="File system ID"/>
+          <attribute name="fsid"/>
         </optional>
         <optional>
-          <attribute name="options" rha:description="Export Options"/>
+          <attribute name="options"/>
         </optional>
         <optional>
-          <attribute name="allow_recover" rha:description="Allow recovery"/>
+          <attribute name="allow_recover"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Service Name"/>
+          <attribute name="service_name"/>
         </optional>
         <optional>
-          <attribute name="use_cache" rha:description="Enable exportfs list caching"/>
+          <attribute name="use_cache"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1090,36 +1096,37 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="NFSEXPORT">
-    <element name="nfsexport" rha:description="This defines an NFS export.">
+    <element name="nfsexport">
+      <!-- This defines an NFS export. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing nfsexport resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="device" rha:description="If you can see this, your GUI is broken."/>
+          <attribute name="device"/>
         </optional>
         <optional>
-          <attribute name="path" rha:description="If you can see this, your GUI is broken."/>
+          <attribute name="path"/>
         </optional>
         <optional>
-          <attribute name="fsid" rha:description="If you can see this, your GUI is broken."/>
+          <attribute name="fsid"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1129,31 +1136,32 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="SCRIPT">
-    <element name="script" rha:description="LSB-compliant init script as a clustered resource.">
+    <element name="script">
+      <!-- LSB-compliant init script as a clustered resource. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing script resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
-        <attribute name="file" rha:description="Path to script"/>
+        <attribute name="name"/>
+        <attribute name="file"/>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1163,42 +1171,43 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="NETFS">
-    <element name="netfs" rha:description="Defines an NFS/CIFS file system mount.">
+    <element name="netfs">
+      <!-- Defines an NFS/CIFS file system mount. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing netfs resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="File System Name"/>
-        <attribute name="mountpoint" rha:description="Mount Point"/>
-        <attribute name="host" rha:description="IP or Host"/>
-        <attribute name="export" rha:description="Export"/>
+        <attribute name="name"/>
+        <attribute name="mountpoint"/>
+        <attribute name="host"/>
+        <attribute name="export"/>
         <optional>
-          <attribute name="fstype" rha:description="File System Type"/>
+          <attribute name="fstype"/>
         </optional>
         <optional>
-          <attribute name="no_unmount" rha:description="Skip unmount opration"/>
+          <attribute name="no_unmount"/>
         </optional>
         <optional>
-          <attribute name="force_unmount" rha:description="Force Unmount"/>
+          <attribute name="force_unmount"/>
         </optional>
         <optional>
-          <attribute name="options" rha:description="Mount Options"/>
+          <attribute name="options"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1208,47 +1217,85 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="CLUSTERFS">
-    <element name="clusterfs" rha:description="Defines a cluster file system mount.">
+    <element name="clusterfs">
+      <!-- Defines a cluster file system mount. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing clusterfs resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="File System Name"/>
-        <attribute name="mountpoint" rha:description="Mount Point"/>
-        <attribute name="device" rha:description="Device or Label"/>
+        <attribute name="name"/>
+        <attribute name="mountpoint"/>
+        <attribute name="device"/>
         <optional>
-          <attribute name="fstype" rha:description="File system type"/>
+          <attribute name="fstype"/>
         </optional>
         <optional>
-          <attribute name="force_unmount" rha:description="Force Unmount"/>
+          <attribute name="force_unmount"/>
         </optional>
         <optional>
-          <attribute name="options" rha:description="Mount Options"/>
+          <attribute name="options"/>
         </optional>
         <optional>
-          <attribute name="self_fence" rha:description="Seppuku Unmount"/>
+          <attribute name="self_fence"/>
         </optional>
         <optional>
-          <attribute name="fsid" rha:description="NFS File system ID"/>
+          <attribute name="fsid"/>
         </optional>
         <optional>
-          <attribute name="nfslock" rha:description="Enable NFS lock workarounds"/>
+          <attribute name="nfslock"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="SMB">
+    <element name="smb">
+      <!-- Dynamic smbd/nmbd resource agent -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="workgroup"/>
+        </optional>
+        <optional>
+          <attribute name="service_name"/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1258,42 +1305,43 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="APACHE">
-    <element name="apache" rha:description="Defines an Apache web server">
+    <element name="apache">
+      <!-- Defines an Apache web server -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing apache resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="server_root" rha:description="Initial ServerRoot"/>
+          <attribute name="server_root"/>
         </optional>
         <optional>
-          <attribute name="config_file" rha:description="Initial ServerConfigFile"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="httpd_options" rha:description="Other command-line options for httpd"/>
+          <attribute name="httpd_options"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1303,42 +1351,43 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="OPENLDAP">
-    <element name="openldap" rha:description="Defines an Open LDAP server">
+    <element name="openldap">
+      <!-- Defines an Open LDAP server -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing openldap resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="config_file" rha:description="Config File"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="url_list" rha:description="URL list"/>
+          <attribute name="url_list"/>
         </optional>
         <optional>
-          <attribute name="slapd_options" rha:description="Other command-line options for slapd"/>
+          <attribute name="slapd_options"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1348,42 +1397,43 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="SAMBA">
-    <element name="samba" rha:description="Dynamic smbd/nmbd resource agent">
+    <element name="samba">
+      <!-- Dynamic smbd/nmbd resource agent -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing samba resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Samba Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="config_file" rha:description="Config File"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="smbd_options" rha:description="Other command-line options for smbd"/>
+          <attribute name="smbd_options"/>
         </optional>
         <optional>
-          <attribute name="nmbd_options" rha:description="Other command-line options for nmbd"/>
+          <attribute name="nmbd_options"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1393,45 +1443,46 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="MYSQL">
-    <element name="mysql" rha:description="Defines a MySQL database server">
+    <element name="mysql">
+      <!-- Defines a MySQL database server -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing mysql resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="config_file" rha:description="Define configuration file"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="listen_address" rha:description="Define an IP address for MySQL server. If the address is not given then first IP address from the service is taken."/>
+          <attribute name="listen_address"/>
         </optional>
         <optional>
-          <attribute name="mysqld_options" rha:description="Other command-line options for mysqld"/>
+          <attribute name="mysqld_options"/>
         </optional>
         <optional>
-          <attribute name="startup_wait" rha:description="Wait X seconds for correct end of service startup"/>
+          <attribute name="startup_wait"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1441,42 +1492,43 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="POSTGRES-8">
-    <element name="postgres-8" rha:description="Defines a PostgreSQL server">
+    <element name="postgres-8">
+      <!-- Defines a PostgreSQL server -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing postgres-8 resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="config_file" rha:description="Config File"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="postmaster_user" rha:description="User who runs the database server"/>
+          <attribute name="postmaster_user"/>
         </optional>
         <optional>
-          <attribute name="postmaster_options" rha:description="Other command-line options for postmaster"/>
+          <attribute name="postmaster_options"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1486,45 +1538,46 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="TOMCAT-5">
-    <element name="tomcat-5" rha:description="Defines a Tomcat server">
+    <element name="tomcat-5">
+      <!-- Defines a Tomcat server -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing tomcat-5 resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="config_file" rha:description="Config File"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="tomcat_user" rha:description="User who runs the Tomcat server"/>
+          <attribute name="tomcat_user"/>
         </optional>
         <optional>
-          <attribute name="catalina_options" rha:description="Other command-line options for Catalina"/>
+          <attribute name="catalina_options"/>
         </optional>
         <optional>
-          <attribute name="catalina_base" rha:description="Catalina base directory (differs for each service)"/>
+          <attribute name="catalina_base"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1534,37 +1587,38 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="LVM">
-    <element name="lvm" rha:description="LVM Failover script">
+    <element name="lvm">
+      <!-- LVM Failover script -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing lvm resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
-        <attribute name="vg_name" rha:description="Volume group name"/>
+        <attribute name="name"/>
+        <attribute name="vg_name"/>
         <optional>
-          <attribute name="lv_name" rha:description="Logical Volume name (optional)."/>
+          <attribute name="lv_name"/>
         </optional>
         <optional>
-          <attribute name="self_fence" rha:description="Fence the node if it is not able to clean up LVM tags"/>
+          <attribute name="self_fence"/>
         </optional>
         <optional>
-          <attribute name="nfslock" rha:description="Enable NFS lock workarounds"/>
+          <attribute name="nfslock"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1574,81 +1628,85 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="VM">
-    <element name="vm" rha:description="Defines a Virtual Machine">
+    <element name="vm">
+      <!-- Defines a Virtual Machine -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing vm resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="domain" rha:description="Cluster failover Domain"/>
+          <attribute name="domain"/>
         </optional>
         <optional>
-          <attribute name="autostart" rha:description="Automatic start after quorum formation"/>
+          <attribute name="autostart"/>
         </optional>
         <optional>
-          <attribute name="exclusive" rha:description="Exclusive resource group"/>
+          <attribute name="hardrecovery"/>
         </optional>
         <optional>
-          <attribute name="recovery" rha:description="Failure recovery policy"/>
+          <attribute name="exclusive"/>
         </optional>
         <optional>
-          <attribute name="migration_mapping" rha:description="memberhost:targethost,memberhost:targethost .."/>
+          <attribute name="recovery"/>
         </optional>
         <optional>
-          <attribute name="use_virsh" rha:description="If set to 1, vm.sh will use the virsh command to manage virtual machines instead of xm. This is required when using non-Xen virtual machines (e.g. qemu / KVM)."/>
+          <attribute name="migration_mapping"/>
         </optional>
         <optional>
-          <attribute name="xmlfile" rha:description="Full path to libvirt XML file describing the domain."/>
+          <attribute name="use_virsh"/>
         </optional>
         <optional>
-          <attribute name="migrate" rha:description="Migration type (live or pause, default = live)."/>
+          <attribute name="xmlfile"/>
         </optional>
         <optional>
-          <attribute name="path" rha:description="Path to virtual machine configuration files."/>
+          <attribute name="migrate"/>
         </optional>
         <optional>
-          <attribute name="snapshot" rha:description="Path to the snapshot directory where the virtual machine image will be stored."/>
+          <attribute name="path"/>
         </optional>
         <optional>
-          <attribute name="depend" rha:description="Top-level service this depends on, in service:name format."/>
+          <attribute name="snapshot"/>
         </optional>
         <optional>
-          <attribute name="depend_mode" rha:description="Service dependency mode (soft or hard)."/>
+          <attribute name="depend"/>
         </optional>
         <optional>
-          <attribute name="max_restarts" rha:description="Maximum restarts for this service."/>
+          <attribute name="depend_mode"/>
         </optional>
         <optional>
-          <attribute name="restart_expire_time" rha:description="Restart expiration time; amount of time before a restart is forgotten."/>
+          <attribute name="max_restarts"/>
         </optional>
         <optional>
-          <attribute name="status_program" rha:description="Additional status check program"/>
+          <attribute name="restart_expire_time"/>
         </optional>
         <optional>
-          <attribute name="hypervisor" rha:description="Hypervisor"/>
+          <attribute name="status_program"/>
         </optional>
         <optional>
-          <attribute name="hypervisor_uri" rha:description="Hypervisor URI (normally automatic)."/>
+          <attribute name="hypervisor"/>
         </optional>
         <optional>
-          <attribute name="migration_uri" rha:description="Migration URI (normally automatic)."/>
+          <attribute name="hypervisor_uri"/>
+        </optional>
+        <optional>
+          <attribute name="migration_uri"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1658,54 +1716,55 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="SAPINSTANCE">
-    <element name="SAPInstance" rha:description="SAP instance resource agent">
+    <element name="SAPInstance">
+      <!-- SAP instance resource agent -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing SAPInstance resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="InstanceName" rha:description="instance name: SID_INSTANCE_VIR-HOSTNAME"/>
+        <attribute name="InstanceName"/>
         <optional>
-          <attribute name="DIR_EXECUTABLE" rha:description="path of sapstartsrv and sapcontrol"/>
+          <attribute name="DIR_EXECUTABLE"/>
         </optional>
         <optional>
-          <attribute name="DIR_PROFILE" rha:description="path of start profile"/>
+          <attribute name="DIR_PROFILE"/>
         </optional>
         <optional>
-          <attribute name="START_PROFILE" rha:description="start profile name"/>
+          <attribute name="START_PROFILE"/>
         </optional>
         <optional>
-          <attribute name="START_WAITTIME" rha:description="Check the successful start after that time (do not wait for J2EE-Addin)"/>
+          <attribute name="START_WAITTIME"/>
         </optional>
         <optional>
-          <attribute name="AUTOMATIC_RECOVER" rha:description="Enable or disable automatic startup recovery"/>
+          <attribute name="AUTOMATIC_RECOVER"/>
         </optional>
         <optional>
-          <attribute name="PRE_START_USEREXIT" rha:description="path to a pre-start script"/>
+          <attribute name="PRE_START_USEREXIT"/>
         </optional>
         <optional>
-          <attribute name="POST_START_USEREXIT" rha:description="path to a post-start script"/>
+          <attribute name="POST_START_USEREXIT"/>
         </optional>
         <optional>
-          <attribute name="PRE_STOP_USEREXIT" rha:description="path to a pre-start script"/>
+          <attribute name="PRE_STOP_USEREXIT"/>
         </optional>
         <optional>
-          <attribute name="POST_STOP_USEREXIT" rha:description="path to a post-start script"/>
+          <attribute name="POST_STOP_USEREXIT"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1715,67 +1774,68 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="SAPDATABASE">
-    <element name="SAPDatabase" rha:description="SAP database resource agent">
+    <element name="SAPDatabase">
+      <!-- SAP database resource agent -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing SAPDatabase resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="SID" rha:description="SAP system ID"/>
+        <attribute name="SID"/>
         <optional>
-          <attribute name="DIR_EXECUTABLE" rha:description="path of sapstartsrv and sapcontrol"/>
+          <attribute name="DIR_EXECUTABLE"/>
         </optional>
-        <attribute name="DBTYPE" rha:description="database vendor"/>
+        <attribute name="DBTYPE"/>
         <optional>
-          <attribute name="NETSERVICENAME" rha:description="listener name"/>
-        </optional>
-        <optional>
-          <attribute name="DBJ2EE_ONLY" rha:description="only JAVA stack installed"/>
+          <attribute name="NETSERVICENAME"/>
         </optional>
         <optional>
-          <attribute name="JAVA_HOME" rha:description="Path to Java SDK"/>
+          <attribute name="DBJ2EE_ONLY"/>
         </optional>
         <optional>
-          <attribute name="STRICT_MONITORING" rha:description="Activates application level monitoring"/>
+          <attribute name="JAVA_HOME"/>
         </optional>
         <optional>
-          <attribute name="AUTOMATIC_RECOVER" rha:description="Enable or disable automatic startup recovery"/>
+          <attribute name="STRICT_MONITORING"/>
         </optional>
         <optional>
-          <attribute name="DIR_BOOTSTRAP" rha:description="path to j2ee bootstrap directory"/>
+          <attribute name="AUTOMATIC_RECOVER"/>
         </optional>
         <optional>
-          <attribute name="DIR_SECSTORE" rha:description="path to j2ee secure store directory"/>
+          <attribute name="DIR_BOOTSTRAP"/>
         </optional>
         <optional>
-          <attribute name="DB_JARS" rha:description="file name of the jdbc driver"/>
+          <attribute name="DIR_SECSTORE"/>
         </optional>
         <optional>
-          <attribute name="PRE_START_USEREXIT" rha:description="path to a pre-start script"/>
+          <attribute name="DB_JARS"/>
         </optional>
         <optional>
-          <attribute name="POST_START_USEREXIT" rha:description="path to a post-start script"/>
+          <attribute name="PRE_START_USEREXIT"/>
         </optional>
         <optional>
-          <attribute name="PRE_STOP_USEREXIT" rha:description="path to a pre-start script"/>
+          <attribute name="POST_START_USEREXIT"/>
         </optional>
         <optional>
-          <attribute name="POST_STOP_USEREXIT" rha:description="path to a post-start script"/>
+          <attribute name="PRE_STOP_USEREXIT"/>
+        </optional>
+        <optional>
+          <attribute name="POST_STOP_USEREXIT"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1785,45 +1845,46 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="NAMED">
-    <element name="named" rha:description="Defines an instance of named server">
+    <element name="named">
+      <!-- Defines an instance of named server -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing named resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Name"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="config_file" rha:description="Config File"/>
+          <attribute name="config_file"/>
         </optional>
         <optional>
-          <attribute name="named_sdb" rha:description="Simplified Database Backend"/>
+          <attribute name="named_sdb"/>
         </optional>
         <optional>
-          <attribute name="named_working_dir" rha:description="Other command-line options for named"/>
+          <attribute name="named_working_dir"/>
         </optional>
         <optional>
-          <attribute name="named_options" rha:description="Other command-line options for named"/>
+          <attribute name="named_options"/>
         </optional>
         <optional>
-          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+          <attribute name="shutdown_wait"/>
         </optional>
         <optional>
-          <attribute name="service_name" rha:description="Inherit the service name."/>
+          <attribute name="service_name"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1833,37 +1894,70 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="ASEHAAGENT">
-    <element name="ASEHAagent" rha:description="Sybase ASE Failover Instance">
+    <element name="ASEHAagent">
+      <!-- Sybase ASE Failover Instance -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing ASEHAagent resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="name"/>
-        <attribute name="sybase_home" rha:description="SYBASE home directory"/>
-        <attribute name="sybase_ase" rha:description="SYBASE_ASE directory name"/>
-        <attribute name="sybase_ocs" rha:description="SYBASE_OCS directory name"/>
-        <attribute name="server_name" rha:description="ASE server name"/>
-        <attribute name="login_file" rha:description="Login file"/>
-        <attribute name="interfaces_file" rha:description="Interfaces file"/>
-        <attribute name="sybase_user" rha:description="Sybase user"/>
-        <attribute name="shutdown_timeout" rha:description="Shutdown timeout value"/>
-        <attribute name="start_timeout" rha:description="Start timeout value"/>
-        <attribute name="deep_probe_timeout" rha:description="Deep probe timeout value"/>
+        <attribute name="name"/>
+        <attribute name="sybase_home"/>
+        <attribute name="sybase_ase"/>
+        <attribute name="sybase_ocs"/>
+        <attribute name="server_name"/>
+        <attribute name="login_file"/>
+        <attribute name="interfaces_file"/>
+        <attribute name="sybase_user"/>
+        <attribute name="shutdown_timeout"/>
+        <attribute name="start_timeout"/>
+        <attribute name="deep_probe_timeout"/>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="DRBD">
+    <element name="drbd">
+      <!-- This is a DRBD resource. -->
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref"/>
+      </group>
+      <group>
+        <attribute name="name"/>
+        <attribute name="resource"/>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree"/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts"/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures"/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1873,53 +1967,54 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="FS">
-    <element name="fs" rha:description="Defines a file system mount.">
+    <element name="fs">
+      <!-- Defines a file system mount. -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing fs resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="File System Name"/>
-        <attribute name="mountpoint" rha:description="Mount Point"/>
-        <attribute name="device" rha:description="Device or Label"/>
+        <attribute name="name"/>
+        <attribute name="mountpoint"/>
+        <attribute name="device"/>
         <optional>
-          <attribute name="fstype" rha:description="File system type"/>
+          <attribute name="fstype"/>
         </optional>
         <optional>
-          <attribute name="force_unmount" rha:description="Force Unmount"/>
+          <attribute name="force_unmount"/>
         </optional>
         <optional>
-          <attribute name="quick_status" rha:description="Quick/brief status checks."/>
+          <attribute name="quick_status"/>
         </optional>
         <optional>
-          <attribute name="self_fence" rha:description="Seppuku Unmount"/>
+          <attribute name="self_fence"/>
         </optional>
         <optional>
-          <attribute name="nfslock" rha:description="Enable NFS lock workarounds"/>
+          <attribute name="nfslock"/>
         </optional>
         <optional>
-          <attribute name="fsid" rha:description="NFS File system ID"/>
+          <attribute name="fsid"/>
         </optional>
         <optional>
-          <attribute name="force_fsck" rha:description="Force fsck support"/>
+          <attribute name="force_fsck"/>
         </optional>
         <optional>
-          <attribute name="options" rha:description="Mount Options"/>
+          <attribute name="options"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1929,38 +2024,39 @@ To validate your cluster.conf against this schema, run:
 
 
   <define name="ORACLEDB">
-    <element name="oracledb" rha:description="Oracle 10g Failover Instance">
+    <element name="oracledb">
+      <!-- Oracle 10g Failover Instance -->
       <choice>
       <group>
         <!-- rgmanager specific stuff -->
-        <attribute name="ref" rha:description="Reference to existing oracledb resource in the resources section."/>
+        <attribute name="ref"/>
       </group>
       <group>
-        <attribute name="name" rha:description="Oracle SID"/>
+        <attribute name="name"/>
         <optional>
-          <attribute name="listener_name" rha:description="Oracle Listener Instance Name"/>
+          <attribute name="listener_name"/>
         </optional>
-        <attribute name="user" rha:description="Oracle User Name"/>
-        <attribute name="home" rha:description="Oracle Home Directory"/>
+        <attribute name="user"/>
+        <attribute name="home"/>
         <optional>
-          <attribute name="type" rha:description="Oracle Installation Type"/>
+          <attribute name="type"/>
         </optional>
         <optional>
-          <attribute name="vhost" rha:description="Virtual Hostname"/>
+          <attribute name="vhost"/>
         </optional>
       </group>
       </choice>
       <optional>
-        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+        <attribute name="__independent_subtree"/>
       </optional>
       <optional>
-        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+        <attribute name="__enforce_timeouts"/>
       </optional>
       <optional>
-        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+        <attribute name="__max_failures"/>
       </optional>
       <optional>
-        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+        <attribute name="__failure_expire_time"/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1980,6 +2076,7 @@ To validate your cluster.conf against this schema, run:
         <ref name="SCRIPT"/>
         <ref name="NETFS"/>
         <ref name="CLUSTERFS"/>
+        <ref name="SMB"/>
         <ref name="APACHE"/>
         <ref name="OPENLDAP"/>
         <ref name="SAMBA"/>
@@ -1992,6 +2089,7 @@ To validate your cluster.conf against this schema, run:
         <ref name="SAPDATABASE"/>
         <ref name="NAMED"/>
         <ref name="ASEHAAGENT"/>
+        <ref name="DRBD"/>
         <ref name="FS"/>
         <ref name="ORACLEDB"/>
       <ref name="RESOURCEACTION"/>
@@ -2009,16 +2107,16 @@ To validate your cluster.conf against this schema, run:
 
   <define name="RESOURCEACTION">
    <zeroOrMore>
-    <element name="action" rha:description="Overrides resource action timings for a resource instance.">
-     <attribute name="name" rha:description="Name of resource action (start, stop, status, etc.)."/>
+    <element name="action">
+     <attribute name="name"/>
      <optional>
-      <attribute name="depth" rha:description="Status check depth (resource agent dependent; * = all depths)."/>
+      <attribute name="depth"/>
      </optional>
      <optional>
-      <attribute name="interval" rha:description="Status check interval."/>
+      <attribute name="interval"/>
      </optional>
      <optional>
-      <attribute name="timeout" rha:description="Action timeout.  Meaningless unless __enforce_timeouts is set for this resource."/>
+      <attribute name="timeout"/>
      </optional>
     </element>
    </zeroOrMore>
