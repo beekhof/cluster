@@ -1,3 +1,4 @@
-  <define name="CHILDREN">
+  <define name="CHILD">
+  <!-- for recursion to work properly, CHILD may be referenced at CHILDREN only -->
     <zeroOrMore>
      <choice>
