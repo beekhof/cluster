@@ -45,6 +45,7 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
     int error;
     unsigned int expected = 0;
     unsigned int votes = 0;
+    unsigned int total_votes = 0;
     hdb_handle_t object_handle;
     hdb_handle_t nodes_handle;
     hdb_handle_t find_handle;
@@ -102,11 +103,14 @@ int read_cman_nodes(struct corosync_api_v1 *corosync, unsigned int *config_versi
 	    log_printf(LOGSYS_LEVEL_DEBUG, "memb: Got node %s from ccs (id=%d, votes=%d)\n", nodename, this_nodeid, votes);
 	    add_ccs_node(nodename, this_nodeid, votes, expected);
 	    nodes_handle = nodeslist_next(corosync, find_handle);
+	    total_votes += votes;
     } while (nodes_handle);
     corosync->object_find_destroy(find_handle);
 
-    if (expected)
-	    override_expected(expected);
+    if (!expected)
+	    expected = total_votes;
+
+    override_expected(expected);
 
     remove_unread_nodes();
     error = 0;
