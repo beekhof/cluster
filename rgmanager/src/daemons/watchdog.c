@@ -4,6 +4,7 @@
 #include <sys/reboot.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <fcntl.h>
 
 #include <signals.h>
 #include <logging.h>
@@ -36,6 +37,24 @@ redirect_signals(void)
 		        setup_signal(i, signal_handler);
 		}
 	}
+}
+
+
+static int
+sysrq_reboot(void)
+{
+	int fd;
+
+	fd = open("/proc/sysrq-trigger", O_WRONLY|O_SYNC);
+	if (fd < 0)
+		return fd;
+
+	write(fd, "b\n", 2);
+	fsync(fd);
+	fdatasync(fd);
+	close(fd);
+
+	return 0;
 }
 
 
@@ -80,6 +99,7 @@ watchdog_init(void)
 #else
 			logt_print(LOG_CRIT, "Watchdog: Daemon died, rebooting...\n");
 			sync();
+			sysrq_reboot();
 		        reboot(RB_AUTOBOOT);
 #endif
 			exit(255);
