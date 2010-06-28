@@ -909,5 +909,5 @@ void restoremeta(const char *in_fn, const char *out_device,
 	if (!printblocksonly)
 		close(sbd.device_fd);
 
-	exit(0);
+	exit(error);
 }
