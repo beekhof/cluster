@@ -153,6 +153,13 @@ cman_tool version -r.
 .TP
 .I -D<option>
 see "JOIN" options
+.TP
+.I -S
+By default cman_tool version will try to distribute the new cluster.conf file using
+ricci. If you have distributed the file yourself and/or do not have ricci 
+installed then the -S option will skip this step.
+NOTE: it is still important that all nodes in the cluster have the same version of 
+the file. Make sure that this is the case before using this option.
 .SH "WAIT" OPTIONS
 .TP
 .I -q
