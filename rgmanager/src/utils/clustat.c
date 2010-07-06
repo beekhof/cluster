@@ -937,7 +937,7 @@ xml_cluster_status(cman_cluster_t *ci, int qs,
 
 
 static cluster_member_list_t *
-build_member_list(cman_handle_t ch, int *lid)
+build_member_list(cman_handle_t ch, int *lid, int fast)
 {
 	cluster_member_list_t *all, *part;
 	cman_node_t *m;
@@ -950,7 +950,7 @@ build_member_list(cman_handle_t ch, int *lid)
 
 	part = get_member_list(ch);
 
-	if (root && (all = ccs_member_list())) {
+	if (!fast && root && (all = ccs_member_list())) {
 
 		/* See if our config has anyone missed.  If so, flag
 		   them as missing from the config file */
@@ -1140,7 +1140,7 @@ main(int argc, char **argv)
 
 	while (1) {
 		qs = cman_is_quorate(ch);
-		membership = build_member_list(ch, &local_node_id);
+		membership = build_member_list(ch, &local_node_id, fast);
 		
 		if (!member_name)
 			rgs = rg_state_list(local_node_id, fast);
