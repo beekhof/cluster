@@ -545,6 +545,7 @@ start_cman()
 		   grep -q Relax-NG $tmpfile ; then
 			cat $tmpfile >&2
 		fi
+		pidof /usr/sbin/corosync > /var/run/cman.pid
 		ret=0
 	fi
 
@@ -571,6 +572,7 @@ stop_cman()
 			sleep 1
 			echo -n "."
 		done
+		rm -f /var/run/cman.pid
 	fi
 	return 0
 }
@@ -877,7 +879,19 @@ cmanstatus()
 		return $?
 	fi
 
-	errmsg=$( status corosync 2>&1 ) || return $?
+	errmsg=$( status corosync 2>&1 )
+	ret=$?
+	if [ "$ret" != "0" ]; then
+		if [ -f /var/run/cman.pid ]; then
+			errmsg="Found stale pid file"
+			return 1
+		fi
+		if [ -f $LOCK_FILE ]; then
+			errmsg="Found stale lock file"
+			return 2
+		fi
+		return $ret
+	fi
 
 	if ! cman_running; then
 		errmsg="cman is not running"
@@ -906,6 +920,11 @@ cmanstatus()
 }
 
 rtrn=0
+
+if [ "$EUID" != "0" ]; then
+	echo "Only root can execute $0 script"
+	exit 4
+fi
 
 # See how we were called.
 case "$1" in
