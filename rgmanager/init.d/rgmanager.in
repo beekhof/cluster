@@ -74,6 +74,11 @@ stop_cluster()
 
 rtrn=0
 
+if [ "$EUID" != "0" ]; then
+	echo "Only root can execute $0 script"
+	exit 4
+fi
+
 case "$1" in
 start)
 	echo -n "Starting $ID: "
