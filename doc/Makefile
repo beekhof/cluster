@@ -2,7 +2,8 @@ DOCS =	usage.txt \
 	COPYING.applications \
 	COPYING.libraries \
 	COPYRIGHT \
-	README.licence
+	README.licence \
+	cluster_conf.html
 
 TARGET= cluster
 
