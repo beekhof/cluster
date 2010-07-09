@@ -1257,6 +1257,42 @@ To validate your cluster.conf against this schema, run:
   </define>
 
 
+  <define name="SMB">
+    <element name="smb" rha:description="Dynamic smbd/nmbd resource agent">
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref" rha:description="Reference to existing smb resource in the resources section."/>
+      </group>
+      <group>
+        <attribute name="name" rha:description="Samba Name"/>
+        <optional>
+          <attribute name="workgroup" rha:description="Workgroup name"/>
+        </optional>
+        <optional>
+          <attribute name="service_name" rha:description="Inherit the service name."/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
   <define name="APACHE">
     <element name="apache" rha:description="Defines an Apache web server">
       <choice>
@@ -1872,6 +1908,73 @@ To validate your cluster.conf against this schema, run:
   </define>
 
 
+  <define name="DRBD">
+    <element name="drbd" rha:description="This is a DRBD resource.">
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref" rha:description="Reference to existing drbd resource in the resources section."/>
+      </group>
+      <group>
+        <attribute name="name" rha:description="Cluster resource name"/>
+        <attribute name="resource" rha:description="DRBD resource name"/>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
+  <define name="NFSSERVER">
+    <element name="nfsserver" rha:description="This defines an NFS server resource.">
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref" rha:description="Reference to existing nfsserver resource in the resources section."/>
+      </group>
+      <group>
+        <attribute name="name" rha:description="Name"/>
+        <optional>
+          <attribute name="path" rha:description="This is the path you intend to export."/>
+        </optional>
+        <optional>
+          <attribute name="nfspath" rha:description="This is the path containing shared NFS recovery information, relative to the path parameter."/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
   <define name="FS">
     <element name="fs" rha:description="Defines a file system mount.">
       <choice>
@@ -1979,6 +2082,7 @@ To validate your cluster.conf against this schema, run:
         <ref name="SCRIPT"/>
         <ref name="NETFS"/>
         <ref name="CLUSTERFS"/>
+        <ref name="SMB"/>
         <ref name="APACHE"/>
         <ref name="OPENLDAP"/>
         <ref name="SAMBA"/>
@@ -1991,6 +2095,8 @@ To validate your cluster.conf against this schema, run:
         <ref name="SAPDATABASE"/>
         <ref name="NAMED"/>
         <ref name="ASEHAAGENT"/>
+        <ref name="DRBD"/>
+        <ref name="NFSSERVER"/>
         <ref name="FS"/>
         <ref name="ORACLEDB"/>
       <ref name="RESOURCEACTION"/>
