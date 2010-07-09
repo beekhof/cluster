@@ -1,4 +1,4 @@
-# Auto-generated @ 2010-05-04 17:59:59
+# Auto-generated @ 2010-07-09 15:24:21
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.1 NAME 'rhcsConfig-version'
@@ -967,12 +967,6 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
-  1.3.6.1.4.1.2312.8.1.1.127 NAME 'rhcsHardrecovery'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE
-  )
-attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.128 NAME 'rhcsExclusive'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
@@ -1519,6 +1513,12 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.279 NAME 'rhcsNfspath'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.227 NAME 'rhcsQuick-status'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
@@ -1709,7 +1709,7 @@ objectClasses: (
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.31 NAME 'rhcsService' SUP top STRUCTURAL
-     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPriority $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsRecovery $ rhcsNfs-client-cache $ rhcsNfslock $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsPriority $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsRecovery $ rhcsNfs-client-cache $ rhcsNfslock $ rhcsExclusive $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.32 NAME 'rhcsIp' SUP top STRUCTURAL
@@ -1769,7 +1769,7 @@ objectClasses: (
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.46 NAME 'rhcsVm' SUP top STRUCTURAL
-     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsMigration-uri $ rhcsHypervisor-uri $ rhcsHypervisor $ rhcsStatus-program $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsSnapshot $ rhcsPath $ rhcsMigrate $ rhcsXmlfile $ rhcsUse-virsh $ rhcsMigration-mapping $ rhcsRecovery $ rhcsExclusive $ rhcsHardrecovery $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsMigration-uri $ rhcsHypervisor-uri $ rhcsHypervisor $ rhcsStatus-program $ rhcsRestart-expire-time $ rhcsMax-restarts $ rhcsDepend-mode $ rhcsDepend $ rhcsSnapshot $ rhcsPath $ rhcsMigrate $ rhcsXmlfile $ rhcsUse-virsh $ rhcsMigration-mapping $ rhcsRecovery $ rhcsExclusive $ rhcsAutostart $ rhcsDomain $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.47 NAME 'rhcsSAPInstance' SUP top STRUCTURAL
@@ -1790,6 +1790,10 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.58 NAME 'rhcsDrbd' SUP top STRUCTURAL
      MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsResource $ name $ rhcsRef )
+   )
+objectClasses: (
+     1.3.6.1.4.1.2312.8.1.2.60 NAME 'rhcsNfsserver' SUP top STRUCTURAL
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsNfspath $ rhcsPath $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.51 NAME 'rhcsFs' SUP top STRUCTURAL

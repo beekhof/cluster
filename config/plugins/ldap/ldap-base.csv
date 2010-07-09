@@ -1,5 +1,5 @@
-# Max attribute value: 278
-# Max object class value: 59
+# Max attribute value: 279
+# Max object class value: 60
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
 obj,rhcsTotem,totem,4
@@ -336,3 +336,5 @@ attr,rhcs--max-failures,__max_failures,275
 attr,rhcs--failure-expire-time,__failure_expire_time,276
 attr,rhcsStatus-program,status_program,277
 attr,rhcsFail-recv-const,fail_recv_const,278
+obj,rhcsNfsserver,nfsserver,60
+attr,rhcsNfspath,nfspath,279
