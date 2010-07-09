@@ -75,22 +75,62 @@ if [ -z "$GFS2FSTAB" ]; then
 	exit 6
 fi
 
+if [ "$EUID" != "0" ]; then
+	echo "Only root can execute $0 script"
+	exit 4
+fi
+
+is_mounted()
+{
+	for i in $GFS2MTAB; do
+		if [ "$1" = "$i" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
 # See how we were called.
 case "$1" in
 start)
-	[ -z "$GFS2FSTAB" ] && exit 0
-	echo -n "Mounting GFS2 filesystems: "
-	errmsg="$(mount -a -t gfs2 2>&1)" || nok
-	touch $LOCK_FILE
-	ok
+	mounted=0
+	for fs in $GFS2FSTAB; do
+		echo -n "Mounting GFS2 filesystem ($fs): "
+		if is_mounted $fs; then
+			echo -n "already mounted"
+			ok
+			mounted=$((mounted + 1))
+			continue
+		fi
+		errmsg="$(mount $fs 2>&1)"
+		if [ "$?" != 0 ]; then
+			echo -e "$errmsg"
+			failure
+			echo
+			continue
+		fi
+		ok
+		mounted=$((mounted + 1))
+	done
+	[ $mounted -gt 0 ] && touch $LOCK_FILE
 ;;
 stop)
 	[ -z "$GFS2MTAB" ] && exit 0
-	echo -n "Unmounting GFS2 filesystems: "
-	errmsg="$(umount -a -t gfs2 2>&1)" || nok
+	umount_failed=0
+	for fs in $GFS2MTAB; do
+		echo -n "Unmounting GFS2 filesystem ($fs): "
+		errmsg="$(umount $fs 2>&1)"
+		if [ "$?" != 0 ]; then
+			echo -e "$errmsg"
+			failure
+			echo
+			umount_failed=1
+			continue
+		fi
+		ok
+	done
 	modprobe -r gfs2 > /dev/null 2>&1 || true
-	rm -f $LOCK_FILE
-	ok
+	[ $umount_failed = 0 ] && rm -f $LOCK_FILE
 	;;
 
 status)
@@ -117,10 +157,11 @@ status)
 condrestart|try-restart)
 	$0 status >/dev/null 2>&1 || exit 0
 	$0 restart
+	exit $?
 ;;
 restart|reload|force-reload)
-	$0 stop
-	$0 start
+	$0 stop && $0 start
+	exit $?
 ;;
 *)
 	echo "Usage: $0 {start|stop|restart|reload|force-reload|condrestart|try-restart|status}"
