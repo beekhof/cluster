@@ -1,0 +1,1162 @@
+<html>
+<h2><a name="toc_tree_reference"/>Tree Structure Reference</h2>
+<small><a href="#toc_tag_reference">Jump to Tag Reference</a></small><br/><br/>
+&lt;<a href="#tag_cluster">cluster</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_cman">cman</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_multicast">multicast</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_cman">/cman</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_totem">totem</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_interface">interface</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_totem">/totem</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_quorumd">quorumd</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_heuristic">heuristic</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_quorumd">/quorumd</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fence_daemon">fence_daemon</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fence_xvmd">fence_xvmd</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_dlm">dlm</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_lockspace">lockspace</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_master">master</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_lockspace">/lockspace</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_dlm">/dlm</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_gfs_controld">gfs_controld</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_group">group</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_logging">logging</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_logging_daemon">logging_daemon</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_logging">/logging</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clusternodes">clusternodes</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clusternode">clusternode</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_altname">altname</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_FENCE">FENCE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_UNFENCE">UNFENCE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clusternode">/clusternode</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clusternodes">/clusternodes</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fencedevices">fencedevices</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fencedevice">fencedevice</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_FENCEDEVICEOPTIONS">FENCEDEVICEOPTIONS</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fencedevice">/fencedevice</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fencedevices">/fencedevices</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_rm">rm</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_failoverdomains">failoverdomains</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_failoverdomain">failoverdomain</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_failoverdomainnode">failoverdomainnode</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_failoverdomain">/failoverdomain</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_failoverdomains">/failoverdomains</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_events">events</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_event">event</a> .../&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_events">/events</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_resources">resources</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_resources">/resources</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SERVICE">SERVICE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_VM">VM</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_rm">/rm</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clvmd">clvmd</a> .../&gt;<br/>
+&lt;<a href="#tag_cluster">/cluster</a>&gt;<br/>
+<br/><a name="ref_SERVICE"/>SERVICE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_service">service</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_service">/service</a>&gt;<br/>
+<br/><a name="ref_IP"/>IP definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_ip">ip</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_ip">/ip</a>&gt;<br/>
+<br/><a name="ref_NFSCLIENT"/>NFSCLIENT definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_nfsclient">nfsclient</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_nfsclient">/nfsclient</a>&gt;<br/>
+<br/><a name="ref_NFSEXPORT"/>NFSEXPORT definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_nfsexport">nfsexport</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_nfsexport">/nfsexport</a>&gt;<br/>
+<br/><a name="ref_SCRIPT"/>SCRIPT definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_script">script</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_script">/script</a>&gt;<br/>
+<br/><a name="ref_NETFS"/>NETFS definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_netfs">netfs</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_netfs">/netfs</a>&gt;<br/>
+<br/><a name="ref_CLUSTERFS"/>CLUSTERFS definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clusterfs">clusterfs</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_clusterfs">/clusterfs</a>&gt;<br/>
+<br/><a name="ref_SMB"/>SMB definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_smb">smb</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_smb">/smb</a>&gt;<br/>
+<br/><a name="ref_APACHE"/>APACHE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_apache">apache</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_apache">/apache</a>&gt;<br/>
+<br/><a name="ref_OPENLDAP"/>OPENLDAP definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_openldap">openldap</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_openldap">/openldap</a>&gt;<br/>
+<br/><a name="ref_SAMBA"/>SAMBA definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_samba">samba</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_samba">/samba</a>&gt;<br/>
+<br/><a name="ref_MYSQL"/>MYSQL definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_mysql">mysql</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_mysql">/mysql</a>&gt;<br/>
+<br/><a name="ref_POSTGRES-8"/>POSTGRES-8 definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_postgres-8">postgres-8</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_postgres-8">/postgres-8</a>&gt;<br/>
+<br/><a name="ref_TOMCAT-5"/>TOMCAT-5 definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_tomcat-5">tomcat-5</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_tomcat-5">/tomcat-5</a>&gt;<br/>
+<br/><a name="ref_LVM"/>LVM definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_lvm">lvm</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_lvm">/lvm</a>&gt;<br/>
+<br/><a name="ref_VM"/>VM definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_vm">vm</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_vm">/vm</a>&gt;<br/>
+<br/><a name="ref_SAPINSTANCE"/>SAPINSTANCE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_SAPInstance">SAPInstance</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_SAPInstance">/SAPInstance</a>&gt;<br/>
+<br/><a name="ref_SAPDATABASE"/>SAPDATABASE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_SAPDatabase">SAPDatabase</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_SAPDatabase">/SAPDatabase</a>&gt;<br/>
+<br/><a name="ref_NAMED"/>NAMED definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_named">named</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_named">/named</a>&gt;<br/>
+<br/><a name="ref_ASEHAAGENT"/>ASEHAAGENT definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_ASEHAagent">ASEHAagent</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_ASEHAagent">/ASEHAagent</a>&gt;<br/>
+<br/><a name="ref_DRBD"/>DRBD definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_drbd">drbd</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_drbd">/drbd</a>&gt;<br/>
+<br/><a name="ref_NFSSERVER"/>NFSSERVER definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_nfsserver">nfsserver</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_nfsserver">/nfsserver</a>&gt;<br/>
+<br/><a name="ref_FS"/>FS definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fs">fs</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fs">/fs</a>&gt;<br/>
+<br/><a name="ref_ORACLEDB"/>ORACLEDB definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_oracledb">oracledb</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_oracledb">/oracledb</a>&gt;<br/>
+<br/><a name="ref_CHILDREN"/>CHILDREN definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SERVICE">SERVICE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_IP">IP</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_NFSCLIENT">NFSCLIENT</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_NFSEXPORT">NFSEXPORT</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SCRIPT">SCRIPT</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_NETFS">NETFS</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CLUSTERFS">CLUSTERFS</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SMB">SMB</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_APACHE">APACHE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_OPENLDAP">OPENLDAP</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SAMBA">SAMBA</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_MYSQL">MYSQL</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_POSTGRES-8">POSTGRES-8</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_TOMCAT-5">TOMCAT-5</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_LVM">LVM</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_VM">VM</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SAPINSTANCE">SAPINSTANCE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SAPDATABASE">SAPDATABASE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_NAMED">NAMED</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_ASEHAAGENT">ASEHAAGENT</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_DRBD">DRBD</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_NFSSERVER">NFSSERVER</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_FS">FS</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_ORACLEDB">ORACLEDB</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_RESOURCEACTION">RESOURCEACTION</a><br/>
+<br/><a name="ref_RESOURCEACTION"/>RESOURCEACTION definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_action">action</a> .../&gt;<br/>
+<br/><a name="ref_FENCE"/>FENCE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fence">fence</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_method">method</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_DEVICE">DEVICE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_method">/method</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_fence">/fence</a>&gt;<br/>
+<br/><a name="ref_UNFENCE"/>UNFENCE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_unfence">unfence</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_DEVICE">DEVICE</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_unfence">/unfence</a>&gt;<br/>
+<br/><a name="ref_DEVICE"/>DEVICE definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_device">device</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_FENCEDEVICEOPTIONS">FENCEDEVICEOPTIONS</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_device">/device</a>&gt;<br/>
+<br/><a name="ref_FENCEDEVICEOPTIONS"/>FENCEDEVICEOPTIONS definition<br/>
+<h2>Tag Reference<a name="toc_tag_reference"/></h2><small><a href="#toc_tree_reference">Jump to Tree Structure Reference</a></small><br/><br/>
+<table>
+<tr valign="top"><td><a href="#tag_action"><b>action</b></a></td><td>Overrides resource action timings for a resource instance.</td></tr>
+<tr valign="top"><td><a href="#tag_altname"><b>altname</b></a></td><td>Defines a second network interface to use for corosync redundant ring mode. cman(5)</td></tr>
+<tr valign="top"><td><a href="#tag_apache"><b>apache</b></a></td><td>Defines an Apache web server</td></tr>
+<tr valign="top"><td><a href="#tag_ASEHAagent"><b>ASEHAagent</b></a></td><td>Sybase ASE Failover Instance</td></tr>
+<tr valign="top"><td><a href="#tag_cluster"><b>cluster</b></a></td><td>Defines cluster properties, and contains all other configuration. cluster.conf(5)</td></tr>
+<tr valign="top"><td><a href="#tag_clusterfs"><b>clusterfs</b></a></td><td>Defines a cluster file system mount.</td></tr>
+<tr valign="top"><td><a href="#tag_clusternode"><b>clusternode</b></a></td><td>Defines cluster node properties, and contains other node specific configuration. cluster.conf(5)</td></tr>
+<tr valign="top"><td><a href="#tag_clusternodes"><b>clusternodes</b></a></td><td>Contains all cluster node definitions. cluster.conf(5)</td></tr>
+<tr valign="top"><td><a href="#tag_clvmd"><b>clvmd</b></a></td><td>The clvmd element contains attributes that define parameters for the cluster LVM daemon.</td></tr>
+<tr valign="top"><td><a href="#tag_cman"><b>cman</b></a></td><td>The cman element contains attributes that define the following cluster-wide parameters and behaviors: whether the cluster is a two-node cluster, expected votes, user-specified multicast address, and logging.</td></tr>
+<tr valign="top"><td><a href="#tag_device"><b>device</b></a></td><td>Defines the properties of a device used for fencing or unfencing a node. fenced(8)</td></tr>
+<tr valign="top"><td><a href="#tag_dlm"><b>dlm</b></a></td><td>Configuration for dlm and dlm_controld daemon. dlm_controld(8)</td></tr>
+<tr valign="top"><td><a href="#tag_drbd"><b>drbd</b></a></td><td>This is a DRBD resource.</td></tr>
+<tr valign="top"><td><a href="#tag_event"><b>event</b></a></td><td>Defines an event.</td></tr>
+<tr valign="top"><td><a href="#tag_events"><b>events</b></a></td><td>Event definitions (central_processing only).</td></tr>
+<tr valign="top"><td><a href="#tag_failoverdomain"><b>failoverdomain</b></a></td><td>Specifies properties of a specific failover domain</td></tr>
+<tr valign="top"><td><a href="#tag_failoverdomainnode"><b>failoverdomainnode</b></a></td><td>A node in a failover domain</td></tr>
+<tr valign="top"><td><a href="#tag_failoverdomains"><b>failoverdomains</b></a></td><td>Failover domain definitions.</td></tr>
+<tr valign="top"><td><a href="#tag_fence"><b>fence</b></a></td><td>Contains methods for fencing the node in different ways. fenced(8)</td></tr>
+<tr valign="top"><td><a href="#tag_fencedevice"><b>fencedevice</b></a></td><td>Defines fence device properties. fenced(8)</td></tr>
+<tr valign="top"><td><a href="#tag_fencedevices"><b>fencedevices</b></a></td><td>Contains all fence device definitions. fenced(8)</td></tr>
+<tr valign="top"><td><a href="#tag_fence_daemon"><b>fence_daemon</b></a></td><td>Configuration for fenced daemon. fenced(8)</td></tr>
+<tr valign="top"><td><a href="#tag_fence_xvmd"><b>fence_xvmd</b></a></td><td>Fence_xvm daemon. The fence_xvmd fence device is an I/O fencing host that resides on dom0 and is used in conjunction with the fence_xvm fencing agent. Together, these two programs fence Xen virtual machines that are in a cluster. There is a requirement that the parent dom0s are also a part of their own CMAN/OpenAIS based cluster, and that the dom0 cluster does not share any members with the domU cluster. Furthermore, the dom0 cluster is required to have fencing if domU recovery is expected to be automatic.</td></tr>
+<tr valign="top"><td><a href="#tag_fs"><b>fs</b></a></td><td>Defines a file system mount.</td></tr>
+<tr valign="top"><td><a href="#tag_gfs_controld"><b>gfs_controld</b></a></td><td>Configuration for gfs_controld daemon. gfs_controld(8)</td></tr>
+<tr valign="top"><td><a href="#tag_group"><b>group</b></a></td><td>Defines groupd configuration. groupd(8)</td></tr>
+<tr valign="top"><td><a href="#tag_heuristic"><b>heuristic</b></a></td><td>Defines a heuristic. qdisk(5).</td></tr>
+<tr valign="top"><td><a href="#tag_interface"><b>interface</b></a></td><td>Defines Totem interface options. corosync.conf(5)</td></tr>
+<tr valign="top"><td><a href="#tag_ip"><b>ip</b></a></td><td>This is an IP address.</td></tr>
+<tr valign="top"><td><a href="#tag_lockspace"><b>lockspace</b></a></td><td>Individual lockspace configuration. dlm_controld(8)</td></tr>
+<tr valign="top"><td><a href="#tag_logging"><b>logging</b></a></td><td>Defines global logging configuration, and contains daemon-specific configuration. cluster.conf(5)</td></tr>
+<tr valign="top"><td><a href="#tag_logging_daemon"><b>logging_daemon</b></a></td><td>Defines daemon-specific logging configuration. cluster.conf(5)</td></tr>
+<tr valign="top"><td><a href="#tag_lvm"><b>lvm</b></a></td><td>LVM Failover script</td></tr>
+<tr valign="top"><td><a href="#tag_master"><b>master</b></a></td><td>Defines a master node. dlm_controld(8)</td></tr>
+<tr valign="top"><td><a href="#tag_method"><b>method</b></a></td><td>Contains one or more devices for fencing the node a single way. fenced(8)</td></tr>
+<tr valign="top"><td><a href="#tag_multicast"><b>multicast</b></a></td><td>The multicast element provides the ability for a user to specify a multicast address instead of using the multicast address generated by cman. If a user does not specify a multicast address, cman creates one. It forms the upper 16 bits of the multicast address with 239.192 and forms the lower 16 bits based on the cluster ID.</td></tr>
+<tr valign="top"><td><a href="#tag_mysql"><b>mysql</b></a></td><td>Defines a MySQL database server</td></tr>
+<tr valign="top"><td><a href="#tag_named"><b>named</b></a></td><td>Defines an instance of named server</td></tr>
+<tr valign="top"><td><a href="#tag_netfs"><b>netfs</b></a></td><td>Defines an NFS/CIFS file system mount.</td></tr>
+<tr valign="top"><td><a href="#tag_nfsclient"><b>nfsclient</b></a></td><td>Defines an NFS client.</td></tr>
+<tr valign="top"><td><a href="#tag_nfsexport"><b>nfsexport</b></a></td><td>This defines an NFS export.</td></tr>
+<tr valign="top"><td><a href="#tag_nfsserver"><b>nfsserver</b></a></td><td>This defines an NFS server resource.</td></tr>
+<tr valign="top"><td><a href="#tag_openldap"><b>openldap</b></a></td><td>Defines an Open LDAP server</td></tr>
+<tr valign="top"><td><a href="#tag_oracledb"><b>oracledb</b></a></td><td>Oracle 10g Failover Instance</td></tr>
+<tr valign="top"><td><a href="#tag_postgres-8"><b>postgres-8</b></a></td><td>Defines a PostgreSQL server</td></tr>
+<tr valign="top"><td><a href="#tag_quorumd"><b>quorumd</b></a></td><td>This element and its attributes define parameters for the quorum disk daemon, quorumd. qdisk(5).</td></tr>
+<tr valign="top"><td><a href="#tag_resources"><b>resources</b></a></td><td>Defines global resources which may be referenced in services. You may redefine actions for resources here, but child resource definitions are ignored in this section.</td></tr>
+<tr valign="top"><td><a href="#tag_rm"><b>rm</b></a></td><td>This element and its attributes define resources (for example an IP address) required to create HA cluster services, the HA cluster services themselves, and failover domains for the HA cluster services.</td></tr>
+<tr valign="top"><td><a href="#tag_samba"><b>samba</b></a></td><td>Dynamic smbd/nmbd resource agent</td></tr>
+<tr valign="top"><td><a href="#tag_SAPDatabase"><b>SAPDatabase</b></a></td><td>SAP database resource agent</td></tr>
+<tr valign="top"><td><a href="#tag_SAPInstance"><b>SAPInstance</b></a></td><td>SAP instance resource agent</td></tr>
+<tr valign="top"><td><a href="#tag_script"><b>script</b></a></td><td>LSB-compliant init script as a clustered resource.</td></tr>
+<tr valign="top"><td><a href="#tag_service"><b>service</b></a></td><td>Defines a service (resource group).</td></tr>
+<tr valign="top"><td><a href="#tag_smb"><b>smb</b></a></td><td>Dynamic smbd/nmbd resource agent</td></tr>
+<tr valign="top"><td><a href="#tag_tomcat-5"><b>tomcat-5</b></a></td><td>Defines a Tomcat server</td></tr>
+<tr valign="top"><td><a href="#tag_totem"><b>totem</b></a></td><td>OpenAIS msg transport protocol</td></tr>
+<tr valign="top"><td><a href="#tag_unfence"><b>unfence</b></a></td><td>Contains devices for unfencing the node. fence_node(8)</td></tr>
+<tr valign="top"><td><a href="#tag_vm"><b>vm</b></a></td><td>Defines a Virtual Machine</td></tr>
+</table>
+<hr/>
+<h3><a name="tag_action"/>action</h3>
+Overrides resource action timings for a resource instance.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. Name of resource action (start, stop, status, etc.).</td></tr>
+  <tr><td><b>depth</b></td><td>Status check depth (resource agent dependent; * = all depths).</td></tr>
+  <tr><td><b>interval</b></td><td>Status check interval.</td></tr>
+  <tr><td><b>timeout</b></td><td>Action timeout. Meaningless unless __enforce_timeouts is set for this resource.</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_altname"/>altname</h3>
+Defines a second network interface to use for corosync redundant ring mode. cman(5)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. A second hostname or IP address of the node. cman(5)</td></tr>
+  <tr><td><b>mcast</b></td><td>The multicast address to use on the second interface. cman(5)</td></tr>
+  <tr><td><b>port</b></td><td>The network port to use on the second interface. cman(5)</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_apache"/>apache</h3>
+Defines an Apache web server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Initial ServerConfigFile</td></tr>
+  <tr><td><b>httpd_options</b></td><td>Other command-line options for httpd</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing apache resource in the resources section.</td></tr>
+  <tr><td><b>server_root</b></td><td>Initial ServerRoot</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_ASEHAagent"/>ASEHAagent</h3>
+Sybase ASE Failover Instance<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>deep_probe_timeout</b></td><td>Deep probe timeout value</td></tr>
+  <tr><td><b>interfaces_file</b></td><td>Interfaces file</td></tr>
+  <tr><td><b>login_file</b></td><td>Login file</td></tr>
+  <tr><td><b>name</b></td><td>name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing ASEHAagent resource in the resources section.</td></tr>
+  <tr><td><b>server_name</b></td><td>ASE server name</td></tr>
+  <tr><td><b>shutdown_timeout</b></td><td>Shutdown timeout value</td></tr>
+  <tr><td><b>start_timeout</b></td><td>Start timeout value</td></tr>
+  <tr><td><b>sybase_ase</b></td><td>SYBASE_ASE directory name</td></tr>
+  <tr><td><b>sybase_home</b></td><td>SYBASE home directory</td></tr>
+  <tr><td><b>sybase_ocs</b></td><td>SYBASE_OCS directory name</td></tr>
+  <tr><td><b>sybase_user</b></td><td>Sybase user</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_cluster"/>cluster</h3>
+Defines cluster properties, and contains all other configuration. cluster.conf(5)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_version</b></td><td>Required. Revision level of cluster.conf file. cluster.conf(5)</td></tr>
+  <tr><td><b>name</b></td><td>Required. Name of the cluster. cluster.conf(5)</td></tr>
+</table><br/>
+Children: <a href="#tag_cman">cman</a> <a href="#tag_totem">totem</a> <a href="#tag_quorumd">quorumd</a> <a href="#tag_fence_daemon">fence_daemon</a> <a href="#tag_fence_xvmd">fence_xvmd</a> <a href="#tag_dlm">dlm</a> <a href="#tag_gfs_controld">gfs_controld</a> <a href="#tag_group">group</a> <a href="#tag_logging">logging</a> <a href="#tag_clusternodes">clusternodes</a> <a href="#tag_fencedevices">fencedevices</a> <a href="#tag_rm">rm</a> <a href="#tag_clvmd">clvmd</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_clusterfs"/>clusterfs</h3>
+Defines a cluster file system mount.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>device</b></td><td>Device or Label</td></tr>
+  <tr><td><b>force_unmount</b></td><td>Force Unmount</td></tr>
+  <tr><td><b>fsid</b></td><td>NFS File system ID</td></tr>
+  <tr><td><b>fstype</b></td><td>File system type</td></tr>
+  <tr><td><b>mountpoint</b></td><td>Mount Point</td></tr>
+  <tr><td><b>name</b></td><td>File System Name</td></tr>
+  <tr><td><b>nfslock</b></td><td>Enable NFS lock workarounds</td></tr>
+  <tr><td><b>options</b></td><td>Mount Options</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing clusterfs resource in the resources section.</td></tr>
+  <tr><td><b>self_fence</b></td><td>Seppuku Unmount</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_clusternode"/>clusternode</h3>
+Defines cluster node properties, and contains other node specific configuration. cluster.conf(5)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. The hostname or IP address of the node. cluster.conf(5)</td></tr>
+  <tr><td><b>nodeid</b></td><td>Required. A unique integer to use as a node identifier. cluster.conf(5)</td></tr>
+  <tr><td><b>votes</b></td><td>The number of votes the node contributes to quorum. cman(5)</td></tr>
+  <tr><td><b>weight</b></td><td>The dlm locking weight. dlm_controld(8)</td></tr>
+</table><br/>
+Children: <a href="#tag_altname">altname</a> <a href="#ref_FENCE">FENCE</a> <a href="#ref_UNFENCE">UNFENCE</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_clusternodes"/>clusternodes</h3>
+Contains all cluster node definitions. cluster.conf(5)<br/>
+<br/>
+Children: <a href="#tag_clusternode">clusternode</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_clvmd"/>clvmd</h3>
+The clvmd element contains attributes that define parameters for the cluster LVM daemon.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>interface</b></td><td>The interface attribute tells clvmd which cluster interface it should use for internode communications and locking. Valid values for this depend on how the daemon is configured at compile-time, but are typically cman, corosync or openais.</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_cman"/>cman</h3>
+The cman element contains attributes that define the following cluster-wide parameters and behaviors: whether the cluster is a two-node cluster, expected votes, user-specified multicast address, and logging.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>broadcast</b></td><td>enable cman broadcast</td></tr>
+  <tr><td><b>ccsd_poll</b></td><td></td></tr>
+  <tr><td><b>cluster_id</b></td><td> </td></tr>
+  <tr><td><b>debug_mask</b></td><td></td></tr>
+  <tr><td><b>disable_openais</b></td><td> </td></tr>
+  <tr><td><b>disallowed</b></td><td>Set this to 1 enable cman's Disallowed mode. This is usually only needed for backwards compatibility.</td></tr>
+  <tr><td><b>expected_votes</b></td><td>The expected votes value is used by cman to determine quorum. The cluster is quorate if the sum of votes of members is over half of the expected votes value. By default, cman sets the expected votes value to be the sum of votes of all nodes listed in cluster.conf. This can be overriden by setting an explicit expected_votes value.</td></tr>
+  <tr><td><b>hash_cluster_id</b></td><td>Enable stronger hashing of cluster ID to avoid collisions.</td></tr>
+  <tr><td><b>keyfile</b></td><td></td></tr>
+  <tr><td><b>nodename</b></td><td>Local node name; this is set internally by cman-preconfig and should never be set by a user.</td></tr>
+  <tr><td><b>port</b></td><td> </td></tr>
+  <tr><td><b>quorum_dev_poll</b></td><td>The amount of time after a qdisk poll, in milliseconds, before a quorum disk is considered dead. The quorum disk daemon, qdisk, periodically sends hello messages to cman and ais, indicating that qdisk is present. If qdisk takes more time to send a hello message to cman and ais than by quorum_dev_poll, then cman declares qdisk dead and prints a message indicating that connection to the quorum device has been lost.</td></tr>
+  <tr><td><b>shutdown_timeout</b></td><td>Timeout period, in milliseconds, to allow a service to respond during a shutdown.</td></tr>
+  <tr><td><b>two_node</b></td><td>The two_node attribute allows you to configure a cluster with only two nodes. Ordinarily, the loss of quorum after one of two nodes fails prevents the remaining node from continuing (if both nodes have one vote.) To enable a two-node cluster, set the two_node value equal to 1. If the two_node value is enabled, the expected_votes value must be set to 1.</td></tr>
+  <tr><td><b>upgrading</b></td><td>Set this if you are performing a rolling upgrade of the cluster between major releases.</td></tr>
+</table><br/>
+Children: <a href="#tag_multicast">multicast</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_device"/>device</h3>
+Defines the properties of a device used for fencing or unfencing a node. fenced(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. The name of a fencedevice defined in the fencedevices section. fenced(8)</td></tr>
+  <tr><td><b>action</b></td><td>Fencing action to take (off or on).</td></tr>
+  <tr><td><b>aptpl</b></td><td></td></tr>
+  <tr><td><b>auth</b></td><td>For IPMI LAN only. Authentication Type: none, password, md2, or md5</td></tr>
+  <tr><td><b>channel_address</b></td><td>VM Channel IP address (default=10.0.2.179)</td></tr>
+  <tr><td><b>cipher</b></td><td>Ciphersuite to use (same as ipmitool -C parameter)</td></tr>
+  <tr><td><b>cmd_prompt</b></td><td>Force command prompt</td></tr>
+  <tr><td><b>community</b></td><td>Set the community string</td></tr>
+  <tr><td><b>cserver</b></td><td>The hostname (and optionally the username in the form of username@hostname) assigned to the device. Refer to the fence_egenera(8) man page for more information.</td></tr>
+  <tr><td><b>debug</b></td><td>Specify (stdin) or increment (command line) debug level</td></tr>
+  <tr><td><b>device</b></td><td>The device the switch is connected to on the controlling host.</td></tr>
+  <tr><td><b>devices</b></td><td>List of devices to fence (separated by commas).</td></tr>
+  <tr><td><b>domain</b></td><td>Virtual Machine (domain name) to fence (deprecated)</td></tr>
+  <tr><td><b>drac_version</b></td><td>Force DRAC version to use</td></tr>
+  <tr><td><b>exec</b></td><td>Command to execute</td></tr>
+  <tr><td><b>hash</b></td><td>Packet hash strength (none, sha1, [sha256], sha512)</td></tr>
+  <tr><td><b>help</b></td><td>Display help and exit</td></tr>
+  <tr><td><b>hmc_version</b></td><td>Force HMC version to use (3 or 4)</td></tr>
+  <tr><td><b>identity_file</b></td><td>Identity file for ssh</td></tr>
+  <tr><td><b>inet4_only</b></td><td>Forces agent to use IPv4 addresses only</td></tr>
+  <tr><td><b>inet6_only</b></td><td>Forces agent to use IPv6 addresses only</td></tr>
+  <tr><td><b>io_fencing</b></td><td>Fencing Action</td></tr>
+  <tr><td><b>ipaddr</b></td><td>IP address or the name of the device.</td></tr>
+  <tr><td><b>ipport</b></td><td>Multicast or VMChannel IP port (default=1229)</td></tr>
+  <tr><td><b>ip_family</b></td><td>IP Family ([auto], ipv4, ipv6)</td></tr>
+  <tr><td><b>key</b></td><td></td></tr>
+  <tr><td><b>key_file</b></td><td>Shared key file (default=/etc/cluster/fence_xvm.key)</td></tr>
+  <tr><td><b>lanplus</b></td><td>For IPMI LAN only. Set value to either True or 1; leave out for false.</td></tr>
+  <tr><td><b>logfile</b></td><td>Location to output logs from fence_scsi.</td></tr>
+  <tr><td><b>login</b></td><td>The login name used to access the device. </td></tr>
+  <tr><td><b>managed</b></td><td>Managed system name</td></tr>
+  <tr><td><b>method</b></td><td>Method to fence (onoff or cycle)</td></tr>
+  <tr><td><b>module_name</b></td><td>DRAC/MC module name</td></tr>
+  <tr><td><b>multicast_address</b></td><td>Multicast address (default=225.0.0.12 / ff05::3:1)</td></tr>
+  <tr><td><b>nodename</b></td><td>Name of the node to be fenced. Refer to fence_scsi(8) for more information.</td></tr>
+  <tr><td><b>option</b></td><td> </td></tr>
+  <tr><td><b>partition</b></td><td>Partition name</td></tr>
+  <tr><td><b>passwd</b></td><td>The password used to authenticate the connection to the device.</td></tr>
+  <tr><td><b>passwd_script</b></td><td>The script that supplies a password for access to the fence device. Using this supersedes the Password parameter.</td></tr>
+  <tr><td><b>port</b></td><td>The switch outlet number.</td></tr>
+  <tr><td><b>retrans</b></td><td>Multicast retransmit time (in 1/10sec; default=20)</td></tr>
+  <tr><td><b>ribcl</b></td><td>Force ribcl version to use</td></tr>
+  <tr><td><b>rpowerpath</b></td><td></td></tr>
+  <tr><td><b>secure</b></td><td>SSH connection</td></tr>
+  <tr><td><b>separator</b></td><td>Separator for CSV created by operation list</td></tr>
+  <tr><td><b>serial_device</b></td><td>Serial device (default=/dev/ttyS1)</td></tr>
+  <tr><td><b>serial_params</b></td><td>Serial Parameters (default=115200,8N1)</td></tr>
+  <tr><td><b>servers</b></td><td>The hostname of each GNBD to disable. For multiple hostnames, separate each hostname with a space.</td></tr>
+  <tr><td><b>snmp_auth_prot</b></td><td>Set authentication protocol (MD5|SHA)</td></tr>
+  <tr><td><b>snmp_priv_passwd</b></td><td>Set privacy protocol password</td></tr>
+  <tr><td><b>snmp_priv_passwd_script</b></td><td>Script to run to retrieve privacy password</td></tr>
+  <tr><td><b>snmp_priv_prot</b></td><td>Set privacy protocol (DES|AES)</td></tr>
+  <tr><td><b>snmp_sec_level</b></td><td>Set security level (noAuthNoPriv|authNoPriv|authPriv)</td></tr>
+  <tr><td><b>snmp_version</b></td><td>Specifies SNMP version to use (1,2c,3)</td></tr>
+  <tr><td><b>ssl</b></td><td>SSL connection</td></tr>
+  <tr><td><b>switch</b></td><td>Physical switch number on device</td></tr>
+  <tr><td><b>timeout</b></td><td>Fencing timeout (in seconds; default=30)</td></tr>
+  <tr><td><b>udpport</b></td><td>UDP/TCP port to use for connection with device</td></tr>
+  <tr><td><b>use_uuid</b></td><td>Treat [domain] as UUID instead of domain name. This is provided for compatibility with older fence_xvmd installations.</td></tr>
+  <tr><td><b>verbose</b></td><td>Verbose mode</td></tr>
+  <tr><td><b>version</b></td><td>Display version information and exit</td></tr>
+  <tr><td><b>vmware_datacenter</b></td><td>Show only machines in specified datacenter</td></tr>
+  <tr><td><b>vmware_type</b></td><td>Type of VMware to connect</td></tr>
+</table><br/>
+Children: <a href="#ref_FENCEDEVICEOPTIONS">FENCEDEVICEOPTIONS</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_dlm"/>dlm</h3>
+Configuration for dlm and dlm_controld daemon. dlm_controld(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>drop_resources_age</b></td><td>Plock ownership drop resources age. dlm_controld(8)</td></tr>
+  <tr><td><b>drop_resources_count</b></td><td>Plock ownership drop resources count. dlm_controld(8)</td></tr>
+  <tr><td><b>drop_resources_time</b></td><td>Plock ownership drop resources time. dlm_controld(8)</td></tr>
+  <tr><td><b>enable_deadlk</b></td><td>Deadlock detection capability. dlm_controld(8)</td></tr>
+  <tr><td><b>enable_fencing</b></td><td>Fencing recovery dependency. dlm_controld(8)</td></tr>
+  <tr><td><b>enable_plock</b></td><td>Cluster fs posix lock capability. dlm_controld(8)</td></tr>
+  <tr><td><b>enable_quorum</b></td><td>Quorum recovery dependency. dlm_controld(8)</td></tr>
+  <tr><td><b>log_debug</b></td><td>Set to 1 to enable dlm kernel debugging messages. dlm_controld(8)</td></tr>
+  <tr><td><b>plock_debug</b></td><td>Set to 1 to enable posix lock debugging. dlm_controld(8)</td></tr>
+  <tr><td><b>plock_ownership</b></td><td>Set to 1/0 to enable/disable plock ownership. dlm_controld(8)</td></tr>
+  <tr><td><b>plock_rate_limit</b></td><td>Limit the rate of plock operations. dlm_controld(8)</td></tr>
+  <tr><td><b>protocol</b></td><td>The dlm lowcomms protocol. dlm_controld(8)</td></tr>
+  <tr><td><b>timewarn</b></td><td>Number of centiseconds a lock is blocked before notifying dlm_controld deadlock code. dlm_controld(8)</td></tr>
+</table><br/>
+Children: <a href="#tag_lockspace">lockspace</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_drbd"/>drbd</h3>
+This is a DRBD resource.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Cluster resource name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing drbd resource in the resources section.</td></tr>
+  <tr><td><b>resource</b></td><td>DRBD resource name</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_event"/>event</h3>
+Defines an event.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. Symbolic name for an event.</td></tr>
+  <tr><td><b>class</b></td><td>Event class (service, node).</td></tr>
+  <tr><td><b>file</b></td><td>Path to S/Lang script to execute.</td></tr>
+  <tr><td><b>node</b></td><td>(Node) The node name must match the specified value in order for the script to be run.</td></tr>
+  <tr><td><b>node_clean</b></td><td>(Node) The node must have been fenced in order for the script to be run.</td></tr>
+  <tr><td><b>node_id</b></td><td>(Node) The node ID must match the specified value in order for the script to be run.</td></tr>
+  <tr><td><b>node_local</b></td><td>(Node) This script may only run on the current central processing node.</td></tr>
+  <tr><td><b>node_state</b></td><td>(Node) The node state must match the specified value (0 or 1) in order for the script to be run.</td></tr>
+  <tr><td><b>priority</b></td><td>Order (1..99) of event.</td></tr>
+  <tr><td><b>service</b></td><td>(Service) The service name (service:foo) must match the specified value in order for the event script to be run.</td></tr>
+  <tr><td><b>service_owner</b></td><td>(Service) The service owner must match the specified value in order for the event script to be run.</td></tr>
+  <tr><td><b>service_state</b></td><td>(Service) The service's state must match the specified value in order for the script to be run (started, stopped, disabled, failed).</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_events"/>events</h3>
+Event definitions (central_processing only).<br/>
+<br/>
+Children: <a href="#tag_event">event</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_failoverdomain"/>failoverdomain</h3>
+Specifies properties of a specific failover domain<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. The name of the failover domain.</td></tr>
+  <tr><td><b>nofailback</b></td><td>Do not move service to a more preferred node if it is currently running.</td></tr>
+  <tr><td><b>ordered</b></td><td>Set value to 1 if the failover domain is ordered; set value to 0 if unordered.</td></tr>
+  <tr><td><b>restricted</b></td><td>Set value to 1 if the failover domain is restricted; set value to 0 if unrestricted.</td></tr>
+</table><br/>
+Children: <a href="#tag_failoverdomainnode">failoverdomainnode</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_failoverdomainnode"/>failoverdomainnode</h3>
+A node in a failover domain<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. Name of the node.</td></tr>
+  <tr><td><b>priority</b></td><td>A number specifying the priority; lower numbers having higher priority</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_failoverdomains"/>failoverdomains</h3>
+Failover domain definitions.<br/>
+<br/>
+Children: <a href="#tag_failoverdomain">failoverdomain</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_fence"/>fence</h3>
+Contains methods for fencing the node in different ways. fenced(8)<br/>
+<br/>
+Children: <a href="#tag_method">method</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_fencedevice"/>fencedevice</h3>
+Defines fence device properties. fenced(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>agent</b></td><td>Required. The fence agent to be used. fenced(8)</td></tr>
+  <tr><td><b>name</b></td><td>Required. A name that is used to reference this fence device from clusternode fence section. fenced(8)</td></tr>
+  <tr><td><b>action</b></td><td>Fencing action to take (off or on).</td></tr>
+  <tr><td><b>aptpl</b></td><td></td></tr>
+  <tr><td><b>auth</b></td><td>For IPMI LAN only. Authentication Type: none, password, md2, or md5</td></tr>
+  <tr><td><b>channel_address</b></td><td>VM Channel IP address (default=10.0.2.179)</td></tr>
+  <tr><td><b>cipher</b></td><td>Ciphersuite to use (same as ipmitool -C parameter)</td></tr>
+  <tr><td><b>cmd_prompt</b></td><td>Force command prompt</td></tr>
+  <tr><td><b>community</b></td><td>Set the community string</td></tr>
+  <tr><td><b>cserver</b></td><td>The hostname (and optionally the username in the form of username@hostname) assigned to the device. Refer to the fence_egenera(8) man page for more information.</td></tr>
+  <tr><td><b>debug</b></td><td>Specify (stdin) or increment (command line) debug level</td></tr>
+  <tr><td><b>device</b></td><td>The device the switch is connected to on the controlling host.</td></tr>
+  <tr><td><b>devices</b></td><td>List of devices to fence (separated by commas).</td></tr>
+  <tr><td><b>domain</b></td><td>Virtual Machine (domain name) to fence (deprecated)</td></tr>
+  <tr><td><b>drac_version</b></td><td>Force DRAC version to use</td></tr>
+  <tr><td><b>exec</b></td><td>Command to execute</td></tr>
+  <tr><td><b>hash</b></td><td>Packet hash strength (none, sha1, [sha256], sha512)</td></tr>
+  <tr><td><b>help</b></td><td>Display help and exit</td></tr>
+  <tr><td><b>hmc_version</b></td><td>Force HMC version to use (3 or 4)</td></tr>
+  <tr><td><b>identity_file</b></td><td>Identity file for ssh</td></tr>
+  <tr><td><b>inet4_only</b></td><td>Forces agent to use IPv4 addresses only</td></tr>
+  <tr><td><b>inet6_only</b></td><td>Forces agent to use IPv6 addresses only</td></tr>
+  <tr><td><b>io_fencing</b></td><td>Fencing Action</td></tr>
+  <tr><td><b>ipaddr</b></td><td>IP address or the name of the device.</td></tr>
+  <tr><td><b>ipport</b></td><td>Multicast or VMChannel IP port (default=1229)</td></tr>
+  <tr><td><b>ip_family</b></td><td>IP Family ([auto], ipv4, ipv6)</td></tr>
+  <tr><td><b>key</b></td><td></td></tr>
+  <tr><td><b>key_file</b></td><td>Shared key file (default=/etc/cluster/fence_xvm.key)</td></tr>
+  <tr><td><b>lanplus</b></td><td>For IPMI LAN only. Set value to either True or 1; leave out for false.</td></tr>
+  <tr><td><b>logfile</b></td><td>Location to output logs from fence_scsi.</td></tr>
+  <tr><td><b>login</b></td><td>The login name used to access the device. </td></tr>
+  <tr><td><b>managed</b></td><td>Managed system name</td></tr>
+  <tr><td><b>method</b></td><td>Method to fence (onoff or cycle)</td></tr>
+  <tr><td><b>module_name</b></td><td>DRAC/MC module name</td></tr>
+  <tr><td><b>multicast_address</b></td><td>Multicast address (default=225.0.0.12 / ff05::3:1)</td></tr>
+  <tr><td><b>nodename</b></td><td>Name of the node to be fenced. Refer to fence_scsi(8) for more information.</td></tr>
+  <tr><td><b>option</b></td><td> </td></tr>
+  <tr><td><b>partition</b></td><td>Partition name</td></tr>
+  <tr><td><b>passwd</b></td><td>The password used to authenticate the connection to the device.</td></tr>
+  <tr><td><b>passwd_script</b></td><td>The script that supplies a password for access to the fence device. Using this supersedes the Password parameter.</td></tr>
+  <tr><td><b>port</b></td><td>The switch outlet number.</td></tr>
+  <tr><td><b>retrans</b></td><td>Multicast retransmit time (in 1/10sec; default=20)</td></tr>
+  <tr><td><b>ribcl</b></td><td>Force ribcl version to use</td></tr>
+  <tr><td><b>rpowerpath</b></td><td></td></tr>
+  <tr><td><b>secure</b></td><td>SSH connection</td></tr>
+  <tr><td><b>separator</b></td><td>Separator for CSV created by operation list</td></tr>
+  <tr><td><b>serial_device</b></td><td>Serial device (default=/dev/ttyS1)</td></tr>
+  <tr><td><b>serial_params</b></td><td>Serial Parameters (default=115200,8N1)</td></tr>
+  <tr><td><b>servers</b></td><td>The hostname of each GNBD to disable. For multiple hostnames, separate each hostname with a space.</td></tr>
+  <tr><td><b>snmp_auth_prot</b></td><td>Set authentication protocol (MD5|SHA)</td></tr>
+  <tr><td><b>snmp_priv_passwd</b></td><td>Set privacy protocol password</td></tr>
+  <tr><td><b>snmp_priv_passwd_script</b></td><td>Script to run to retrieve privacy password</td></tr>
+  <tr><td><b>snmp_priv_prot</b></td><td>Set privacy protocol (DES|AES)</td></tr>
+  <tr><td><b>snmp_sec_level</b></td><td>Set security level (noAuthNoPriv|authNoPriv|authPriv)</td></tr>
+  <tr><td><b>snmp_version</b></td><td>Specifies SNMP version to use (1,2c,3)</td></tr>
+  <tr><td><b>ssl</b></td><td>SSL connection</td></tr>
+  <tr><td><b>switch</b></td><td>Physical switch number on device</td></tr>
+  <tr><td><b>timeout</b></td><td>Fencing timeout (in seconds; default=30)</td></tr>
+  <tr><td><b>udpport</b></td><td>UDP/TCP port to use for connection with device</td></tr>
+  <tr><td><b>use_uuid</b></td><td>Treat [domain] as UUID instead of domain name. This is provided for compatibility with older fence_xvmd installations.</td></tr>
+  <tr><td><b>verbose</b></td><td>Verbose mode</td></tr>
+  <tr><td><b>version</b></td><td>Display version information and exit</td></tr>
+  <tr><td><b>vmware_datacenter</b></td><td>Show only machines in specified datacenter</td></tr>
+  <tr><td><b>vmware_type</b></td><td>Type of VMware to connect</td></tr>
+</table><br/>
+Children: <a href="#ref_FENCEDEVICEOPTIONS">FENCEDEVICEOPTIONS</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_fencedevices"/>fencedevices</h3>
+Contains all fence device definitions. fenced(8)<br/>
+<br/>
+Children: <a href="#tag_fencedevice">fencedevice</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_fence_daemon"/>fence_daemon</h3>
+Configuration for fenced daemon. fenced(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>clean_start</b></td><td>Set to 1 to disable startup fencing. fenced(8)</td></tr>
+  <tr><td><b>override_path</b></td><td>Location of a FIFO used for communication between fenced and fence_ack_manual. fenced(8)</td></tr>
+  <tr><td><b>override_time</b></td><td>Number of seconds to wait for a manual override after a failed fencing attempt before the next attempt. fenced(8)</td></tr>
+  <tr><td><b>post_fail_delay</b></td><td>Number of seconds the daemon will wait before fencing any victims after a node fails. fenced(8)</td></tr>
+  <tr><td><b>post_join_delay</b></td><td>Number of seconds the daemon will wait before fencing any victims after a node joins the fence domain. fenced(8)</td></tr>
+  <tr><td><b>skip_undefined</b></td><td>Set to 1 to disable startup fencing of nodes with no fence methods defined. fenced(8)</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_fence_xvmd"/>fence_xvmd</h3>
+Fence_xvm daemon. The fence_xvmd fence device is an I/O fencing host that resides on dom0 and is used in conjunction with the fence_xvm fencing agent. Together, these two programs fence Xen virtual machines that are in a cluster. There is a requirement that the parent dom0s are also a part of their own CMAN/OpenAIS based cluster, and that the dom0 cluster does not share any members with the domU cluster. Furthermore, the dom0 cluster is required to have fencing if domU recovery is expected to be automatic.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>auth</b></td><td></td></tr>
+  <tr><td><b>debug</b></td><td></td></tr>
+  <tr><td><b>hash</b></td><td></td></tr>
+  <tr><td><b>key_file</b></td><td></td></tr>
+  <tr><td><b>multicast_address</b></td><td></td></tr>
+  <tr><td><b>multicast_interface</b></td><td></td></tr>
+  <tr><td><b>port</b></td><td></td></tr>
+  <tr><td><b>uri</b></td><td></td></tr>
+  <tr><td><b>use_uuid</b></td><td></td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_fs"/>fs</h3>
+Defines a file system mount.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>device</b></td><td>Device or Label</td></tr>
+  <tr><td><b>force_fsck</b></td><td>Force fsck support</td></tr>
+  <tr><td><b>force_unmount</b></td><td>Force Unmount</td></tr>
+  <tr><td><b>fsid</b></td><td>NFS File system ID</td></tr>
+  <tr><td><b>fstype</b></td><td>File system type</td></tr>
+  <tr><td><b>mountpoint</b></td><td>Mount Point</td></tr>
+  <tr><td><b>name</b></td><td>File System Name</td></tr>
+  <tr><td><b>nfslock</b></td><td>Enable NFS lock workarounds</td></tr>
+  <tr><td><b>options</b></td><td>Mount Options</td></tr>
+  <tr><td><b>quick_status</b></td><td>Quick/brief status checks.</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing fs resource in the resources section.</td></tr>
+  <tr><td><b>self_fence</b></td><td>Seppuku Unmount</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_gfs_controld"/>gfs_controld</h3>
+Configuration for gfs_controld daemon. gfs_controld(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>drop_resources_age</b></td><td>Plock ownership drop resources age. gfs_controld(8)</td></tr>
+  <tr><td><b>drop_resources_count</b></td><td>Plock ownership drop resources count. gfs_controld(8)</td></tr>
+  <tr><td><b>drop_resources_time</b></td><td>Plock ownership drop resources time. gfs_controld(8)</td></tr>
+  <tr><td><b>enable_plock</b></td><td>Cluster fs posix lock capability. gfs_controld(8)</td></tr>
+  <tr><td><b>enable_withdraw</b></td><td>Set to 1/0 to enable/disable a response to a withdraw. gfs_controld(8)</td></tr>
+  <tr><td><b>plock_debug</b></td><td>Set to 1 to enable posix lock debugging. gfs_controld(8)</td></tr>
+  <tr><td><b>plock_ownership</b></td><td>Set to 1/0 to enable/disable plock ownership. gfs_controld(8)</td></tr>
+  <tr><td><b>plock_rate_limit</b></td><td>Limit the rate of plock operations. gfs_controld(8)</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_group"/>group</h3>
+Defines groupd configuration. groupd(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>groupd_compat</b></td><td>Enable compatibility with cluster2 nodes. groupd(8)</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_heuristic"/>heuristic</h3>
+Defines a heuristic. qdisk(5).<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>program</b></td><td>Required. The program used to determine if this heuristic is alive. This can be anything that can be executed by /bin/sh -c. A return value of 0 indicates success; anything else indicates failure.</td></tr>
+  <tr><td><b>interval</b></td><td>The frequency (in seconds) at which the heuristic is polled. qdisk(5).</td></tr>
+  <tr><td><b>score</b></td><td>The weight of this heuristic. Be careful when determining scores for heuristics.</td></tr>
+  <tr><td><b>tko</b></td><td>The number of consecutive failures before a heuristic is discounted. qdisk(5).</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_interface"/>interface</h3>
+Defines Totem interface options. corosync.conf(5)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>bindnetaddr</b></td><td>Specifies the address to which the corosync executive should bind. corosync.conf(5)</td></tr>
+  <tr><td><b>broadcast</b></td><td>If set to yes, use broadcast instead of multicast for communication. corosync.conf(5)</td></tr>
+  <tr><td><b>mcastaddr</b></td><td>Defines the multicast address used by corosync for this interface. corosync.conf(5)</td></tr>
+  <tr><td><b>mcastport</b></td><td>Specifies the UDP port number when using multicast. corosync.conf(5)</td></tr>
+  <tr><td><b>ringnumber</b></td><td>Sets the ring interface for the interface for RRP mode. corosync.conf(5)</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_ip"/>ip</h3>
+This is an IP address.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>address</b></td><td>IP Address</td></tr>
+  <tr><td><b>family</b></td><td>Family</td></tr>
+  <tr><td><b>monitor_link</b></td><td>Monitor NIC Link</td></tr>
+  <tr><td><b>nfslock</b></td><td>Enable NFS lock workarounds</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing ip resource in the resources section.</td></tr>
+  <tr><td><b>sleeptime</b></td><td>Amount of time (seconds) to sleep.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_lockspace"/>lockspace</h3>
+Individual lockspace configuration. dlm_controld(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. Name of the lockspace. dlm_controld(8)</td></tr>
+  <tr><td><b>nodir</b></td><td>Set to 1 to disable the internal resource directory. dlm_controld(8)</td></tr>
+</table><br/>
+Children: <a href="#tag_master">master</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_logging"/>logging</h3>
+Defines global logging configuration, and contains daemon-specific configuration. cluster.conf(5)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>debug</b></td><td>Set to on to enable debugging messages in log file. cluster.conf(5)</td></tr>
+  <tr><td><b>logfile</b></td><td>The log file path name. cluster.conf(5)</td></tr>
+  <tr><td><b>logfile_priority</b></td><td>Messages at this level and higher are written to log file. cluster.conf(5)</td></tr>
+  <tr><td><b>syslog_facility</b></td><td>The facility used for syslog messages. cluster.conf(5)</td></tr>
+  <tr><td><b>syslog_priority</b></td><td>Messages at this level and higher are sent to syslog. cluster.conf(5)</td></tr>
+  <tr><td><b>to_logfile</b></td><td>Set to yes/no to enable/disable messages to log file. cluster.conf(5)</td></tr>
+  <tr><td><b>to_syslog</b></td><td>Set to yes/no to enable/disable messages to syslog. cluster.conf(5)</td></tr>
+</table><br/>
+Children: <a href="#tag_logging_daemon">logging_daemon</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_logging_daemon"/>logging_daemon</h3>
+Defines daemon-specific logging configuration. cluster.conf(5)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. The daemon name. cluster.conf(5)</td></tr>
+  <tr><td><b>debug</b></td><td>Same as global.</td></tr>
+  <tr><td><b>logfile</b></td><td>Same as global.</td></tr>
+  <tr><td><b>logfile_priority</b></td><td>Same as global.</td></tr>
+  <tr><td><b>subsys</b></td><td>A corosync subsystem name. cluster.conf(5)</td></tr>
+  <tr><td><b>syslog_facility</b></td><td>Same as global.</td></tr>
+  <tr><td><b>syslog_priority</b></td><td>Same as global.</td></tr>
+  <tr><td><b>to_logfile</b></td><td>Same as global.</td></tr>
+  <tr><td><b>to_syslog</b></td><td>Same as global.</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_lvm"/>lvm</h3>
+LVM Failover script<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>lv_name</b></td><td>Logical Volume name (optional).</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>nfslock</b></td><td>Enable NFS lock workarounds</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing lvm resource in the resources section.</td></tr>
+  <tr><td><b>self_fence</b></td><td>Fence the node if it is not able to clean up LVM tags</td></tr>
+  <tr><td><b>vg_name</b></td><td>Volume group name</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_master"/>master</h3>
+Defines a master node. dlm_controld(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. The name of a node that should be master resources/locks. dlm_controld(8)</td></tr>
+  <tr><td><b>weight</b></td><td>The proportion of resources this node should master. dlm_controld(8)</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_method"/>method</h3>
+Contains one or more devices for fencing the node a single way. fenced(8)<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Required. A name used to distinguish multiple methods from each other. fenced(8)</td></tr>
+</table><br/>
+Children: <a href="#ref_DEVICE">DEVICE</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_multicast"/>multicast</h3>
+The multicast element provides the ability for a user to specify a multicast address instead of using the multicast address generated by cman. If a user does not specify a multicast address, cman creates one. It forms the upper 16 bits of the multicast address with 239.192 and forms the lower 16 bits based on the cluster ID.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>addr</b></td><td>Required. A multicast address specified by a user. If you do specify a multicast address, you should use the 239.192.x.x series that cman uses. Otherwise, using a multicast address outside that range may cause unpredictable results. For example, using 224.0.0.x (All hosts on the network) may not be routed correctly, or even routed at all by some hardware.</td></tr>
+</table><br/>
+<a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_mysql"/>mysql</h3>
+Defines a MySQL database server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Define configuration file</td></tr>
+  <tr><td><b>listen_address</b></td><td>Define an IP address for MySQL server. If the address is not given then first IP address from the service is taken.</td></tr>
+  <tr><td><b>mysqld_options</b></td><td>Other command-line options for mysqld</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing mysql resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>startup_wait</b></td><td>Wait X seconds for correct end of service startup</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_named"/>named</h3>
+Defines an instance of named server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Config File</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>named_options</b></td><td>Other command-line options for named</td></tr>
+  <tr><td><b>named_sdb</b></td><td>Simplified Database Backend</td></tr>
+  <tr><td><b>named_working_dir</b></td><td>Other command-line options for named</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing named resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_netfs"/>netfs</h3>
+Defines an NFS/CIFS file system mount.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>export</b></td><td>Export</td></tr>
+  <tr><td><b>force_unmount</b></td><td>Force Unmount</td></tr>
+  <tr><td><b>fstype</b></td><td>File System Type</td></tr>
+  <tr><td><b>host</b></td><td>IP or Host</td></tr>
+  <tr><td><b>mountpoint</b></td><td>Mount Point</td></tr>
+  <tr><td><b>name</b></td><td>File System Name</td></tr>
+  <tr><td><b>no_unmount</b></td><td>Skip unmount opration</td></tr>
+  <tr><td><b>options</b></td><td>Mount Options</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing netfs resource in the resources section.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_nfsclient"/>nfsclient</h3>
+Defines an NFS client.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>allow_recover</b></td><td>Allow recovery</td></tr>
+  <tr><td><b>fsid</b></td><td>File system ID</td></tr>
+  <tr><td><b>name</b></td><td>Client Name</td></tr>
+  <tr><td><b>options</b></td><td>Export Options</td></tr>
+  <tr><td><b>path</b></td><td>Path to Export</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing nfsclient resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Service Name</td></tr>
+  <tr><td><b>svcname</b></td><td></td></tr>
+  <tr><td><b>target</b></td><td>Target Hostname, Wildcard, or Netgroup</td></tr>
+  <tr><td><b>use_cache</b></td><td>Enable exportfs list caching</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_nfsexport"/>nfsexport</h3>
+This defines an NFS export.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>device</b></td><td>If you can see this, your GUI is broken.</td></tr>
+  <tr><td><b>fsid</b></td><td>If you can see this, your GUI is broken.</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>path</b></td><td>If you can see this, your GUI is broken.</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing nfsexport resource in the resources section.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_nfsserver"/>nfsserver</h3>
+This defines an NFS server resource.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>nfspath</b></td><td>This is the path containing shared NFS recovery information, relative to the path parameter.</td></tr>
+  <tr><td><b>path</b></td><td>This is the path you intend to export.</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing nfsserver resource in the resources section.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_openldap"/>openldap</h3>
+Defines an Open LDAP server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Config File</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing openldap resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>slapd_options</b></td><td>Other command-line options for slapd</td></tr>
+  <tr><td><b>url_list</b></td><td>URL list</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_oracledb"/>oracledb</h3>
+Oracle 10g Failover Instance<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>home</b></td><td>Oracle Home Directory</td></tr>
+  <tr><td><b>listener_name</b></td><td>Oracle Listener Instance Name</td></tr>
+  <tr><td><b>name</b></td><td>Oracle SID</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing oracledb resource in the resources section.</td></tr>
+  <tr><td><b>type</b></td><td>Oracle Installation Type</td></tr>
+  <tr><td><b>user</b></td><td>Oracle User Name</td></tr>
+  <tr><td><b>vhost</b></td><td>Virtual Hostname</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_postgres-8"/>postgres-8</h3>
+Defines a PostgreSQL server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Config File</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>postmaster_options</b></td><td>Other command-line options for postmaster</td></tr>
+  <tr><td><b>postmaster_user</b></td><td>User who runs the database server</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing postgres-8 resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_quorumd"/>quorumd</h3>
+This element and its attributes define parameters for the quorum disk daemon, quorumd. qdisk(5).<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>allow_kill</b></td><td>Instruct cman to evict nodes which are not updating the quorum disk. qdisk(5).</td></tr>
+  <tr><td><b>device</b></td><td>The storage device the quorum daemon uses. The device must be the same on all nodes. qdisk(5).</td></tr>
+  <tr><td><b>interval</b></td><td>The frequency of read/write cycles, in seconds. qdisk(5).</td></tr>
+  <tr><td><b>io_timeout</b></td><td>Die if we cannot get a write out to disk after interval*tko. qdisk(5).</td></tr>
+  <tr><td><b>label</b></td><td>Specifies the quorum disk label created by the mkqdisk utility. If this field contains an entry, the label overrides the Device field. If this field is used, the quorum daemon reads /proc/partitions and checks for qdisk signatures on every block device found, comparing the label against the specified label. This is useful in configurations where the quorum device name differs among nodes. qdisk(5).</td></tr>
+  <tr><td><b>master_wins</b></td><td>Enable master-wins mode (two node clusters). qdisk(5).</td></tr>
+  <tr><td><b>max_error_cycles</b></td><td>Die after this many cycles which receive I/O errors. qdisk(5).</td></tr>
+  <tr><td><b>min_score</b></td><td>The minimum score for a node to be considered alive. If omitted or set to 0, the default function, floor((n+1)/2), is used, where n is the sum of the heuristics scores. The Minimum Score value must never exceed the sum of the heuristic scores; otherwise, the quorum disk cannot be available. qdisk(5).</td></tr>
+  <tr><td><b>paranoid</b></td><td>Reboot if we are running too slowly. qdisk(5).</td></tr>
+  <tr><td><b>priority</b></td><td>Scheduler priority. qdisk(5).</td></tr>
+  <tr><td><b>reboot</b></td><td>Reboot if our score drops too low. qdisk(5).</td></tr>
+  <tr><td><b>scheduler</b></td><td>Scheduler. qdisk(5).</td></tr>
+  <tr><td><b>status_file</b></td><td>Debugging file. qdisk(5).</td></tr>
+  <tr><td><b>stop_cman</b></td><td>Stop cman if the quorum disk cannot be found during startup. qdisk(5).</td></tr>
+  <tr><td><b>tko</b></td><td>The number of cycles a node must miss to be declared dead. qdisk(5).</td></tr>
+  <tr><td><b>votes</b></td><td>The number of votes the quorum daemon advertises to CMAN when it has a high enough score. qdisk(5).</td></tr>
+</table><br/>
+Children: <a href="#tag_heuristic">heuristic</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_resources"/>resources</h3>
+Defines global resources which may be referenced in services. You may redefine actions for resources here, but child resource definitions are ignored in this section.<br/>
+<br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_rm"/>rm</h3>
+This element and its attributes define resources (for example an IP address) required to create HA cluster services, the HA cluster services themselves, and failover domains for the HA cluster services.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>central_processing</b></td><td>Enable central processing mode (requires cluster-wide shut down and restart of rgmanager.).</td></tr>
+  <tr><td><b>log_facility</b></td><td>The facility is one of the following keywords: auth, authpriv, cron, daemon, kern, lpr, mail, news, syslog, user, uucp and local0 through local7</td></tr>
+  <tr><td><b>log_level</b></td><td>An integer 0-7, inclusive, for all levels less than the selected. 0, system is unusable, emergency; 1, action must be taken immediately; 2, critical conditions; 3, error conditions; 4, warning conditions; 5, normal but significant condition; 6, informational; 7, debug-level messages.</td></tr>
+  <tr><td><b>status_child_max</b></td><td>Maximum number of status child threads.</td></tr>
+  <tr><td><b>status_poll_interval</b></td><td>Scan the resource tree every X seconds for resources which need to be checked.</td></tr>
+  <tr><td><b>transition_throttling</b></td><td>During transitions, keep the event processor alive for this many seconds.</td></tr>
+</table><br/>
+Children: <a href="#tag_failoverdomains">failoverdomains</a> <a href="#tag_events">events</a> <a href="#tag_resources">resources</a> <a href="#ref_SERVICE">SERVICE</a> <a href="#ref_VM">VM</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_samba"/>samba</h3>
+Dynamic smbd/nmbd resource agent<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Config File</td></tr>
+  <tr><td><b>name</b></td><td>Samba Name</td></tr>
+  <tr><td><b>nmbd_options</b></td><td>Other command-line options for nmbd</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing samba resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>smbd_options</b></td><td>Other command-line options for smbd</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_SAPDatabase"/>SAPDatabase</h3>
+SAP database resource agent<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>AUTOMATIC_RECOVER</b></td><td>Enable or disable automatic startup recovery</td></tr>
+  <tr><td><b>DBJ2EE_ONLY</b></td><td>only JAVA stack installed</td></tr>
+  <tr><td><b>DBTYPE</b></td><td>database vendor</td></tr>
+  <tr><td><b>DB_JARS</b></td><td>file name of the jdbc driver</td></tr>
+  <tr><td><b>DIR_BOOTSTRAP</b></td><td>path to j2ee bootstrap directory</td></tr>
+  <tr><td><b>DIR_EXECUTABLE</b></td><td>path of sapstartsrv and sapcontrol</td></tr>
+  <tr><td><b>DIR_SECSTORE</b></td><td>path to j2ee secure store directory</td></tr>
+  <tr><td><b>JAVA_HOME</b></td><td>Path to Java SDK</td></tr>
+  <tr><td><b>NETSERVICENAME</b></td><td>listener name</td></tr>
+  <tr><td><b>POST_START_USEREXIT</b></td><td>path to a post-start script</td></tr>
+  <tr><td><b>POST_STOP_USEREXIT</b></td><td>path to a post-start script</td></tr>
+  <tr><td><b>PRE_START_USEREXIT</b></td><td>path to a pre-start script</td></tr>
+  <tr><td><b>PRE_STOP_USEREXIT</b></td><td>path to a pre-start script</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing SAPDatabase resource in the resources section.</td></tr>
+  <tr><td><b>SID</b></td><td>SAP system ID</td></tr>
+  <tr><td><b>STRICT_MONITORING</b></td><td>Activates application level monitoring</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_SAPInstance"/>SAPInstance</h3>
+SAP instance resource agent<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>AUTOMATIC_RECOVER</b></td><td>Enable or disable automatic startup recovery</td></tr>
+  <tr><td><b>DIR_EXECUTABLE</b></td><td>path of sapstartsrv and sapcontrol</td></tr>
+  <tr><td><b>DIR_PROFILE</b></td><td>path of start profile</td></tr>
+  <tr><td><b>InstanceName</b></td><td>instance name: SID_INSTANCE_VIR-HOSTNAME</td></tr>
+  <tr><td><b>POST_START_USEREXIT</b></td><td>path to a post-start script</td></tr>
+  <tr><td><b>POST_STOP_USEREXIT</b></td><td>path to a post-start script</td></tr>
+  <tr><td><b>PRE_START_USEREXIT</b></td><td>path to a pre-start script</td></tr>
+  <tr><td><b>PRE_STOP_USEREXIT</b></td><td>path to a pre-start script</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing SAPInstance resource in the resources section.</td></tr>
+  <tr><td><b>START_PROFILE</b></td><td>start profile name</td></tr>
+  <tr><td><b>START_WAITTIME</b></td><td>Check the successful start after that time (do not wait for J2EE-Addin)</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_script"/>script</h3>
+LSB-compliant init script as a clustered resource.<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>file</b></td><td>Path to script</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing script resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_service"/>service</h3>
+Defines a service (resource group).<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>autostart</b></td><td>Automatic start after quorum formation</td></tr>
+  <tr><td><b>depend</b></td><td>Top-level service this depends on, in service:name format.</td></tr>
+  <tr><td><b>depend_mode</b></td><td>Service dependency mode (soft or hard).</td></tr>
+  <tr><td><b>domain</b></td><td>Failover domain.</td></tr>
+  <tr><td><b>exclusive</b></td><td>Exclusive service.</td></tr>
+  <tr><td><b>max_restarts</b></td><td>Maximum restarts for this service.</td></tr>
+  <tr><td><b>name</b></td><td>Name.</td></tr>
+  <tr><td><b>nfslock</b></td><td>Enable NFS lock workarounds.</td></tr>
+  <tr><td><b>nfs_client_cache</b></td><td>Enable exportfs list caching (performance).</td></tr>
+  <tr><td><b>priority</b></td><td>Service priority.</td></tr>
+  <tr><td><b>recovery</b></td><td>Failure recovery policy (restart, relocate, or disable).</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing service resource in the resources section.</td></tr>
+  <tr><td><b>restart_expire_time</b></td><td>Restart expiration time; amount of time before a restart is forgotten.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_smb"/>smb</h3>
+Dynamic smbd/nmbd resource agent<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>name</b></td><td>Samba Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing smb resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>workgroup</b></td><td>Workgroup name</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_tomcat-5"/>tomcat-5</h3>
+Defines a Tomcat server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>catalina_base</b></td><td>Catalina base directory (differs for each service)</td></tr>
+  <tr><td><b>catalina_options</b></td><td>Other command-line options for Catalina</td></tr>
+  <tr><td><b>config_file</b></td><td>Config File</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing tomcat-5 resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
+  <tr><td><b>tomcat_user</b></td><td>User who runs the Tomcat server</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_totem"/>totem</h3>
+OpenAIS msg transport protocol<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>consensus</b></td><td>This is a timeout value that specifies how many milliseconds to wait for consensus to be achieved before starting a new round of membership configuration.</td></tr>
+  <tr><td><b>fail_recv_const</b></td><td> </td></tr>
+  <tr><td><b>join</b></td><td>This is a timeout value that specifies how many milliseconds to wait for join messages in the membership protocol.</td></tr>
+  <tr><td><b>keyfile</b></td><td></td></tr>
+  <tr><td><b>rrp_mode</b></td><td>This attribute specifies the redundant ring protocol mode. Its value can be set to active, passive, or none. Active replication offers slightly lower latency from transmit to delivery in faulty network environments but with less performance. Passive replication may nearly double the speed of the totem protocol if the protocol doesn't become cpu bound. The final option is none, in which case only one network interface is used to operate the totem protocol. If only one interface directive is specified, none is automatically chosen. If multiple interface directives are specified, only active or passive may be chosen.</td></tr>
+  <tr><td><b>secauth</b></td><td>This attribute specifies that HMAC/SHA1 authentication should be used to authenticate all messages. It further specifies that all data should be encrypted with the sober128 encryption algorithm to protect data from eavesdropping. For more information setting this value, refer the the openais.conf man page.</td></tr>
+  <tr><td><b>token</b></td><td>This is a timeout value that specifies how many milliseconds elapse before a token loss is declared after not receiving a token. This is the time spent detecting a failure of a processor in the current configuration. Reforming a new configuration takes about 50 milliseconds in addition to this timeout.</td></tr>
+  <tr><td><b>token_retransmits_before_loss_const</b></td><td>This value identifies how many token retransmits should be attempted before forming a new configuration. If this value is set, retransmit and hold will be automatically calculated from retransmits_before_loss and token.</td></tr>
+</table><br/>
+Children: <a href="#tag_interface">interface</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_unfence"/>unfence</h3>
+Contains devices for unfencing the node. fence_node(8)<br/>
+<br/>
+Children: <a href="#ref_DEVICE">DEVICE</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_vm"/>vm</h3>
+Defines a Virtual Machine<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>autostart</b></td><td>Automatic start after quorum formation</td></tr>
+  <tr><td><b>depend</b></td><td>Top-level service this depends on, in service:name format.</td></tr>
+  <tr><td><b>depend_mode</b></td><td>Service dependency mode (soft or hard).</td></tr>
+  <tr><td><b>domain</b></td><td>Cluster failover Domain</td></tr>
+  <tr><td><b>exclusive</b></td><td>Exclusive resource group</td></tr>
+  <tr><td><b>hypervisor</b></td><td>Hypervisor</td></tr>
+  <tr><td><b>hypervisor_uri</b></td><td>Hypervisor URI (normally automatic).</td></tr>
+  <tr><td><b>max_restarts</b></td><td>Maximum restarts for this service.</td></tr>
+  <tr><td><b>migrate</b></td><td>Migration type (live or pause, default = live).</td></tr>
+  <tr><td><b>migration_mapping</b></td><td>memberhost:targethost,memberhost:targethost ..</td></tr>
+  <tr><td><b>migration_uri</b></td><td>Migration URI (normally automatic).</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>path</b></td><td>Path to virtual machine configuration files.</td></tr>
+  <tr><td><b>recovery</b></td><td>Failure recovery policy</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing vm resource in the resources section.</td></tr>
+  <tr><td><b>restart_expire_time</b></td><td>Restart expiration time; amount of time before a restart is forgotten.</td></tr>
+  <tr><td><b>snapshot</b></td><td>Path to the snapshot directory where the virtual machine image will be stored.</td></tr>
+  <tr><td><b>status_program</b></td><td>Additional status check program</td></tr>
+  <tr><td><b>use_virsh</b></td><td>If set to 1, vm.sh will use the virsh command to manage virtual machines instead of xm. This is required when using non-Xen virtual machines (e.g. qemu / KVM).</td></tr>
+  <tr><td><b>xmlfile</b></td><td>Full path to libvirt XML file describing the domain.</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+</html>
