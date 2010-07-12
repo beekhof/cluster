@@ -19,25 +19,8 @@
 static void
 usage(char *progname)
 {
-	fprintf(stdout, "%s -s severity \"message text\"\n", progname);
+	fprintf(stdout, "%s [-m logname] -s severity \"message text\"\n", progname);
 	exit(0);
-}
-
-
-static char *
-log_name(void)
-{
-	char lnk[PATH_MAX];
-	static char file[PATH_MAX];
-
-	snprintf(lnk, sizeof(lnk), "/proc/%d/exe", getppid());
-
-	if (readlink(lnk, file, sizeof(file)) < 0) {
-		perror("readlink");
-		return NULL;
-	}
-
-	return basename(file);
 }
 
 
@@ -47,30 +30,40 @@ main(int argc, char **argv)
 	int opt, ccsfd;
 	int severity = -1;
 
-	char *logmsg = argv[argc-1];
-	--argc;
+	char *logmsg = NULL;
+	char *myname = NULL;
 
-	while ((opt = getopt(argc, argv, "s:h")) != EOF) {
+	while ((opt = getopt(argc, argv, "m:l:s:h")) != EOF) {
 		switch(opt) {
+		case 'l':
 		case 's':
 			severity = atoi(optarg);
+			break;
+		case 'm':
+			myname = optarg;
 			break;
 		case 'h':
 		default:
 			usage(argv[0]);
-			break;
+			return 0;
 		}
 	}
+
+	logmsg = argv[optind];
 
 	if (severity < 0)
 		severity = SYSLOGLEVEL;
 
-	init_logging(log_name(), 1, severity);
+	init_logging("rgmanager", 1, severity);
 	ccsfd = ccs_connect();
 	setup_logging(ccsfd);
 	ccs_disconnect(ccsfd);
 
-	logt_print(severity, "%s\n", logmsg);
+	if (myname && strcmp(myname, "rgmanager")) {
+		logt_print(severity, "[%s] %s\n", myname, logmsg);
+	} else {
+		logt_print(severity, "%s\n", logmsg);
+	}
 
 	close_logging();
 	return 0;
