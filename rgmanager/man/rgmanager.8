@@ -1,4 +1,4 @@
-.TH "clusvcmgrd" "8" "Jan 2005" "" "Red Hat Cluster Suite"
+.TH "rgmanager" "8" "Jul 2010" "" "Red Hat Cluster Suite"
 .SH "NAME"
 rgmanager \- Resource Group (Cluster Service) Manager Daemon
 .SH "DESCRIPTION"
@@ -26,6 +26,346 @@ the member has been fenced whenever fencing is available.
 When a cluster member determines that it is no longer in the cluster quorum,
 the service manager stops all services and waits for a new quorum to form.
 
+.SH "CONFIGURATION"
+.PP
+Rgmanager is configured via cluster.conf.  With the exception of logging,
+all of rgmanager's configuration resides with the
+.B <rm>
+tag.  The general parameters for rgmanager are as follows:
+.LP
+.B central_processing
+- Enable central processing mode (requires cluster-wide shut down and
+restart of rgmanager).  This alternative mode of handling failures
+externalizes most of rgmanager's features into a user-editable script.
+This mode is disabled by default.
+.LP
+.B status_poll_interval
+- This defines the amount of time, in seconds, rgmanager waits
+between resource tree scans for status checks.  Decreasing this value
+may improve rgmanager's ability to detect failures in services, but
+at a cost of decreased performance and increased system utilization.
+The default is 10 seconds.
+.LP
+.B status_child_max
+- Maximum number of status check threads (default = 5).  It is not
+recommended that this ever be changed.  This simply controls how
+many instances of clustat queries may be outstanding on a single
+node at any given time.
+.LP
+.B transition_throttling
+- This is the amount of time the event processing thread stays alive
+after the last event has been processed.  The default is 5 seconds.
+It is not recommended that this ever be changed.
+.LP
+.B log_level
+- DEPRECATED; DO NOT USE.  Controls log level filtering to syslog.
+Default is 5; valid values range from 0-7.  See cluster.conf(5)
+for the current method to configure logging.
+.LP
+.B log_facility
+- DEPRECATED; DO NOT USE.  Controls log level facility when sending
+messages to syslog.  Default is "daemon".  See cluster.conf(5)
+for the current method to configure logging.
+
+.SH "RESOURCE AGENTS"
+.PP
+.B Resource agents
+define resource classes rgmanager can manage.  Rgmanager follows the Open
+Cluster Framework Resource Agent API v1.0 (draft) standard, with the following
+two notable exceptions:
+.LP
+.in 8
+* Rgmanager does not call \fImonitor\fP; it only calls \fIstatus\fP
+.in
+.in 8
+* Rgmanager looks for resource agets in /usr/share/cluster
+.in
+.LP
+Rgmanager uses the metadata from resource agents to determine what
+parameters to look for in cluster.conf for a each resource type.  Viewing
+the resource agent metadata is the best way to understand all the various
+resource agent parameters.
+
+.SH "SERVICES / RESOURCE GROUPS"
+.PP
+A
+.B service
+or
+.B resource group
+is a collection of resources defined in cluster.conf for rgmanager's
+use.  Resource groups are also called
+.B resource trees.
+.LP
+A resource group is the atomic unit of failover in rgmanager.  That
+is, even though rgmanager calls out to various resource agents
+individually in order to start or stop various resources, everything
+in the resource group is always moved around together
+in the event of a relocation or failover.
+
+.SH "STARTUP POLICIES"
+.PP
+Rgmanager supports only two startup policies, 
+.LP
+.B autostart
+- if set to 1 (the default), the service is started when a quorum
+forms.  If set to 0, the service is not automatically started.
+.LP
+Startup Policy Configuration:
+Recovery Configuration:
+.in 8
+<rm>
+.in 10
+<service name="service1" autostart="[0|1]" .../>
+.in 8
+.in 10
+ ...
+.in 8
+</rm>
+
+.SH "RECOVERY POLICIES"
+.PP
+Rgmanager supports three recovery policies for services; this is
+configured by the
+.B
+recovery
+parameter in the service definition.
+.LP
+.B restart
+- means to attempt to restart the resource group in place in the
+event of one or more failures of individual resources.  This can
+further be augmented by the
+.B max_restarts
+and
+.B restart_expire_time
+parameters, which define a tolerance for the amount of service
+restarts over the given amount of time.
+.LP
+.B relocate
+- means to move the resource group to another host in the cluster
+instead of restarting on the same host.
+.LP
+.B disable
+- means to not try to recover the resource group.  Instead, just
+place it in to the disabled state.
+.LP
+Recovery Configuration:
+.in 8
+<rm>
+.in 10
+<service name="service1" recovery="[restart|relocate|disable]" .../>
+.in 8
+.in 10
+ ...
+.in 8
+</rm>
+
+.SH "FAILOVER DOMAINS"
+.PP
+A failover domain is an ordered subset of members to which a
+service may be bound. The following is a list of semantics
+governing the options as to how the different configuration
+options affect the behavior of a failover domain: 
+.LP
+.B preferred node
+or
+.B preferred member
+: The preferred node was the member designated to run a given
+service if the member is online. We can emulate this behavior
+by specifying an unordered, unrestricted failover domain of
+exactly one member.
+.LP
+.B restricted domain
+: Services bound to the domain may only run on cluster members
+which are also members of the failover domain. If no members
+of the failover domain are available, the service is placed
+in the stopped state.
+.LP
+.B unrestricted domain
+: Services bound to this domain may run on all cluster members,
+but will run on a member of the domain whenever one is
+available. This means that if a service is running outside of
+the domain and a member of the domain comes online, the
+service will migrate to that member.
+.LP
+.B ordered domain
+: The order specified in the configuration dictates the order
+of preference of members within the domain. The
+highest-ranking member of the domain will run the service
+whenever it is online.  This means that if member A has a
+higher rank than member B, the service will migrate to A if it
+was running on B if A transitions from offline to online.
+.LP
+.B unordered domain
+: Members of the domain have no order of preference; any
+member may run the service. Services will always migrate to
+members of their failover domain whenever possible, however,
+in an unordered domain.
+.LP
+.B nofailback
+: Enabling this option for an ordered failover domain will
+prevent automated fail-back after a more-preferred node
+rejoins the cluster. Consequently, nofailback requires an
+ordered domain in order to be meaningful.  When nofailback
+is used, the following two behaviors should be noted: 
+.in 8
+* If a subset of cluster nodes forms a quorum, the node
+with the highest priority in the failover domain is selected
+to run a service bound to the domain. After this point, a
+higher priority member joining the cluster will not trigger a
+relocation.
+.in
+.in 8
+* When a service is running outside of its unrestricted
+failover domain and a cluster member boots which is a part
+of the service's failover domain, the service will relocate
+to that member. That is, nofailback does not prevent
+transitions from outside of a failover domain to inside a
+failover domain. After this point, a higher priority member
+joining the cluster will not trigger a relocation. 
+.in
+.LP
+Ordering, restriction, and nofailback are flags and may
+be combined in almost any way (ie, ordered+restricted,
+unordered+unrestricted, etc.). These combinations affect both
+where services start after initial quorum formation and which
+cluster members will take over services in the event that
+the service has failed.
+.LP
+Failover Domain Configuration:
+.in 8
+<rm>
+.in 10
+<failoverdomains>
+.in 12 
+<failoverdomain name="NAME" ordered="[0|1]" restricted="[0|1]" nofailback="[0|1" >
+.in 14
+<failoverdomainnode name="node1" priority="[1..100]" />
+.in 12
+.in 14
+ ...
+.in 12
+</failoverdomain>
+.in 10
+</failoverdomains>
+.in 8
+.in 10
+ ...
+.in 8
+</rm>
+
+.SH "SERVICE OPERATIONS"
+.PP
+These are how the basic user-initiated service operations
+(via 
+.B clusvcadm
+) work.
+.LP
+.B enable
+- start the service, optionally on a preferred target and
+optionally according to failover domain rules. In absence
+of either, the local host where clusvcadm is run will start
+the service. If the original start fails, the service behaves
+as though a relocate operation was requested (see below). If
+the operation succeeds, the service is placed in the started state.
+.LP
+.B disable
+- stop the service and place into the disabled state. This
+is the only permissible operation when a service is in the failed state.
+.LP
+.B relocate
+- move the service to another node. Optionally, the
+administrator may specify a preferred node to receive the
+service, but the inability for the service to run on that
+host (e.g. if the service fails to start or the host is offline)
+does not prevent relocation, and another node is chosen.
+Rgmanager attempts to start the service on every permissible node
+in the cluster. If no permissible target node in the cluster
+successfully starts the service, the relocation fails and the
+service is attempted to be restarted on the original owner.
+If the original owner can not restart the service, the service is
+placed in the stopped state.
+.LP
+.B stop
+- stop the service and place into the stopped state.
+.LP
+.B migrate
+- migrate the virtual machine to another node. The administrator
+must specify a target node. Depending on the failure, a failure
+to migrate may result with the virtual machine in the failed state
+or in the started state on the original owner. 
+.LP
+.B freeze
+- freeze the service or virtual machine in place and prevent
+status checks from occurring.  Administrators may do this in order
+to perform maintenance on one or more parts of a given service
+without having rgmanager interfere.  It is very important that
+the administrator unfreezes the service once maintenance is
+complete, as a frozen service will not fail over.  Freezing
+a service does NOT affect is operational state.  For example,
+it does not 'pause' virtual machines or suspend them to disk.
+.LP
+.B unfreeze
+- unfreeze (thaw) the service or virtual machine.  This command 
+makes rgmanager perform status checks on the service again.
+
+.SH "SERVICE STATES"
+.PP
+These are the most common service states.
+.LP
+.B disabled
+- The service will remain in the disabled state until either an
+administrator re-enables the service or the cluster loses quorum
+(when the cluster regains quorum, the autostart parameter is
+evaluated). An administrator may enable the service from this state.
+.LP
+.B failed
+- The service is presumed dead.  A service is placed in to this 
+state whenever a resource's stop operation fails.  After a service
+is placed in to this state, the administrator must verify that there
+are no allocated resources (mounted file systems, etc.) prior to
+issuing a disable request. The only operation which can take place
+when a service has entered this state is a disable.
+.LP
+.B stopped
+- When in the stopped state, the service will be evaluated for
+starting after the next service or node transition.  This is considered
+a temporary state. An administrator may disable or enable the service
+from this state.
+.LP
+.B recovering
+- The cluster is trying to recover the service. An administrator may
+disable the service to prevent recovery if desired.
+.LP
+.B started
+- If a service status check fails, recover it according to the service
+recovery policy. If the host running the service fails, recover it
+following failover domain & exclusive service rules. An
+administrator may relocate, stop, disable, and (with virtual
+machines) migrate the service from this state. 
+
+.SH "VIRTUAL MACHINE FEATURES"
+.PP
+Apart from what is noted in the VM resource agent, rgmanager 
+provides a few convenience features when dealing with virtual machines.
+.in 8
+* it will use live migration when transferring a virtual machine
+to a more-preferred host in the cluster as a consequence of 
+failover domain operation
+.in
+.in 8
+* it will search the other instances of rgmanager in the cluster
+in the case that a user accidentally moves a virtual machine
+using other management tools
+.in 
+.in 8
+* unlike services, adding a virtual machine to rgmanager's
+configuration will not cause the virtual machine to be restarted
+.in
+.in 8
+* removing a virtual machine from rgmanager's configuration
+will leave the virtual machine running.
+.in
+
 .SH "COMMAND LINE OPTIONS"
 .IP \-f
 Run in the foreground (do not fork).
@@ -40,4 +380,6 @@ flag to clusvcadm, this can be used to allow rgmanager to be upgraded
 without stopping a given user service or set of services.
 
 .SH "SEE ALSO"
-clusvcadm(8)
+http://sources.redhat.com/cluster/wiki/RGManager
+
+clusvcadm(8), cluster.conf(5)
