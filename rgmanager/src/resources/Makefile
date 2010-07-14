@@ -10,13 +10,13 @@ include $(OBJDIR)/make/clean.mk
 RESOURCES=service.sh ip.sh nfsclient.sh nfsexport.sh \
 	script.sh netfs.sh clusterfs.sh smb.sh \
 	apache.sh openldap.sh samba.sh mysql.sh \
-	postgres-8.sh tomcat-5.sh lvm.sh \
+	postgres-8.sh tomcat-5.sh tomcat-6.sh lvm.sh \
 	vm.sh SAPInstance SAPDatabase named.sh \
 	ASEHAagent.sh drbd.sh nfsserver.sh
 
 METADATA=apache.metadata openldap.metadata samba.metadata \
 	mysql.metadata postgres-8.metadata tomcat-5.metadata \
-	named.metadata lvm.metadata drbd.metadata
+	tomcat-6.metadata named.metadata lvm.metadata drbd.metadata
 
 EVENT_TARGETS= \
 	default_event_script.sl \
