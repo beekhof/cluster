@@ -626,7 +626,7 @@ To validate your cluster.conf against this schema, run:
         messages in log file. cluster.conf(5)"/>
    </optional>
 
-   <optional>
+   <zeroOrMore>
     <element name="logging_daemon" rha:description="Defines
         daemon-specific logging configuration. cluster.conf(5)">
 
@@ -661,7 +661,7 @@ To validate your cluster.conf against this schema, run:
      </optional>
 
     </element>
-   </optional>
+   </zeroOrMore>
 
   </element>
  </optional>
