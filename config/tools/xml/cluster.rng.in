@@ -280,6 +280,9 @@ To validate your cluster.conf against this schema, run:
         where the quorum device name differs among nodes. qdisk(5)." rha:sample=""/>
    </optional>
    <optional>
+    <attribute name="cman_label" rha:description="" rha:sample=""/>
+   </optional>
+   <optional>
     <attribute name="status_file" rha:description="Debugging file. qdisk(5)." rha:sample=""/>
    </optional>
    <optional>
