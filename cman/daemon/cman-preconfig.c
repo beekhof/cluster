@@ -1066,7 +1066,7 @@ static int copy_config_tree(struct objdb_iface_ver0 *objdb, hdb_handle_t source_
 	while ( (res = objdb->object_find_next(find_handle, &object_handle) == 0)) {
 
 		/* Down we go ... */
-		copy_config_tree(objdb, object_handle, new_object, 0);
+		copy_config_tree(objdb, object_handle, new_object, always_create);
 	}
 	objdb->object_find_destroy(find_handle);
 
@@ -1174,7 +1174,7 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 	}
 
 	/* copy /cluster/logging to /logging */
-	ret = copy_tree_to_root(objdb, "logging", 0);
+	ret = copy_tree_to_root(objdb, "logging", 1);
 
 	/* Note: we do NOT delete /totem as corosync stores other things in there that
 	   it needs! */
@@ -1296,7 +1296,7 @@ static int cmanpre_readconfig(struct objdb_iface_ver0 *objdb, const char **error
 	else {
 		/* Move these to a place where corosync expects to find them */
 		ret = copy_tree_to_root(objdb, "totem", 0);
-		ret = copy_tree_to_root(objdb, "logging", 0);
+		ret = copy_tree_to_root(objdb, "logging", 1);
 		ret = copy_tree_to_root(objdb, "event", 0);
 		ret = copy_tree_to_root(objdb, "amf", 0);
 		ret = copy_tree_to_root(objdb, "aisexec", 0);
