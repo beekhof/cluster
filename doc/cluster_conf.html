@@ -108,6 +108,10 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_tomcat-5">tomcat-5</a> ...&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_tomcat-5">/tomcat-5</a>&gt;<br/>
+<br/><a name="ref_TOMCAT-6"/>TOMCAT-6 definition<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_tomcat-6">tomcat-6</a> ...&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_tomcat-6">/tomcat-6</a>&gt;<br/>
 <br/><a name="ref_LVM"/>LVM definition<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_lvm">lvm</a> ...&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
@@ -163,6 +167,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_MYSQL">MYSQL</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_POSTGRES-8">POSTGRES-8</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_TOMCAT-5">TOMCAT-5</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_TOMCAT-6">TOMCAT-6</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_LVM">LVM</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_VM">VM</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SAPINSTANCE">SAPINSTANCE</a><br/>
@@ -248,6 +253,7 @@
 <tr valign="top"><td><a href="#tag_service"><b>service</b></a></td><td>Defines a service (resource group).</td></tr>
 <tr valign="top"><td><a href="#tag_smb"><b>smb</b></a></td><td>Dynamic smbd/nmbd resource agent</td></tr>
 <tr valign="top"><td><a href="#tag_tomcat-5"><b>tomcat-5</b></a></td><td>Defines a Tomcat server</td></tr>
+<tr valign="top"><td><a href="#tag_tomcat-6"><b>tomcat-6</b></a></td><td>Defines a Tomcat server</td></tr>
 <tr valign="top"><td><a href="#tag_totem"><b>totem</b></a></td><td>OpenAIS msg transport protocol</td></tr>
 <tr valign="top"><td><a href="#tag_unfence"><b>unfence</b></a></td><td>Contains devices for unfencing the node. fence_node(8)</td></tr>
 <tr valign="top"><td><a href="#tag_vm"><b>vm</b></a></td><td>Defines a Virtual Machine</td></tr>
@@ -945,6 +951,7 @@ This element and its attributes define parameters for the quorum disk daemon, qu
 <br/>
 <table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
   <tr><td><b>allow_kill</b></td><td>Instruct cman to evict nodes which are not updating the quorum disk. qdisk(5).</td></tr>
+  <tr><td><b>cman_label</b></td><td>This is the name used by CMAN for the quorum device instead of the device name. qdisk(5).</td></tr>
   <tr><td><b>device</b></td><td>The storage device the quorum daemon uses. The device must be the same on all nodes. qdisk(5).</td></tr>
   <tr><td><b>interval</b></td><td>The frequency of read/write cycles, in seconds. qdisk(5).</td></tr>
   <tr><td><b>io_timeout</b></td><td>Die if we cannot get a write out to disk after interval*tko. qdisk(5).</td></tr>
@@ -1105,6 +1112,21 @@ Defines a Tomcat server<br/>
   <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
   <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
   <tr><td><b>tomcat_user</b></td><td>User who runs the Tomcat server</td></tr>
+  <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
+  <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
+  <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
+  <tr><td><b>__max_failures</b></td><td>Maximum number of failures before returning a failure to a status check.</td></tr>
+</table><br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_tomcat-6"/>tomcat-6</h3>
+Defines a Tomcat server<br/>
+<br/>
+<table><tr valign="top"><td>Attribute</td><td>Description</td></tr>
+  <tr><td><b>config_file</b></td><td>Config File</td></tr>
+  <tr><td><b>name</b></td><td>Name</td></tr>
+  <tr><td><b>ref</b></td><td>Reference to existing tomcat-6 resource in the resources section.</td></tr>
+  <tr><td><b>service_name</b></td><td>Inherit the service name.</td></tr>
+  <tr><td><b>shutdown_wait</b></td><td>Wait X seconds for correct end of service shutdown</td></tr>
   <tr><td><b>__enforce_timeouts</b></td><td>Consider a timeout for operations as fatal.</td></tr>
   <tr><td><b>__failure_expire_time</b></td><td>Amount of time before a failure is forgotten.</td></tr>
   <tr><td><b>__independent_subtree</b></td><td>Treat this and all children as an independent subtree.</td></tr>
