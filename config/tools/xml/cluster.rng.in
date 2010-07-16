@@ -1572,6 +1572,45 @@ To validate your cluster.conf against this schema, run:
   </define>
 
 
+  <define name="TOMCAT-6">
+    <element name="tomcat-6" rha:description="Defines a Tomcat server">
+      <choice>
+      <group>
+        <!-- rgmanager specific stuff -->
+        <attribute name="ref" rha:description="Reference to existing tomcat-6 resource in the resources section."/>
+      </group>
+      <group>
+        <attribute name="name" rha:description="Name"/>
+        <optional>
+          <attribute name="config_file" rha:description="Config File"/>
+        </optional>
+        <optional>
+          <attribute name="shutdown_wait" rha:description="Wait X seconds for correct end of service shutdown"/>
+        </optional>
+        <optional>
+          <attribute name="service_name" rha:description="Inherit the service name."/>
+        </optional>
+      </group>
+      </choice>
+      <optional>
+        <attribute name="__independent_subtree" rha:description="Treat this and all children as an independent subtree."/>
+      </optional>
+      <optional>
+        <attribute name="__enforce_timeouts" rha:description="Consider a timeout for operations as fatal."/>
+      </optional>
+      <optional>
+        <attribute name="__max_failures" rha:description="Maximum number of failures before returning a failure to a status check."/>
+      </optional>
+      <optional>
+        <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <ref name="CHILDREN"/>
+      </optional>
+    </element>
+  </define>
+
+
   <define name="LVM">
     <element name="lvm" rha:description="LVM Failover script">
       <choice>
@@ -2092,6 +2131,7 @@ To validate your cluster.conf against this schema, run:
         <ref name="MYSQL"/>
         <ref name="POSTGRES-8"/>
         <ref name="TOMCAT-5"/>
+        <ref name="TOMCAT-6"/>
         <ref name="LVM"/>
         <ref name="VM"/>
         <ref name="SAPINSTANCE"/>
