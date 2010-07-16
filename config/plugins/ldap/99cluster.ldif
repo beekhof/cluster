@@ -1,4 +1,4 @@
-# Auto-generated @ 2010-07-15 10:44:22
+# Auto-generated @ 2010-07-16 17:01:19
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.1 NAME 'rhcsConfig-version'
@@ -1768,6 +1768,10 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.44 NAME 'rhcsTomcat-5' SUP top STRUCTURAL
      MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsCatalina-base $ rhcsCatalina-options $ rhcsTomcat-user $ rhcsConfig-file $ name $ rhcsRef )
+   )
+objectClasses: (
+     1.3.6.1.4.1.2312.8.1.2.61 NAME 'rhcsTomcat-6' SUP top STRUCTURAL
+     MAY ( rhcs--failure-expire-time $ rhcs--max-failures $ rhcs--enforce-timeouts $ rhcs--independent-subtree $ rhcsService-name $ rhcsShutdown-wait $ rhcsConfig-file $ name $ rhcsRef )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.45 NAME 'rhcsLvm' SUP top STRUCTURAL

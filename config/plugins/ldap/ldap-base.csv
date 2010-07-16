@@ -1,5 +1,5 @@
 # Max attribute value: 280
-# Max object class value: 60
+# Max object class value: 61
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
 obj,rhcsTotem,totem,4
@@ -339,3 +339,4 @@ attr,rhcsFail-recv-const,fail_recv_const,278
 obj,rhcsNfsserver,nfsserver,60
 attr,rhcsNfspath,nfspath,279
 attr,rhcsCman-label,cman_label,280
+obj,rhcsTomcat-6,tomcat-6,61
