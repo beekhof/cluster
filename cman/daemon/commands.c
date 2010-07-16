@@ -1202,6 +1202,7 @@ static int reread_config(int new_version)
 					     ccsd_timer_fn, &ccsd_timer);
 	}
 	else {
+		recalculate_quorum(1, 0);
 		send_transition_msg(0,0);
 	}
 
