@@ -1,6 +1,6 @@
 include ../../../make/defines.mk
 
-TARGET= fence_ibmblade
+TARGET= fence_bladecenter_snmp
 
 MAKEMAN = 1
 

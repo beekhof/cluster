@@ -6,7 +6,7 @@ from fencing import *
 from fencing_snmp import *
 
 #BEGIN_VERSION_GENERATION
-RELEASE_VERSION="IBM Blade SNMP fence agent"
+RELEASE_VERSION="IBM BladeCenter SNMP fence agent"
 REDHAT_COPYRIGHT=""
 BUILD_DATE=""
 #END_VERSION_GENERATION
@@ -73,7 +73,7 @@ def main():
 
 	docs = { }
 	docs["shortdesc"] = "Fence agent for IBM BladeCenter over SNMP"
-	docs["longdesc"] = "fence_ibmblade is an I/O Fencing agent \
+	docs["longdesc"] = "fence_bladecenter_snmp is an I/O Fencing agent \
 which can be used with IBM BladeCenter chassis. It issues SNMP Set \
 request to BladeCenter chassis, rebooting, powering up or down \
 the specified Blade Server."
