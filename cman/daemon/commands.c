@@ -1100,6 +1100,7 @@ static int do_cmd_try_shutdown(struct connection *con, char *cmdbuf)
 static int do_cmd_register_quorum_device(char *cmdbuf, int *retlen)
 {
 	int votes;
+	int oldvotes;
 	char *name = cmdbuf+sizeof(int);
 
 	if (!ais_running)
@@ -1149,7 +1150,14 @@ static int do_cmd_register_quorum_device(char *cmdbuf, int *retlen)
 	}
 
 	/* Update votes even if it existed before */
+	oldvotes = quorum_device->votes;
         quorum_device->votes = votes;
+
+	/* If it is a member and votes decreased, recalculate quorum */
+	if (quorum_device->state == NODESTATE_MEMBER &&
+	    oldvotes != votes) {
+		recalculate_quorum(1, 0);
+	}
 
         return 0;
 }
