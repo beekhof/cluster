@@ -85,6 +85,7 @@ static uint32_t shutdown_flags;
 static int shutdown_yes;
 static int shutdown_no;
 static int shutdown_expected;
+static int ccsd_timer_active = 0;
 
 static struct cluster_node *find_node_by_nodeid(int nodeid);
 static struct cluster_node *find_node_by_name(char *name);
@@ -1198,8 +1199,10 @@ static int reread_config(int new_version)
 
 	/* Keep looking */
 	if (read_err || config_version < wanted_config_version) {
-		corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
-					     ccsd_timer_fn, &ccsd_timer);
+		if (!ccsd_timer_active)
+			corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
+						     ccsd_timer_fn, &ccsd_timer);
+		ccsd_timer_active = 1;
 	}
 	else {
 		recalculate_quorum(1, 0);
@@ -1212,6 +1215,9 @@ static int reread_config(int new_version)
 static void ccsd_timer_fn(void *arg)
 {
 	log_printf(LOG_DEBUG, "Polling configuration for updated information\n");
+
+	ccsd_timer_active = 0;
+
 	if (!reread_config(wanted_config_version) && config_version >= wanted_config_version) {
 		log_printf(LOG_ERR, "Now got config information version %d, continuing\n", config_version);
 		config_error = 0;
