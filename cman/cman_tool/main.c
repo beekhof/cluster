@@ -10,7 +10,7 @@
 
 #define DEFAULT_CONFIG_MODULE "xmlconfig"
 
-#define OPTION_STRING		("m:n:v:e:2p:c:r:i:N:t:o:k:F:C:VAPwfqah?XD::Sd::")
+#define OPTION_STRING		("m:n:v:e:2p:c:i:N:t:o:k:F:C:VAPwfqah?XD::Sd::r::")
 #define OP_JOIN			1
 #define OP_LEAVE		2
 #define OP_EXPECTED		3
@@ -118,7 +118,7 @@ static void print_usage(int subcmd)
 
 	if (!subcmd || subcmd == OP_VERSION) {
 		printf("version\n");
-		printf("  -r <config>      A new config version to set on all members\n");
+		printf("  -r               Reload cluster.conf and update config version.\n");
 		printf("  -D <fail,warn,none> What to do about the config. Default (without -D) is to\n");
 		printf("                   validate the config. with -D no validation will be done. -Dwarn will print errors\n");
 		printf("                   but allow the operation to continue\n");
@@ -876,6 +876,7 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 	int optchar, i;
 	int suboptchar;
 	int show_help = 0;
+	char buf[16];
 
 	while (cont) {
 		optchar = getopt(argc, argv, OPTION_STRING);
@@ -943,8 +944,13 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 			break;
 
 		case 'r':
-			comline->config_version = get_int_arg(optchar, optarg);
+			comline->config_version = 0;
 			comline->config_version_opt = TRUE;
+			if (optarg) {
+				fprintf(stderr, "Warning: specifying a "
+					"version for the -r flag is "
+				        "deprecated and no longer used\n");
+			}
 			break;
 
 		case 'v':
@@ -1092,8 +1098,19 @@ static void decode_arguments(int argc, char *argv[], commandline_t *comline)
 			comline->remove = TRUE;
 		} else if (strcmp(argv[optind], "force") == 0) {
 			comline->force = TRUE;
-		} else
-			die("unknown option %s", argv[optind]);
+		} else {
+			snprintf(buf, sizeof(buf),
+				 "%d", atoi(argv[optind]));
+			if (!strcmp(buf, argv[optind]) &&
+			    (comline->config_version_opt == TRUE) &&
+			     comline->operation == OP_VERSION) {
+				fprintf(stderr, "Warning: specifying a "
+					"version for the -r flag is "
+				        "deprecated and no longer used\n");
+			} else {
+				die("unknown option %s", argv[optind]);
+			}
+		}
 
 		optind++;
 	}
