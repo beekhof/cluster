@@ -122,6 +122,9 @@ fi
 #     to join the fence domain (equivalent to "yes").
 [ -z "$FENCE_JOIN" ] && FENCE_JOIN="yes"
 
+# FENCED_OPTS -- allow extra options to be passed to fence daemon.
+[ -z "$FENCED_OPTS" ] && FENCED_OPTS=""
+
 # NETWORK_BRIDGE_SCRIPT -- script to use for xen network bridging.
 #     This script must exist in the /etc/xen/scripts directory.
 #     The default script is "network-bridge".
@@ -630,7 +633,7 @@ stop_groupd()
 
 start_fenced()
 {
-	start_daemon fenced
+	start_daemon fenced "$FENCED_OPTS"
 }
 
 stop_fenced()

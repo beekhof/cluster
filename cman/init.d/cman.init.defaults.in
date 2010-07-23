@@ -49,6 +49,9 @@
 #     to join the fence domain (equivalent to "yes").
 #FENCE_JOIN="yes"
 
+# FENCED_OPTS -- allow extra options to be passed to fence daemon.
+#FENCED_OPTS=""
+
 # NETWORK_BRIDGE_SCRIPT -- script to use for xen network bridging.
 #     This script must exist in the /etc/xen/scripts directory.
 #     The default script is "network-bridge".
