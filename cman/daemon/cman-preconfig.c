@@ -1137,6 +1137,8 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 	hdb_handle_t object_handle;
 	hdb_handle_t find_handle;
 	hdb_handle_t cluster_parent_handle_new;
+	unsigned int config_version = 0, config_version_new = 0;
+	char *config_value = NULL;
 
 	/* don't reload if we've been told to run configless */
 	if (getenv("CMAN_NOCONFIG")) {
@@ -1158,6 +1160,33 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 		goto err;
 	}
 	objdb->object_find_destroy(find_handle);
+
+	if (!objdb->object_key_get(cluster_parent_handle, "config_version", strlen("config_version"), (void *)&config_value, NULL)) {
+		if (config_value) {
+			config_version = atoi(config_value);
+		} else {
+			/* it should never ever happen.. */
+			sprintf (error_reason, "%s", "Cannot find old /cluster/config_version key in configuration\n");
+			goto err;
+		}
+	}
+
+	config_value = NULL;
+
+	if (!objdb->object_key_get(cluster_parent_handle_new, "config_version", strlen("config_version"), (void *)&config_value, NULL)) {
+		if (config_value) {
+			config_version_new = atoi(config_value);
+		} else {
+			sprintf (error_reason, "%s", "Cannot find new /cluster/config_version key in configuration\n");
+			goto err;
+		}
+	}
+
+	if (config_version_new <= config_version) {
+		objdb->object_destroy(cluster_parent_handle_new);
+		sprintf (error_reason, "%s", "New configuration version has to be newer than current running configuration\n");
+		goto err;
+	}
 
 	/* destroy the old one */
 	objdb->object_destroy(cluster_parent_handle);

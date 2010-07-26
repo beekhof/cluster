@@ -86,6 +86,7 @@ static int shutdown_yes;
 static int shutdown_no;
 static int shutdown_expected;
 static int ccsd_timer_active = 0;
+static int ccsd_timer_should_broadcast = 0;
 
 static struct cluster_node *find_node_by_nodeid(int nodeid);
 static struct cluster_node *find_node_by_name(char *name);
@@ -98,7 +99,7 @@ static void recalculate_quorum(int allow_decrease, int by_current_nodes);
 static void send_kill(int nodeid, uint16_t reason);
 static const char *killmsg_reason(int reason);
 static void ccsd_timer_fn(void *arg);
-static int reread_config(int new_version);
+static int reload_config(int new_version, int should_broadcast);
 
 static void set_port_bit(struct cluster_node *node, uint8_t port)
 {
@@ -484,23 +485,8 @@ static int do_cmd_set_version(char *cmdbuf, int *retlen)
 	    version->patch != CNXMAN_PATCH_VERSION)
 		return -EINVAL;
 
-	if (config_version == version->config)
-		return 0;
+	reload_config(version->config, 1);
 
-	/* If the passed-in version number is 0 then read the file now, then
-	 * tell the other nodes to look for that version number.
-	 * That means we also have to send the notification here, because it will
-	 * be skipped when we get our own RECONFIGURE message back, as the version
-	 * number will match.
-	 */
-	if (!version->config) {
-		if (!reread_config(0))
-			notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
-		version->config = config_version;
-	}
-
-	/* We will re-read CCS when we get our own message back */
-	send_reconfigure(us->node_id, RECONFIG_PARAM_CONFIG_VERSION, version->config);
 	return 0;
 }
 
@@ -1179,80 +1165,93 @@ static int do_cmd_unregister_quorum_device(char *cmdbuf, int *retlen)
         return 0;
 }
 
-static int reread_config(int new_version)
+static int reload_config(int new_version, int should_broadcast)
 {
-	int read_err;
 	const char *reload_err = NULL;
+
+	if (config_version == new_version) {
+		log_printf(LOG_DEBUG, "We are already using config version [%d]\n",
+			   config_version);
+		return 0;
+	}
+
+	if (new_version > 0 && new_version < config_version) {
+		log_printf(LOG_ERR, "Requested version [%d] older than running version [%d]\n",
+			   new_version, config_version);
+		return -1;
+	}
 
 	wanted_config_version = new_version;
 
 	/* Tell objdb to reload */
-	read_err = corosync->object_reload_config(1, &reload_err);
+	config_error = corosync->object_reload_config(1, &reload_err);
+	if (config_error)
+		log_printf(LOG_ERR, "Unable to load new config in corosync: %s\n",
+			   reload_err);
 
-	/* Now get our bits */
-	if (!read_err)
-		read_err = read_cman_nodes(corosync, &config_version, 0);
+	if (!config_error)
+		config_error = read_cman_nodes(corosync, &config_version, 0);
 
-	if (read_err) {
-		config_error = 1;
+	if (config_error) {
 		log_printf(LOG_ERR, "Can't get updated config version %d: %s. Activity suspended on this node\n",
 			   wanted_config_version, reload_err?reload_err:"version mismatch on this node");
-	}
 
-	/* Still too old?? */
-	if (new_version && config_version < wanted_config_version) {
-		log_printf(LOG_ERR, "Can't get updated config version %d, config file is version %d.\n",
-			   wanted_config_version, config_version);
-	}
-
-	/* Keep looking */
-	if (read_err || config_version < wanted_config_version) {
-		if (!ccsd_timer_active)
+		if (!ccsd_timer_active) {
+			log_printf(LOG_ERR, "Error reloading the configuration, will retry every second\n");
+			ccsd_timer_should_broadcast = should_broadcast;
 			corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
 						     ccsd_timer_fn, &ccsd_timer);
-		ccsd_timer_active = 1;
-	}
-	else {
-		recalculate_quorum(1, 0);
-		send_transition_msg(0,0);
-	}
+			ccsd_timer_active = 1;
+		}
+	} else { 
 
-	return read_err;
+		/*
+		 * at this point we know:
+		 * config is loaded in objdb with a newer version than the previous one
+		 * we have been able to activate it in cman (via read_cman_nodes)
+		 */
+
+		if (should_broadcast) {
+			log_printf(LOG_DEBUG, "Sending reconfigure message to all nodes\n");
+			send_reconfigure(us->node_id, RECONFIG_PARAM_CONFIG_VERSION, config_version);
+		}
+
+		log_printf(LOG_DEBUG, "Recalculating quorum\n");
+		recalculate_quorum(1, 0);
+
+		log_printf(LOG_DEBUG, "Notify all listeners\n");
+		notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
+	}
+	return config_error;
 }
 
 static void ccsd_timer_fn(void *arg)
 {
 	log_printf(LOG_DEBUG, "Polling configuration for updated information\n");
 
-	ccsd_timer_active = 0;
+	ccsd_timer_active = 0;	
 
-	if (!reread_config(wanted_config_version) && config_version >= wanted_config_version) {
-		log_printf(LOG_ERR, "Now got config information version %d, continuing\n", config_version);
+	if (!reload_config(wanted_config_version, ccsd_timer_should_broadcast) &&
+	    config_version >= wanted_config_version) {
+		log_printf(LOG_DEBUG, "ccsd_timer_fn got the new config\n");
 		config_error = 0;
-		recalculate_quorum(0, 0);
-		notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
+		return;
 	}
-	else {
-	      time_t now;
-	      now = time(NULL);
 
-	      log_printf(LOG_DEBUG, "Checking for startup failure: local_first_trans=%d, time=%d\n",
-			 local_first_trans, (int)(now - join_time));
-	      /* 
-	       * If we haven't got the 'right' configuration at startup before (default) 30s
-	       * then quit so the node can boot 
-	       */
+	if (local_first_trans) {
+		time_t now;
+		now = time(NULL);
 
-	      if (local_first_trans && now > join_time+startup_config_timeout) {
-		  log_printf(LOG_ERR, "Failed to get an up-to-date config file, wanted %d, only got %d. Will exit\n",
-			     wanted_config_version, config_version);
-		  log_printf(LOG_ERR, "Check your configuration distribution method is working correctly\n");
-		  cman_finish();
-		  corosync_shutdown();
-	      }
+		if (now > join_time+startup_config_timeout) {
+			log_printf(LOG_ERR, "Checking for startup failure: time=%d\n", (int)(now - join_time));
+			log_printf(LOG_ERR, "Failed to get an up-to-date config file, wanted %d, only got %d. Will exit\n",
+				   wanted_config_version, config_version);
+			log_printf(LOG_ERR, "Check your configuration distribution method is working correctly\n");
+			cman_finish();
+			corosync_shutdown();
+		}
 	}
 }
-
 
 static void quorum_device_timer_fn(void *arg)
 {
@@ -1736,25 +1735,31 @@ static int valid_transition_msg(int nodeid, struct cl_transmsg *msg)
 		return -1;
 	}
 
-	/* New config version - try to read new file */
-	if (msg->config_version > config_version) {
+	if (local_first_trans) {
+		time_t now;
+		now = time(NULL);
 
-		if (!reread_config(msg->config_version)) {
-
-			if (config_version > msg->config_version) {
-				/* Tell everyone else to update */
-				send_reconfigure(us->node_id, RECONFIG_PARAM_CONFIG_VERSION, config_version);
-			}
-			recalculate_quorum(0, 0);
-			notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
+		if (now > join_time+startup_config_timeout) {
+			log_printf(LOG_DEBUG, "ccs: disable startup transition check\n");
+			local_first_trans = 0;
 		}
 	}
 
+	/* New config version - try to read new file */
+	if (msg->config_version > config_version) {
+		log_printf(LOG_DEBUG, "Reloading config from TRANSITION message\n");
+		if (reload_config(msg->config_version, 0)) {
+			if (msg->config_version != config_version) {
+				log_printf(LOG_ERR, "Node %d conflict, remote config version id=%d, local=%d\n",
+					   nodeid, msg->config_version, config_version);
+				return -1;
+			}
+		}
+	}
 
-	if (msg->config_version != config_version) {
-		log_printf(LOG_ERR, "Node %d conflict, remote config version id=%d, local=%d\n",
-			nodeid, msg->config_version, config_version);
-		return -1;
+	if ((msg->config_version == config_version) && (nodeid != us->node_id)) {
+		log_printf(LOG_DEBUG, "Completed first transition with nodes on the same config versions\n");
+		local_first_trans = 0;
 	}
 
 	return 0;
@@ -1897,10 +1902,7 @@ static void do_reconfigure_msg(void *data)
 		break;
 
 	case RECONFIG_PARAM_CONFIG_VERSION:
-		if (config_version != msg->value) {
-			if (!reread_config(msg->value))
-				notify_listeners(NULL, EVENT_REASON_CONFIG_UPDATE, config_version);
-		}
+		reload_config(msg->value, 0);
 		break;
 	}
 }
