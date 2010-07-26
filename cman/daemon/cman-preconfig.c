@@ -1187,6 +1187,7 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 		if (config_value) {
 			config_version_new = atoi(config_value);
 		} else {
+			objdb->object_destroy(cluster_parent_handle_new);
 			sprintf (error_reason, "%s", "Cannot find new /cluster/config_version key in configuration\n");
 			goto err;
 		}
