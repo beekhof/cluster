@@ -662,12 +662,97 @@ out:
 	return error;
 }
 
-/* These are basically cman overrides to the totem config bits */
-static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
+static void add_logging_overrides(struct objdb_iface_ver0 *objdb)
 {
 	char *logstr;
 	char *logfacility;
 	char *loglevel;
+	hdb_handle_t object_handle;
+	hdb_handle_t find_handle;
+
+	/* Make sure mainconfig doesn't stomp on our logging options */
+	objdb->object_find_create(OBJECT_PARENT_HANDLE, "logging", strlen("logging"), &find_handle);
+	if (objdb->object_find_next(find_handle, &object_handle)) {
+
+                objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
+					    "logging", strlen("logging"));
+        }
+	objdb->object_find_destroy(find_handle);
+
+	logfacility = facility_name_get(SYSLOGFACILITY);
+	loglevel = priority_name_get(SYSLOGLEVEL);
+
+	/* enable timestamps on logging */
+	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "timestamp",
+					       "on", strlen("on")+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	/* configure logfile */
+	if (objdb_get_string(objdb, object_handle, "to_logfile", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "to_logfile",
+					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	if (objdb_get_string(objdb, object_handle, "logfile", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "logfile",
+					       LOGDIR "/corosync.log", strlen(LOGDIR "/corosync.log")+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	if (objdb_get_string(objdb, object_handle, "logfile_priority", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "logfile_priority",
+					       loglevel, strlen(loglevel)+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	/* syslog */
+	if (objdb_get_string(objdb, object_handle, "to_syslog", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "to_syslog",
+					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	if (objdb_get_string(objdb, object_handle, "syslog_facility", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "syslog_facility",
+					 logfacility, strlen(logfacility)+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	if (objdb_get_string(objdb, object_handle, "syslog_priority", &logstr)) {
+		objdb->object_key_create_typed(object_handle, "syslog_priority",
+					       loglevel, strlen(loglevel)+1, OBJDB_VALUETYPE_STRING);
+	}
+
+	if (!debug) {
+		hdb_handle_t logger_object_handle;
+
+		if (!objdb_get_string(objdb, object_handle, "debug", &logstr)) {
+			if (!strncmp(logstr, "on", 2)) {
+				debug=1;
+			}
+		}
+
+		logger_object_handle = find_cman_logger(objdb, object_handle);
+		if (logger_object_handle > -1) {
+			if (!objdb_get_string(objdb, logger_object_handle, "debug", &logstr)) {
+				if (!strncmp(logstr, "on", 2)) {
+					debug=1;
+				}
+				if (!strncmp(logstr, "off", 3)) {
+					debug=0;
+				}
+			}
+		}
+	}
+
+	if (debug) {
+		objdb->object_key_create_typed(object_handle, "to_stderr",
+					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
+	}
+
+
+}
+
+/* These are basically cman overrides to the totem config bits */
+static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
+{
 	hdb_handle_t object_handle;
 	hdb_handle_t find_handle;
 	char tmp[256];
@@ -763,82 +848,7 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 	}
 	objdb->object_find_destroy(find_handle);
 
-	/* Make sure mainconfig doesn't stomp on our logging options */
-	objdb->object_find_create(OBJECT_PARENT_HANDLE, "logging", strlen("logging"), &find_handle);
-	if (objdb->object_find_next(find_handle, &object_handle)) {
-
-                objdb->object_create(OBJECT_PARENT_HANDLE, &object_handle,
-					    "logging", strlen("logging"));
-        }
-	objdb->object_find_destroy(find_handle);
-
-	logfacility = facility_name_get(SYSLOGFACILITY);
-	loglevel = priority_name_get(SYSLOGLEVEL);
-
-	/* enable timestamps on logging */
-	if (objdb_get_string(objdb, object_handle, "timestamp", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "timestamp",
-					       "on", strlen("on")+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	/* configure logfile */
-	if (objdb_get_string(objdb, object_handle, "to_logfile", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "to_logfile",
-					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	if (objdb_get_string(objdb, object_handle, "logfile", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "logfile",
-					       LOGDIR "/corosync.log", strlen(LOGDIR "/corosync.log")+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	if (objdb_get_string(objdb, object_handle, "logfile_priority", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "logfile_priority",
-					       loglevel, strlen(loglevel)+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	/* syslog */
-	if (objdb_get_string(objdb, object_handle, "to_syslog", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "to_syslog",
-					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	if (objdb_get_string(objdb, object_handle, "syslog_facility", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "syslog_facility",
-					 logfacility, strlen(logfacility)+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	if (objdb_get_string(objdb, object_handle, "syslog_priority", &logstr)) {
-		objdb->object_key_create_typed(object_handle, "syslog_priority",
-					       loglevel, strlen(loglevel)+1, OBJDB_VALUETYPE_STRING);
-	}
-
-	if (!debug) {
-		hdb_handle_t logger_object_handle;
-
-		if (!objdb_get_string(objdb, object_handle, "debug", &logstr)) {
-			if (!strncmp(logstr, "on", 2)) {
-				debug=1;
-			}
-		}
-
-		logger_object_handle = find_cman_logger(objdb, object_handle);
-		if (logger_object_handle > -1) {
-			if (!objdb_get_string(objdb, logger_object_handle, "debug", &logstr)) {
-				if (!strncmp(logstr, "on", 2)) {
-					debug=1;
-				}
-				if (!strncmp(logstr, "off", 3)) {
-					debug=0;
-				}
-			}
-		}
-	}
-
-	if (debug) {
-		objdb->object_key_create_typed(object_handle, "to_stderr",
-					       "yes", strlen("yes")+1, OBJDB_VALUETYPE_STRING);
-	}
+	add_logging_overrides(objdb);
 
 	/* Make sure we allow connections from user/group "ais" */
 	objdb->object_find_create(OBJECT_PARENT_HANDLE, "aisexec", strlen("aisexec"), &find_handle);
@@ -1211,7 +1221,7 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 	/* copy /cluster/totem to /totem */
 	ret = copy_tree_to_root(objdb, "totem", 0);
 
-	add_cman_overrides(objdb);
+	add_logging_overrides(objdb);
 
 	return 0;
 
