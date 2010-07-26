@@ -1198,7 +1198,7 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 	objdb->object_find_create(OBJECT_PARENT_HANDLE, "logging", strlen("logging"), &find_handle);
 	ret = objdb->object_find_next(find_handle, &object_handle);
 	objdb->object_find_destroy(find_handle);
-	if (ret) {
+	if (!ret) {
 		objdb->object_destroy(object_handle);
 	}
 
@@ -1210,6 +1210,8 @@ static int cmanpre_reloadconfig(struct objdb_iface_ver0 *objdb, int flush, const
 
 	/* copy /cluster/totem to /totem */
 	ret = copy_tree_to_root(objdb, "totem", 0);
+
+	add_cman_overrides(objdb);
 
 	return 0;
 
