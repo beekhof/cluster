@@ -485,9 +485,7 @@ static int do_cmd_set_version(char *cmdbuf, int *retlen)
 	    version->patch != CNXMAN_PATCH_VERSION)
 		return -EINVAL;
 
-	reload_config(version->config, 1);
-
-	return 0;
+	return reload_config(version->config, 1);
 }
 
 static int do_cmd_get_extrainfo(char *cmdbuf, char **retbuf, int retsize, int *retlen, int offset)
@@ -1193,15 +1191,23 @@ static int reload_config(int new_version, int should_broadcast)
 		config_error = read_cman_nodes(corosync, &config_version, 0);
 
 	if (config_error) {
-		log_printf(LOG_ERR, "Can't get updated config version %d: %s. Activity suspended on this node\n",
+		log_printf(LOG_ERR, "Can't get updated config version %d: %s.\n",
 			   wanted_config_version, reload_err?reload_err:"version mismatch on this node");
 
-		if (!ccsd_timer_active) {
-			log_printf(LOG_ERR, "Error reloading the configuration, will retry every second\n");
-			ccsd_timer_should_broadcast = should_broadcast;
-			corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
-						     ccsd_timer_fn, &ccsd_timer);
-			ccsd_timer_active = 1;
+		if (should_broadcast) {
+			log_printf(LOG_ERR, "Continuing activity with old configuration\n");
+			config_error=0;
+			return -2;
+		} else {
+			log_printf(LOG_ERR, "Activity suspended on this node\n");
+
+			if (!ccsd_timer_active) {
+				log_printf(LOG_ERR, "Error reloading the configuration, will retry every second\n");
+				ccsd_timer_should_broadcast = should_broadcast;
+				corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
+							     ccsd_timer_fn, &ccsd_timer);
+				ccsd_timer_active = 1;
+			}
 		}
 	} else { 
 

@@ -783,8 +783,17 @@ static void version(commandline_t *comline)
 
 	ver.cv_config = comline->config_version;
 
-	if ((result = cman_set_version(h, &ver)))
-		die("can't set version: %s", cman_error(errno));
+	result = cman_set_version(h, &ver);
+
+	switch(result) {
+		case 0:
+			if (comline->verbose)
+				printf("Configuration succesfully updated or already running\n");
+		break;
+		default:
+			die("Error loading configuration in corosync/cman");
+		break;
+	}
  out:
 	cman_finish(h);
 }
