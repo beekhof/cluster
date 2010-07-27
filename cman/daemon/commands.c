@@ -1190,8 +1190,13 @@ static int reload_config(int new_version, int should_broadcast)
 		config_error = read_cman_nodes(corosync, &config_version, 0);
 
 	if (config_error) {
-		log_printf(LOG_ERR, "Can't get updated config version %d: %s.\n",
-			   wanted_config_version, reload_err?reload_err:"version mismatch on this node");
+		if (wanted_config_version) {
+			log_printf(LOG_ERR, "Can't get updated config version %d: %s.\n",
+				   wanted_config_version, reload_err?reload_err:"version mismatch on this node");
+		} else {
+			log_printf(LOG_ERR, "Can't get updated config version: %s.\n",
+				   reload_err?reload_err:"version mismatch on this node");
+		}
 
 		if (should_broadcast) {
 			log_printf(LOG_ERR, "Continuing activity with old configuration\n");
