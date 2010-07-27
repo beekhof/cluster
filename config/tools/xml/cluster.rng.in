@@ -2449,6 +2449,9 @@ To validate your cluster.conf against this schema, run:
           <attribute name="secure" rha:description="SSH connection" />
         </optional>
         <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
+        </optional>
+        <optional>
           <attribute name="vmware_datacenter" rha:description="Show only machines in specified datacenter" />
         </optional>
         <optional>
@@ -2491,6 +2494,9 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
+        </optional>
+        <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
         <optional>
           <attribute name="partition" rha:description="Partition name" />
@@ -2831,6 +2837,11 @@ To validate your cluster.conf against this schema, run:
         </optional>
       </group>
 
+      <!-- No metadata for fence_xcat -->
+      <!-- No metadata for fence_rackswitch -->
+      <!-- No metadata for fence_rsb -->
+      <!-- No metadata for fence_cpint -->
+      <!-- No metadata for fence_drac -->
 
       <!-- fence_ipmilan -->
       <group>
@@ -2898,6 +2909,9 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
+        </optional>
+        <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
         <optional>
           <attribute name="ipport" rha:description="TCP port to use for connection with device" />
@@ -2972,6 +2986,8 @@ To validate your cluster.conf against this schema, run:
         </optional>
       </group>
 
+      <!-- No metadata for fence_mcdata -->
+      <!-- No metadata for fence_bullpap -->
 
       <!-- fence_wti -->
       <group>
@@ -2998,6 +3014,9 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
+        </optional>
+        <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
         <optional>
           <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
@@ -3028,6 +3047,7 @@ To validate your cluster.conf against this schema, run:
         </optional>
       </group>
 
+      <!-- No metadata for fence_zvm -->
 
       <!-- fence_drac5 -->
       <group>
@@ -3054,6 +3074,9 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
+        </optional>
+        <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
         <optional>
           <attribute name="drac_version" rha:description="Force DRAC version to use" />
@@ -3087,6 +3110,35 @@ To validate your cluster.conf against this schema, run:
         </optional>
       </group>
 
+      <!-- No metadata for fence_vixel -->
+      <!-- No metadata for fence_baytech -->
+
+      <!-- fence_scsi -->
+      <group>
+        <optional>
+          <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
+        </optional>
+        <optional>
+          <attribute name="aptpl" rha:description="Use APTPL flag for registrations" />
+        </optional>
+        <optional>
+          <attribute name="devices" rha:description="List of devices to be used for fencing action" />
+        </optional>
+        <optional>
+          <attribute name="logfile" rha:description="File to write error/debug messages" />
+        </optional>
+        <optional>
+          <attribute name="key" rha:description="Key value to be used for fencing action" />
+        </optional>
+        <optional>
+          <attribute name="action" rha:description="Fencing action" />
+        </optional>
+        <optional>
+          <attribute name="nodename" rha:description="Name of node" />
+        </optional>
+      </group>
+
+      <!-- No metadata for fence_brocade -->
 
       <!-- fence_ilo_mp -->
       <group>
@@ -3110,6 +3162,9 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
+        </optional>
+        <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
         <optional>
           <attribute name="cmd_prompt" rha:description="Force command prompt" />
@@ -3168,6 +3223,9 @@ To validate your cluster.conf against this schema, run:
           <attribute name="port" rha:description="Physical plug number or name of virtual machine" />
         </optional>
         <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
+        </optional>
+        <optional>
           <attribute name="switch" rha:description="Physical switch number on device" />
         </optional>
         <optional>
@@ -3219,6 +3277,9 @@ To validate your cluster.conf against this schema, run:
         </optional>
         <optional>
           <attribute name="secure" rha:description="SSH connection" />
+        </optional>
+        <optional>
+          <attribute name="identity_file" rha:description="Identity file for ssh" />
         </optional>
         <optional>
           <attribute name="inet4_only" rha:description="Forces agent to use IPv4 addresses only" />
@@ -3361,6 +3422,7 @@ To validate your cluster.conf against this schema, run:
         </optional>
       </group>
 
+      <!-- No metadata for fence_egenera -->
 
       <!-- fence_apc_snmp -->
       <group>
