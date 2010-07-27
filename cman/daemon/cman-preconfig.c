@@ -750,11 +750,28 @@ static void add_logging_overrides(struct objdb_iface_ver0 *objdb)
 
 }
 
+static int count_configured_nodes(struct objdb_iface_ver0 *objdb)
+{
+	hdb_handle_t find_handle = 0;
+	hdb_handle_t nodes_handle;
+	int count = 0;
+
+	nodes_handle = nodeslist_init(objdb, cluster_parent_handle, &find_handle);
+	while (nodes_handle) {
+		count++;
+		nodes_handle = nodeslist_next(objdb, find_handle);
+	}
+	objdb->object_find_destroy(find_handle);
+
+	return count;
+}
+
 /* These are basically cman overrides to the totem config bits */
 static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 {
 	hdb_handle_t object_handle;
 	hdb_handle_t find_handle;
+	int node_count = 0;
 	char tmp[256];
 
 	/* "totem" key already exists, because we have added the interfaces by now */
@@ -781,7 +798,7 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 						       tmp, strlen(tmp)+1, OBJDB_VALUETYPE_STRING);
 		}
 
-		/* Extend consensus & join timeouts per bz#214290 */
+		/* Extend join timeouts per bz#214290 */
 		if (objdb_get_string(objdb, object_handle, "join", &value)) {
 			objdb->object_key_create_typed(object_handle, "join",
 						       "60", strlen("60")+1, OBJDB_VALUETYPE_STRING);
@@ -791,13 +808,41 @@ static void add_cman_overrides(struct objdb_iface_ver0 *objdb)
 			objdb->object_key_create_typed(object_handle, "fail_recv_const",
 						       "2500", strlen("2500")+1, OBJDB_VALUETYPE_STRING);
 		}
-		/* consensus should be 2*token, see bz#544482*/
+
+		/*
+		 * consensus should be:
+		 * 2 nodes   - 200 ms <= consensus = token * 0.2 <= 2000
+		 * > 2 nodes - consensus = token + 2000
+		 *
+		 * autoconfig clusters will work as > 2 nodes
+		 *
+		 * See 611391#c19
+		 */
+
+		node_count=count_configured_nodes(objdb);
+
+		/* if we are running in autoconfig or we can't count the nodes, then play safe */
+		if ((getenv("CMAN_NOCONFIG")) || (node_count == 0))
+			node_count=3;
+
 		if (objdb_get_string(objdb, object_handle, "consensus", &value)) {
-		        unsigned int token;
+			unsigned int token=0;
+			unsigned int consensus;
 			char calc_consensus[32];
 
 			objdb_get_int(objdb, object_handle, "token", &token, DEFAULT_TOKEN_TIMEOUT);
-			sprintf(calc_consensus, "%d", token*2);
+
+			if (node_count > 2) {
+				consensus = (float)token+2000;
+			} else {
+				consensus = (float)token*0.2;
+				if (consensus < 200)
+					consensus = 200;
+				if (consensus > 2000)
+					consensus = 2000;
+			}
+
+			snprintf(calc_consensus, sizeof(calc_consensus), "%d", consensus);
 			objdb->object_key_create_typed(object_handle, "consensus",
 						       calc_consensus, strlen(calc_consensus)+1, OBJDB_VALUETYPE_STRING);
 		}
