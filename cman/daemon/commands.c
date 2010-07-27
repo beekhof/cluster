@@ -86,7 +86,6 @@ static int shutdown_yes;
 static int shutdown_no;
 static int shutdown_expected;
 static int ccsd_timer_active = 0;
-static int ccsd_timer_should_broadcast = 0;
 
 static struct cluster_node *find_node_by_nodeid(int nodeid);
 static struct cluster_node *find_node_by_name(char *name);
@@ -1203,7 +1202,6 @@ static int reload_config(int new_version, int should_broadcast)
 
 			if (!ccsd_timer_active) {
 				log_printf(LOG_ERR, "Error reloading the configuration, will retry every second\n");
-				ccsd_timer_should_broadcast = should_broadcast;
 				corosync->timer_add_duration((unsigned long long)ccsd_poll_interval*1000000, NULL,
 							     ccsd_timer_fn, &ccsd_timer);
 				ccsd_timer_active = 1;
@@ -1237,7 +1235,7 @@ static void ccsd_timer_fn(void *arg)
 
 	ccsd_timer_active = 0;	
 
-	if (!reload_config(wanted_config_version, ccsd_timer_should_broadcast) &&
+	if (!reload_config(wanted_config_version, 0) &&
 	    config_version >= wanted_config_version) {
 		log_printf(LOG_DEBUG, "ccsd_timer_fn got the new config\n");
 		config_error = 0;
