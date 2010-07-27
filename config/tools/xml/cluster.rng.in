@@ -3112,32 +3112,7 @@ To validate your cluster.conf against this schema, run:
 
       <!-- No metadata for fence_vixel -->
       <!-- No metadata for fence_baytech -->
-
-      <!-- fence_scsi -->
-      <group>
-        <optional>
-          <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
-        </optional>
-        <optional>
-          <attribute name="aptpl" rha:description="Use APTPL flag for registrations" />
-        </optional>
-        <optional>
-          <attribute name="devices" rha:description="List of devices to be used for fencing action" />
-        </optional>
-        <optional>
-          <attribute name="logfile" rha:description="File to write error/debug messages" />
-        </optional>
-        <optional>
-          <attribute name="key" rha:description="Key value to be used for fencing action" />
-        </optional>
-        <optional>
-          <attribute name="action" rha:description="Fencing action" />
-        </optional>
-        <optional>
-          <attribute name="nodename" rha:description="Name of node" />
-        </optional>
-      </group>
-
+      <!-- fence_scsi is defined manually above -->
       <!-- No metadata for fence_brocade -->
 
       <!-- fence_ilo_mp -->
