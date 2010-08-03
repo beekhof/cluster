@@ -1430,12 +1430,35 @@ get_dynamic_config_data(qd_ctx *ctx, int ccsfd)
 {
 	char *val = NULL;
 	char query[256];
-	int old_votes = 0;
+	int old_votes = 0, found = 0;
 
 	if (ccsfd < 0)
 		return -1;
 
 	logt_print(LOG_DEBUG, "Loading dynamic configuration\n");
+
+	/* Check label / device presence.  If it disappeared, we need to exit */
+	if (ctx->qc_config) {
+		val = NULL;
+		snprintf(query, sizeof(query), "/cluster/quorumd/@device");
+		found = ccs_get(ccsfd, query, &val);
+		if (found != 0) {
+			val = NULL;
+			snprintf(query, sizeof(query), "/cluster/quorumd/@label");
+			found = ccs_get(ccsfd, query, &val);
+			free(val);
+		}
+
+		if (found != 0) {
+			logt_print(LOG_NOTICE,
+				   "Quorum device removed from the configuration."
+				   "  Shutting down.\n");
+			ctx->qc_votes = 0;
+			register_device(ctx);
+			_running = 0;
+			return -1;
+		}
+	}
 
 	/* Get status file */
 	snprintf(query, sizeof(query), "/cluster/quorumd/@status_file");
@@ -1724,6 +1747,12 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 		ctx->qc_label = val;
 	}
 
+	if (!ctx->qc_device && !ctx->qc_label) {
+		logt_print(LOG_ERR, "No device or label specified; cannot "
+			   "run QDisk services.\n");
+		return -1;
+	}
+
 	/* Get min score */
 	snprintf(query, sizeof(query), "/cluster/quorumd/@min_score");
 	if (ccs_get(ccsfd, query, &val) == 0) {
@@ -1764,7 +1793,6 @@ get_static_config_data(qd_ctx *ctx, int ccsfd)
 			ctx->qc_flags |= RF_UPTIME;
 		free(val);
 	}
-
 
 	return 0;
 }
@@ -2049,6 +2077,7 @@ main(int argc, char **argv)
 
 	if (quorum_loop(&ctx, ni, MAX_NODES_DISK) == 0) {
 		/* Only clean up if we're exiting w/o error) */
+		logt_print(LOG_NOTICE, "Unregistering quorum device.\n");
 		cman_unregister_quorum_device(ctx.qc_cman_admin);
 		quorum_logout(&ctx);
 	}
