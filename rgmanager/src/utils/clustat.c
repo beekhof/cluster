@@ -867,7 +867,7 @@ txt_cluster_status(cman_cluster_t *ci,
 		   rg_state_list_t *rgs, char *name, char *svcname, 
 		   int flags)
 {
-	int ret = 0;
+	int ret1 = 0, ret2 = 0;
 	
 	if (!svcname && !name) {
   		txt_cluster_info(ci);
@@ -879,14 +879,18 @@ txt_cluster_status(cman_cluster_t *ci,
 		}
 	}
 
-  	if (!svcname || (name && svcname))
- 		ret = txt_member_states(membership, name);
- 	if (name && !svcname)
- 		return ret;
- 	if (!name || (name && svcname))
- 		ret = txt_rg_states(rgs, membership, svcname, flags);
-
- 	return ret;
+  	if (!svcname || (name && svcname)) 
+ 		ret1 = txt_member_states(membership, name);
+ 	
+  	if (rgs &&
+  	    (!name || (name && svcname)))
+ 		ret2 = txt_rg_states(rgs, membership, svcname, flags);
+ 	
+ 	if (name && ret1)
+ 		return ret1;
+ 	if (svcname && ret2)
+ 		return ret2;
+ 	return 0;
 }
 
 
