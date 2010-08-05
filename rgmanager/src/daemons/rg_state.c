@@ -829,6 +829,11 @@ svc_migrate(const char *svcName, int target)
 		return RG_ENODE;
 	}
 
+	if (node_should_start_safe(target, membership, svcName) == FOD_ILLEGAL) {
+		free_member_list(membership);
+		return RG_EDEPEND;
+	}
+
 	count_resource_groups_local(m);
 	if (m->cn_svcexcl ||
 	    (m->cn_svccount && is_exclusive(svcName))) {
