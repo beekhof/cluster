@@ -136,30 +136,28 @@ name as it appears in 'cman_tool nodes'.
 
 .SH "VERSION" OPTIONS
 .TP
-.I -r <config_version>
+.I -r
 Update config version. You don't need to use this when adding a new node,
 the new cman node will tell the rest of the cluster to read the latest
-version of the config file automatically. 
+version of the config file automatically.  The version present in the
+new configuration must be higher than the one currently in use by cman.
 .br
-In fact the argument to -r might look as though it is ignored. 
-Its presence simply tells cman to re-read the configuration file and look 
-for that version in the file. cman will keep re-reading the file
-until a version number >= the passed version is found.
-.br
+
 cman_tool version on its own will always show the current version
 and not the one being looked for. So be aware that the display
-will possible not update immediately after you have run
+will possibly not update immediately after you have run
 cman_tool version -r.
 .TP
 .I -D<option>
 see "JOIN" options
 .TP
 .I -S
-By default cman_tool version will try to distribute the new cluster.conf file using
-ricci. If you have distributed the file yourself and/or do not have ricci 
-installed then the -S option will skip this step.
-NOTE: it is still important that all nodes in the cluster have the same version of 
-the file. Make sure that this is the case before using this option.
+By default cman_tool version will try to distribute the new cluster.conf
+file using ccs_sync and ricci. If you have distributed the file yourself
+and/or do not have ricci installed then the -S option will skip this step.
+NOTE: it is still important that all nodes in the cluster have the
+same version of the file. Make sure that this is the case before using
+this option.
 .SH "WAIT" OPTIONS
 .TP
 .I -q
