@@ -17,6 +17,15 @@ if [ -z "$COROSYNC_DEFAULT_CONFIG_IFACE" ]; then
 	export COROSYNC_DEFAULT_CONFIG_IFACE=$CONFIG_LOADER:cmanpreconfig
 fi
 
+get_config_version() {
+	local file=$1
+
+	echo "xpath /cluster/@config_version" | \
+		xmllint --shell "$file" | \
+		grep content | \
+	cut -f2 -d=
+}
+
 print_usage() {
 	echo "Usage:"
 	echo ""
@@ -38,6 +47,8 @@ print_usage() {
 	echo "  -t tempfile      Force temporay file to tempfile"
 	echo "  -n               Do not remove temporary file"
 	echo "  -o               Overwrite temporary file (dangerous)"
+	echo "  -R version       When validating configuration update, ensure the"
+	echo "                   new config is newer than the specified version."
 }
 
 check_opts() {
@@ -60,6 +71,10 @@ check_opts() {
 		;;
 		-o)
 			overwritetempfile=1
+		;;
+		-R)	
+			shift
+			old_version=$1
 		;;
 		-C)
 			shift
@@ -131,7 +146,7 @@ lecho()
 	return 0
 }
 
-opts=$(getopt t:hVnC:f:l:rovq $@)
+opts=$(getopt t:hVnC:f:l:rR:ovq $@)
 if [ "$?" != 0 ]; then
 	print_usage >&2
 	exit 255
@@ -173,6 +188,23 @@ xmlout=$(xmllint --noout \
 	--relaxng @SHAREDIR@/cluster.rng \
 	$tempfile 2>&1)
 res=$?
+
+if [ -n "$old_version" ] && [ $old_version -ne 0 ] && [ $res -eq 0 ]; then
+	new_version=$(get_config_version $tempfile)
+	if [ -z "$new_version" ]; then
+		[ -z "$quiet" ] && \
+			echo "Error: Unable to determine new config version!" >&2
+		[ -z "$notempfilerm" ] && rm -f $tempfile
+		exit 253
+	fi
+	lecho "Old version: $old_version   New version: $new_version"
+	if [ $new_version -le $old_version ]; then
+		[ -z "$quiet" ] && \
+			echo "Error: Configuration version is older than running config!" >&2
+		[ -z "$notempfilerm" ] && rm -f $tempfile
+		exit 254
+	fi
+fi
 
 if [ -z "$quiet" ] || [ "$res" != "0" ]; then
 	echo "$xmlout" | sed \

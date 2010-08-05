@@ -649,11 +649,12 @@ static void set_votes(commandline_t *comline)
 	cman_finish(h);
 }
 
-static int validate_config(commandline_t *comline)
+static int validate_config(commandline_t *comline, int current_version)
 {
 	struct stat st;
 	char command[PATH_MAX];
 	char validator[PATH_MAX];
+	char ccs_quiet[8];
 	int cmd_res;
 
 	/* Look for ccs_config_validate */
@@ -663,14 +664,26 @@ static int validate_config(commandline_t *comline)
 		return 0;
 	}
 
-	snprintf(command, sizeof(command), "%s -q", validator);
+	if (comline->verbose > 1) {
+		snprintf(ccs_quiet, sizeof(ccs_quiet), " ");
+	} else {
+		snprintf(ccs_quiet, sizeof(ccs_quiet), "-q");
+	}
+
+	if (current_version) {
+		snprintf(command, sizeof(command), "%s %s -R %d",
+			 validator, ccs_quiet, current_version);
+	} else {
+		snprintf(command, sizeof(command), "%s %s",
+			 validator, ccs_quiet);
+	}
 
 	if (comline->verbose > 1)
 		printf("calling '%s'\n", command);
 
 	cmd_res = system(command);
 
-	return cmd_res;
+	return WEXITSTATUS(cmd_res);
 }
 
 /* Here we set the COROSYNC_ variables that might be needed by the corosync
@@ -759,9 +772,19 @@ static void version(commandline_t *comline)
 
 		if (comline->verbose)
 			printf("Validating configuration\n");
-		if (validate_config(comline) &&
-		    comline->config_validate_opt == VALIDATE_FAIL)
-			die("Not reloading, configuration is not valid\n");
+		result = validate_config(comline, ver.cv_config);
+		if (result == 253)
+			/* Unable to find new config version */
+			die("Unable to retrive the new config version\n");
+		if (result == 254)
+			/* Config regression = fail. */
+			die("Not reloading, config version older or equal the running config");
+		if (result == 255)
+			/* Generic error from ccs_config_validate */
+			die("Not reloading, generic error running ccs_config_validate\n"
+			    "Try re-running with -d options");
+		else if (result && comline->config_validate_opt == VALIDATE_FAIL)
+			die("Not reloading, configuration is not valid");
 	}
 
 	/* We don't bother looking for ccs_sync here - just assume it's in /usr/bin and
@@ -1176,7 +1199,7 @@ static void do_join(commandline_t *comline, char *envp[])
 		if (comline->verbose)
 			printf("Validating configuration\n");
 
-		if (validate_config(comline) &&
+		if (validate_config(comline, 0) &&
 		    comline->config_validate_opt == VALIDATE_FAIL)
 			die("Not joining, configuration is not valid\n");
 	}
