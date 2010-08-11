@@ -1,4 +1,4 @@
-# Auto-generated @ 2010-07-16 17:01:19
+# Auto-generated @ 2010-08-11 14:59:11
 dn: cn=schema
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.1 NAME 'rhcsConfig-version'
@@ -667,6 +667,12 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.55 NAME 'rhcsIdentity-file'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.61 NAME 'rhcsVmware-datacenter'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
@@ -692,6 +698,42 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.247 NAME 'rhcsSeparator'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.281 NAME 'rhcsPower-timeout'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.282 NAME 'rhcsShell-timeout'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.283 NAME 'rhcsLogin-timeout'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.284 NAME 'rhcsPower-wait'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.285 NAME 'rhcsRetry-on'
+  EQUALITY caseExactIA5Match
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SINGLE-VALUE
+  )
+attributeTypes: (
+  1.3.6.1.4.1.2312.8.1.1.286 NAME 'rhcsDelay'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
@@ -733,7 +775,7 @@ attributeTypes: (
   SINGLE-VALUE
   )
 attributeTypes: (
-  1.3.6.1.4.1.2312.8.1.1.55 NAME 'rhcsIdentity-file'
+  1.3.6.1.4.1.2312.8.1.1.287 NAME 'rhcsMissing-as-off'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
@@ -782,18 +824,6 @@ attributeTypes: (
   )
 attributeTypes: (
   1.3.6.1.4.1.2312.8.1.1.260 NAME 'rhcsUdpport'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE
-  )
-attributeTypes: (
-  1.3.6.1.4.1.2312.8.1.1.261 NAME 'rhcsCipher'
-  EQUALITY caseExactIA5Match
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
-  SINGLE-VALUE
-  )
-attributeTypes: (
-  1.3.6.1.4.1.2312.8.1.1.262 NAME 'rhcsMethod'
   EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE
@@ -1670,7 +1700,7 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.5 NAME 'rhcsFencedevice' SUP top STRUCTURAL
      MUST ( rhcsAgent $ name )
-     MAY ( rhcsRibcl $ rhcsSsl $ rhcsIo-fencing $ rhcsSwitch $ rhcsModule-name $ rhcsDrac-version $ rhcsMethod $ rhcsCipher $ rhcsUdpport $ rhcsSnmp-priv-passwd-script $ rhcsSnmp-priv-passwd $ rhcsSnmp-priv-prot $ rhcsSnmp-sec-level $ rhcsSnmp-auth-prot $ rhcsCommunity $ rhcsSnmp-version $ rhcsIdentity-file $ rhcsInet6-only $ rhcsInet4-only $ rhcsCmd-prompt $ rhcsHmc-version $ rhcsManaged $ rhcsPartition $ rhcsSeparator $ rhcsHelp $ rhcsVersion $ rhcsVerbose $ rhcsVmware-datacenter $ rhcsSecure $ rhcsVmware-type $ rhcsExec $ rhcsChannel-address $ rhcsSerial-params $ rhcsSerial-device $ rhcsTimeout $ rhcsUse-uuid $ rhcsDomain $ rhcsKey-file $ rhcsHash $ rhcsRetrans $ rhcsIpport $ rhcsMulticast-address $ rhcsIp-family $ rhcsDebug $ rhcsOption $ rhcsRpowerpath $ rhcsCserver $ rhcsServers $ rhcsAptpl $ rhcsLogfile $ rhcsAction $ rhcsDevices $ rhcsKey $ rhcsNodename $ rhcsLanplus $ rhcsAuth $ rhcsPasswd-script $ rhcsPasswd $ rhcsLogin $ rhcsIpaddr $ rhcsPort $ rhcsDevice )
+     MAY ( rhcsRibcl $ rhcsSsl $ rhcsIo-fencing $ rhcsSwitch $ rhcsModule-name $ rhcsDrac-version $ rhcsUdpport $ rhcsSnmp-priv-passwd-script $ rhcsSnmp-priv-passwd $ rhcsSnmp-priv-prot $ rhcsSnmp-sec-level $ rhcsSnmp-auth-prot $ rhcsCommunity $ rhcsSnmp-version $ rhcsMissing-as-off $ rhcsInet6-only $ rhcsInet4-only $ rhcsCmd-prompt $ rhcsHmc-version $ rhcsManaged $ rhcsPartition $ rhcsDelay $ rhcsRetry-on $ rhcsPower-wait $ rhcsLogin-timeout $ rhcsShell-timeout $ rhcsPower-timeout $ rhcsSeparator $ rhcsHelp $ rhcsVersion $ rhcsVerbose $ rhcsVmware-datacenter $ rhcsIdentity-file $ rhcsSecure $ rhcsVmware-type $ rhcsExec $ rhcsChannel-address $ rhcsSerial-params $ rhcsSerial-device $ rhcsTimeout $ rhcsUse-uuid $ rhcsDomain $ rhcsKey-file $ rhcsHash $ rhcsRetrans $ rhcsIpport $ rhcsMulticast-address $ rhcsIp-family $ rhcsDebug $ rhcsOption $ rhcsRpowerpath $ rhcsCserver $ rhcsServers $ rhcsAptpl $ rhcsLogfile $ rhcsAction $ rhcsDevices $ rhcsKey $ rhcsNodename $ rhcsLanplus $ rhcsAuth $ rhcsPasswd-script $ rhcsPasswd $ rhcsLogin $ rhcsIpaddr $ rhcsPort $ rhcsDevice )
    )
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.21 NAME 'rhcsRm' SUP top STRUCTURAL
@@ -1836,5 +1866,5 @@ objectClasses: (
 objectClasses: (
      1.3.6.1.4.1.2312.8.1.2.6 NAME 'rhcsDevice' SUP top STRUCTURAL
      MUST ( name )
-     MAY ( rhcsRibcl $ rhcsSsl $ rhcsIo-fencing $ rhcsSwitch $ rhcsModule-name $ rhcsDrac-version $ rhcsMethod $ rhcsCipher $ rhcsUdpport $ rhcsSnmp-priv-passwd-script $ rhcsSnmp-priv-passwd $ rhcsSnmp-priv-prot $ rhcsSnmp-sec-level $ rhcsSnmp-auth-prot $ rhcsCommunity $ rhcsSnmp-version $ rhcsIdentity-file $ rhcsInet6-only $ rhcsInet4-only $ rhcsCmd-prompt $ rhcsHmc-version $ rhcsManaged $ rhcsPartition $ rhcsSeparator $ rhcsHelp $ rhcsVersion $ rhcsVerbose $ rhcsVmware-datacenter $ rhcsSecure $ rhcsVmware-type $ rhcsExec $ rhcsChannel-address $ rhcsSerial-params $ rhcsSerial-device $ rhcsTimeout $ rhcsUse-uuid $ rhcsDomain $ rhcsKey-file $ rhcsHash $ rhcsRetrans $ rhcsIpport $ rhcsMulticast-address $ rhcsIp-family $ rhcsDebug $ rhcsOption $ rhcsRpowerpath $ rhcsCserver $ rhcsServers $ rhcsAptpl $ rhcsLogfile $ rhcsAction $ rhcsDevices $ rhcsKey $ rhcsNodename $ rhcsLanplus $ rhcsAuth $ rhcsPasswd-script $ rhcsPasswd $ rhcsLogin $ rhcsIpaddr $ rhcsPort $ rhcsDevice )
+     MAY ( rhcsRibcl $ rhcsSsl $ rhcsIo-fencing $ rhcsSwitch $ rhcsModule-name $ rhcsDrac-version $ rhcsUdpport $ rhcsSnmp-priv-passwd-script $ rhcsSnmp-priv-passwd $ rhcsSnmp-priv-prot $ rhcsSnmp-sec-level $ rhcsSnmp-auth-prot $ rhcsCommunity $ rhcsSnmp-version $ rhcsMissing-as-off $ rhcsInet6-only $ rhcsInet4-only $ rhcsCmd-prompt $ rhcsHmc-version $ rhcsManaged $ rhcsPartition $ rhcsDelay $ rhcsRetry-on $ rhcsPower-wait $ rhcsLogin-timeout $ rhcsShell-timeout $ rhcsPower-timeout $ rhcsSeparator $ rhcsHelp $ rhcsVersion $ rhcsVerbose $ rhcsVmware-datacenter $ rhcsIdentity-file $ rhcsSecure $ rhcsVmware-type $ rhcsExec $ rhcsChannel-address $ rhcsSerial-params $ rhcsSerial-device $ rhcsTimeout $ rhcsUse-uuid $ rhcsDomain $ rhcsKey-file $ rhcsHash $ rhcsRetrans $ rhcsIpport $ rhcsMulticast-address $ rhcsIp-family $ rhcsDebug $ rhcsOption $ rhcsRpowerpath $ rhcsCserver $ rhcsServers $ rhcsAptpl $ rhcsLogfile $ rhcsAction $ rhcsDevices $ rhcsKey $ rhcsNodename $ rhcsLanplus $ rhcsAuth $ rhcsPasswd-script $ rhcsPasswd $ rhcsLogin $ rhcsIpaddr $ rhcsPort $ rhcsDevice )
    )

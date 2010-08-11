@@ -1,4 +1,4 @@
-# Max attribute value: 280
+# Max attribute value: 287
 # Max object class value: 61
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -340,3 +340,10 @@ obj,rhcsNfsserver,nfsserver,60
 attr,rhcsNfspath,nfspath,279
 attr,rhcsCman-label,cman_label,280
 obj,rhcsTomcat-6,tomcat-6,61
+attr,rhcsPower-timeout,power_timeout,281
+attr,rhcsShell-timeout,shell_timeout,282
+attr,rhcsLogin-timeout,login_timeout,283
+attr,rhcsPower-wait,power_wait,284
+attr,rhcsRetry-on,retry_on,285
+attr,rhcsDelay,delay,286
+attr,rhcsMissing-as-off,missing_as_off,287
