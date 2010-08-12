@@ -605,8 +605,11 @@ do_load_resource(int ccsfd, char *base,
 #else
 	if (conf_get(tok, &ref) == 0) {
 #endif
-		if (atoi(ref) > 0 || strcasecmp(ref, "yes") == 0)
+		if (atoi(ref) == 1 || strcasecmp(ref, "yes") == 0)
 			node->rn_flags |= RF_INDEPENDENT;
+		if (atoi(ref) == 2 || strcasecmp(ref, "non-critical") == 0) {
+			curres->r_flags |= RF_NON_CRITICAL;
+		}
 		free(ref);
 	}
 
@@ -652,6 +655,13 @@ do_load_resource(int ccsfd, char *base,
 	}
 
 	curres->r_refs++;
+
+	if (curres->r_refs > 1 &&
+	    (curres->r_flags & RF_NON_CRITICAL)) {
+		res_build_name(tok, sizeof(tok), curres);
+		printf("Non-critical flag for %s is being cleared due to multiple references.\n", tok);
+		curres->r_flags &= ~RF_NON_CRITICAL;
+	}
 
 	*newnode = node;
 
@@ -941,6 +951,8 @@ _print_resource_tree(FILE *fp, resource_node_t **tree, int level)
 				fprintf(fp, "DESTROY ");
 			if (node->rn_flags & RF_ENFORCE_TIMEOUTS)
 				fprintf(fp, "ENFORCE-TIMEOUTS ");
+			if (node->rn_flags & RF_NON_CRITICAL)
+				fprintf(fp, "NON-CRITICAL ");
 			fprintf(fp, "]");
 		}
 		fprintf(fp, " {\n");
