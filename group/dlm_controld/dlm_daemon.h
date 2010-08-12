@@ -220,6 +220,7 @@ struct lockspace {
 	uint64_t		checkpoint_r_num_last;
 	uint32_t		checkpoint_r_count;
 	uint32_t		checkpoint_p_count;
+	uint32_t		last_plock_sig;
 
 	/* save copy of groupd member callback data for queries */
 
