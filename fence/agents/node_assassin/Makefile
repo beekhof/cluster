@@ -4,7 +4,7 @@ MANTARGET	= fence_na.8
 
 FENCEAGENTSLIB	= $(S)/fence_na.lib
 
-CONFFILEEXAMPLE = $(S)/fence_na.conf
+EXTRACONFFILE	= $(S)/fence_na.conf
 
 all: $(TARGET) $(MANTARGET)
 

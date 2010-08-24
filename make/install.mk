@@ -90,7 +90,7 @@ ifdef MANTARGET
 		install -m644 $$i ${mandir}/man$$p; \
 	done
 endif
-ifdef CONFFILEEXAMPLE
+ifdef EXTRACONFFILE
 	install -d ${DESTDIR}/${CONFDIR}
-	install -m644 ${CONFFILEEXAMPLE} ${DESTDIR}/${CONFDIR}
+	install -m644 ${EXTRACONFFILE} ${DESTDIR}/${CONFDIR}
 endif
