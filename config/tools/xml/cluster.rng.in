@@ -2433,6 +2433,36 @@ To validate your cluster.conf against this schema, run:
         </optional>
        </group>
 
+       <!-- fence_na -->
+       <group>
+         <optional>
+           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
+         </optional>
+ 	<!-- I don't think I need this yet.
+         <optional>
+           <attribute name="auth" rha:description="Node Assassin Auth type (password or none)" />
+         </optional>
+ 	-->
+         <optional>
+           <attribute name="ipaddr" rha:description="Node Assassin IP or name to talk to" />
+         </optional>
+         <optional>
+           <attribute name="passwd" rha:description="Password needed to access the Node Assassin(s)" />
+         </optional>
+         <optional>
+           <attribute name="passwd_script" rha:description="Script to retrieve password (not implemented)" />
+         </optional>
+         <optional>
+           <attribute name="login" rha:description="Login name used to log into the Node Assassin(s)" />
+         </optional>
+         <optional>
+           <attribute name="action" rha:description="Operation to perform. Valid operations: on, off, reboot, status, list, release, boot or shutdown" />
+         </optional>
+         <optional>
+           <attribute name="quiet" rha:description="Supress output" />
+         </optional>
+       </group>
+ 
        <!-- end non-generated device definitions -->
 
        <!-- begin auto-generated device definitions -->
