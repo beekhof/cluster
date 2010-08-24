@@ -87,6 +87,6 @@ ifdef MANTARGET
 	for i in ${MANTARGET}; do \
 		p=`echo $$i | sed -e 's#.*\.##g'`; \
 		install -d ${mandir}/man$$p; \
-		install -m644 $(S)/$$i ${mandir}/man$$p; \
+		install -m644 $$i ${mandir}/man$$p; \
 	done
 endif
