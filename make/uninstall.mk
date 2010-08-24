@@ -57,3 +57,6 @@ ifdef MANTARGET
 		${UNINSTALL} $$i ${mandir}/man$$p; \
 	done
 endif
+ifdef CONFFILEEXAMPLE
+	${UNINSTALL} ${CONFFILEEXAMPLE} ${DESTDIR}/${CONFDIR}
+endif
