@@ -10,13 +10,22 @@ NACONFFILE	= $(TARGET).conf
 
 PODFILE		= $(TARGET).pod
 
-EXTRACONFFILE	= $(S)/$(NACONFFILE)
+EXTRACONFFILE	= $(NACONFFILE)
 
-all: $(TARGET) $(PODFILE) $(MANTARGET) $(FENCEAGENTSLIB)
+SBINDIRT	= $(TARGET)
+
+all: $(TARGET) $(PODFILE) $(MANTARGET) $(FENCEAGENTSLIB) $(NACONFFILE)
 
 include $(OBJDIR)/make/clean.mk
 include $(OBJDIR)/make/install.mk
 include $(OBJDIR)/make/uninstall.mk
+
+$(NACONFFILE): $(S)/$(NACONFFILE).in
+	cat $^ | sed \
+		-e 's#@LOGDIR@#${logdir}#g' \
+		-e 's#@CONFDIR@#${CONFDIR}#g' \
+		-e 's#@CONFFILE@#${CONFFILE}#g' \
+	> $@
 
 $(PODFILE): $(S)/$(PODFILE).in
 	cat $^ | sed \
@@ -34,7 +43,8 @@ $(FENCEAGENTSLIB): $(S)/$(FENCEAGENTSLIB).in
 $(TARGET): $(S)/$(TARGET).pl
 	cat $^ | sed \
 		-e 's#@NACONFFILE@#${CONFDIR}/$(NACONFFILE)#g' \
+		-e 's#@FENCEAGENTSLIBDIR@#${fenceagentslibdir}#g' \
 	> $@
 
 clean: generalclean
-	rm -rf $(MANTARGET) $(FENCEAGENTSLIB) $(PODFILE)
+	rm -rf $(MANTARGET) $(FENCEAGENTSLIB) $(PODFILE) $(NACONFFILE)
