@@ -455,6 +455,7 @@ _txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags,
 {
 	char owner[MAXHOSTNAMELEN+1];
 	char state_string[255] = "";
+	char flags_string[16] = "";
 	char *name = rs->rs_name, *ptr;
 	int l;
 
@@ -484,10 +485,14 @@ _txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags,
 	}
 
 	/* Show a frozen service */
-	if (rs->rs_flags & RG_FLAG_FROZEN) {
+	if (rs->rs_flags) {
+		rg_flags_str(flags_string, sizeof(flags_string), rs->rs_flags,
+			     NULL);
+
 		snprintf(state_string, sizeof(state_string), 
-			 "%-*.*s[Z]", statsize-3, statsize-3,
-			 rg_state_str(rs->rs_state));
+			 "%-*.*s[%s]", (int)(statsize-(2+strlen(flags_string))),
+				       (int)(statsize-(2+strlen(flags_string))),
+			 rg_state_str(rs->rs_state), flags_string);
 	} else {
 		snprintf(state_string, sizeof(state_string),
 			 "%-*.*s", statsize, statsize,
