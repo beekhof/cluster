@@ -663,6 +663,13 @@ do_load_resource(int ccsfd, char *base,
 		curres->r_flags &= ~RF_NON_CRITICAL;
 	}
 
+	if (curres->r_flags & RF_NON_CRITICAL) {
+		/* Independent subtree is implied if a
+		 * resource is non-critical
+		 */
+		node->rn_flags |= RF_NON_CRITICAL | RF_INDEPENDENT;
+	}
+
 	*newnode = node;
 
 	list_insert(tree, node);
@@ -1451,8 +1458,13 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		  the resource tree. */
 		if (op == RS_STATUS && (rv & SFL_FAILURE) &&
 		    (node->rn_flags & RF_INDEPENDENT)) {
-			mark_nodes(node, RES_FAILED,
-				   RF_NEEDSTART | RF_NEEDSTOP, 0);
+			if (node->rn_flags & RF_NON_CRITICAL)
+				/* if non-critical, just stop */
+				mark_nodes(node, RES_FAILED,
+					   RF_NEEDSTOP, 0);
+			else
+				mark_nodes(node, RES_FAILED,
+					   RF_NEEDSTOP | RF_NEEDSTART, 0);
 			rv = SFL_RECOVERABLE;
 		}
 	}
