@@ -54,7 +54,7 @@ main(int argc, char **argv)
 	if (severity < 0)
 		severity = SYSLOGLEVEL;
 
-	init_logging("rgmanager", 1, severity);
+	init_logging((char *)"rgmanager", 1, severity);
 	ccsfd = ccs_connect();
 	setup_logging(ccsfd);
 	ccs_disconnect(ccsfd);
