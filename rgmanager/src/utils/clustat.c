@@ -454,6 +454,7 @@ _txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags,
 	      int svcsize, int nodesize, int statsize)
 {
 	char owner[MAXHOSTNAMELEN+1];
+	char state_string[255] = "";
 	char *name = rs->rs_name, *ptr;
 	int l;
 
@@ -481,11 +482,22 @@ _txt_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags,
 		snprintf(owner, sizeof(owner)-1, "%-.*s", nodesize,
 			 my_memb_id_to_name(members, rs->rs_owner));
 	}
+
+	/* Show a frozen service */
+	if (rs->rs_flags & RG_FLAG_FROZEN) {
+		snprintf(state_string, sizeof(state_string), 
+			 "%-*.*s[Z]", statsize-3, statsize-3,
+			 rg_state_str(rs->rs_state));
+	} else {
+		snprintf(state_string, sizeof(state_string),
+			 "%-*.*s", statsize, statsize,
+			 rg_state_str(rs->rs_state));
+	}
 	
 	printf(" %-*.*s %-*.*s %-*.*s\n",
 	       svcsize, svcsize, rs->rs_name,
 	       nodesize, nodesize, owner,
-	       statsize, statsize, rg_state_str(rs->rs_state));
+	       statsize, statsize, state_string);
 }
 
 
@@ -493,10 +505,20 @@ static void
 _txt_rg_state_v(rg_state_t *rs, cluster_member_list_t *members, int flags)
 {
 	time_t t;
+	char flags_string[255] = "";
+
+	rg_flags_str(flags_string, sizeof(flags_string), rs->rs_flags,
+		     (char *)", ");
 
 	printf("Service Name      : %s\n", rs->rs_name);
 	printf("  Current State   : %s (%d)\n",
 	       rg_state_str(rs->rs_state), rs->rs_state);
+	if (rs->rs_flags)
+		printf("  Flags           : %s (%d)\n",
+		       flags_string, rs->rs_flags);
+	else
+		printf("  Flags           : none (%d)\n",
+		       rs->rs_flags);
 	printf("  Owner           : %s\n",
 	       my_memb_id_to_name(members, rs->rs_owner));
 	printf("  Last Owner      : %s\n",
@@ -522,6 +544,7 @@ static void
 xml_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags)
 {
 	char time_str[32];
+	char flags_string[255] = "";
 	int x;
 	time_t t;
 
@@ -535,12 +558,16 @@ xml_rg_state(rg_state_t *rs, cluster_member_list_t *members, int flags)
 		}
 	}
 
-	printf("    <group name=\"%s\" state=\"%d\" state_str=\"%s\" "
+	printf("    <group name=\"%s\" state=\"%d\" state_str=\"%s\""
+	       " flags=\"%d\" flags_str=\"%s\""
 	       " owner=\"%s\" last_owner=\"%s\" restarts=\"%d\""
 	       " last_transition=\"%llu\" last_transition_str=\"%s\"/>\n",
 	       rs->rs_name,
 	       rs->rs_state,
 	       rg_state_str(rs->rs_state),
+	       rs->rs_flags,
+	       rg_flags_str(flags_string, sizeof(flags_string),
+			    rs->rs_flags, (char *)" "),
 	       my_memb_id_to_name(members, rs->rs_owner),
 	       my_memb_id_to_name(members, rs->rs_last_owner),
 	       rs->rs_restarts,
