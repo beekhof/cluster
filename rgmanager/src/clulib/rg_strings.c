@@ -81,9 +81,15 @@ const struct string_val rg_state_strings[] = {
 
 const struct string_val rg_flags_strings[] = {
 	{RG_FLAG_FROZEN, "frozen"},
+	{RG_FLAG_PARTIAL, "partial"},
 	{0, NULL}
 };
 
+const struct string_val rg_flags_short[] = {
+	{RG_FLAG_FROZEN, "Z"},
+	{RG_FLAG_PARTIAL, "P"},
+	{0, NULL}
+};
 
 const struct string_val agent_ops[] = {
 	{RS_START, "start"},
@@ -185,14 +191,18 @@ rg_flag_str(int val)
 const char *
 rg_flags_str(char *flags_string, size_t size, int val, char *separator)
 {
+	const struct string_val *table = rg_flags_strings;
 	int i;
 	const char *string;
 
+	if (!separator)
+		table = rg_flags_short;
+
 	for (i = 0; i < (sizeof(val) * 8); i++) {
 		if ( val & (1 << i)) {
-			if (strlen(flags_string))
+			if (strlen(flags_string) && separator)
 				strncat(flags_string, separator, size - (strlen(flags_string) + strlen(separator) + 1));
-			string = rg_search_table(rg_flags_strings, (1 << i));
+			string = rg_search_table(table, (1 << i));
 			strncat(flags_string, string, size - (strlen(flags_string) + strlen(string) + 1));
 		}
 	}
