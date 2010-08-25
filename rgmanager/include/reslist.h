@@ -28,7 +28,7 @@
 				  resource class if you delete it from
 				  the configuration */
 #define RF_ENFORCE_TIMEOUTS (1<<9) /** Enforce timeouts for this node */
-#define RF_NON_CRITCIAL (1<<10) /** stop this resource if it fails */
+#define RF_NON_CRITICAL (1<<10) /** stop this resource if it fails */
 
 
 

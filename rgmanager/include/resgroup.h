@@ -106,6 +106,7 @@ extern size_t rg_state_t_version_sizes[];
 #define RG_FREEZE	  23
 #define RG_UNFREEZE	  24
 #define RG_STATUS_INQUIRY 25
+#define RG_CONVALESCE	  26
 #define RG_NONE		  999
 
 const char *rg_req_str(int req);
@@ -135,6 +136,8 @@ int handle_start_remote_req(char *svcName, int req);
 
 /* Resource group flags (for now) */
 #define RG_FLAG_FROZEN			(1<<0)	/** Resource frozen */
+#define RG_FLAG_PARTIAL			(1<<1)	/** One or more non-critical
+						    resources offline */
 
 const char *rg_state_str(int val);
 const char *rg_flag_str(int val);
