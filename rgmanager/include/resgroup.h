@@ -235,6 +235,7 @@ const char *rg_strerror(int val);
  */
 #define SFL_FAILURE		(1<<0)
 #define SFL_RECOVERABLE		(1<<1)
+#define SFL_PARTIAL		(1<<2)
 
 //#define DEBUG
 #ifdef DEBUG

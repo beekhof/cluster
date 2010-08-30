@@ -1121,7 +1121,7 @@ static int
 handle_started_status(const char *svcName, int ret,
 		      rg_state_t __attribute__((unused)) *svcStatus)
 {
-	int newowner;
+	int newowner, ret2;
 
 	if (ret & SFL_FAILURE) {
 		newowner = msvc_check_cluster(svcName);
@@ -1137,20 +1137,27 @@ handle_started_status(const char *svcName, int ret,
 		logt_print(LOG_WARNING, "Some independent resources in %s failed; "
 		       "Attempting inline recovery\n", svcName);
 
-		ret = group_op(svcName, RG_CONDSTOP);
-		if (!(ret & SFL_FAILURE)) {
-			ret = group_op(svcName, RG_CONDSTART);
+		ret2 = group_op(svcName, RG_CONDSTOP);
+		if (!(ret2 & SFL_FAILURE)) {
+			ret2 = group_op(svcName, RG_CONDSTART);
 		}
 
-		if (ret) {
+		if (ret2) {
 			logt_print(LOG_WARNING, "Inline recovery of %s failed\n",
 			       svcName);
-		} else {
-			logt_print(LOG_NOTICE,
-			       "Inline recovery of %s succeeded\n",
-			       svcName);
-			return 0;
+			return ret;
 		}
+
+		logt_print(LOG_NOTICE, "Inline recovery of %s succeeded\n",
+			   svcName);
+		if (ret & SFL_PARTIAL) {
+			logt_print(LOG_NOTICE, "Note: Some non-critical "
+				   "resources are still stopped.\n");
+			logt_print(LOG_NOTICE, "Run 'clusvcadm -c %s' to "
+				   "restore them to operation.\n", svcName);
+		}
+
+		return 0;
 	}
 
 	return ret;

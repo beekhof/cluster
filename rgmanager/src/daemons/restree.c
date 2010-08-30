@@ -962,7 +962,8 @@ _print_resource_tree(FILE *fp, resource_node_t **tree, int level)
 				fprintf(fp, "NON-CRITICAL ");
 			fprintf(fp, "]");
 		}
-		fprintf(fp, " {\n");
+
+		fprintf(fp, " (S%d) {\n", node->rn_state);
 
 		for (x = 0; node->rn_resource->r_attrs &&
 		     node->rn_resource->r_attrs[x].ra_value; x++) {
@@ -1153,7 +1154,8 @@ mark_nodes(resource_node_t *node, int state, int setflags, int clearflags)
 				   clearflags);
 	}
 
-	node->rn_state = state;
+	if (state >= RES_STOPPED)
+		node->rn_state = state;
 	node->rn_flags |= (setflags);
 	node->rn_flags &= ~(clearflags);
 }
@@ -1170,6 +1172,9 @@ do_status(resource_node_t *node)
 	int x = 0, idx = -1;
 	int has_recover = 0;
 	time_t delta = 0, now = 0;
+
+	if (node->rn_state == RES_DISABLED)
+		return 0;
 
 	now = time(NULL);
 
@@ -1365,6 +1370,15 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		   CONDSTART and CONDSTOP are no-ops if
 		   the appropriate flag is not set.
 		 */
+		if ((op == RS_CONVALESCE) &&
+		    node->rn_state == RES_DISABLED) {
+			printf("Node %s:%s - Convalesce\n",
+			       node->rn_resource->r_rule->rr_type,
+			       primary_attr_value(node->rn_resource));
+			node->rn_state = RES_STOPPED;
+			op = RS_START;
+		}
+
 	       	if ((op == RS_CONDSTART) &&
 		    (node->rn_flags & RF_NEEDSTART)) {
 			printf("Node %s:%s - CONDSTART\n",
@@ -1385,7 +1399,12 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 	/* Start starts before children */
 	if (me && (op == RS_START)) {
 
+		if (node->rn_state == RES_DISABLED)
+			/* Nothing to do - children are also disabled */
+			return 0;
+
 		pthread_mutex_lock(&node->rn_resource->r_mutex);
+
 		if (node->rn_flags & RF_RECONFIG &&
 		    realop == RS_CONDSTART) {
 			rv = res_exec(node, RS_RECONFIG, NULL, 0);
@@ -1430,21 +1449,29 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			   dependent children are failed, whether or not this
 			   node is independent or not.
 			 */
-			mark_nodes(node, RES_FAILED,
-				   RF_NEEDSTART | RF_NEEDSTOP, 0);
 
 			/* If we're an independent subtree, return a flag
 			   stating that this section is recoverable apart
 			   from siblings in the resource tree.  All child
 			   resources of this node must be restarted,
 			   but siblings of this node are not affected. */
-			if (node->rn_flags & RF_INDEPENDENT)
-				return SFL_RECOVERABLE;
+			if (node->rn_flags & RF_INDEPENDENT) {
+				if (node->rn_flags & RF_NON_CRITICAL) {
+					mark_nodes(node, RES_FAILED,
+						   RF_NEEDSTOP | RF_QUIESCE, 0);
+					return SFL_RECOVERABLE|SFL_PARTIAL;
+				} else {
+					mark_nodes(node, RES_FAILED,
+						   RF_NEEDSTART | RF_NEEDSTOP, 0);
+					return SFL_RECOVERABLE;
+				}
+			}
 
 			return SFL_FAILURE;
 		}
 
-		mark_nodes(node, RES_STARTED, 0, RF_NEEDSTOP);
+		if (node->rn_state != RES_DISABLED)
+			mark_nodes(node, RES_STARTED, 0, RF_NEEDSTOP);
 	}
 
        if (node->rn_child) {
@@ -1458,14 +1485,16 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		  the resource tree. */
 		if (op == RS_STATUS && (rv & SFL_FAILURE) &&
 		    (node->rn_flags & RF_INDEPENDENT)) {
-			if (node->rn_flags & RF_NON_CRITICAL)
+			rv = SFL_RECOVERABLE;
+			if (node->rn_flags & RF_NON_CRITICAL) {
 				/* if non-critical, just stop */
-				mark_nodes(node, RES_FAILED,
-					   RF_NEEDSTOP, 0);
-			else
+				mark_nodes(node, RES_FAILED, RF_NEEDSTOP | RF_QUIESCE, 0);
+
+				rv |= SFL_PARTIAL;
+			} else {
 				mark_nodes(node, RES_FAILED,
 					   RF_NEEDSTOP | RF_NEEDSTART, 0);
-			rv = SFL_RECOVERABLE;
+			}
 		}
 	}
  			
@@ -1475,27 +1504,27 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		/* Decrease incarnations so the script knows how many *other*
 		   incarnations there are. */
 		pthread_mutex_lock(&node->rn_resource->r_mutex);
-		if (node->rn_state == RES_STARTED) {
-			assert(node->rn_resource->r_incarnations >= 0);
-			if (node->rn_resource->r_incarnations > 0)
-				--node->rn_resource->r_incarnations;
-		}
 
 		node->rn_flags &= ~RF_NEEDSTOP;
 		rv |= res_exec(node, op, NULL, 0);
 
-		if (rv != 0) {
-			if (node->rn_state == RES_STARTED) {
-				/* Fail to stop: fix incarnations */
-				++node->rn_resource->r_incarnations;
-			}
+		if (rv == 0 && (node->rn_state == RES_STARTED ||
+				node->rn_state == RES_FAILED)) {
+			assert(node->rn_resource->r_incarnations >= 0);
+			if (node->rn_resource->r_incarnations > 0)
+				--node->rn_resource->r_incarnations;
+		} else if (node->rn_state != RES_DISABLED) {
 			node->rn_state = RES_FAILED;
 			pthread_mutex_unlock(&node->rn_resource->r_mutex);
 			return SFL_FAILURE;
 		}
 		pthread_mutex_unlock(&node->rn_resource->r_mutex);
 
-		if (node->rn_state != RES_STOPPED) {
+		if (node->rn_flags & RF_QUIESCE &&
+		    node->rn_flags & RF_NON_CRITICAL) {
+			node->rn_flags &= ~RF_QUIESCE;
+			node->rn_state = RES_DISABLED;
+		} else {
 			node->rn_state = RES_STOPPED;
 		}
 	}

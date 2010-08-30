@@ -29,12 +29,14 @@
 				  the configuration */
 #define RF_ENFORCE_TIMEOUTS (1<<9) /** Enforce timeouts for this node */
 #define RF_NON_CRITICAL (1<<10) /** stop this resource if it fails */
+#define RF_QUIESCE	(1<<11) /** don't restart this resource */
 
 
 
 #define RES_STOPPED	(0)
 #define RES_STARTED	(1)
 #define RES_FAILED	(2)
+#define RES_DISABLED	(3)
 
 #ifndef SHAREDIR
 #define SHAREDIR		"/usr/share/rgmanager"
