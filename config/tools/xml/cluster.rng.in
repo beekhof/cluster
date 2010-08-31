@@ -2322,10 +2322,30 @@ To validate your cluster.conf against this schema, run:
        an optional ESH path. Presumably those should be attributes in
        the schema. We need more invormation on this. -->
        <group>
-        <attribute name="cserver" rha:description="The hostname (and
+        <optional>
+         <attribute name="cserver" rha:description="The hostname (and
             optionally the username in the form of username@hostname)
             assigned to the device. Refer to the fence_egenera(8) man
             page for more information." rha:sample=""/>
+        </optional>
+        <optional>
+         <attribute name="pserver" rha:description="The pserver to operate on.  fence_egenera(8)" />
+        </optional>
+        <optional>
+         <attribute name="lpan" rha:description="The lpan to operate on.  fence_egenera(8)" />
+        </optional>
+        <optional>
+         <attribute name="action" rha:description="The action to perform (reboot, off, on, or status).  fence_egenera(8)" />
+        </optional>
+        <optional>
+         <attribute name="esh" rha:description="Path to the esh command on the cserver.  fence_egenera(8)" />
+        </optional>
+        <optional>
+         <attribute name="user" rha:description="See fence_egenera(8)" />
+        </optional>
+        <optional>
+         <attribute name="delay" rha:description="Wait this many seconds before fencing is started.  fence_egenera(8)" />
+        </optional>
        </group>
        <!-- FIXME: It appears that xCat is no longer supported. Found no
        fence agents for x Cat in RHEL 5.3. -->
