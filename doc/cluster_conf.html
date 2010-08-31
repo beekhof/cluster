@@ -396,15 +396,16 @@ Defines the properties of a device used for fencing or unfencing a node. fenced(
   <tr><td><b>aptpl</b></td><td></td></tr>
   <tr><td><b>auth</b></td><td>For IPMI LAN only. Authentication Type: none, password, md2, or md5</td></tr>
   <tr><td><b>channel_address</b></td><td>VM Channel IP address (default=10.0.2.179)</td></tr>
-  <tr><td><b>cipher</b></td><td>Ciphersuite to use (same as ipmitool -C parameter)</td></tr>
   <tr><td><b>cmd_prompt</b></td><td>Force command prompt</td></tr>
   <tr><td><b>community</b></td><td>Set the community string</td></tr>
   <tr><td><b>cserver</b></td><td>The hostname (and optionally the username in the form of username@hostname) assigned to the device. Refer to the fence_egenera(8) man page for more information.</td></tr>
   <tr><td><b>debug</b></td><td>Specify (stdin) or increment (command line) debug level</td></tr>
+  <tr><td><b>delay</b></td><td>Wait this many seconds before fencing is started. fence_egenera(8)</td></tr>
   <tr><td><b>device</b></td><td>The device the switch is connected to on the controlling host.</td></tr>
   <tr><td><b>devices</b></td><td>List of devices to fence (separated by commas).</td></tr>
   <tr><td><b>domain</b></td><td>Virtual Machine (domain name) to fence (deprecated)</td></tr>
   <tr><td><b>drac_version</b></td><td>Force DRAC version to use</td></tr>
+  <tr><td><b>esh</b></td><td>Path to the esh command on the cserver. fence_egenera(8)</td></tr>
   <tr><td><b>exec</b></td><td>Command to execute</td></tr>
   <tr><td><b>hash</b></td><td>Packet hash strength (none, sha1, [sha256], sha512)</td></tr>
   <tr><td><b>help</b></td><td>Display help and exit</td></tr>
@@ -421,8 +422,10 @@ Defines the properties of a device used for fencing or unfencing a node. fenced(
   <tr><td><b>lanplus</b></td><td>For IPMI LAN only. Set value to either True or 1; leave out for false.</td></tr>
   <tr><td><b>logfile</b></td><td>Location to output logs from fence_scsi.</td></tr>
   <tr><td><b>login</b></td><td>The login name used to access the device. </td></tr>
+  <tr><td><b>login_timeout</b></td><td>Wait X seconds for cmd prompt after login</td></tr>
+  <tr><td><b>lpan</b></td><td>The lpan to operate on. fence_egenera(8)</td></tr>
   <tr><td><b>managed</b></td><td>Managed system name</td></tr>
-  <tr><td><b>method</b></td><td>Method to fence (onoff or cycle)</td></tr>
+  <tr><td><b>missing_as_off</b></td><td>Missing port returns OFF instead of failure</td></tr>
   <tr><td><b>module_name</b></td><td>DRAC/MC module name</td></tr>
   <tr><td><b>multicast_address</b></td><td>Multicast address (default=225.0.0.12 / ff05::3:1)</td></tr>
   <tr><td><b>nodename</b></td><td>Name of the node to be fenced. Refer to fence_scsi(8) for more information.</td></tr>
@@ -431,7 +434,11 @@ Defines the properties of a device used for fencing or unfencing a node. fenced(
   <tr><td><b>passwd</b></td><td>The password used to authenticate the connection to the device.</td></tr>
   <tr><td><b>passwd_script</b></td><td>The script that supplies a password for access to the fence device. Using this supersedes the Password parameter.</td></tr>
   <tr><td><b>port</b></td><td>The switch outlet number.</td></tr>
+  <tr><td><b>power_timeout</b></td><td>Test X seconds for status change after ON/OFF</td></tr>
+  <tr><td><b>power_wait</b></td><td>Wait X seconds after issuing ON/OFF</td></tr>
+  <tr><td><b>pserver</b></td><td>The pserver to operate on. fence_egenera(8)</td></tr>
   <tr><td><b>retrans</b></td><td>Multicast retransmit time (in 1/10sec; default=20)</td></tr>
+  <tr><td><b>retry_on</b></td><td>Count of attempts to retry power on</td></tr>
   <tr><td><b>ribcl</b></td><td>Force ribcl version to use</td></tr>
   <tr><td><b>rpowerpath</b></td><td></td></tr>
   <tr><td><b>secure</b></td><td>SSH connection</td></tr>
@@ -439,6 +446,7 @@ Defines the properties of a device used for fencing or unfencing a node. fenced(
   <tr><td><b>serial_device</b></td><td>Serial device (default=/dev/ttyS1)</td></tr>
   <tr><td><b>serial_params</b></td><td>Serial Parameters (default=115200,8N1)</td></tr>
   <tr><td><b>servers</b></td><td>The hostname of each GNBD to disable. For multiple hostnames, separate each hostname with a space.</td></tr>
+  <tr><td><b>shell_timeout</b></td><td>Wait X seconds for cmd promprt after issuing command</td></tr>
   <tr><td><b>snmp_auth_prot</b></td><td>Set authentication protocol (MD5|SHA)</td></tr>
   <tr><td><b>snmp_priv_passwd</b></td><td>Set privacy protocol password</td></tr>
   <tr><td><b>snmp_priv_passwd_script</b></td><td>Script to run to retrieve privacy password</td></tr>
@@ -449,6 +457,7 @@ Defines the properties of a device used for fencing or unfencing a node. fenced(
   <tr><td><b>switch</b></td><td>Physical switch number on device</td></tr>
   <tr><td><b>timeout</b></td><td>Fencing timeout (in seconds; default=30)</td></tr>
   <tr><td><b>udpport</b></td><td>UDP/TCP port to use for connection with device</td></tr>
+  <tr><td><b>user</b></td><td>See fence_egenera(8)</td></tr>
   <tr><td><b>use_uuid</b></td><td>Treat [domain] as UUID instead of domain name. This is provided for compatibility with older fence_xvmd installations.</td></tr>
   <tr><td><b>verbose</b></td><td>Verbose mode</td></tr>
   <tr><td><b>version</b></td><td>Display version information and exit</td></tr>
@@ -546,15 +555,16 @@ Defines fence device properties. fenced(8)<br/>
   <tr><td><b>aptpl</b></td><td></td></tr>
   <tr><td><b>auth</b></td><td>For IPMI LAN only. Authentication Type: none, password, md2, or md5</td></tr>
   <tr><td><b>channel_address</b></td><td>VM Channel IP address (default=10.0.2.179)</td></tr>
-  <tr><td><b>cipher</b></td><td>Ciphersuite to use (same as ipmitool -C parameter)</td></tr>
   <tr><td><b>cmd_prompt</b></td><td>Force command prompt</td></tr>
   <tr><td><b>community</b></td><td>Set the community string</td></tr>
   <tr><td><b>cserver</b></td><td>The hostname (and optionally the username in the form of username@hostname) assigned to the device. Refer to the fence_egenera(8) man page for more information.</td></tr>
   <tr><td><b>debug</b></td><td>Specify (stdin) or increment (command line) debug level</td></tr>
+  <tr><td><b>delay</b></td><td>Wait this many seconds before fencing is started. fence_egenera(8)</td></tr>
   <tr><td><b>device</b></td><td>The device the switch is connected to on the controlling host.</td></tr>
   <tr><td><b>devices</b></td><td>List of devices to fence (separated by commas).</td></tr>
   <tr><td><b>domain</b></td><td>Virtual Machine (domain name) to fence (deprecated)</td></tr>
   <tr><td><b>drac_version</b></td><td>Force DRAC version to use</td></tr>
+  <tr><td><b>esh</b></td><td>Path to the esh command on the cserver. fence_egenera(8)</td></tr>
   <tr><td><b>exec</b></td><td>Command to execute</td></tr>
   <tr><td><b>hash</b></td><td>Packet hash strength (none, sha1, [sha256], sha512)</td></tr>
   <tr><td><b>help</b></td><td>Display help and exit</td></tr>
@@ -571,8 +581,10 @@ Defines fence device properties. fenced(8)<br/>
   <tr><td><b>lanplus</b></td><td>For IPMI LAN only. Set value to either True or 1; leave out for false.</td></tr>
   <tr><td><b>logfile</b></td><td>Location to output logs from fence_scsi.</td></tr>
   <tr><td><b>login</b></td><td>The login name used to access the device. </td></tr>
+  <tr><td><b>login_timeout</b></td><td>Wait X seconds for cmd prompt after login</td></tr>
+  <tr><td><b>lpan</b></td><td>The lpan to operate on. fence_egenera(8)</td></tr>
   <tr><td><b>managed</b></td><td>Managed system name</td></tr>
-  <tr><td><b>method</b></td><td>Method to fence (onoff or cycle)</td></tr>
+  <tr><td><b>missing_as_off</b></td><td>Missing port returns OFF instead of failure</td></tr>
   <tr><td><b>module_name</b></td><td>DRAC/MC module name</td></tr>
   <tr><td><b>multicast_address</b></td><td>Multicast address (default=225.0.0.12 / ff05::3:1)</td></tr>
   <tr><td><b>nodename</b></td><td>Name of the node to be fenced. Refer to fence_scsi(8) for more information.</td></tr>
@@ -581,7 +593,11 @@ Defines fence device properties. fenced(8)<br/>
   <tr><td><b>passwd</b></td><td>The password used to authenticate the connection to the device.</td></tr>
   <tr><td><b>passwd_script</b></td><td>The script that supplies a password for access to the fence device. Using this supersedes the Password parameter.</td></tr>
   <tr><td><b>port</b></td><td>The switch outlet number.</td></tr>
+  <tr><td><b>power_timeout</b></td><td>Test X seconds for status change after ON/OFF</td></tr>
+  <tr><td><b>power_wait</b></td><td>Wait X seconds after issuing ON/OFF</td></tr>
+  <tr><td><b>pserver</b></td><td>The pserver to operate on. fence_egenera(8)</td></tr>
   <tr><td><b>retrans</b></td><td>Multicast retransmit time (in 1/10sec; default=20)</td></tr>
+  <tr><td><b>retry_on</b></td><td>Count of attempts to retry power on</td></tr>
   <tr><td><b>ribcl</b></td><td>Force ribcl version to use</td></tr>
   <tr><td><b>rpowerpath</b></td><td></td></tr>
   <tr><td><b>secure</b></td><td>SSH connection</td></tr>
@@ -589,6 +605,7 @@ Defines fence device properties. fenced(8)<br/>
   <tr><td><b>serial_device</b></td><td>Serial device (default=/dev/ttyS1)</td></tr>
   <tr><td><b>serial_params</b></td><td>Serial Parameters (default=115200,8N1)</td></tr>
   <tr><td><b>servers</b></td><td>The hostname of each GNBD to disable. For multiple hostnames, separate each hostname with a space.</td></tr>
+  <tr><td><b>shell_timeout</b></td><td>Wait X seconds for cmd promprt after issuing command</td></tr>
   <tr><td><b>snmp_auth_prot</b></td><td>Set authentication protocol (MD5|SHA)</td></tr>
   <tr><td><b>snmp_priv_passwd</b></td><td>Set privacy protocol password</td></tr>
   <tr><td><b>snmp_priv_passwd_script</b></td><td>Script to run to retrieve privacy password</td></tr>
@@ -599,6 +616,7 @@ Defines fence device properties. fenced(8)<br/>
   <tr><td><b>switch</b></td><td>Physical switch number on device</td></tr>
   <tr><td><b>timeout</b></td><td>Fencing timeout (in seconds; default=30)</td></tr>
   <tr><td><b>udpport</b></td><td>UDP/TCP port to use for connection with device</td></tr>
+  <tr><td><b>user</b></td><td>See fence_egenera(8)</td></tr>
   <tr><td><b>use_uuid</b></td><td>Treat [domain] as UUID instead of domain name. This is provided for compatibility with older fence_xvmd installations.</td></tr>
   <tr><td><b>verbose</b></td><td>Verbose mode</td></tr>
   <tr><td><b>version</b></td><td>Display version information and exit</td></tr>
