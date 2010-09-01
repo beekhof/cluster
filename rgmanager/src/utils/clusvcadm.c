@@ -235,7 +235,7 @@ main(int argc, char **argv)
 	const char *actionstr = NULL;
 	cluster_member_list_t *membership;
 
-	while ((opt = getopt(argc, argv, "lSue:M:d:r:n:m:FvR:s:Z:U:qh?")) != EOF) {
+	while ((opt = getopt(argc, argv, "lSue:M:d:r:n:c:m:FvR:s:Z:U:qh?")) != EOF) {
 		switch (opt) {
 		case 'l':
 			return do_lock();
@@ -310,6 +310,11 @@ main(int argc, char **argv)
 		case 'U':
 			actionstr = "unfreezing";
 			action = RG_UNFREEZE;
+			svcname = optarg;
+			break;
+		case 'c':
+			actionstr = "convalescing";
+			action = RG_CONVALESCE;
 			svcname = optarg;
 			break;
 		case 'q':

@@ -131,6 +131,7 @@ int res_start(resource_node_t **tree, resource_t *res, void *ret);
 int res_stop(resource_node_t **tree, resource_t *res, void *ret);
 int res_status(resource_node_t **tree, resource_t *res, void *ret);
 int res_status_inquiry(resource_node_t **tree, resource_t *res, void *ret);
+int res_convalesce(resource_node_t **tree, resource_t *res, void *ret);
 int res_condstart(resource_node_t **tree, resource_t *res, void *ret);
 int res_condstop(resource_node_t **tree, resource_t *res, void *ret);
 int res_exec(resource_node_t *node, int op, const char *arg, int depth);

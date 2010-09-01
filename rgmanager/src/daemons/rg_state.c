@@ -802,6 +802,92 @@ svc_start(const char *svcName, int req)
 
 
 /**
+ * Fix stuff
+ */
+int
+svc_convalesce(const char *svcName)
+{
+	struct dlm_lksb lockp;
+	rg_state_t svcStatus;
+	int ret;
+
+	if (rg_lock(svcName, &lockp) < 0) {
+		logt_print(LOG_ERR, "#451: Unable to obtain cluster lock: %s\n",
+		       strerror(errno));
+		return RG_EFAIL;
+	}
+
+	if (get_rg_state(svcName, &svcStatus) != 0) {
+		rg_unlock(&lockp);
+		logt_print(LOG_ERR, "#461: Failed getting status for RG %s\n",
+		       svcName);
+		return RG_EFAIL;
+	}
+
+	switch(svcStatus.rs_state) {
+	case RG_STATE_STARTED:
+		break;
+	case RG_STATE_STARTING:
+	case RG_STATE_STOPPING:
+	case RG_STATE_RECOVER:
+	case RG_STATE_MIGRATE:
+	case RG_STATE_ERROR:
+		rg_unlock(&lockp);
+		return RG_EAGAIN;
+	default:
+		rg_unlock(&lockp);
+		return RG_EINVAL;
+	}
+
+	if (svcStatus.rs_flags & RG_FLAG_FROZEN) {
+		rg_unlock(&lockp);
+		return RG_EFROZEN;
+	}
+
+	if (svcStatus.rs_owner != (uint32_t)my_id()) {
+		rg_unlock(&lockp);
+		return RG_EFORWARD;
+	}
+
+	if (!(svcStatus.rs_flags & RG_FLAG_PARTIAL)) {
+		rg_unlock(&lockp);
+		return RG_ERUN;
+	}
+
+	rg_unlock(&lockp);
+
+	logt_print(LOG_INFO, "Repairing %s\n", svcName);
+	ret = group_op(svcName, RG_CONVALESCE);
+
+	switch(ret) {
+	default:
+		logt_print(LOG_WARNING, "Failed to repair %s\n", svcName);
+		/* Fail to restart a non-critical resource
+		 * does not fail the service. */
+		return RG_EFAIL;
+	case 0:
+		logt_print(LOG_INFO, "Repair of %s was successful\n", svcName);
+		break;
+	}
+
+	/* Success - flip owner in state info */
+	if (rg_lock(svcName, &lockp) < 0) {
+		logt_print(LOG_ERR, "#455: Unable to obtain cluster lock: %s\n",
+			   strerror(errno));
+		return RG_EFAIL;
+	}
+
+	/* No need for a 'get' here since the service is still STARTED */
+	svcStatus.rs_flags &= ~RG_FLAG_PARTIAL;
+
+	set_rg_state(svcName, &svcStatus);
+	rg_unlock(&lockp);
+
+	return 0;
+}
+
+
+/**
  * Migrate a service to another node.  Relies on agent
  * operating synchronously
  */
@@ -1110,8 +1196,31 @@ svc_status(const char *svcName)
 	}
 
 	/* For running services, if the return code is 0, we're done*/
-	if (svcStatus.rs_state == RG_STATE_STARTED)
-		return handle_started_status(svcName, ret, &svcStatus);
+	if (svcStatus.rs_state == RG_STATE_STARTED) {
+		ret = handle_started_status(svcName, ret, &svcStatus);
+
+		if (ret & SFL_PARTIAL) {
+			ret &= ~SFL_PARTIAL;
+			svcStatus.rs_flags |= RG_FLAG_PARTIAL;
+			if (rg_lock(svcName, &lockp) < 0) {
+				logt_print(LOG_ERR,
+					   "#481: Unable to obtain cluster lock: %s\n",
+					   strerror(errno));
+				return RG_EFAIL;
+			}
+
+			if (set_rg_state(svcName, &svcStatus) != 0) {
+				rg_unlock(&lockp);
+				logt_print(LOG_ERR,
+					   "#482: Failed setting status for RG %s\n",
+					   svcName);
+				return RG_EFAIL;
+			}
+			rg_unlock(&lockp);
+		}
+
+		return ret;
+	}
 	
 	return handle_migrate_status(svcName, ret, &svcStatus);
 }
@@ -1152,9 +1261,10 @@ handle_started_status(const char *svcName, int ret,
 			   svcName);
 		if (ret & SFL_PARTIAL) {
 			logt_print(LOG_NOTICE, "Note: Some non-critical "
-				   "resources are still stopped.\n");
+				   "resources were stopped during recovery.\n");
 			logt_print(LOG_NOTICE, "Run 'clusvcadm -c %s' to "
 				   "restore them to operation.\n", svcName);
+			return SFL_PARTIAL;
 		}
 
 		return 0;
@@ -1261,6 +1371,7 @@ _svc_stop(const char *svcName, int req, int recover, uint32_t newstate)
 		svcStatus.rs_last_owner = svcStatus.rs_owner;
 		svcStatus.rs_owner = 0;
 		svcStatus.rs_state = RG_STATE_STOPPED;
+		svcStatus.rs_flags = 0;
 		if (set_rg_state(svcName, &svcStatus) != 0) {
 			rg_unlock(&lockp);
 			return RG_EFAIL;
@@ -1291,6 +1402,7 @@ _svc_stop(const char *svcName, int req, int recover, uint32_t newstate)
 		logt_print(LOG_DEBUG, "%s is clean; skipping double-stop\n",
 		       svcName);
 		svcStatus.rs_state = newstate;
+		svcStatus.rs_flags = 0;
 
 		if (set_rg_state(svcName, &svcStatus) != 0) {
 			rg_unlock(&lockp);
@@ -1371,6 +1483,7 @@ _svc_stop_finish(const char *svcName, int failed, uint32_t newstate)
 	}
 
 	svcStatus.rs_state = newstate;
+	svcStatus.rs_flags = 0;
 
 	logt_print(LOG_NOTICE, "Service %s is %s\n", svcName,
 	       rg_state_str(svcStatus.rs_state));

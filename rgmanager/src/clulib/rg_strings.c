@@ -58,6 +58,7 @@ const struct string_val rg_req_strings[] = {
 	{RG_QUERY_LOCK, "lock status inquiry"},
 	{RG_MIGRATE, "migrate"},
 	{RG_STATUS_INQUIRY, "out of band service status inquiry"},
+	{RG_CONVALESCE, "convalesce"},
 	{RG_NONE, "none"},
 	{0, NULL}
 };

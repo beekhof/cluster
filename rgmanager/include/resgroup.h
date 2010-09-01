@@ -163,6 +163,7 @@ int svc_disable(const char *svcName);
 int svc_fail(const char *svcName);
 int svc_freeze(const char *svcName);
 int svc_unfreeze(const char *svcName);
+int svc_convalesce(const char *svcName);
 int svc_migrate(const char *svcName, int target);
 int svc_start_remote(const char *svcName, int request, uint32_t target);
 int svc_report_failure(const char *svcName);

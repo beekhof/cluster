@@ -1615,6 +1615,20 @@ res_condstop(resource_node_t **tree, resource_t *res, void *ret)
 
 
 /**
+   Repair/fix/convalesce all occurrences of a resource in a tree
+
+   @param tree		Tree to search for our resource.
+   @param res		Resource to start/stop
+   @param ret		Unused
+ */
+int
+res_convalesce(resource_node_t **tree, resource_t *res, void *ret)
+{
+	return _res_op(tree, res, NULL, ret, RS_CONVALESCE);
+}
+
+
+/**
    Start all occurrences of a resource in a tree
 
    @param tree		Tree to search for our resource.

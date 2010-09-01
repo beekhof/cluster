@@ -975,6 +975,9 @@ group_op(const char *groupname, int op)
 	case RG_CONDSTART:
 		ret = res_condstart(&_tree, res, NULL);
 		break;
+	case RG_CONVALESCE:
+		ret = res_convalesce(&_tree, res, NULL);
+		break;
 	}
 	pthread_rwlock_unlock(&resource_lock);
 

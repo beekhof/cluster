@@ -277,6 +277,26 @@ resgroup_thread_main(void *arg)
 				ret = RG_NONE;
 			break;
 
+		case RG_CONVALESCE:
+			error = svc_convalesce(myname);
+
+			if (error == 0) {
+				ret = RG_SUCCESS;
+
+				pthread_mutex_lock(&my_queue_mutex);
+				purge_status_checks(&my_queue);
+				pthread_mutex_unlock(&my_queue_mutex);
+			} else if (error == RG_EFORWARD) {
+				ret = RG_NONE;
+				break;
+			} else {
+				/*
+				 * Bad news.
+				 */
+				ret = RG_EFAIL;
+			}
+			break;
+
 		case RG_MIGRATE:
 			error = svc_migrate(myname, req->rr_target);
 
