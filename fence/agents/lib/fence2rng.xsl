@@ -6,8 +6,7 @@
 	<xsl:value-of select="$normalized"/>
 </xsl:template>
 <xsl:template match="/resource-agent">
-      &lt;!-- <xsl:value-of select="@name"/> --&gt;
-      &lt;group&gt;
+      &lt;group rha:fence_agent="<xsl:value-of select="@name"/>"&gt;
         &lt;optional&gt;
           &lt;attribute name="option"/&gt; &lt;!-- deprecated; for compatibility.  use "action" --&gt;
         &lt;/optional&gt;<xsl:for-each select="parameters/parameter">
