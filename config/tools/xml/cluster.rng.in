@@ -2436,8 +2436,7 @@ To validate your cluster.conf against this schema, run:
        <!-- end non-generated device definitions -->
 
        <!-- begin auto-generated device definitions -->
-      <!-- fence_vmware -->
-      <group>
+      <group rha:fence_agent="fence_vmware">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2510,8 +2509,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_lpar -->
-      <group>
+      <group rha:fence_agent="fence_lpar">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2593,8 +2591,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_bladecenter -->
-      <group>
+      <group rha:fence_agent="fence_bladecenter">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2673,8 +2670,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_intelmodular -->
-      <group>
+      <group rha:fence_agent="fence_intelmodular">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2762,8 +2758,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_ifmib -->
-      <group>
+      <group rha:fence_agent="fence_ifmib">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2851,8 +2846,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_eps -->
-      <group>
+      <group rha:fence_agent="fence_eps">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2898,8 +2892,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_ldom -->
-      <group>
+      <group rha:fence_agent="fence_ldom">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -2978,8 +2971,7 @@ To validate your cluster.conf against this schema, run:
       <!-- No metadata for fence_rackswitch -->
       <!-- No metadata for fence_rsb -->
 
-      <!-- fence_bladecenter_snmp -->
-      <group>
+      <group rha:fence_agent="fence_bladecenter_snmp">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3070,8 +3062,7 @@ To validate your cluster.conf against this schema, run:
       <!-- No metadata for fence_drac -->
       <!-- No metadata for fence_ipmilan -->
 
-      <!-- fence_rsa -->
-      <group>
+      <group rha:fence_agent="fence_rsa">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3135,8 +3126,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_virsh -->
-      <group>
+      <group rha:fence_agent="fence_virsh">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3211,8 +3201,7 @@ To validate your cluster.conf against this schema, run:
       <!-- No metadata for fence_mcdata -->
       <!-- No metadata for fence_bullpap -->
 
-      <!-- fence_wti -->
-      <group>
+      <group rha:fence_agent="fence_wti">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3289,8 +3278,7 @@ To validate your cluster.conf against this schema, run:
 
       <!-- No metadata for fence_zvm -->
 
-      <!-- fence_drac5 -->
-      <group>
+      <group rha:fence_agent="fence_drac5">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3371,8 +3359,7 @@ To validate your cluster.conf against this schema, run:
       <!-- No metadata for fence_vixel -->
       <!-- No metadata for fence_baytech -->
 
-      <!-- fence_scsi -->
-      <group>
+      <group rha:fence_agent="fence_scsi">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3398,8 +3385,7 @@ To validate your cluster.conf against this schema, run:
 
       <!-- No metadata for fence_brocade -->
 
-      <!-- fence_ilo_mp -->
-      <group>
+      <group rha:fence_agent="fence_ilo_mp">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3472,8 +3458,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_apc -->
-      <group>
+      <group rha:fence_agent="fence_apc">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3549,8 +3534,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_alom -->
-      <group>
+      <group rha:fence_agent="fence_alom">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3618,8 +3602,7 @@ To validate your cluster.conf against this schema, run:
 
       <!-- No metadata for fence_ibmblade -->
 
-      <!-- fence_sanbox2 -->
-      <group>
+      <group rha:fence_agent="fence_sanbox2">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3684,8 +3667,7 @@ To validate your cluster.conf against this schema, run:
 
       <!-- No metadata for fence_egenera -->
 
-      <!-- fence_apc_snmp -->
-      <group>
+      <group rha:fence_agent="fence_apc_snmp">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3773,8 +3755,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_ilo -->
-      <group>
+      <group rha:fence_agent="fence_ilo">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3841,8 +3822,7 @@ To validate your cluster.conf against this schema, run:
       </group>
 
 
-      <!-- fence_cisco_mds -->
-      <group>
+      <group rha:fence_agent="fence_cisco_mds">
         <optional>
           <attribute name="option"/> <!-- deprecated; for compatibility.  use "action" -->
         </optional>
@@ -3928,6 +3908,7 @@ To validate your cluster.conf against this schema, run:
           <attribute name="delay" rha:description="Wait X seconds before fencing is started" />
         </optional>
       </group>
+
        <!-- end auto-generated device definitions -->
 
        <group>
