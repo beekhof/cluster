@@ -4,6 +4,8 @@
 #include <time.h>
 #include <corosync/confdb.h>
 #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "copyright.cf"
 #include "libcman.h"
 #include "cman_tool.h"
