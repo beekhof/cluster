@@ -2219,6 +2219,13 @@ handle_recover_req(char *svcName, int *new_owner)
 	/* Check restart counter/timer for this resource */
 	if (check_restart(svcName) > 0) {
 		clear_restart(svcName);
+
+		if (strstr(policy, "disable")) {
+			logt_print(LOG_NOTICE,
+				   "Restart threshold for %s exceeded; "
+				   "disabling\n", svcName);
+			return svc_disable(svcName);
+		}
 		logt_print(LOG_NOTICE, "Restart threshold for %s exceeded; "
 		       "attempting to relocate\n", svcName);
 		return handle_relocate_req(svcName, RG_START_RECOVER, -1,
