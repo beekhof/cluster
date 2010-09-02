@@ -1,4 +1,4 @@
-# Max attribute value: 288
+# Max attribute value: 289
 # Max object class value: 61
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
@@ -348,3 +348,4 @@ attr,rhcsRetry-on,retry_on,285
 attr,rhcsDelay,delay,286
 attr,rhcsMissing-as-off,missing_as_off,287
 attr,rhcsEsh,esh,288
+attr,rhcsQuiet,quiet,289
