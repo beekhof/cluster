@@ -1,5 +1,5 @@
 # Max attribute value: 289
-# Max object class value: 61
+# Max object class value: 62
 obj,rhcsCluster,cluster,1
 obj,rhcsCman,cman,3
 obj,rhcsTotem,totem,4
@@ -349,3 +349,4 @@ attr,rhcsDelay,delay,286
 attr,rhcsMissing-as-off,missing_as_off,287
 attr,rhcsEsh,esh,288
 attr,rhcsQuiet,quiet,289
+obj,rhcsResource-defaults,resource-defaults,62
