@@ -901,6 +901,13 @@ To validate your cluster.conf against this schema, run:
      </zeroOrMore>
     </element>
    </optional>
+   <optional>
+    <element name="resource-defaults" rha:description="This section allows the administrator to change defaults for resource agents.  Overriding parameters which must be unique is not allowed.  Overriding a value which, by default, inherits a value from a parent resource will disable inheritance for that resource type.">
+     <zeroOrMore>
+      <ref name="CHILDREN"/>
+     </zeroOrMore>
+    </element>
+   </optional>
    <zeroOrMore>
     <ref name="SERVICE"/>
    </zeroOrMore>
