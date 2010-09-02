@@ -47,6 +47,9 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_resources">resources</a>&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_resources">/resources</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_resource-defaults">resource-defaults</a>&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_CHILDREN">CHILDREN</a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_resource-defaults">/resource-defaults</a>&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_SERVICE">SERVICE</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ref_VM">VM</a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<a href="#tag_rm">/rm</a>&gt;<br/>
@@ -245,6 +248,7 @@
 <tr valign="top"><td><a href="#tag_postgres-8"><b>postgres-8</b></a></td><td>Defines a PostgreSQL server</td></tr>
 <tr valign="top"><td><a href="#tag_quorumd"><b>quorumd</b></a></td><td>This element and its attributes define parameters for the quorum disk daemon, quorumd. qdisk(5).</td></tr>
 <tr valign="top"><td><a href="#tag_resources"><b>resources</b></a></td><td>Defines global resources which may be referenced in services. You may redefine actions for resources here, but child resource definitions are ignored in this section.</td></tr>
+<tr valign="top"><td><a href="#tag_resource-defaults"><b>resource-defaults</b></a></td><td>This section allows the administrator to change defaults for resource agents. Overriding parameters which must be unique is not allowed. Overriding a value which, by default, inherits a value from a parent resource will disable inheritance for that resource type.</td></tr>
 <tr valign="top"><td><a href="#tag_rm"><b>rm</b></a></td><td>This element and its attributes define resources (for example an IP address) required to create HA cluster services, the HA cluster services themselves, and failover domains for the HA cluster services.</td></tr>
 <tr valign="top"><td><a href="#tag_samba"><b>samba</b></a></td><td>Dynamic smbd/nmbd resource agent</td></tr>
 <tr valign="top"><td><a href="#tag_SAPDatabase"><b>SAPDatabase</b></a></td><td>SAP database resource agent</td></tr>
@@ -437,6 +441,7 @@ Defines the properties of a device used for fencing or unfencing a node. fenced(
   <tr><td><b>power_timeout</b></td><td>Test X seconds for status change after ON/OFF</td></tr>
   <tr><td><b>power_wait</b></td><td>Wait X seconds after issuing ON/OFF</td></tr>
   <tr><td><b>pserver</b></td><td>The pserver to operate on. fence_egenera(8)</td></tr>
+  <tr><td><b>quiet</b></td><td>Supress output</td></tr>
   <tr><td><b>retrans</b></td><td>Multicast retransmit time (in 1/10sec; default=20)</td></tr>
   <tr><td><b>retry_on</b></td><td>Count of attempts to retry power on</td></tr>
   <tr><td><b>ribcl</b></td><td>Force ribcl version to use</td></tr>
@@ -596,6 +601,7 @@ Defines fence device properties. fenced(8)<br/>
   <tr><td><b>power_timeout</b></td><td>Test X seconds for status change after ON/OFF</td></tr>
   <tr><td><b>power_wait</b></td><td>Wait X seconds after issuing ON/OFF</td></tr>
   <tr><td><b>pserver</b></td><td>The pserver to operate on. fence_egenera(8)</td></tr>
+  <tr><td><b>quiet</b></td><td>Supress output</td></tr>
   <tr><td><b>retrans</b></td><td>Multicast retransmit time (in 1/10sec; default=20)</td></tr>
   <tr><td><b>retry_on</b></td><td>Count of attempts to retry power on</td></tr>
   <tr><td><b>ribcl</b></td><td>Force ribcl version to use</td></tr>
@@ -991,6 +997,10 @@ Children: <a href="#tag_heuristic">heuristic</a> <br/><a href="#" onClick="histo
 Defines global resources which may be referenced in services. You may redefine actions for resources here, but child resource definitions are ignored in this section.<br/>
 <br/>
 Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+<h3><a name="tag_resource-defaults"/>resource-defaults</h3>
+This section allows the administrator to change defaults for resource agents. Overriding parameters which must be unique is not allowed. Overriding a value which, by default, inherits a value from a parent resource will disable inheritance for that resource type.<br/>
+<br/>
+Children: <a href="#ref_CHILDREN">CHILDREN</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
 <h3><a name="tag_rm"/>rm</h3>
 This element and its attributes define resources (for example an IP address) required to create HA cluster services, the HA cluster services themselves, and failover domains for the HA cluster services.<br/>
 <br/>
@@ -1002,7 +1012,7 @@ This element and its attributes define resources (for example an IP address) req
   <tr><td><b>status_poll_interval</b></td><td>Scan the resource tree every X seconds for resources which need to be checked.</td></tr>
   <tr><td><b>transition_throttling</b></td><td>During transitions, keep the event processor alive for this many seconds.</td></tr>
 </table><br/>
-Children: <a href="#tag_failoverdomains">failoverdomains</a> <a href="#tag_events">events</a> <a href="#tag_resources">resources</a> <a href="#ref_SERVICE">SERVICE</a> <a href="#ref_VM">VM</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
+Children: <a href="#tag_failoverdomains">failoverdomains</a> <a href="#tag_events">events</a> <a href="#tag_resources">resources</a> <a href="#tag_resource-defaults">resource-defaults</a> <a href="#ref_SERVICE">SERVICE</a> <a href="#ref_VM">VM</a> <br/><a href="#" onClick="history.go(-1)" />Back</a> | <a href="#toc_tag_reference">Contents</a>
 <h3><a name="tag_samba"/>samba</h3>
 Dynamic smbd/nmbd resource agent<br/>
 <br/>
