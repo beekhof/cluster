@@ -1796,6 +1796,9 @@ resource_tree_delta(resource_node_t **ltree, resource_node_t **rtree)
 				if (rc == 2)
 					rn->rn_flags |= RF_NEEDSTART | RF_RECONFIG;
 
+				if (rc == 0) 
+					rn->rn_state = ln->rn_state;
+
 				/* Ok, same resource.  Recurse. */
 				ln->rn_flags |= RF_COMMON;
 				rn->rn_flags |= RF_COMMON;
