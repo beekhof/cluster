@@ -1149,8 +1149,8 @@ mark_nodes(resource_node_t *node, int state, int setflags, int clearflags)
 	resource_node_t *child;
 
 	list_for(&node->rn_child, child, x) {
-		if (child->rn_child)
-			mark_nodes(child->rn_child, state, setflags,
+		if (child)
+			mark_nodes(child, state, setflags,
 				   clearflags);
 	}
 
@@ -1375,7 +1375,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			printf("Node %s:%s - Convalesce\n",
 			       node->rn_resource->r_rule->rr_type,
 			       primary_attr_value(node->rn_resource));
-			node->rn_state = RES_STOPPED;
+			mark_nodes(node, RES_STOPPED, RF_NEEDSTART, 0);
 			op = RS_START;
 		}
 
@@ -1470,8 +1470,10 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			return SFL_FAILURE;
 		}
 
-		if (node->rn_state != RES_DISABLED)
-			mark_nodes(node, RES_STARTED, 0, RF_NEEDSTOP);
+		if (node->rn_state != RES_DISABLED) {
+			node->rn_state = RES_STARTED;
+			node->rn_flags &= ~RF_NEEDSTOP;
+		}
 	}
 
        if (node->rn_child) {
@@ -1483,7 +1485,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		  and all our children as failed and return a flag stating
 		  that this section is recoverable apart from siblings in
 		  the resource tree. */
-		if (op == RS_STATUS && (rv & SFL_FAILURE) &&
+		if (op == RS_STATUS && (rv & (SFL_FAILURE|SFL_RECOVERABLE)) &&
 		    (node->rn_flags & RF_INDEPENDENT)) {
 			rv = SFL_RECOVERABLE;
 			if (node->rn_flags & RF_NON_CRITICAL) {
@@ -1520,8 +1522,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		}
 		pthread_mutex_unlock(&node->rn_resource->r_mutex);
 
-		if (node->rn_flags & RF_QUIESCE &&
-		    node->rn_flags & RF_NON_CRITICAL) {
+		if (node->rn_flags & RF_QUIESCE) {
 			node->rn_flags &= ~RF_QUIESCE;
 			node->rn_state = RES_DISABLED;
 		} else {
