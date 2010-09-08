@@ -1510,6 +1510,21 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		node->rn_flags &= ~RF_NEEDSTOP;
 		rv |= res_exec(node, op, NULL, 0);
 
+		if (node->rn_flags & RF_QUIESCE) {
+			/* Non-critical resources = do not fail 
+			 * service if the resource fails to stop
+			 */
+			if (rv & SFL_FAILURE) {
+				logt_print(LOG_WARNING, "Failure to stop %s:%s"
+					   " during non-critical recovery "
+					   "operation\n",
+					   node->rn_resource->r_rule->rr_type,
+					   primary_attr_value(
+						node->rn_resource));
+				rv &= ~SFL_FAILURE;
+			}
+		}
+
 		if (rv == 0 && (node->rn_state == RES_STARTED ||
 				node->rn_state == RES_FAILED)) {
 			assert(node->rn_resource->r_incarnations >= 0);
