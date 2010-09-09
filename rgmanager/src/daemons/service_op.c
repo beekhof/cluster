@@ -186,6 +186,90 @@ service_op_stop(char *svcName, int do_disable, int event_type)
 }
 
 
+int
+service_op_convalesce(const char *svcName)
+{
+	SmMessageSt msg;
+	int msg_ret;
+	msgctx_t ctx;
+	rg_state_t svcStatus;
+	int msgtarget = my_id();
+
+	/* Build the message header */
+	msg.sm_hdr.gh_magic = GENERIC_HDR_MAGIC;
+	msg.sm_hdr.gh_command = RG_ACTION_REQUEST;
+	msg.sm_hdr.gh_arg1 = RG_ACTION_MASTER; 
+	msg.sm_hdr.gh_length = sizeof (SmMessageSt);
+
+	msg.sm_data.d_action = RG_CONVALESCE;
+
+	strncpy(msg.sm_data.d_svcName, svcName,
+		sizeof(msg.sm_data.d_svcName));
+	msg.sm_data.d_ret = 0;
+	msg.sm_data.d_svcOwner = 0;
+
+	/* Open a connection to the local node - it will decide what to
+	   do in this case. XXX inefficient; should queue requests
+	   locally and immediately forward requests otherwise */
+
+	if (get_service_state_internal(svcName, &svcStatus) < 0)
+		return RG_EFAIL;
+	if (svcStatus.rs_owner > 0) {
+		if (member_online(svcStatus.rs_owner)) {
+			msgtarget = svcStatus.rs_owner;
+		} else {
+			/* If the owner is not online, 
+			   mark the service as 'stopped' but
+			   otherwise, do nothing.
+			 */
+			return svc_stop(svcName, RG_STOP);
+		}
+	}
+
+	if (msg_open(MSG_CLUSTER, msgtarget, RG_PORT, &ctx, 2 * cluster_timeout)< 0) {
+		logt_print(LOG_ERR,
+		       "#58: Failed opening connection to member #%d\n",
+		       my_id());
+		return -1;
+	}
+
+	/* Encode */
+	swab_SmMessageSt(&msg);
+
+	/* Send stop message to the other node */
+	if (msg_send(&ctx, &msg, sizeof (SmMessageSt)) < 
+	    (int)sizeof (SmMessageSt)) {
+		logt_print(LOG_ERR, "Failed to send complete message\n");
+		msg_close(&ctx);
+		return -1;
+	}
+
+	/* Check the response */
+	do {
+		msg_ret = msg_receive(&ctx, &msg,
+				      sizeof (SmMessageSt), 10);
+		if ((msg_ret == -1 && errno != ETIMEDOUT) ||
+		    (msg_ret > 0)) {
+			break;
+		}
+	} while(1);
+
+	if (msg_ret != sizeof (SmMessageSt)) {
+		logt_print(LOG_WARNING, "Strange response size: %d vs %d\n",
+		       msg_ret, (int)sizeof(SmMessageSt));
+		return 0;	/* XXX really UNKNOWN */
+	}
+
+	/* Got a valid response from other node. */
+	msg_close(&ctx);
+
+	/* Decode */
+	swab_SmMessageSt(&msg);
+
+	return msg.sm_data.d_ret;
+}
+
+
 /*
    service_op_migrate() - send a virtual machine to another host
    in the cluster

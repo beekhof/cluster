@@ -124,6 +124,7 @@ void set_transition_throttling(int nsecs);
 int service_op_start(char *svcName, int *target_list, int target_list_len,
 		     int *new_owner);
 int service_op_stop(char *svcName, int do_disable, int event_type);
+int service_op_convalesce(const char *svcName);
 int service_op_migrate(char *svcName, int target_node);
 
 

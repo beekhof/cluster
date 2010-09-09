@@ -86,7 +86,8 @@ static int
    _user_restart = RG_RESTART,
    _user_migrate = RG_MIGRATE,
    _user_freeze = RG_FREEZE,
-   _user_unfreeze = RG_UNFREEZE;
+   _user_unfreeze = RG_UNFREEZE,
+   _user_convalesce = RG_CONVALESCE;
 
 
 SLang_Intrin_Var_Type rgmanager_vars[] =
@@ -139,6 +140,7 @@ SLang_Intrin_Var_Type rgmanager_vars[] =
 	MAKE_VARIABLE((char *)"USER_MIGRATE",	&_user_migrate,	SLANG_INT_TYPE, 1),
 	MAKE_VARIABLE((char *)"USER_FREEZE",	&_user_freeze,	SLANG_INT_TYPE, 1),
 	MAKE_VARIABLE((char *)"USER_UNFREEZE",	&_user_unfreeze,SLANG_INT_TYPE, 1),
+	MAKE_VARIABLE((char *)"USER_CONVALESCE",&_user_convalesce,SLANG_INT_TYPE, 1),
 
 	/* Errors */
 	MAKE_VARIABLE((char *)"rg_error",	&_rg_err,	SLANG_INT_TYPE, 1),
@@ -438,6 +440,18 @@ sl_service_property(char *svcName, char *prop)
 			     __FUNCTION__, prop, svcName);
 		free(ret);
 	}
+}
+
+
+/**
+  usage:
+
+  service_convalesce(name);
+ */
+static int
+sl_convalesce_service(const char *svcname)
+{
+	return service_op_convalesce(svcname);
 }
 
 
@@ -1033,6 +1047,8 @@ static SLang_Intrin_Fun_Type rgmanager_slang[] =
 	MAKE_INTRINSIC_S((char *)"service_domain_info", sl_domain_info,
 			 SLANG_VOID_TYPE),
 	MAKE_INTRINSIC_0((char *)"service_stop", sl_stop_service,
+			 SLANG_INT_TYPE),
+	MAKE_INTRINSIC_S((char *)"service_convalesce", sl_convalesce_service,
 			 SLANG_INT_TYPE),
 	MAKE_INTRINSIC_0((char *)"service_start", sl_start_service,
 			 SLANG_INT_TYPE),
