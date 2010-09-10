@@ -999,6 +999,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1039,6 +1045,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1093,6 +1105,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1132,6 +1150,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1164,6 +1188,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1209,6 +1239,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1261,6 +1297,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1295,6 +1337,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1342,6 +1390,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1387,6 +1441,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1430,6 +1490,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1480,6 +1546,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1523,6 +1595,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1573,6 +1651,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1610,6 +1694,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1650,6 +1740,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1736,6 +1832,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1791,6 +1893,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -1863,6 +1971,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1911,6 +2025,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1951,6 +2071,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -1980,6 +2106,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -2016,6 +2148,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
@@ -2074,6 +2212,12 @@ To validate your cluster.conf against this schema, run:
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
       </optional>
       <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
+      </optional>
+      <optional>
         <ref name="CHILDREN"/>
       </optional>
     </element>
@@ -2113,6 +2257,12 @@ To validate your cluster.conf against this schema, run:
       </optional>
       <optional>
         <attribute name="__failure_expire_time" rha:description="Amount of time before a failure is forgotten."/>
+      </optional>
+      <optional>
+        <attribute name="__max_restarts" rha:description="Maximum number restarts for an independent subtree before giving up."/>
+      </optional>
+      <optional>
+        <attribute name="__restart_expire_time" rha:description="Amount of time before a failure is forgotten for an independent subtree."/>
       </optional>
       <optional>
         <ref name="CHILDREN"/>
