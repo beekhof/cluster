@@ -167,6 +167,9 @@ printf("  -Z <group>             Freeze resource group.  This prevents\n"
        "                         stopping the whole service.\n");
 printf("  -U <group>             Unfreeze (thaw) resource group.  Restores\n"
        "                         a group to normal operation.\n");
+printf("  -c <group>             Convalesce (repair, fix) resource group.\n"
+       "                         Attempts to start failed, non-critical \n"
+       "                         resources within a resource group.\n");
 
 printf("Resource Group Locking (for cluster Shutdown / Debugging):\n");
 printf("  -l                     Lock local resource group managers.\n"

@@ -33,6 +33,9 @@ clusvcadm \- Cluster User Service Administration Utility
 .B [\-s
 .I <service>
 .B ]
+.B [\-c
+.I <service>
+.B ]
 .B [\-v]
 
 .SH "DESCRIPTION"
@@ -116,6 +119,12 @@ Stops the service named
 .I
 service
 until a member transition or until it is enabled again.
+
+.IP "\-c <service>"
+Attempt to convalesce the named
+.I
+service
+by restarting failed, non-critical components.
 
 .IP \-v
 Display version information and exit.
