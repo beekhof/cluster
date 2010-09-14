@@ -509,9 +509,6 @@ assign_restart_policy(resource_t *curres, resource_node_t *parent,
 			if (max_restarts <= 0)
 				max_restarts = 0;
 			free(val);
-			
-			if (!max_restarts)
-				return;
 		}
 	
 		snprintf(tok, sizeof(tok), "%s/@__restart_expire_time", base);
@@ -521,11 +518,13 @@ assign_restart_policy(resource_t *curres, resource_node_t *parent,
 		if (conf_get(tok, &val) == 0) {
 #endif
 			restart_expire_time = (time_t)expand_time(val);
-			if ((int64_t)restart_expire_time < 0)
+			if ((int64_t)restart_expire_time <= 0)
 				restart_expire_time = 0;
 			free(val);
 		}
 
+		if (restart_expire_time == 0 || max_restarts == 0)
+			return;
 		goto out_assign;
 	}
 
@@ -1511,7 +1510,8 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 						   RF_NEEDSTOP | RF_QUIESCE, 0);
 					restart_clear(node->rn_restart_counter);
 					return SFL_RECOVERABLE|SFL_PARTIAL;
-				} else if (!rte) {
+				} else if (!rte ||
+					   !node->rn_restart_counter) {
 					restart_add(node->rn_restart_counter);
 					mark_nodes(node, RES_FAILED,
 						   RF_NEEDSTART | RF_NEEDSTOP, 0);
@@ -1552,7 +1552,7 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 				mark_nodes(node, RES_FAILED, RF_NEEDSTOP | RF_QUIESCE, 0);
 
 				rv |= SFL_PARTIAL;
-			} else if (!rte) {
+			} else if (!rte || !node->rn_restart_counter) {
 				restart_add(node->rn_restart_counter);
 				mark_nodes(node, RES_FAILED,
 					   RF_NEEDSTOP | RF_NEEDSTART, 0);
@@ -1573,18 +1573,21 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		node->rn_flags &= ~RF_NEEDSTOP;
 		rv |= res_exec(node, op, NULL, 0);
 
-		if (node->rn_flags & RF_QUIESCE) {
+		if (node->rn_flags & (RF_NEEDSTART|RF_QUIESCE) &&
+		    node->rn_flags & RF_INDEPENDENT &&
+		    node->rn_flags & RF_NON_CRITICAL) {
 			/* Non-critical resources = do not fail 
 			 * service if the resource fails to stop
 			 */
 			if (rv & SFL_FAILURE) {
-				logt_print(LOG_WARNING, "Failure to stop %s:%s"
+				logt_print(LOG_WARNING, "Failed to stop subtree %s:%s"
 					   " during non-critical recovery "
 					   "operation\n",
 					   node->rn_resource->r_rule->rr_type,
 					   primary_attr_value(
 						node->rn_resource));
-				rv &= ~SFL_FAILURE;
+				rv = SFL_PARTIAL;
+				node->rn_flags |= RF_QUIESCE;
 			}
 		}
 
@@ -1593,7 +1596,8 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			assert(node->rn_resource->r_incarnations >= 0);
 			if (node->rn_resource->r_incarnations > 0)
 				--node->rn_resource->r_incarnations;
-		} else if (node->rn_state != RES_DISABLED) {
+		} else if (node->rn_state != RES_DISABLED &&
+			   !(node->rn_flags & RF_QUIESCE)) {
 			node->rn_state = RES_FAILED;
 			pthread_mutex_unlock(&node->rn_resource->r_mutex);
 			return SFL_FAILURE;
@@ -1601,8 +1605,8 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 		pthread_mutex_unlock(&node->rn_resource->r_mutex);
 
 		if (node->rn_flags & RF_QUIESCE) {
-			node->rn_flags &= ~RF_QUIESCE;
-			node->rn_state = RES_DISABLED;
+			mark_nodes(node, RES_DISABLED, 0,
+				   RF_NEEDSTART|RF_QUIESCE);
 		} else {
 			node->rn_state = RES_STOPPED;
 		}

@@ -1247,17 +1247,20 @@ handle_started_status(const char *svcName, int ret,
 		       "Attempting inline recovery\n", svcName);
 
 		ret2 = group_op(svcName, RG_CONDSTOP);
-		if (!(ret2 & SFL_FAILURE)) {
-			ret2 = group_op(svcName, RG_CONDSTART);
+		if (ret2 & SFL_PARTIAL) {
+			ret |= SFL_PARTIAL;
+			ret2 &= ~SFL_PARTIAL;
 		}
 
-		if (ret2) {
+		if (!(ret2 & SFL_FAILURE)) {
+			ret2 = group_op(svcName, RG_CONDSTART);
+		} else {
 			logt_print(LOG_WARNING, "Inline recovery of %s failed\n",
 			       svcName);
 			return ret;
 		}
 
-		logt_print(LOG_NOTICE, "Inline recovery of %s succeeded\n",
+		logt_print(LOG_NOTICE, "Inline recovery of %s complete\n",
 			   svcName);
 		if (ret & SFL_PARTIAL) {
 			logt_print(LOG_NOTICE, "Note: Some non-critical "
