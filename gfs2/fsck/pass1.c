@@ -265,13 +265,16 @@ static int check_metalist(struct gfs2_inode *ip, uint64_t block,
 			return 1;
 		}
 		brelse(nbh);
+		nbh = NULL;
 	} else /* blk check ok */
 		*bh = nbh;
 
 	bc->indir_count++;
-	if (found_dup)
+	if (found_dup) {
+		if (nbh)
+			brelse(nbh);
 		return 1; /* don't process the metadata again */
-	else
+	} else
 		fsck_blockmap_set(ip, block, _("indirect"),
 				  gfs2_indir_blk);
 
@@ -323,13 +326,17 @@ static int undo_check_metalist(struct gfs2_inode *ip, uint64_t block,
 			return 1;
 		}
 		brelse(nbh);
+		nbh = NULL;
 	} else /* blk check ok */
 		*bh = nbh;
 
 	bc->indir_count--;
-	if (found_dup)
+	if (found_dup) {
+		if (nbh)
+			brelse(nbh);
+		*bh = NULL;
 		return 1; /* don't process the metadata again */
-	else
+	} else
 		fsck_blockmap_set(ip, block, _("bad indirect"),
 				  gfs2_block_free);
 	return 0;
