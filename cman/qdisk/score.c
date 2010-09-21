@@ -75,22 +75,25 @@ restore_signals(void)
   Spin off a user-defined heuristic
  */
 static int
-fork_heuristic(struct h_data *h)
+fork_heuristic(struct h_data *h, struct timespec *now)
 {
 	int pid;
 	char *argv[4];
-	time_t now;
 
 	if (h->childpid) {	
 		errno = EINPROGRESS;
 		return -1;
 	}
 
-	now = time(NULL);
-	if (now < h->nextrun)
+	if (now->tv_sec < h->nextrun.tv_sec ||
+	    now->tv_nsec < h->nextrun.tv_nsec)
 		return 0;
 
-	h->nextrun = now + h->interval;
+	h->nextrun.tv_sec = now->tv_sec + h->interval;
+	h->nextrun.tv_nsec = now->tv_nsec;
+
+	h->failtime.tv_sec = now->tv_sec + h->maxtime;
+	h->failtime.tv_nsec = now->tv_nsec;
 
 	pid = fork();
 	if (pid < 0)
@@ -162,7 +165,7 @@ total_score(struct h_data *h, int max, int *score, int *maxscore)
   Check for response from a user-defined heuristic / script
  */
 static int
-check_heuristic(struct h_data *h, int block)
+check_heuristic(struct h_data *h, int block, struct timespec *now)
 {
 	int ret;
 	int status;
@@ -172,14 +175,40 @@ check_heuristic(struct h_data *h, int block)
 		return 0;
 
 	ret = waitpid(h->childpid, &status, block?0:WNOHANG);
-	if (!block && ret == 0)
+	if (!block && ret == 0) {
 		/* No children exited */
+
+		/* no timeout */
+		if (!h->maxtime)
+			return 0;
+
+		/* If we overran our timeout, the heuristic is dead */
+		if (now->tv_sec > h->failtime.tv_sec ||
+		    (now->tv_sec == h->failtime.tv_sec &&
+		     now->tv_nsec > h->failtime.tv_nsec)) {
+			h->misses = h->tko;
+			h->failed = ETIMEDOUT;
+			if (h->available) {
+				logt_print(LOG_INFO, "Heuristic: '%s' DOWN - "
+					"Exceeded timeout of %d seconds\n",
+					h->program, h->maxtime);
+				h->available = 0;
+			}
+		}
+
 		return 0;
+	}
 
 	h->childpid = 0;
 	if (ret < 0 && errno == ECHILD)
 		/* wrong child? */
 		goto miss;
+
+	/* Timed out previously; this run must be ignored.  */
+	if (h->failed) {
+		h->failed = 0;
+		goto miss;
+	}
 	if (!WIFEXITED(status)) {
 		ret = 0;
 		goto miss;
@@ -188,7 +217,7 @@ check_heuristic(struct h_data *h, int block)
 		ret = 0;
 		goto miss;
 	}
-	
+
 	/* Returned 0 and was not killed */
 	if (!h->available) {
 		h->available = 1;
@@ -222,10 +251,12 @@ miss:
 static int
 fork_heuristics(struct h_data *h, int max)
 {
+	struct timespec now;
 	int x;
 
+	clock_gettime(CLOCK_MONOTONIC, &now);
 	for (x = 0; x < max; x++)
-		fork_heuristic(&h[x]);
+		fork_heuristic(&h[x], &now);
 	return 0;
 }
 
@@ -236,11 +267,41 @@ fork_heuristics(struct h_data *h, int max)
 static int
 check_heuristics(struct h_data *h, int max, int block)
 {
+	struct timespec now;
 	int x;
 
+	clock_gettime(CLOCK_MONOTONIC, &now);
 	for (x = 0; x < max; x++)
-		check_heuristic(&h[x], block);
+		check_heuristic(&h[x], block, &now);
 	return 0;
+}
+
+
+/*
+ * absmax should be qdiskd (interval * (tko-1))
+ */
+static void
+auto_heuristic_timing(int *interval, int *tko, int absmax)
+{
+	if (!interval || ! tko)
+		return;
+
+	if (absmax < 3)
+		return;
+
+	if (absmax <= 4) {
+		*interval = 1;
+	} else if (absmax <= 22) {
+		*interval = 2;
+	} else if (absmax <= 39) {
+		*interval = 3;
+	} else if (absmax <= 50) {
+		*interval = 4;
+	} else {
+		*interval = 5;
+	}
+
+	*tko = absmax / (*interval);
 }
 
 
@@ -248,7 +309,7 @@ check_heuristics(struct h_data *h, int max, int block)
   Read configuration data from CCS into the array provided
  */
 int
-configure_heuristics(int ccsfd, struct h_data *h, int max)
+configure_heuristics(int ccsfd, struct h_data *h, int max, int maxtime)
 {
 	int x = 0;
 	char *val;
@@ -261,11 +322,14 @@ configure_heuristics(int ccsfd, struct h_data *h, int max)
 		h[x].program = NULL;
 		h[x].available = 0;
 		h[x].misses = 0;
-		h[x].interval = 2;
-		h[x].tko = 1;
+		auto_heuristic_timing(&h[x].interval, &h[x].tko, maxtime);
+		h[x].maxtime = maxtime;
 		h[x].score = 1;
 		h[x].childpid = 0;
-		h[x].nextrun = 0;
+		h[x].nextrun.tv_sec = 0;
+		h[x].nextrun.tv_nsec = 0;
+		h[x].failtime.tv_sec = 0;
+		h[x].failtime.tv_nsec = 0;
 
 		/* Get program */
 		snprintf(query, sizeof(query),

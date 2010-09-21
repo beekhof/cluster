@@ -10,19 +10,22 @@
 
 struct h_data {
 	char *	program;
+	struct timespec nextrun;
+	struct timespec failtime;
 	int	score;
 	int	available;
 	int	tko;
 	int	interval;
+	int	maxtime;
 	int	misses;
+	int	failed;
 	pid_t	childpid;
-	time_t	nextrun;
 };
 
 /*
    Grab score data from CCSD
  */
-int configure_heuristics(int ccsfd, struct h_data *hp, int max);
+int configure_heuristics(int ccsfd, struct h_data *hp, int max, int maxtime);
 
 /*
    Start the thread which runs the scoring applets

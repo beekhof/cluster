@@ -1843,7 +1843,11 @@ get_config_data(qd_ctx *ctx, struct h_data *h, int maxh, int *cfh)
 		goto out;
 	}
 
-	*cfh = configure_heuristics(ccsfd, h, maxh);
+	/* Heuristics need to report in 1 cycle before we need to 
+	 * report in so we can get their score.
+	 */
+	*cfh = configure_heuristics(ccsfd, h, maxh,
+				    ctx->qc_interval * (ctx->qc_tko - 1));
 
 	if (*cfh) {
 		if (ctx->qc_flags & RF_MASTER_WINS) {
