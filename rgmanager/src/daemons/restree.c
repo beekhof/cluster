@@ -1596,8 +1596,8 @@ _res_op_internal(resource_node_t __attribute__ ((unused)) **tree,
 			assert(node->rn_resource->r_incarnations >= 0);
 			if (node->rn_resource->r_incarnations > 0)
 				--node->rn_resource->r_incarnations;
-		} else if (node->rn_state != RES_DISABLED &&
-			   !(node->rn_flags & RF_QUIESCE)) {
+		} else if (rv != 0 && (node->rn_state != RES_DISABLED &&
+			   !(node->rn_flags & RF_QUIESCE))) {
 			node->rn_state = RES_FAILED;
 			pthread_mutex_unlock(&node->rn_resource->r_mutex);
 			return SFL_FAILURE;
