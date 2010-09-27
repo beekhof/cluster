@@ -85,6 +85,12 @@ static const char *corosync_exit_reason(signed char status)
 	case 16:
 		return "Required directory not present /var/lib/corosync.";
 		break;
+	case 17:
+		return "Could not acquire lock";
+		break;
+	case 18:
+		return "Another Corosync instance is already running";
+		break;
 	default:
 		sprintf(reason, "Error, reason code is %d", status);
 		return reason;
