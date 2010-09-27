@@ -521,11 +521,25 @@ stop_configfs()
 	fi
 }
 
+corosync_running()
+{
+	[ -f /var/run/corosync.pid ] || return 1
+
+	read corosync_pid foo < /var/run/corosync.pid
+	if [ "$(pidof corosync)" == "$corosync_pid" ];then
+		errmsg="Corosync Cluster Engine is already running"
+		return 0
+	fi
+
+	return 1
+}
+
 start_cman()
 {
 	check_exec cman_tool || return $?
 	cman_running && return 0
 	cman_checkconfig || return 1
+	corosync_running && return 1
 
 	tmpfile=$(mktemp -t cmanstartup.XXXXXXXXXX)
 	if [ -z "$tmpfile" ]; then
