@@ -489,11 +489,6 @@ int num_listeners(void)
 	return count;
 }
 
-static void sigint_handler(int ignored)
-{
-	quit_threads = 1;
-}
-
 int cman_init(struct corosync_api_v1 *api)
 {
 	int fd;
@@ -514,12 +509,10 @@ int cman_init(struct corosync_api_v1 *api)
 		return -2;
 
 	/* Shutdown trap */
-	sa.sa_handler = sigint_handler;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGTERM, &sa, NULL);
-
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGPIPE, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
 
 	return 0;
 }
