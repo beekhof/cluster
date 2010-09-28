@@ -940,6 +940,9 @@ start)
 ;;
 stop)
 	cmanremove=""
+	if [ -n "$2" ] && [ "$2" = "remove" ]; then
+		cmanremove=remove
+	fi
 	stop && rm -f $LOCK_FILE
 	if [ "$INITLOGLEVEL" = "quiet" ]; then
 		success
