@@ -2034,6 +2034,7 @@ static void do_process_transition(int nodeid, char *data)
 
 	/* Take into account any new expected_votes value that the new node has */
 	node->expected_votes = msg->expected_votes;
+	us->expected_votes = max(us->expected_votes, msg->expected_votes);
 
 	if (old_state != node->state || old_expected != node->expected_votes)
 		recalculate_quorum(0, 0);
@@ -2246,6 +2247,7 @@ void add_ais_node(int nodeid, uint64_t incar, int total_members)
 		gettimeofday(&node->join_time, NULL);
 		node->incarnation = incar;
 		node->state = NODESTATE_MEMBER;
+		node->leave_reason = 0;
 		cluster_members++;
 		recalculate_quorum(0, 0);
 	}
