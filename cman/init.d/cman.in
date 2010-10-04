@@ -553,8 +553,10 @@ start_cman()
 		sleep 0.2
 	done
 
+	sleep 2
+
 	if ! cman_running; then
-		errmsg="$(cat $tmpfile)"
+		errmsg="$(cat $tmpfile) Check cluster logs for details"
 		ret=1
 	else
 		if [ "$CONFIG_VALIDATION" = "WARN" ] && \
