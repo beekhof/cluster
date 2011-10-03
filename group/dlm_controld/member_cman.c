@@ -3,6 +3,8 @@
 #include <libcman.h>
 #include "libfenced.h"
 
+#include <crm/stonith-ng.h>
+
 static cman_handle_t	ch;
 static cman_handle_t	ch_admin;
 static cman_node_t      old_nodes[MAX_NODES];
@@ -20,6 +22,8 @@ void kick_node_from_cluster(int nodeid)
 			  nodeid);
 		cman_kill_node(ch_admin, nodeid);
 	}
+        /* Wrapper for dlopen() and friends */
+        stonith_api_kick_cs_helper(nodeid, 300, 1);
 }
 
 static int is_member(cman_node_t *node_list, int count, int nodeid)
@@ -259,6 +263,10 @@ int fence_node_time(int nodeid, uint64_t *last_fenced_time)
 		return rv;
 
 	*last_fenced_time = nodeinfo.last_fenced_time;
+        if(*last_fenced_time == 0) {
+            /* Wrapper for dlopen() and friends */
+            *last_fenced_time = stonith_api_time_cs_helper(nodeid, 0);
+        }
 	return 0;
 }
 
